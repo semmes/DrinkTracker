@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+xcuserdata/
+
+# Xcode per-user SwiftPM state (Package.resolved is committed on purpose,
+# so dependency versions stay pinned across machines)
+DrinkTracker.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+*.xcodeproj/*.xcworkspace/xcuserdata/
+
+# Claude Code — machine-local permissions, not shared config
+.claude/settings.local.json
+
+# Injected secrets / signing
+*.mobileprovision
+*.p12

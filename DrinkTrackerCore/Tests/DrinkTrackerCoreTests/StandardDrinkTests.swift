@@ -1,0 +1,205 @@
+import Foundation
+import Testing
+@testable import DrinkTrackerCore
+
+@Suite("Standard drink math")
+struct StandardDrinkTests {
+
+  @Test("US formula matches the brief exactly")
+  func usFormula() {
+    // volume_oz × (ABV / 100) ÷ 0.6
+    #expect(abs(StandardDrink.count(volumeOunces: 12, abvPercent: 5) - 1.0) < 0.0001)
+    #expect(abs(StandardDrink.count(volumeOunces: 5, abvPercent: 12) - 1.0) < 0.0001)
+    #expect(abs(StandardDrink.count(volumeOunces: 1.5, abvPercent: 40) - 1.0) < 0.0001)
+  }
+
+  @Test("Zero and negative inputs produce zero, not NaN")
+  func degenerateInputs() {
+    #expect(StandardDrink.count(volumeOunces: 0, abvPercent: 5) == 0)
+    #expect(StandardDrink.count(volumeOunces: 12, abvPercent: 0) == 0)
+    #expect(StandardDrink.count(volumeOunces: -12, abvPercent: 5) == 0)
+  }
+
+  @Test("US standard drink is 14 g of ethanol")
+  func usGrams() {
+    #expect(abs(Region.unitedStates.gramsPureAlcoholPerStandardDrink - 14.0) < 0.05)
+  }
+
+  @Test("UK and Australian units derive from their gram definitions")
+  func regionalUnits() {
+    #expect(Region.unitedKingdom.gramsPureAlcoholPerStandardDrink == 8)
+    #expect(Region.australia.gramsPureAlcoholPerStandardDrink == 10)
+
+    // A UK unit is smaller than a US standard drink, so the same pint counts for more.
+    let pintUS = StandardDrink.count(volumeOunces: 16, abvPercent: 5, region: .unitedStates)
+    let pintUK = StandardDrink.count(volumeOunces: 16, abvPercent: 5, region: .unitedKingdom)
+    let pintAU = StandardDrink.count(volumeOunces: 16, abvPercent: 5, region: .australia)
+    #expect(pintUK > pintAU)
+    #expect(pintAU > pintUS)
+  }
+
+  /// The brief's UK line reads "0.28 fl oz / 8g", but those two figures do not
+  /// describe the same quantity: 8 g of ethanol is ~0.343 US fl oz. The gram
+  /// figure matches the published UK unit, so that is what the code uses.
+  @Test("UK fl oz is derived from 8 g, not the brief's 0.28 figure")
+  func ukFluidOunceDiscrepancy() {
+    let derived = Region.unitedKingdom.flOzPureAlcoholPerStandardDrink
+    #expect(abs(derived - 0.3429) < 0.001)
+    #expect(abs(derived - 0.28) > 0.05)
+  }
+
+  @Test("Formatting drops trailing decimals on whole numbers")
+  func formatting() {
+    #expect(StandardDrink.formatted(1.0) == "1")
+    #expect(StandardDrink.formatted(2.44) == "2.4")
+    #expect(StandardDrink.formatted(0) == "0")
+    #expect(StandardDrink.liveEstimate(1.0) == "≈ 1 standard drink")
+    #expect(StandardDrink.liveEstimate(2.5) == "≈ 2.5 standard drinks")
+    #expect(StandardDrink.liveEstimate(1.0, region: .unitedKingdom) == "≈ 1 unit")
+  }
+}
+
+@Suite("Per-type defaults")
+struct DrinkTypeDefaultsTests {
+
+  @Test("Defaults match the brief's configuration table")
+  func defaultsTable() {
+    #expect(DrinkType.beer.defaultVolumeOunces == 12)
+    #expect(DrinkType.beer.defaultABVPercent == 5)
+    #expect(DrinkType.wine.defaultVolumeOunces == 5)
+    #expect(DrinkType.wine.defaultABVPercent == 12)
+    #expect(DrinkType.spirit.defaultVolumeOunces == 1)
+    #expect(DrinkType.spirit.defaultABVPercent == 40)
+    #expect(DrinkType.other.defaultVolumeOunces == 8)
+    #expect(DrinkType.other.defaultABVPercent == 10)
+  }
+
+  /// The brief states every default size/ABV pair should resolve to "almost
+  /// exactly 1.0" standard drinks, but two entries in its own table do not:
+  /// Spirit (1 oz @ 40% = 0.67) and Other (8 oz @ 10% = 1.33). This test pins
+  /// the current, as-written behaviour so the deviation is visible rather than
+  /// silently corrected. See README "Known spec discrepancies".
+  @Test("Beer and wine defaults hit 1.0; spirit and other do not")
+  func defaultsAgainstTheOneDrinkInvariant() {
+    func drinks(_ type: DrinkType) -> Double {
+      StandardDrink.count(
+        volumeOunces: type.defaultVolumeOunces,
+        abvPercent: type.defaultABVPercent
+      )
+    }
+    #expect(abs(drinks(.beer) - 1.0) < 0.01)
+    #expect(abs(drinks(.wine) - 1.0) < 0.01)
+    #expect(abs(drinks(.spirit) - 0.6667) < 0.01)
+    #expect(abs(drinks(.other) - 1.3333) < 0.01)
+  }
+
+  @Test("Only Other is custom-only")
+  func sizeOptions() {
+    #expect(DrinkType.beer.sizeOptions.count == 4)
+    #expect(DrinkType.wine.sizeOptions.count == 3)
+    #expect(DrinkType.spirit.sizeOptions.count == 4)
+    #expect(DrinkType.other.sizeOptions == [.custom])
+    for type in DrinkType.allCases {
+      #expect(type.sizeOptions.contains(.custom))
+    }
+  }
+}
+
+@Suite("Drink draft")
+struct DrinkDraftTests {
+
+  @Test("A fresh draft is immediately loggable with the type's defaults")
+  func freshDraft() {
+    let draft = DrinkDraft(type: .beer)
+    #expect(draft.volumeOunces == 12)
+    #expect(draft.abvPercent == 5)
+    #expect(draft.isABVExpanded == false)
+    #expect(draft.editingEntryID == nil)
+    #expect(abs(draft.standardDrinks(region: .unitedStates) - 1.0) < 0.0001)
+  }
+
+  @Test("Other opens on the Custom pill seeded with 8 oz")
+  func otherDraft() {
+    let draft = DrinkDraft(type: .other)
+    #expect(draft.selectedSize.isCustom)
+    #expect(draft.volumeOunces == 8)
+  }
+
+  @Test("Editing an entry restores its preset pill when one matches")
+  func editRestoresPreset() {
+    let entry = LoggedDrink(type: .beer, volumeOunces: 16, abvPercent: 6)
+    let draft = DrinkDraft(editing: entry)
+    #expect(draft.selectedSize.label == "16 oz pint")
+    #expect(draft.abvPercent == 6)
+    #expect(draft.editingEntryID == entry.id)
+  }
+
+  @Test("Editing an off-preset volume falls back to Custom")
+  func editFallsBackToCustom() {
+    let entry = LoggedDrink(type: .beer, volumeOunces: 13.5, abvPercent: 5)
+    let draft = DrinkDraft(editing: entry)
+    #expect(draft.selectedSize.isCustom)
+    #expect(draft.customVolumeOunces == 13.5)
+    #expect(draft.volumeOunces == 13.5)
+  }
+
+  @Test("Changing type resets size and ABV to the new type's defaults")
+  func changeType() {
+    var draft = DrinkDraft(type: .beer)
+    draft.abvPercent = 9
+    draft.changeType(to: .wine)
+    #expect(draft.volumeOunces == 5)
+    #expect(draft.abvPercent == 12)
+  }
+}
+
+@Suite("Trend aggregation")
+struct TrendSummaryTests {
+
+  private var calendar: Calendar {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(secondsFromGMT: 0)!
+    return cal
+  }
+
+  private func day(_ offset: Int, from reference: Date) -> Date {
+    calendar.date(byAdding: .day, value: offset, to: reference)!
+  }
+
+  @Test("Empty days are kept in the series with a zero total")
+  func continuousAxis() {
+    let today = Date(timeIntervalSince1970: 1_700_000_000)
+    let entries = [
+      LoggedDrink(loggedAt: today, type: .beer, volumeOunces: 12, abvPercent: 5),
+      LoggedDrink(loggedAt: day(-2, from: today), type: .wine, volumeOunces: 5, abvPercent: 12)
+    ]
+    let totals = TrendSummary.dailyTotals(
+      range: .week,
+      endingOn: today,
+      drinks: entries,
+      calendar: calendar
+    )
+    #expect(totals.count == 7)
+    let dates: [Date] = totals.map(\.date)
+    #expect(dates == dates.sorted())
+    #expect(abs(TrendSummary.sum(totals) - 2.0) < 0.0001)
+    #expect(TrendSummary.daysWithoutDrinks(totals) == 5)
+    #expect(abs(TrendSummary.dailyAverage(totals) - 2.0 / 7.0) < 0.0001)
+  }
+
+  @Test("Multiple entries on one day sum together")
+  func sameDaySum() {
+    let today = Date(timeIntervalSince1970: 1_700_000_000)
+    let entries = [
+      LoggedDrink(loggedAt: today, type: .beer, volumeOunces: 12, abvPercent: 5),
+      LoggedDrink(loggedAt: today, type: .beer, volumeOunces: 12, abvPercent: 5)
+    ]
+    #expect(abs(TrendSummary.total(for: today, in: entries, calendar: calendar) - 2.0) < 0.0001)
+  }
+
+  @Test("Averages over an empty series do not divide by zero")
+  func emptySeries() {
+    #expect(TrendSummary.dailyAverage([]) == 0)
+    #expect(TrendSummary.sum([]) == 0)
+  }
+}
