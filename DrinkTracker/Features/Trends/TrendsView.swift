@@ -39,7 +39,8 @@ struct TrendsView: View {
     TrendSummary.dailyTotals(
       range: range,
       endingOn: Date(),
-      drinks: allEntries.loggedDrinks
+      drinks: allEntries.loggedDrinks,
+      region: settings.effectiveRegion
     )
   }
 

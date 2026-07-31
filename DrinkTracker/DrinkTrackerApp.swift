@@ -12,19 +12,19 @@ struct DrinkTrackerApp: App {
   init() {
     AppTheme.install()
 
-    // CloudKit-backed by default so the log follows the user's existing iCloud
-    // account. There is no sign-in: if iCloud is unavailable the same store
-    // still works locally, which is why the failure below is non-fatal.
-    let schema = Schema([DrinkEntry.self])
+    // Lives in the App Group so the widget reads and writes the same store.
+    // CloudKit-backed so the log follows the user's existing iCloud account —
+    // there is no sign-in. If iCloud is unavailable the same store still works
+    // locally, which is why the failure below is non-fatal.
     do {
-      container = try ModelContainer(
-        for: schema,
-        configurations: ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
-      )
+      container = try SharedModelContainer.make()
     } catch {
       container = try! ModelContainer(
-        for: schema,
-        configurations: ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+        for: SharedModelContainer.schema,
+        configurations: ModelConfiguration(
+          schema: SharedModelContainer.schema,
+          cloudKitDatabase: .none
+        )
       )
     }
   }

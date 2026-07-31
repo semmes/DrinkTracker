@@ -108,6 +108,39 @@ struct DrinkTypeDefaultsTests {
 @Suite("Drink draft")
 struct DrinkDraftTests {
 
+  /// Region is a display lens, not a property of the drink. An entry logged under
+  /// one region must re-express in whatever region the caller asks for, otherwise
+  /// totals would sum UK units and US standard drinks together.
+  @Test("Totals use the caller's region, not the one stamped on the entry")
+  func regionIsADisplayLens() {
+    let loggedUnderUK = LoggedDrink(
+      type: .beer,
+      volumeOunces: 12,
+      abvPercent: 5,
+      region: .unitedKingdom
+    )
+    #expect(abs(loggedUnderUK.standardDrinks(in: .unitedStates) - 1.0) < 0.001)
+    #expect(abs(loggedUnderUK.standardDrinks(in: .unitedKingdom) - 1.75) < 0.01)
+    #expect(abs(loggedUnderUK.standardDrinks(in: .australia) - 1.4) < 0.01)
+
+    // The underlying alcohol is identical regardless of the lens.
+    #expect(abs(loggedUnderUK.gramsOfAlcohol - 14.0) < 0.05)
+  }
+
+  @Test("A mixed-region history sums coherently in one unit")
+  func mixedHistorySumsCoherently() {
+    let drinks = [
+      LoggedDrink(type: .beer, volumeOunces: 12, abvPercent: 5, region: .unitedStates),
+      LoggedDrink(type: .beer, volumeOunces: 12, abvPercent: 5, region: .unitedKingdom)
+    ]
+    // Two identical beers are two US standard drinks, whatever they were logged under.
+    let inUS = drinks.reduce(0) { $0 + $1.standardDrinks(in: .unitedStates) }
+    #expect(abs(inUS - 2.0) < 0.001)
+
+    let inUK = drinks.reduce(0) { $0 + $1.standardDrinks(in: .unitedKingdom) }
+    #expect(abs(inUK - 3.5) < 0.02)
+  }
+
   @Test("A fresh draft is immediately loggable with the type's defaults")
   func freshDraft() {
     let draft = DrinkDraft(type: .beer)
@@ -177,6 +210,7 @@ struct TrendSummaryTests {
       range: .week,
       endingOn: today,
       drinks: entries,
+      region: .unitedStates,
       calendar: calendar
     )
     #expect(totals.count == 7)
@@ -194,7 +228,13 @@ struct TrendSummaryTests {
       LoggedDrink(loggedAt: today, type: .beer, volumeOunces: 12, abvPercent: 5),
       LoggedDrink(loggedAt: today, type: .beer, volumeOunces: 12, abvPercent: 5)
     ]
-    #expect(abs(TrendSummary.total(for: today, in: entries, calendar: calendar) - 2.0) < 0.0001)
+    let total = TrendSummary.total(
+      for: today,
+      in: entries,
+      region: .unitedStates,
+      calendar: calendar
+    )
+    #expect(abs(total - 2.0) < 0.0001)
   }
 
   @Test("Averages over an empty series do not divide by zero")

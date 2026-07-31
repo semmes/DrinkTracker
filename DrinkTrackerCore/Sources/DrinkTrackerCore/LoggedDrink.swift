@@ -12,8 +12,13 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
   public var type: DrinkType
   public var volumeOunces: Double
   public var abvPercent: Double
-  /// The region definition in effect when this drink was logged, so historical
-  /// totals don't shift if the user later changes the setting.
+  /// The region in effect when this drink was logged.
+  ///
+  /// Provenance only — it is deliberately *not* used to compute totals. Volume and
+  /// ABV are the physical facts; a region is just the unit those facts get
+  /// expressed in, so totals are always computed in one consistent region chosen by
+  /// the caller. Summing entries by their own stored regions would add UK units to
+  /// US standard drinks, which is meaningless.
   public var region: Region
   /// UUID of the HealthKit sample written for this drink, if any.
   public var healthKitSampleID: UUID?
@@ -36,8 +41,12 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
     self.healthKitSampleID = healthKitSampleID
   }
 
-  /// This drink's contribution to the daily total.
-  public var standardDrinks: Double {
+  /// This drink's contribution to a daily total, expressed in `region`'s units.
+  ///
+  /// Callers pass the user's *current* region, not `self.region`, so changing the
+  /// setting re-expresses the whole history in the new unit rather than leaving a
+  /// pile of mixed, unaddable numbers.
+  public func standardDrinks(in region: Region) -> Double {
     StandardDrink.count(volumeOunces: volumeOunces, abvPercent: abvPercent, region: region)
   }
 

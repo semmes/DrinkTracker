@@ -39,15 +39,16 @@ public enum TrendRange: String, CaseIterable, Identifiable, Sendable {
 /// queries so the numbers behind the charts are directly testable.
 public enum TrendSummary {
 
-  /// Total standard drinks logged on a given calendar day.
+  /// Total standard drinks logged on a given calendar day, in `region`'s units.
   public static func total(
     for day: Date,
     in drinks: [LoggedDrink],
+    region: Region,
     calendar: Calendar = .current
   ) -> Double {
     drinks
       .filter { calendar.isDate($0.loggedAt, inSameDayAs: day) }
-      .reduce(0) { $0 + $1.standardDrinks }
+      .reduce(0) { $0 + $1.standardDrinks(in: region) }
   }
 
   /// One `DayTotal` per day across the range ending on `endingOn`, oldest first.
@@ -58,6 +59,7 @@ public enum TrendSummary {
     range: TrendRange,
     endingOn endDate: Date,
     drinks: [LoggedDrink],
+    region: Region,
     calendar: Calendar = .current
   ) -> [DayTotal] {
     let lastDay = calendar.startOfDay(for: endDate)
@@ -65,7 +67,10 @@ public enum TrendSummary {
       guard let day = calendar.date(byAdding: .day, value: -offset, to: lastDay) else {
         return nil
       }
-      return DayTotal(date: day, standardDrinks: total(for: day, in: drinks, calendar: calendar))
+      return DayTotal(
+        date: day,
+        standardDrinks: total(for: day, in: drinks, region: region, calendar: calendar)
+      )
     }
   }
 

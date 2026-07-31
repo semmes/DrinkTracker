@@ -60,17 +60,32 @@ accessibility behaviour for free.
 ## Layout
 
 ```
-DrinkTracker.xcodeproj
-DrinkTrackerCore/          Swift package — pure domain logic, no UI, no persistence
-  Sources/                   Region, DrinkType, StandardDrink, LoggedDrink,
-                             DrinkDraft, TrendSummary
-  Tests/                     17 tests, all passing
-DrinkTracker/             App target
-  DesignSystem/              AppTheme, GlassTokens, FlowLayout
-  Persistence/               DrinkEntry (SwiftData), DrinkStore
-  Services/                  HealthKitService, AppSettings
-  Features/                  Onboarding, Today, DrinkDetail, Trends
+DrinkTracker.xcodeproj      two targets: the app and the widget extension
+DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persistence
+  Sources/                    Region, DrinkType, StandardDrink, LoggedDrink,
+                              DrinkDraft, TrendSummary
+  Tests/                      19 tests, all passing
+Shared/                     compiled into BOTH targets
+                              AppGroup, AppSettings, DrinkEntry (SwiftData),
+                              DrinkRepository, LogDrinkIntent
+DrinkTracker/               App target
+  DesignSystem/               AppTheme, GlassTokens, FlowLayout
+  Persistence/                DrinkStore (HealthKit-aware wrapper)
+  Services/                   HealthKitService, DrinkTrackerShortcuts
+  Features/                   Onboarding, Today, DrinkDetail, Trends, Settings
+DrinkTrackerWidget/         Widget extension target
 ```
+
+`Shared/` sits outside both file-system-synchronized groups and is added to each
+target's compile phase explicitly. That's deliberate: a synchronized folder belongs
+to exactly one target, so shared sources have to live outside them.
+
+### App Group
+
+The app and widget share `group.com.example.DrinkTracker` — both the SwiftData store
+and `AppSettings`. **Both targets must open the store with identical configuration.**
+A CloudKit-mirrored store opened without CloudKit still *reads* fine but silently
+fails to *write*, which is why `SharedModelContainer.make()` takes no options.
 
 The domain layer is a separate package on purpose: SwiftData's `@Model` macro only
 expands inside Xcode, so keeping the math in plain value types makes it testable
@@ -98,9 +113,12 @@ Each is a one-line change if you want it to go the other way.
    8g". 8 g of ethanol is ~0.343 US fl oz, not 0.28 — and 0.28 fl oz is ~6.5 g. The
    published UK unit is 8 g, so the code derives from grams and ignores 0.28.
 
-3. **Region is stored per-entry.** The brief doesn't say what happens to historical
-   totals when someone changes their region. Entries record the region in effect when
-   logged, so past numbers don't silently shift.
+3. **Region is a display lens, not a property of the drink.** The brief doesn't say
+   what happens to history when someone changes region. Entries record the region
+   they were logged under as provenance, but totals are always computed in the
+   *current* region. The alternative — freezing each entry's units — makes totals
+   meaningless, since it sums UK units and US standard drinks together. Changing the
+   setting re-expresses history; it doesn't alter what was drunk.
 
 ## Notes
 
@@ -119,12 +137,36 @@ Each is a one-line change if you want it to go the other way.
   The chart's average line is labelled "Your average", never a target, and the rest-day
   card counts days without framing them as wins.
 
+## Known issue: the widget's one-tap logging is unverified
+
+The widget builds, installs, registers, appears in the gallery, and **reads** the
+shared store correctly — it shows the same live total as the app, in the same units,
+which proves the App Group and shared SwiftData store work.
+
+**Tapping its Beer button does not log a drink**, and I could not determine why.
+What is established:
+
+- `LogDrinkIntent` is present in the extension's `Metadata.appintents`, so it is
+  registered.
+- `perform()` is never entered — `Diagnostics.lastWidgetLog` stays absent after a tap,
+  and the breadcrumb is the very first line of the method.
+- It is not a crash; no crash report is generated.
+- An earlier build did reach `appintents:Execution` and produced a runtime-issue
+  fault, which is what led to the CloudKit-configuration fix above. Since that fix,
+  dispatch stopped happening at all.
+- Ruled out: stale widget archive (the widget visibly re-rendered against each new
+  build), `.buttonStyle(.plain)` suppressing interaction (removed), and App Group
+  availability (defaults and store are both shared correctly).
+
+This may be a limitation of synthetic touch injection against a widget's
+out-of-process view hierarchy in the Simulator rather than a defect in the app —
+**worth trying by hand on a real device before debugging further.** After a tap,
+check `AppGroup.defaults.string(forKey: Diagnostics.lastWidgetLogKey)`: absent means
+the intent never dispatched, `failed: …` means the write itself broke.
+
 ## Not built
 
-- **Home-screen quick-log widget.** Called out in the plan as not-yet-designed; needs
-  its own WidgetKit extension target and an App Group so the widget and app share the
-  SwiftData store.
-- **A Settings screen.** The region setting is captured during onboarding and stored,
-  but the brief's "you can set this later" has nowhere to happen yet.
-- **UK/Australia unit swap is implemented but unreachable** past onboarding, for the
-  same reason.
+- **A Settings screen exists now**, but only carries the region setting and Health
+  status. There is no way to view or delete individual past entries.
+- **The widget offers no size/ABV choice** — one tap logs the type's default. That is
+  intentional (it mirrors the sheet's fast path), and corrections happen in the app.

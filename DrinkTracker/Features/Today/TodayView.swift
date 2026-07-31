@@ -17,6 +17,9 @@ struct TodayView: View {
 
   @State private var draft: DrinkDraft?
   @State private var lastLogged: LoggedDrink?
+  @State private var isShowingSettings = false
+
+  @Environment(\.scenePhase) private var scenePhase
 
   init() {
     let startOfDay = Calendar.current.startOfDay(for: Date())
@@ -44,6 +47,14 @@ struct TodayView: View {
           }
           .accessibilityLabel("Trends")
         }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            isShowingSettings = true
+          } label: {
+            Image(systemName: "gearshape")
+          }
+          .accessibilityLabel("Settings")
+        }
       }
       .sheet(item: $draft) { current in
         DrinkDetailSheet(draft: current) { saved in
@@ -53,13 +64,30 @@ struct TodayView: View {
           draft = nil
         }
       }
+      .sheet(isPresented: $isShowingSettings) {
+        SettingsView()
+      }
+      .task { await backfillHealthKit() }
+      .onChange(of: scenePhase) { _, phase in
+        // Anything logged from the widget while the app was away lands without a
+        // Health sample; sweep those up on return.
+        if phase == .active {
+          Task { await backfillHealthKit() }
+        }
+      }
     }
+  }
+
+  private func backfillHealthKit() async {
+    await DrinkStore(context: context, health: health).backfillHealthKit()
   }
 
   // MARK: - Primary metric
 
   private var total: Double {
-    todaysEntries.loggedDrinks.reduce(0) { $0 + $1.standardDrinks }
+    todaysEntries.loggedDrinks.reduce(0) {
+      $0 + $1.standardDrinks(in: settings.effectiveRegion)
+    }
   }
 
   private var metric: some View {
