@@ -18,6 +18,9 @@ struct SettingsView: View {
           regionSection
           healthSection
           aboutSection
+          #if DEBUG
+          diagnosticsSection
+          #endif
         }
         .screenMargin()
         .padding(.vertical, GlassTokens.Spacing.section)
@@ -111,6 +114,50 @@ struct SettingsView: View {
       "Your log is kept in the app."
     }
   }
+
+  // MARK: - Diagnostics
+
+  #if DEBUG
+  /// Debug builds only — never ships.
+  ///
+  /// Exists for one job: telling you why a widget tap did nothing. On a device you
+  /// can't read the App Group's container, and the extension's console output is
+  /// largely unreadable, so the breadcrumb it leaves is surfaced here instead.
+  private var diagnosticsSection: some View {
+    SettingsSection(
+      title: "Diagnostics (debug build)",
+      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke."
+    ) {
+      VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+        diagnosticRow(
+          "App Group",
+          value: AppGroup.isAvailable ? "shared" : "UNAVAILABLE"
+        )
+        diagnosticRow("Group ID", value: AppGroup.identifier)
+        diagnosticRow(
+          "Last widget tap",
+          value: Diagnostics.lastWidgetLog ?? "never ran"
+        )
+      }
+      .padding(GlassTokens.Spacing.cardPadding)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control)
+    }
+  }
+
+  private func diagnosticRow(_ label: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 1) {
+      Text(label)
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+      Text(value)
+        .font(.caption.monospaced())
+        .foregroundStyle(.primary)
+        .textSelection(.enabled)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+  #endif
 
   // MARK: - About
 

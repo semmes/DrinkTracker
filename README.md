@@ -199,9 +199,30 @@ What is established:
 
 This may be a limitation of synthetic touch injection against a widget's
 out-of-process view hierarchy in the Simulator rather than a defect in the app —
-**worth trying by hand on a real device before debugging further.** After a tap,
-check `AppGroup.defaults.string(forKey: Diagnostics.lastWidgetLogKey)`: absent means
-the intent never dispatched, `failed: …` means the write itself broke.
+**worth trying by hand on a real device before debugging further.**
+
+### How to diagnose it on a device
+
+**Settings → Diagnostics** (debug builds only) shows the App Group status and what
+the widget's intent did last:
+
+| Reading | Meaning |
+|---|---|
+| `never ran` | The tap never reached the intent. The fault is dispatch, not the write. |
+| `entered` / `container-opened` | It started and died partway — the step name says where. |
+| `failed: …` | The intent ran and the write threw. The error is shown. |
+| `saved` | It worked. |
+
+**Isolate it first with Shortcuts.** The app registers "Log a beer in Drink Tracker"
+as an App Shortcut, which runs the *same* `perform()` body in the app's process
+rather than the extension's. Run it from the Shortcuts app or by asking Siri:
+
+- **It logs a drink** → the intent and the SwiftData write are fine, and the fault is
+  specifically the widget button's dispatch.
+- **It fails** → the intent itself is broken, and the widget is a red herring.
+
+This test can't be done in the Simulator: Shortcuts isn't installed there, which is
+why it's still outstanding.
 
 ## Logging several of the same drink
 
