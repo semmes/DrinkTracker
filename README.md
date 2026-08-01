@@ -203,9 +203,28 @@ out-of-process view hierarchy in the Simulator rather than a defect in the app �
 check `AppGroup.defaults.string(forKey: Diagnostics.lastWidgetLogKey)`: absent means
 the intent never dispatched, `failed: …` means the write itself broke.
 
+## Correcting the log
+
+Logging is one tap from the widget and two from the app, so logging the wrong thing
+is easy — correcting it has to be just as easy.
+
+- **Today** lists what you've logged today under the metric. Swipe left to remove,
+  swipe right or tap to edit.
+- **History** (the list icon) shows every day, grouped, with the day's total in each
+  header. Same swipe actions.
+- **Removing is undoable** for 10 seconds via a bar at the bottom. Undo re-saves the
+  same entry by id, so it returns to its original position and time rather than
+  appearing as a new drink at the current time. It also rewrites the HealthKit
+  sample the deletion retired.
+- **Adding a forgotten drink**: the `+` in History opens the sheet with a drink-type
+  picker and a date/time control, so it lands where it actually happened.
+
+The quick-add path is deliberately untouched by this: no type picker, no time
+control, still two taps. The extra controls appear only when editing an existing
+entry or adding one retroactively — the cases where "now" is the wrong answer.
+
 ## Not built
 
-- **A Settings screen exists now**, but only carries the region setting and Health
-  status. There is no way to view or delete individual past entries.
 - **The widget offers no size/ABV choice** — one tap logs the type's default. That is
   intentional (it mirrors the sheet's fast path), and corrections happen in the app.
+- **No bulk edit or export.** Entries are managed one at a time.

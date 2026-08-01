@@ -237,6 +237,43 @@ struct TrendSummaryTests {
     #expect(abs(total - 2.0) < 0.0001)
   }
 
+  @Test("Grouping puts newest day first and newest drink first within a day")
+  func grouping() {
+    let today = Date(timeIntervalSince1970: 1_700_000_000)
+    let earlier = today.addingTimeInterval(-3600)
+    let twoDaysAgo = day(-2, from: today)
+
+    let groups = TrendSummary.groupedByDay(
+      [
+        LoggedDrink(loggedAt: earlier, type: .beer, volumeOunces: 12, abvPercent: 5),
+        LoggedDrink(loggedAt: twoDaysAgo, type: .wine, volumeOunces: 5, abvPercent: 12),
+        LoggedDrink(loggedAt: today, type: .spirit, volumeOunces: 1.5, abvPercent: 40)
+      ],
+      calendar: calendar
+    )
+
+    #expect(groups.count == 2)
+    #expect(groups[0].day > groups[1].day)
+    // Newest first within the day: the spirit was logged after the beer.
+    #expect(groups[0].drinks.map(\.type) == [.spirit, .beer])
+    #expect(abs(groups[0].total(in: .unitedStates) - 2.0) < 0.001)
+  }
+
+  @Test("Grouping omits days with nothing logged")
+  func groupingOmitsEmptyDays() {
+    let today = Date(timeIntervalSince1970: 1_700_000_000)
+    let groups = TrendSummary.groupedByDay(
+      [
+        LoggedDrink(loggedAt: today, type: .beer, volumeOunces: 12, abvPercent: 5),
+        LoggedDrink(loggedAt: day(-5, from: today), type: .beer, volumeOunces: 12, abvPercent: 5)
+      ],
+      calendar: calendar
+    )
+    // Five days apart, but only the two days with entries appear.
+    #expect(groups.count == 2)
+    #expect(TrendSummary.groupedByDay([], calendar: calendar).isEmpty)
+  }
+
   @Test("Averages over an empty series do not divide by zero")
   func emptySeries() {
     #expect(TrendSummary.dailyAverage([]) == 0)

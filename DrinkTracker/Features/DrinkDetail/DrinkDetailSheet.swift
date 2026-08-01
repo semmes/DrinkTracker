@@ -20,9 +20,16 @@ struct DrinkDetailSheet: View {
 
   private let onLogged: (LoggedDrink) -> Void
   private let onCancel: () -> Void
+  /// Whether to offer a time picker.
+  ///
+  /// Off for the quick-add path, which must stay at two taps — the time is simply
+  /// "now". On when editing an entry or adding one you forgot, where the whole
+  /// point is that it didn't happen just now.
+  private let showsTimeControl: Bool
 
   init(
     draft: DrinkDraft,
+    showsTimeControl: Bool = false,
     onLogged: @escaping (LoggedDrink) -> Void,
     onCancel: @escaping () -> Void
   ) {
@@ -30,6 +37,8 @@ struct DrinkDetailSheet: View {
     _customVolumeText = State(
       initialValue: LoggedDrink.displayOunces(draft.customVolumeOunces)
     )
+    // Editing an existing entry always exposes the time, however it was opened.
+    self.showsTimeControl = showsTimeControl || draft.editingEntryID != nil
     self.onLogged = onLogged
     self.onCancel = onCancel
   }
@@ -39,8 +48,10 @@ struct DrinkDetailSheet: View {
       header
       ScrollView {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.section) {
+          typeSection
           sizeSection
           abvSection
+          if showsTimeControl { timeSection }
         }
         .screenMargin()
         .padding(.top, GlassTokens.Spacing.regular)
@@ -87,6 +98,58 @@ struct DrinkDetailSheet: View {
     }
     .screenMargin()
     .padding(.top, GlassTokens.Spacing.section)
+  }
+
+  // MARK: - Type
+
+  /// Only shown alongside the time control — in the quick-add path the type came
+  /// from the button that opened the sheet, and a picker there would be a second
+  /// way to do something already done.
+  @ViewBuilder
+  private var typeSection: some View {
+    if showsTimeControl {
+      VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
+        SectionLabel("Drink")
+        Picker("Drink", selection: typeBinding) {
+          ForEach(DrinkType.allCases) { type in
+            Text(type.displayName).tag(type)
+          }
+        }
+        .pickerStyle(.segmented)
+      }
+    }
+  }
+
+  /// Changing type resets size and ABV to that type's defaults, so the estimate
+  /// never shows a wine volume at spirit strength.
+  private var typeBinding: Binding<DrinkType> {
+    Binding(
+      get: { draft.type },
+      set: { newType in
+        withAnimation(.snappy) {
+          draft.changeType(to: newType)
+          customVolumeText = LoggedDrink.displayOunces(draft.customVolumeOunces)
+        }
+      }
+    )
+  }
+
+  // MARK: - Time
+
+  private var timeSection: some View {
+    VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
+      SectionLabel("When")
+      DatePicker(
+        "When",
+        selection: $draft.loggedAt,
+        // Future drinks aren't a thing worth supporting; everything else is open
+        // so a forgotten night can still be recorded.
+        in: ...Date(),
+        displayedComponents: [.date, .hourAndMinute]
+      )
+      .labelsHidden()
+      .datePickerStyle(.compact)
+    }
   }
 
   // MARK: - Size

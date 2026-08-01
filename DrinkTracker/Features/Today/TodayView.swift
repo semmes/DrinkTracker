@@ -18,6 +18,7 @@ struct TodayView: View {
   @State private var draft: DrinkDraft?
   @State private var lastLogged: LoggedDrink?
   @State private var isShowingSettings = false
+  @State private var deletion = DeletionCoordinator()
 
   @Environment(\.scenePhase) private var scenePhase
 
@@ -28,17 +29,50 @@ struct TodayView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollView {
-        VStack(spacing: GlassTokens.Spacing.block) {
-          metric
-          quickAddRow
+      // A List rather than a ScrollView so today's entries get native
+      // swipe-to-delete. The metric and quick-add row sit in a chrome-less first
+      // section so the screen still reads as the original design.
+      List {
+        Section {
+          VStack(spacing: GlassTokens.Spacing.block) {
+            metric
+            quickAddRow
+          }
+          .padding(.top, GlassTokens.Spacing.tight)
         }
-        .screenMargin()
-        .padding(.top, GlassTokens.Spacing.section)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .listRowInsets(EdgeInsets(
+          top: 0,
+          leading: GlassTokens.Spacing.screenMargin,
+          bottom: GlassTokens.Spacing.section,
+          trailing: GlassTokens.Spacing.screenMargin
+        ))
+
+        todaysDrinksSection
       }
+      .listStyle(.plain)
+      .scrollContentBackground(.hidden)
       .scrollBounceBehavior(.basedOnSize)
       .navigationTitle("Today")
+      .safeAreaInset(edge: .bottom) {
+        if let drink = deletion.recentlyDeleted {
+          UndoDeleteBar(drink: drink) {
+            Task { await deletion.undo(using: store) }
+          }
+          .padding(.bottom, GlassTokens.Spacing.tight)
+        }
+      }
+      .animation(.smooth(duration: 0.25), value: deletion.recentlyDeleted)
       .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          NavigationLink {
+            HistoryView()
+          } label: {
+            Image(systemName: "list.bullet")
+          }
+          .accessibilityLabel("History")
+        }
         ToolbarItem(placement: .topBarTrailing) {
           NavigationLink {
             TrendsView()
@@ -78,8 +112,52 @@ struct TodayView: View {
     }
   }
 
+  private var store: DrinkStore {
+    DrinkStore(context: context, health: health)
+  }
+
   private func backfillHealthKit() async {
-    await DrinkStore(context: context, health: health).backfillHealthKit()
+    await store.backfillHealthKit()
+  }
+
+  // MARK: - Today's drinks
+
+  /// Today's entries, newest first, each removable and editable in place.
+  ///
+  /// Logging by accident is a one-tap mistake — from the quick-add row or the
+  /// widget — so undoing it should be visible on the same screen rather than
+  /// buried in History.
+  @ViewBuilder
+  private var todaysDrinksSection: some View {
+    let drinks = todaysEntries.loggedDrinks
+    if !drinks.isEmpty {
+      Section {
+        ForEach(drinks) { drink in
+          DrinkRow(drink: drink, region: settings.effectiveRegion)
+            .contentShape(.rect)
+            .onTapGesture { draft = DrinkDraft(editing: drink) }
+            .swipeActions(edge: .trailing) {
+              Button(role: .destructive) {
+                Task { await deletion.delete(drink, using: store) }
+              } label: {
+                Label("Remove", systemImage: "trash")
+              }
+            }
+            .swipeActions(edge: .leading) {
+              Button {
+                draft = DrinkDraft(editing: drink)
+              } label: {
+                Label("Edit", systemImage: "pencil")
+              }
+              .tint(.accentColor)
+            }
+        }
+      } header: {
+        Text("Logged today")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+    }
   }
 
   // MARK: - Primary metric
