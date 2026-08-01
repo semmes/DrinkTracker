@@ -203,6 +203,40 @@ out-of-process view hierarchy in the Simulator rather than a defect in the app �
 check `AppGroup.defaults.string(forKey: Diagnostics.lastWidgetLogKey)`: absent means
 the intent never dispatched, `failed: …` means the write itself broke.
 
+## Logging several of the same drink
+
+Requested as "party mode". Built as **repeat logging**, deliberately named neutrally
+— see "A note on naming" below.
+
+- **One-tap repeat.** Once something is logged today, a row appears under quick-add
+  reading "Another beer · 12oz · 5%". One tap logs an identical drink at the current
+  time. It's a *new entry*, not an edit, so the original is untouched.
+- **Quantity.** The drink sheet has a "How many" stepper (1–12). The live estimate
+  and the button both reflect it — "≈ 3 standard drinks", "Log 3 drinks".
+
+Quantity saves **N separate entries**, not one entry with a count. That matters: each
+stays individually editable and removable, gets its own HealthKit sample, and the
+history stays honest. Verified — logging 3 wines produced three rows, and removing
+one took the total from 8.9 to 7.9 while leaving the other two.
+
+The stepper sits at 1 unless touched, so the two-tap fast path is unaffected. It's
+hidden when editing, where fanning one entry into several would be a strange thing
+for an edit to do.
+
+### A note on naming
+
+The brief cites **App Store guideline 1.4.3** (apps encouraging excessive alcohol
+consumption) and rules out framing that reads as encouragement, challenge, or reward
+for volume. "Party mode" reads as celebratory in a way "Repeat" doesn't, and on an
+alcohol-tracking app that is the kind of label that attracts review attention.
+
+The *functionality* is squarely on the right side of that line — friction causes
+under-logging, and under-logging defeats "an accurate answer to how much am I
+actually drinking". Only the label was at issue, so the feature is complete and the
+copy is factual: "Another beer", "How many", "3 of these". If you'd rather call it
+Party Mode, the user-visible strings are in `TodayView.repeatControl` and
+`DrinkDetailSheet.quantitySection`.
+
 ## Correcting the log
 
 Logging is one tap from the widget and two from the app, so logging the wrong thing

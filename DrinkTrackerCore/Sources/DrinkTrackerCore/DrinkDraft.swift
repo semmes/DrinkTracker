@@ -20,6 +20,16 @@ public struct DrinkDraft: Equatable, Sendable {
   /// move it back.
   public var loggedAt: Date
 
+  /// How many identical drinks this draft records.
+  ///
+  /// For catching up after several of the same thing. Each one is still saved as
+  /// its own entry, so they stay individually editable and removable — this is a
+  /// shortcut for logging, not a "quantity" attribute on a single drink.
+  ///
+  /// Always 1 when editing: turning one existing entry into several by editing it
+  /// would be a confusing thing for an edit to do.
+  public var quantity: Int = 1
+
   public init(type: DrinkType, loggedAt: Date = Date()) {
     self.type = type
     self.selectedSize = type.defaultSizeOption
@@ -55,6 +65,37 @@ public struct DrinkDraft: Equatable, Sendable {
       abvPercent: abvPercent,
       region: region
     )
+  }
+
+  /// One `LoggedDrink` per unit of `quantity`, each with its own identity.
+  ///
+  /// Timestamps are staggered by a second so list ordering is deterministic rather
+  /// than jittering between equal keys. That second is a tie-breaker, not a claim
+  /// about when each drink was actually finished.
+  public func makeLoggedDrinks(region: Region) -> [LoggedDrink] {
+    guard editingEntryID == nil else { return [makeLoggedDrink(region: region)] }
+    let count = max(1, quantity)
+    return (0..<count).map { index in
+      LoggedDrink(
+        id: UUID(),
+        loggedAt: loggedAt.addingTimeInterval(Double(index)),
+        type: type,
+        volumeOunces: volumeOunces,
+        abvPercent: abvPercent,
+        region: region
+      )
+    }
+  }
+
+  /// A draft that repeats an already-logged drink exactly, at a new time.
+  ///
+  /// Used by the one-tap repeat control: same type, size, and strength, but a new
+  /// entry rather than an edit of the original.
+  public static func repeating(_ drink: LoggedDrink, at date: Date = Date()) -> DrinkDraft {
+    var draft = DrinkDraft(editing: drink)
+    draft.editingEntryID = nil
+    draft.loggedAt = date
+    return draft
   }
 
   public var volumeOunces: Double {

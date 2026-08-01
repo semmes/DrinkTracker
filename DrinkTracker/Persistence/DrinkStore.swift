@@ -38,6 +38,19 @@ struct DrinkStore {
     return drink
   }
 
+  /// Saves several drinks in one go, returning the last for the "just logged" line.
+  ///
+  /// Each is written individually so every one gets its own HealthKit sample and
+  /// stays separately editable.
+  @discardableResult
+  func save(_ drinks: [LoggedDrink]) async -> LoggedDrink? {
+    var saved: LoggedDrink?
+    for drink in drinks {
+      saved = await save(drink)
+    }
+    return saved
+  }
+
   func delete(_ drink: LoggedDrink) async {
     if let sampleID = drink.healthKitSampleID {
       await health.deleteSample(id: sampleID)

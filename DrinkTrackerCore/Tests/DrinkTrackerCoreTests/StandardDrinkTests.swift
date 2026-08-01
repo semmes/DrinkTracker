@@ -176,6 +176,58 @@ struct DrinkDraftTests {
     #expect(draft.volumeOunces == 13.5)
   }
 
+  @Test("Quantity produces that many separate entries with distinct identities")
+  func quantityMakesSeparateEntries() {
+    var draft = DrinkDraft(type: .beer)
+    draft.quantity = 3
+    let drinks = draft.makeLoggedDrinks(region: .unitedStates)
+
+    #expect(drinks.count == 3)
+    // Distinct ids, so each stays individually editable and removable.
+    #expect(Set(drinks.map(\.id)).count == 3)
+    // Same drink, so they contribute equally.
+    #expect(drinks.allSatisfy { $0.volumeOunces == 12 && $0.abvPercent == 5 })
+    #expect(abs(drinks.reduce(0) { $0 + $1.standardDrinks(in: .unitedStates) } - 3.0) < 0.001)
+    // Staggered so ordering is deterministic, but only just.
+    let times = drinks.map(\.loggedAt).sorted()
+    #expect(times == drinks.map(\.loggedAt))
+    #expect(times.last!.timeIntervalSince(times.first!) == 2)
+  }
+
+  @Test("Quantity is ignored when editing, and never goes below one")
+  func quantityBounds() {
+    let existing = LoggedDrink(type: .wine, volumeOunces: 5, abvPercent: 12)
+    var editing = DrinkDraft(editing: existing)
+    editing.quantity = 4
+    // Editing one entry must not fan it out into four.
+    #expect(editing.makeLoggedDrinks(region: .unitedStates).count == 1)
+    #expect(editing.makeLoggedDrinks(region: .unitedStates).first?.id == existing.id)
+
+    var zero = DrinkDraft(type: .beer)
+    zero.quantity = 0
+    #expect(zero.makeLoggedDrinks(region: .unitedStates).count == 1)
+  }
+
+  @Test("Repeating a drink copies it but makes a new entry")
+  func repeatingADrink() {
+    let original = LoggedDrink(
+      loggedAt: Date(timeIntervalSince1970: 1_700_000_000),
+      type: .beer,
+      volumeOunces: 16,
+      abvPercent: 6.5
+    )
+    let later = Date(timeIntervalSince1970: 1_700_003_600)
+    let draft = DrinkDraft.repeating(original, at: later)
+
+    #expect(draft.type == .beer)
+    #expect(draft.volumeOunces == 16)
+    #expect(draft.abvPercent == 6.5)
+    #expect(draft.loggedAt == later)
+    // Crucially not an edit — the original stays put.
+    #expect(draft.editingEntryID == nil)
+    #expect(draft.makeLoggedDrink(region: .unitedStates).id != original.id)
+  }
+
   @Test("Changing type resets size and ABV to the new type's defaults")
   func changeType() {
     var draft = DrinkDraft(type: .beer)

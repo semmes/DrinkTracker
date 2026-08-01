@@ -36,7 +36,10 @@ struct TodayView: View {
         Section {
           VStack(spacing: GlassTokens.Spacing.block) {
             metric
-            quickAddRow
+            VStack(spacing: GlassTokens.Spacing.tight) {
+              quickAddRow
+              repeatControl
+            }
           }
           .padding(.top, GlassTokens.Spacing.tight)
         }
@@ -118,6 +121,54 @@ struct TodayView: View {
 
   private func backfillHealthKit() async {
     await store.backfillHealthKit()
+  }
+
+  // MARK: - Repeat
+
+  /// One tap logs another of whatever was logged most recently today.
+  ///
+  /// The common case for a second drink is the same as the first, and going back
+  /// through type → size → confirm to say "the same again" is friction that shows
+  /// up as under-logging. Only appears once something has been logged today, so it
+  /// never occupies space it hasn't earned.
+  @ViewBuilder
+  private var repeatControl: some View {
+    if let recent = todaysEntries.first?.logged {
+      Button {
+        repeatDrink(recent)
+      } label: {
+        HStack(spacing: GlassTokens.Spacing.tight) {
+          Image(systemName: "arrow.trianglehead.clockwise")
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+          Text("Another \(recent.type.displayName.lowercased())")
+            .font(.subheadline)
+            .foregroundStyle(.primary)
+          Text("\(LoggedDrink.displayOunces(recent.volumeOunces))oz · \(LoggedDrink.displayPercent(recent.abvPercent))%")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          Spacer()
+        }
+        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+        .frame(height: GlassTokens.Layout.minimumTouchTarget)
+        .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+      .accessibilityLabel("Log another \(recent.type.displayName.lowercased()), same size and strength")
+      .transition(.opacity.combined(with: .move(edge: .top)))
+      .animation(.smooth(duration: 0.25), value: recent)
+    }
+  }
+
+  /// Logs an identical drink at the current time — a new entry, not an edit, so the
+  /// original stays exactly where it was.
+  private func repeatDrink(_ drink: LoggedDrink) {
+    let copy = DrinkDraft.repeating(drink).makeLoggedDrink(region: settings.effectiveRegion)
+    Task {
+      let saved = await store.save(copy)
+      lastLogged = saved
+    }
   }
 
   // MARK: - Today's drinks
