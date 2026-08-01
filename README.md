@@ -18,9 +18,48 @@ command line:
 xcodebuild -project DrinkTracker.xcodeproj -scheme DrinkTracker -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
-Before running on a device you need to set `DEVELOPMENT_TEAM`, change
-`PRODUCT_BUNDLE_IDENTIFIER` off `com.example.DrinkTracker`, and update the iCloud
-container in `DrinkTracker/DrinkTracker.entitlements` to match.
+## Signing and provisioning
+
+Everything derives from two values in [`Config/Signing.xcconfig`](Config/Signing.xcconfig).
+Both targets read it, so the bundle identifiers, the App Group, and the iCloud
+container cannot drift apart.
+
+```
+DEVELOPMENT_TEAM  =                  # your 10-character Team ID
+BUNDLE_ID_PREFIX  = com.shawnsemmes  # a domain you control
+```
+
+Derived automatically:
+
+| | |
+|---|---|
+| App | `$(BUNDLE_ID_PREFIX).DrinkTracker` |
+| Widget | `$(BUNDLE_ID_PREFIX).DrinkTracker.Widget` |
+| App Group | `group.$(BUNDLE_ID_PREFIX).DrinkTracker` |
+| iCloud container | `iCloud.$(BUNDLE_ID_PREFIX).DrinkTracker` |
+
+`AppGroup.identifier` is computed from the running bundle rather than hardcoded, so
+a Swift literal can't fall out of step with the entitlement — a mismatch wouldn't
+fail the build, it would silently give the app and the widget separate stores.
+
+**Simulator needs nothing.** It doesn't require signing, so `DEVELOPMENT_TEAM` can
+stay empty and everything above already works — verified: the App Group container is
+created and the SwiftData store lands inside it.
+
+**For a device you need a paid Apple Developer Program membership** ($99/yr; the free
+tier does not grant App Groups or iCloud). Then:
+
+1. Xcode → Settings → Accounts → add your Apple ID.
+2. Put your Team ID in `Config/Signing.xcconfig`.
+3. Select the **DrinkTracker** target → Signing & Capabilities → confirm your team is
+   picked and "Automatically manage signing" is on. Repeat for
+   **DrinkTrackerWidgetExtension**.
+4. Build to the device. Automatic signing registers both App IDs, the App Group, and
+   the iCloud container for you.
+
+If step 4 reports the App Group can't be created, register it once by hand at
+[developer.apple.com](https://developer.apple.com/account) → Identifiers → App Groups,
+using exactly the name in the table above, then rebuild.
 
 ## Design systems installed
 

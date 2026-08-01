@@ -8,7 +8,26 @@ import SwiftData
 /// between them — the SwiftData store and `AppSettings` — is anchored here rather
 /// than in each target's private container.
 enum AppGroup {
-  static let identifier = "group.com.example.DrinkTracker"
+  /// Derived from the running bundle rather than hardcoded.
+  ///
+  /// The entitlements declare `group.$(BUNDLE_ID_PREFIX).DrinkTracker`, which is
+  /// built from the same prefix as the bundle identifiers in `Signing.xcconfig`.
+  /// Computing it here keeps a literal from drifting out of step with that value
+  /// — a mismatch wouldn't fail to build, it would just silently give the app and
+  /// the widget two different stores.
+  ///
+  /// The widget's bundle id is the app's plus `.Widget`, so the extension drops
+  /// that suffix to arrive at the same group as its host app.
+  static let identifier: String = {
+    var bundleID = Bundle.main.bundleIdentifier ?? ""
+    if bundleID.hasSuffix(widgetSuffix) {
+      bundleID = String(bundleID.dropLast(widgetSuffix.count))
+    }
+    return "group." + bundleID
+  }()
+
+  /// Must match the widget target's `PRODUCT_BUNDLE_IDENTIFIER` suffix.
+  private static let widgetSuffix = ".Widget"
 
   /// Defaults visible to both targets.
   ///

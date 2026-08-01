@@ -12,6 +12,19 @@ struct DrinkTrackerApp: App {
   init() {
     AppTheme.install()
 
+    #if DEBUG
+    // A missing App Group doesn't fail the build — the app and widget just end up
+    // with separate stores and the widget quietly shows a stale zero. Say so.
+    if !AppGroup.isAvailable {
+      print("""
+        ⚠️ App Group "\(AppGroup.identifier)" is not available.
+        The widget will read a different store than the app.
+        Check the App Groups capability on both targets and BUNDLE_ID_PREFIX \
+        in Config/Signing.xcconfig.
+        """)
+    }
+    #endif
+
     // Lives in the App Group so the widget reads and writes the same store.
     // CloudKit-backed so the log follows the user's existing iCloud account —
     // there is no sign-in. If iCloud is unavailable the same store still works

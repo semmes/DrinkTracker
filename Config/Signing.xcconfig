@@ -1,0 +1,26 @@
+// Signing and identity for both targets.
+//
+// This is the only file you need to touch to make the app signable. Everything
+// else — bundle identifiers, the App Group, the entitlements — derives from the
+// two values below, so they cannot drift apart.
+
+// Your Apple Developer Team ID: a 10-character string like A1B2C3D4E5.
+//
+// Find it at https://developer.apple.com/account under Membership details, or in
+// Xcode under Settings → Accounts → your account → the Team column.
+//
+// Leave this empty to keep building for the Simulator, which doesn't require
+// signing. It must be filled in before building for a device.
+DEVELOPMENT_TEAM =
+
+// Reverse-DNS prefix for the bundle identifiers. Must be a domain you control.
+// Derived identifiers:
+//   app     $(BUNDLE_ID_PREFIX).DrinkTracker
+//   widget  $(BUNDLE_ID_PREFIX).DrinkTracker.Widget
+//   group   group.$(BUNDLE_ID_PREFIX).DrinkTracker
+BUNDLE_ID_PREFIX = com.shawnsemmes
+
+// Automatic signing lets Xcode register the App ID and the App Group for you the
+// first time you build to a device. Switch to Manual only if you manage profiles
+// yourself.
+CODE_SIGN_STYLE = Automatic
