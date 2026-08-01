@@ -205,8 +205,8 @@ the intent never dispatched, `failed: …` means the write itself broke.
 
 ## Logging several of the same drink
 
-Requested as "party mode". Built as **repeat logging**, deliberately named neutrally
-— see "A note on naming" below.
+Called **repeat logging**, never "party mode" — a deliberate product decision, not a
+placeholder. See "A note on naming" below before renaming anything.
 
 - **One-tap repeat.** Once something is logged today, a row appears under quick-add
   reading "Another beer · 12oz · 5%". One tap logs an identical drink at the current
@@ -225,16 +225,24 @@ for an edit to do.
 
 ### A note on naming
 
+This feature was originally asked for as "party mode". It is deliberately not called
+that, and the neutral framing is a settled decision — **don't reintroduce
+celebratory language here.**
+
 The brief cites **App Store guideline 1.4.3** (apps encouraging excessive alcohol
 consumption) and rules out framing that reads as encouragement, challenge, or reward
-for volume. "Party mode" reads as celebratory in a way "Repeat" doesn't, and on an
-alcohol-tracking app that is the kind of label that attracts review attention.
+for volume. "Party mode" is celebratory in a way "Repeat" isn't, and on an
+alcohol-tracking app that is exactly the kind of label that attracts review
+attention.
 
 The *functionality* is squarely on the right side of that line — friction causes
 under-logging, and under-logging defeats "an accurate answer to how much am I
-actually drinking". Only the label was at issue, so the feature is complete and the
-copy is factual: "Another beer", "How many", "3 of these". If you'd rather call it
-Party Mode, the user-visible strings are in `TodayView.repeatControl` and
+actually drinking". So the feature is complete; only the framing is constrained. All
+user-visible copy stays factual and countable: "Another beer", "How many",
+"3 of these", "Log 3 drinks". No streaks, no encouragement to reach a number, and
+nothing that reads as a reward for volume.
+
+Relevant strings live in `TodayView.repeatControl` and
 `DrinkDetailSheet.quantitySection`.
 
 ## Correcting the log
