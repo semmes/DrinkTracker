@@ -68,29 +68,50 @@ struct DrinkTypeDefaultsTests {
     #expect(DrinkType.beer.defaultABVPercent == 5)
     #expect(DrinkType.wine.defaultVolumeOunces == 5)
     #expect(DrinkType.wine.defaultABVPercent == 12)
-    #expect(DrinkType.spirit.defaultVolumeOunces == 1)
+    #expect(DrinkType.spirit.defaultVolumeOunces == 1.5)
     #expect(DrinkType.spirit.defaultABVPercent == 40)
     #expect(DrinkType.other.defaultVolumeOunces == 8)
     #expect(DrinkType.other.defaultABVPercent == 10)
   }
 
-  /// The brief states every default size/ABV pair should resolve to "almost
-  /// exactly 1.0" standard drinks, but two entries in its own table do not:
-  /// Spirit (1 oz @ 40% = 0.67) and Other (8 oz @ 10% = 1.33). This test pins
-  /// the current, as-written behaviour so the deviation is visible rather than
-  /// silently corrected. See README "Known spec discrepancies".
-  @Test("Beer and wine defaults hit 1.0; spirit and other do not")
-  func defaultsAgainstTheOneDrinkInvariant() {
-    func drinks(_ type: DrinkType) -> Double {
-      StandardDrink.count(
-        volumeOunces: type.defaultVolumeOunces,
-        abvPercent: type.defaultABVPercent
-      )
+  /// The one-drink invariant, now a settled decision rather than a discrepancy:
+  /// every type with a real serving size opens at almost exactly 1.0 standard
+  /// drink. Spirit moved from the 1 oz shot (0.67) to the 1.5 oz shot, which at
+  /// 40% is 0.6 fl oz of ethanol — the US definition exactly.
+  /// See docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md.
+  @Test("Every type with a real serving size defaults to 1.0 standard drink")
+  func defaultsHitTheOneDrinkInvariant() {
+    for type in [DrinkType.beer, .wine, .spirit] {
+      #expect(abs(drinks(type) - 1.0) < 0.01, "\(type.displayName) should open at one drink")
     }
-    #expect(abs(drinks(.beer) - 1.0) < 0.01)
-    #expect(abs(drinks(.wine) - 1.0) < 0.01)
-    #expect(abs(drinks(.spirit) - 0.6667) < 0.01)
+  }
+
+  /// Other is the deliberate exception, not an oversight: it has no presets and
+  /// no typical serving to anchor to, so its default seeds the Custom field
+  /// rather than describing a real drink.
+  @Test("Other is exempt from the one-drink invariant")
+  func otherIsExempt() {
     #expect(abs(drinks(.other) - 1.3333) < 0.01)
+  }
+
+  /// The pre-selected pill and the default volume have to agree, because the
+  /// pill's volume is what `DrinkDraft.volumeOunces` actually uses. Before these
+  /// were derived from each other, changing one silently did nothing.
+  @Test("The default pill matches the default volume for every type")
+  func defaultPillMatchesDefaultVolume() {
+    for type in DrinkType.allCases {
+      let selected = type.defaultSizeOption.volumeOunces ?? type.defaultVolumeOunces
+      #expect(selected == type.defaultVolumeOunces, "\(type.displayName) pill disagrees")
+    }
+    #expect(DrinkType.spirit.defaultSizeOption.label == "1.5 oz shot")
+    #expect(DrinkType.other.defaultSizeOption.isCustom)
+  }
+
+  private func drinks(_ type: DrinkType) -> Double {
+    StandardDrink.count(
+      volumeOunces: type.defaultVolumeOunces,
+      abvPercent: type.defaultABVPercent
+    )
   }
 
   @Test("Only Other is custom-only")
@@ -148,6 +169,17 @@ struct DrinkDraftTests {
     #expect(draft.abvPercent == 5)
     #expect(draft.isABVExpanded == false)
     #expect(draft.editingEntryID == nil)
+    #expect(abs(draft.standardDrinks(region: .unitedStates) - 1.0) < 0.0001)
+  }
+
+  /// The end-to-end payoff of ADR-0005, at the layer the user actually touches:
+  /// tapping Spirit and logging without adjusting anything records one drink.
+  @Test("A fresh spirit draft opens on the 1.5 oz shot and reads as one drink")
+  func freshSpiritDraft() {
+    let draft = DrinkDraft(type: .spirit)
+    #expect(draft.selectedSize.label == "1.5 oz shot")
+    #expect(draft.volumeOunces == 1.5)
+    #expect(draft.abvPercent == 40)
     #expect(abs(draft.standardDrinks(region: .unitedStates) - 1.0) < 0.0001)
   }
 

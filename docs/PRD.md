@@ -238,13 +238,15 @@ what it set out to do, and the open risks are all about whether it does it *corr
   is what turns "I believe this builds" into evidence.
 - **d. Decide the three spec discrepancies** the README documents as implemented
   literally and pinned by test. Each becomes an ADR; where the answer changes
-  behaviour, a one-line default change and an updated test in the same commit.
-  The consequential one: **the brief asserts that every default size/ABV pair resolves
-  to almost exactly 1.0 standard drinks and calls that load-bearing, then gives Spirit
-  `1 oz @ 40%` = 0.67 and Other `8 oz @ 10%` = 1.33 in its own table.** Beer and wine
-  land on 1.0. Either the invariant is real — in which case Spirit's default becomes
-  the 1.5 oz shot already in its size options, and Other becomes 6 oz @ 10% — or it
-  is not, and we say so and stop calling it load-bearing.
+  behaviour, a default change and an updated test in the same commit.
+  - The consequential one is **settled**: the one-drink invariant is real, Spirit
+    defaults to the 1.5 oz shot, and Other is a documented exception. See
+    [ADR-0005](decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md). This adds a
+    standing constraint — a new drink type either lands on 1.0 at its default or
+    documents why it doesn't.
+  - Still open: the UK "0.28 fl oz / 8 g" mismatch (currently derived from grams,
+    which is the published definition) and whether that needs saying anywhere
+    user-facing.
 - **e. Verify CloudKit sync** across two devices on one account, or downgrade the
   claim to unverified. The fallback gap found alongside it is fixed — the CloudKit
   fallback now lives in `SharedModelContainer.make()` so both targets take the same
