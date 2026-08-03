@@ -126,7 +126,7 @@ struct SettingsView: View {
   private var diagnosticsSection: some View {
     SettingsSection(
       title: "Diagnostics (debug build)",
-      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke."
+      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke. Store mode should read \"shared + CloudKit\"; \"no CloudKit\" means the log is on this device only, and \"IN MEMORY\" means nothing is being saved at all."
     ) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
         diagnosticRow(
@@ -134,6 +134,10 @@ struct SettingsView: View {
           value: AppGroup.isAvailable ? "shared" : "UNAVAILABLE"
         )
         diagnosticRow("Group ID", value: AppGroup.identifier)
+        diagnosticRow(
+          "Store mode",
+          value: Diagnostics.storeMode ?? "not opened yet"
+        )
         diagnosticRow(
           "Last widget tap",
           value: Diagnostics.lastWidgetLog ?? "never ran"

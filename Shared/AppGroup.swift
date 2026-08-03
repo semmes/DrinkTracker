@@ -66,12 +66,42 @@ enum Diagnostics {
   static var lastWidgetLog: String? {
     AppGroup.defaults.string(forKey: lastWidgetLogKey)
   }
+
+  static let storeModeKey = "storeMode"
+
+  /// Which configuration the shared store was last opened with.
+  ///
+  /// Both degraded modes are invisible from the UI otherwise: losing CloudKit
+  /// looks exactly like "nothing has synced yet", and losing the store entirely
+  /// looks like an empty log. Recording the mode is what makes them
+  /// distinguishable after the fact.
+  static func recordStoreMode(_ mode: String) {
+    AppGroup.defaults.set(mode, forKey: storeModeKey)
+  }
+
+  static var storeMode: String? {
+    AppGroup.defaults.string(forKey: storeModeKey)
+  }
 }
 
 // MARK: - Shared store
 
 enum SharedModelContainer {
   static let schema = Schema([DrinkEntry.self])
+
+  /// Where the store lives.
+  ///
+  /// Identical for every configuration below. The App Group is what makes the app
+  /// and the widget one app, so it is never the thing a fallback gives up.
+  private static var groupContainer: ModelConfiguration.GroupContainer {
+    AppGroup.isAvailable ? .identifier(AppGroup.identifier) : .automatic
+  }
+
+  private static func configuration(
+    cloudKit: ModelConfiguration.CloudKitDatabase
+  ) -> ModelConfiguration {
+    ModelConfiguration(schema: schema, groupContainer: groupContainer, cloudKitDatabase: cloudKit)
+  }
 
   /// Builds the container both targets open.
   ///
@@ -80,12 +110,37 @@ enum SharedModelContainer {
   /// CloudKit will still read, but writes fail silently, which cost real debugging
   /// time when the widget's one-tap log appeared to do nothing. Keeping a single
   /// code path makes that divergence impossible to reintroduce.
+  ///
+  /// That is also why the CloudKit fallback lives *here* rather than at the call
+  /// site. The app used to carry its own fallback that dropped the group container
+  /// as well as CloudKit, while the widget had no fallback at all — so one iCloud
+  /// failure sent the app to a private store and left the widget with no store,
+  /// which is precisely the silent split this type exists to prevent. One ladder,
+  /// both processes.
+  ///
+  /// Losing sync is a degradation; losing the widget is a broken feature. So the
+  /// fallback keeps the App Group and gives up only the mirroring.
+  ///
+  /// **Unverified (Tier 4, see docs/PRD.md §4):** whether a store that *was*
+  /// mirrored reopens cleanly without CloudKit. Both processes now run the same
+  /// ladder, so they agree at any given moment, but two processes opening the
+  /// store while iCloud availability is changing could still land on different
+  /// rungs. Confirming that needs a device.
   static func make() throws -> ModelContainer {
-    let configuration = ModelConfiguration(
-      schema: schema,
-      groupContainer: AppGroup.isAvailable ? .identifier(AppGroup.identifier) : .automatic,
-      cloudKitDatabase: .automatic
-    )
-    return try ModelContainer(for: schema, configurations: configuration)
+    do {
+      let container = try ModelContainer(
+        for: schema,
+        configurations: configuration(cloudKit: .automatic)
+      )
+      Diagnostics.recordStoreMode("shared + CloudKit")
+      return container
+    } catch {
+      let container = try ModelContainer(
+        for: schema,
+        configurations: configuration(cloudKit: .none)
+      )
+      Diagnostics.recordStoreMode("shared, no CloudKit — \(error)")
+      return container
+    }
   }
 }

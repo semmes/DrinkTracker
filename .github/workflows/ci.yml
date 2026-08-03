@@ -18,7 +18,7 @@ jobs:
     name: Domain tests
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Show toolchain
         run: |
@@ -38,7 +38,7 @@ jobs:
     name: Build (iOS Simulator)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Select newest installed Xcode
         run: |

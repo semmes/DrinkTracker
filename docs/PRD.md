@@ -237,11 +237,11 @@ what it set out to do, and the open risks are all about whether it does it *corr
   the 1.5 oz shot already in its size options, and Other becomes 6 oz @ 10% — or it
   is not, and we say so and stop calling it load-bearing.
 - **e. Verify CloudKit sync** across two devices on one account, or downgrade the
-  claim to unverified. While here, close a real gap: the fallback container in
-  `DrinkTrackerApp.init()` opens with `cloudKitDatabase: .none` **and no
-  `groupContainer`**, so if `SharedModelContainer.make()` ever throws, the app writes
-  to a private store the widget cannot see — the exact silent split invariant 4 warns
-  about, currently present in the fallback path.
+  claim to unverified. The fallback gap found alongside it is fixed — the CloudKit
+  fallback now lives in `SharedModelContainer.make()` so both targets take the same
+  ladder, keeps the App Group, and records which rung it landed on. See
+  [ADR-0004](decisions/0004-a-failed-store-degrades-to-memory.md). The device
+  verification it depends on is still outstanding.
 
 **Exit criteria:** CI green on every PR; Tier-2 tests cover the four behaviours in §4;
 the widget is either working or documented with device evidence; three ADRs written;
@@ -291,3 +291,4 @@ Currently in the README's "Not built" list, plus what has come up since:
 | Does iPad get a distinct layout, or does it stay a scaled iPhone app? | Before Iteration 2's App Store metadata; iPad screenshots force the answer. |
 | Should the widget's defaults ever be configurable? | Iteration 3, and only via an ADR that addresses why the fast-path argument no longer holds. |
 | Is there a second widget family or a Control Center control worth having? | After 1(a) — a widget whose intent dispatch is unresolved is not a foundation to build on. |
+| Should a degraded store mode be visible in a release build? Today Diagnostics is `#if DEBUG`, so a user whose log is in-memory or unsynced can't tell. Needs a copy decision — the factual "Apple Health" status row is the model, and the tone rules in §1 apply. | Iteration 2's copy review, or sooner if Tier 4 testing shows the fallback fires in practice. See [ADR-0004](decisions/0004-a-failed-store-degrades-to-memory.md). |
