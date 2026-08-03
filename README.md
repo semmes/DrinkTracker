@@ -69,7 +69,7 @@ using exactly the name in the table above, then rebuild.
 
 | Package | Version | How | Used for |
 |---|---|---|---|
-| [ComponentsKit](https://github.com/componentskit/ComponentsKit) | 1.7.1 (up-to-next-major) | SPM, remote | `SUButton`, `SUCard`, `SUSlider`, `SUProgressBar`, `SUSegmentedControl` |
+| [ComponentsKit](https://github.com/componentskit/ComponentsKit) | 1.7.1 (up-to-next-major) | SPM, remote | `SUButton`, `SUCard`, `SUSlider`, `SUSegmentedControl` |
 | AutoLayout | 1.x | transitive dep of ComponentsKit | — |
 | SwiftUI / Swift Charts / SwiftData / HealthKit | system | — | UI, trend charts, storage, Health sync |
 
@@ -87,8 +87,10 @@ automatic light/dark and vibrancy behaviour. Verified in both appearances.
 
 The plan's Open Question #1 asked how widely to use ComponentsKit. Current split:
 
-- **ComponentsKit** — buttons everywhere, the ABV slider, and all trend-screen cards
-  and progress bars.
+- **ComponentsKit** — buttons everywhere, the ABV slider, and all trend-screen cards.
+  No progress bars: `SUProgressBar` was removed from the rest-day card because a bar
+  that fills implies a target, and this app doesn't set them. See
+  [the copy review](docs/copy-review-1.4.3.md).
 - **Native SwiftUI** — size pills (bespoke per the brief), the sheet itself, and the
   quick-add row, which uses `GlassEffectContainer` so the four buttons merge as one
   glass mass the way Apple's own controls do.
@@ -346,6 +348,24 @@ than inverted, because an inverted ramp falls outside the band at both ends.
 Alcohol-free is deliberately *not* a step in that ramp — palest blue would read as
 "a small amount of drinking" rather than "none". It gets a neutral fill plus an
 outline, so it stays separable from both neighbours with no colour at all.
+
+## Privacy
+
+`PrivacyInfo.xcprivacy` ships in **both** targets — Apple evaluates each bundle
+separately, and the app's manifest does not cover the widget's appex.
+
+Both declare no tracking and an empty `NSPrivacyCollectedDataTypes`. The drink log is
+health data, but it leaves the device only through the user's own private CloudKit
+database and their own HealthKit store: there is no account system, no server, and no
+networking code in the app at all. Both declare `NSPrivacyAccessedAPICategoryUserDefaults`
+with reason `CA92.1` — the App Group case — which is `AppGroup.defaults`.
+
+**If a backend is ever added, `NSPrivacyCollectedDataTypes` stops being empty** and the
+App Store nutrition labels change with it.
+
+Every user-visible string has been reviewed against App Store guideline 1.4.3 — see
+[`docs/copy-review-1.4.3.md`](docs/copy-review-1.4.3.md), which records what was
+changed and what was checked and left alone.
 
 ## Not built
 

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- No tracking, and no domains to declare. There is no analytics SDK, no
+	     advertising identifier, and no network code in this app at all. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- Deliberately empty.
+
+	     The drink log is health data, and it leaves the device only via the
+	     user's own private CloudKit database and their own HealthKit store.
+	     Neither is collection in Apple's sense: the developer has no access to
+	     either, no server receives any of it, and there is no account system
+	     that could associate it with a person.
+
+	     If a backend is ever added, this array stops being empty and the App
+	     Store nutrition labels change with it. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- AppSettings and Diagnostics, via the App Group suite in
+			     AppGroup.defaults. CA92.1 is the App Group case: the data is
+			     read and written only by this app and its own widget
+			     extension, and never leaves the group container. -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

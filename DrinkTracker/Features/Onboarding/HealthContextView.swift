@@ -11,8 +11,12 @@ struct HealthContextView: View {
   var body: some View {
     OnboardingScaffold {
       OnboardingHeadline(text: "Kept in Apple Health, kept private")
+      // "on this device" was wrong: the store is CloudKit-mirrored, so the log
+      // follows the user's iCloud account across their devices. This screen sits
+      // immediately before a health-data permission prompt, which is the worst
+      // possible place to overstate a privacy guarantee.
       OnboardingSubtext(
-        text: "Your log is stored in Health, on this device. Nothing is sold, shared, or used for ads."
+        text: "Your log stays in your own iCloud account and Apple Health. There's no account to create and no server to send it to — nothing is sold, shared, or used for ads."
       )
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
         SupportingLine(symbol: "lock.fill", text: "Private by default")
