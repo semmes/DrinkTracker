@@ -25,10 +25,43 @@ Three possibilities, needing completely different fixes:
 The simulator cannot separate these. A real device can, and the Shortcuts step below
 is what does the separating.
 
+## Getting a build onto the device
+
+Direct install from Xcode. For *this* test it beats TestFlight on every axis: a Debug
+build, the Xcode console attached, and a thirty-second turnaround if we need to change
+something and retry.
+
+1. **Fill in your Team ID.** `Config/Signing.xcconfig` currently has
+   `DEVELOPMENT_TEAM =` empty — that's the only value missing. Find it at
+   [developer.apple.com/account](https://developer.apple.com/account) under Membership
+   details, or in Xcode → Settings → Accounts → the Team column. It's a 10-character
+   string like `A1B2C3D4E5`, and it isn't a secret.
+
+   ```
+   DEVELOPMENT_TEAM = A1B2C3D4E5
+   ```
+
+2. **Add your Apple ID** to Xcode → Settings → Accounts, if it isn't already.
+
+3. **Confirm both targets are signing.** Select the **DrinkTracker** target → Signing &
+   Capabilities → your team is picked, "Automatically manage signing" is on. Repeat for
+   **DrinkTrackerWidgetExtension**. Automatic signing registers both App IDs, the App
+   Group, and the iCloud container on first device build.
+
+4. **Select your device and run.** (⌘R)
+
+If step 4 reports the App Group can't be created, register it once by hand at
+[developer.apple.com](https://developer.apple.com/account) → Identifiers → App Groups
+as exactly `group.com.shawnsemmes.DrinkTracker`, then rebuild.
+
+**Keep Xcode's console open while you test.** The extension's output is largely
+unreadable, but the app's isn't, and anything it prints is free evidence.
+
+TestFlight also works if you'd rather — `.github/workflows/testflight.yml` does the
+archive and upload — but it's more setup for a strictly worse debugging experience.
+
 ## Before you start
 
-- A build installed on a real device — Xcode direct install or TestFlight, either is
-  fine.
 - **Settings → Diagnostics must be visible.** It appears in Debug and TestFlight
   builds. If you can't see it, you're on an App Store build and this test can't be
   run — see `Diagnostics.isVisible`.
