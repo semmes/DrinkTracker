@@ -153,15 +153,20 @@ struct DrinkDetailSheet: View {
             .foregroundStyle(.primary)
             .contentTransition(.numericText(value: Double(draft.quantity)))
           Spacer()
-          Stepper(
-            "How many",
+          // Inline rather than prominent: here the count is one field among
+          // several and sits at 1 unless touched, so it shouldn't outweigh the
+          // size and strength controls above it. The calendar's day sheet, where
+          // the count *is* the question, uses the large version.
+          CountStepper(
             value: $draft.quantity,
-            in: Self.quantityRange
+            range: Self.quantityRange,
+            style: .inline,
+            unitLabel: "How many"
           )
-          .labelsHidden()
+          .fixedSize()
         }
         .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(height: GlassTokens.Layout.minimumTouchTarget)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
         .glassSurface(cornerRadius: GlassTokens.Radius.control)
         .animation(.snappy, value: draft.quantity)
       }
