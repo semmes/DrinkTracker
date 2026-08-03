@@ -132,16 +132,23 @@ Pure value-type math: standard-drink formulas, regional definitions, draft behav
 trend grouping. Runs anywhere, no simulator, no signing. **Every change to a formula,
 a default, or a grouping rule lands with a test here.**
 
-**Tier 2 — Integration.** *Does not exist yet — Iteration 1 builds it.*
-An `DrinkTrackerTests` target running against an in-memory `ModelContainer`. The
-behaviours that need it, all currently untested:
+**Tier 2 — Integration.** The `DrinkTrackerTests` target, against an in-memory
+`ModelContainer`. SwiftData's `@Model` macro only expands inside Xcode, so anything
+about *rows* has to live here rather than in the package. Covered:
 - `DrinkRepository.saveOrThrow` overwriting by id rather than inserting a duplicate —
-  this is the single line that makes editing replace an entry's contribution to the
-  daily total instead of doubling it.
-- Deletion and undo restoring the entry at its *original* timestamp and position.
-- `DrinkStore.backfillHealthKit` being idempotent across repeated foregrounding.
-- `AppSettings` round-tripping through App Group defaults, including
-  `storedRegion()`'s nil-to-US fallback.
+  the single line that makes editing replace an entry's contribution to the daily
+  total instead of doubling it.
+- Deletion, and undo restoring the entry at its *original* id and timestamp.
+- Day scoping and totals, including that a total is expressed in the caller's region
+  rather than the one stored on the entry (invariant 3).
+- The HealthKit backfill queue: only unsynced entries, oldest first.
+- `AppSettings` round-tripping through defaults, including `storedRegion()`'s
+  nil-to-US fallback and the skipped-vs-chose-US distinction.
+
+It is a standalone bundle with no `TEST_HOST`, so it reaches `Shared/` but not the
+app target. `DrinkStore.backfillHealthKit` itself is therefore **still uncovered** —
+testing it needs a host app, which drags signing and app launch into CI. Its
+repository half is covered here; the HealthKit half is not.
 
 **Tier 3 — Simulator.** Build the app scheme, then exercise the specific interaction and
 **state the observed numbers in the commit message.** The existing commits already do
@@ -221,7 +228,9 @@ what it set out to do, and the open risks are all about whether it does it *corr
   same `perform()` body runs in the app's process from Shortcuts, which separates an
   intent bug from a widget-dispatch bug. Then fix it, or document it as an OS
   limitation with the evidence.
-- **b. Add the `DrinkTrackerTests` target** and the Tier-2 tests listed in §4.
+- **b. Integration tests.** ✅ Done — the `DrinkTrackerTests` target and the Tier-2
+  tests listed in §4, run in CI on a simulator. Remaining: `DrinkStore` and
+  `HealthKitService` need a host-based target, which is deliberately deferred.
 - **c. CI.** ✅ Done — `.github/workflows/ci.yml` runs the domain tests and an
   unsigned simulator build on every PR, plus `.github/pull_request_template.md`
   carrying the §2/§4 checklist. This one comes first on purpose: nothing else in
