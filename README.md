@@ -2,8 +2,12 @@
 
 **Being mindful.**
 
-Native iOS/iPadOS drink tracking app, built from `drink-tracker-design-brief.md` and
-`drink-tracker-claude-design-plan.md`.
+Native iOS/iPadOS drink tracking app.
+
+**Working on this?** Read [`docs/PRD.md`](docs/PRD.md) first — it holds the invariants
+any change has to respect, what counts as verified, and the roadmap. Settled decisions
+live in [`docs/decisions/`](docs/decisions/). This README covers building, running, and
+current status.
 
 ## Running it
 
@@ -103,7 +107,7 @@ DrinkTracker.xcodeproj      two targets: the app and the widget extension
 DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persistence
   Sources/                    Region, DrinkType, StandardDrink, LoggedDrink,
                               DrinkDraft, TrendSummary
-  Tests/                      19 tests, all passing
+  Tests/                      24 tests, all passing
 Shared/                     compiled into BOTH targets
                               AppGroup, AppSettings, DrinkEntry (SwiftData),
                               DrinkRepository, LogDrinkIntent
@@ -153,11 +157,9 @@ Each is a one-line change if you want it to go the other way.
    published UK unit is 8 g, so the code derives from grams and ignores 0.28.
 
 3. **Region is a display lens, not a property of the drink.** The brief doesn't say
-   what happens to history when someone changes region. Entries record the region
-   they were logged under as provenance, but totals are always computed in the
-   *current* region. The alternative — freezing each entry's units — makes totals
-   meaningless, since it sums UK units and US standard drinks together. Changing the
-   setting re-expresses history; it doesn't alter what was drunk.
+   what happens to history when someone changes region. Totals are always computed in
+   the *current* region — see
+   [ADR-0002](docs/decisions/0002-region-is-a-display-lens.md).
 
 ## Notes
 
@@ -226,8 +228,9 @@ why it's still outstanding.
 
 ## Logging several of the same drink
 
-Called **repeat logging**, never "party mode" — a deliberate product decision, not a
-placeholder. See "A note on naming" below before renaming anything.
+Called **repeat logging**, never "party mode" — a settled decision, not a placeholder.
+Read [ADR-0001](docs/decisions/0001-repeat-logging-is-not-party-mode.md) before
+touching any of this copy.
 
 - **One-tap repeat.** Once something is logged today, a row appears under quick-add
   reading "Another beer · 12oz · 5%". One tap logs an identical drink at the current
@@ -235,36 +238,14 @@ placeholder. See "A note on naming" below before renaming anything.
 - **Quantity.** The drink sheet has a "How many" stepper (1–12). The live estimate
   and the button both reflect it — "≈ 3 standard drinks", "Log 3 drinks".
 
-Quantity saves **N separate entries**, not one entry with a count. That matters: each
-stays individually editable and removable, gets its own HealthKit sample, and the
-history stays honest. Verified — logging 3 wines produced three rows, and removing
-one took the total from 8.9 to 7.9 while leaving the other two.
+Quantity saves **N separate entries**, not one entry with a count — see
+[ADR-0003](docs/decisions/0003-quantity-saves-separate-entries.md). Verified: logging
+3 wines produced three rows, and removing one took the total from 8.9 to 7.9 while
+leaving the other two.
 
 The stepper sits at 1 unless touched, so the two-tap fast path is unaffected. It's
 hidden when editing, where fanning one entry into several would be a strange thing
 for an edit to do.
-
-### A note on naming
-
-This feature was originally asked for as "party mode". It is deliberately not called
-that, and the neutral framing is a settled decision — **don't reintroduce
-celebratory language here.**
-
-The brief cites **App Store guideline 1.4.3** (apps encouraging excessive alcohol
-consumption) and rules out framing that reads as encouragement, challenge, or reward
-for volume. "Party mode" is celebratory in a way "Repeat" isn't, and on an
-alcohol-tracking app that is exactly the kind of label that attracts review
-attention.
-
-The *functionality* is squarely on the right side of that line — friction causes
-under-logging, and under-logging defeats "an accurate answer to how much am I
-actually drinking". So the feature is complete; only the framing is constrained. All
-user-visible copy stays factual and countable: "Another beer", "How many",
-"3 of these", "Log 3 drinks". No streaks, no encouragement to reach a number, and
-nothing that reads as a reward for volume.
-
-Relevant strings live in `TodayView.repeatControl` and
-`DrinkDetailSheet.quantitySection`.
 
 ## Correcting the log
 
