@@ -242,7 +242,7 @@ struct DrinkDetailSheet: View {
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-    .frame(height: GlassTokens.Layout.minimumTouchTarget)
+    .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
     .glassSurface(cornerRadius: GlassTokens.Radius.control)
     .transition(.opacity.combined(with: .move(edge: .top)))
     .animation(.smooth(duration: 0.25), value: draft.selectedSize)
@@ -270,7 +270,7 @@ struct DrinkDetailSheet: View {
             .rotationEffect(.degrees(draft.isABVExpanded ? 180 : 0))
         }
         .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(height: GlassTokens.Layout.minimumTouchTarget)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
         .contentShape(.rect)
       }
       .buttonStyle(.plain)
@@ -383,7 +383,7 @@ private struct SizePill: View {
         .font(.subheadline)
         .foregroundStyle(isSelected ? Color.white : Color.primary)
         .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(height: GlassTokens.Layout.minimumTouchTarget)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
         .contentShape(.rect)
     }
     .buttonStyle(.plain)

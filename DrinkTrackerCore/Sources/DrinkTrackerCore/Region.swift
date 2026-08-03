@@ -55,6 +55,28 @@ public enum Region: String, CaseIterable, Codable, Sendable, Identifiable {
     }
   }
 
+  /// The plural form, declared rather than derived.
+  ///
+  /// Six call sites used to build this by appending `"s"`. That is an English rule
+  /// applied by string surgery: it breaks on an irregular noun, and it breaks
+  /// entirely in languages with more than two plural forms — which is most of them.
+  /// The app already ships three regional unit systems, so an international
+  /// audience is not hypothetical here.
+  ///
+  /// Centralising it does not localise anything by itself. It means a String
+  /// Catalog has **one** place to replace instead of six.
+  public var unitNamePlural: String {
+    switch self {
+    case .unitedStates, .australia: "standard drinks"
+    case .unitedKingdom: "units"
+    }
+  }
+
+  /// The form that agrees with `count`.
+  public func unitName(for count: Double) -> String {
+    count == 1 ? unitName : unitNamePlural
+  }
+
   /// Fluid ounces of pure alcohol that make up one standard drink.
   public var flOzPureAlcoholPerStandardDrink: Double {
     switch self {

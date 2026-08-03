@@ -29,9 +29,12 @@ Both targets read it, so the bundle identifiers, the App Group, and the iCloud
 container cannot drift apart.
 
 ```
-DEVELOPMENT_TEAM  =                  # your 10-character Team ID
+DEVELOPMENT_TEAM  = TN2VF665NJ       # 10-character Team ID (not a secret)
 BUNDLE_ID_PREFIX  = com.shawnsemmes  # a domain you control
 ```
+
+Both are filled in, so a device build needs nothing beyond an Apple ID signed into
+Xcode. Fork this and you'll want your own `DEVELOPMENT_TEAM`.
 
 Derived automatically:
 
@@ -46,15 +49,14 @@ Derived automatically:
 a Swift literal can't fall out of step with the entitlement — a mismatch wouldn't
 fail the build, it would silently give the app and the widget separate stores.
 
-**Simulator needs nothing.** It doesn't require signing, so `DEVELOPMENT_TEAM` can
-stay empty and everything above already works — verified: the App Group container is
-created and the SwiftData store lands inside it.
+**Simulator needs nothing.** It doesn't require signing at all — verified: the App
+Group container is created and the SwiftData store lands inside it.
 
 **For a device you need a paid Apple Developer Program membership** ($99/yr; the free
 tier does not grant App Groups or iCloud). Then:
 
 1. Xcode → Settings → Accounts → add your Apple ID.
-2. Put your Team ID in `Config/Signing.xcconfig`.
+2. Team ID is already set in `Config/Signing.xcconfig`.
 3. Select the **DrinkTracker** target → Signing & Capabilities → confirm your team is
    picked and "Automatically manage signing" is on. Repeat for
    **DrinkTrackerWidgetExtension**.
@@ -69,7 +71,7 @@ using exactly the name in the table above, then rebuild.
 
 | Package | Version | How | Used for |
 |---|---|---|---|
-| [ComponentsKit](https://github.com/componentskit/ComponentsKit) | 1.7.1 (up-to-next-major) | SPM, remote | `SUButton`, `SUCard`, `SUSlider`, `SUProgressBar`, `SUSegmentedControl` |
+| [ComponentsKit](https://github.com/componentskit/ComponentsKit) | 1.7.1 (up-to-next-major) | SPM, remote | `SUButton`, `SUCard`, `SUSlider`, `SUSegmentedControl` |
 | AutoLayout | 1.x | transitive dep of ComponentsKit | — |
 | SwiftUI / Swift Charts / SwiftData / HealthKit | system | — | UI, trend charts, storage, Health sync |
 
@@ -87,8 +89,10 @@ automatic light/dark and vibrancy behaviour. Verified in both appearances.
 
 The plan's Open Question #1 asked how widely to use ComponentsKit. Current split:
 
-- **ComponentsKit** — buttons everywhere, the ABV slider, and all trend-screen cards
-  and progress bars.
+- **ComponentsKit** — buttons everywhere, the ABV slider, and all trend-screen cards.
+  No progress bars: `SUProgressBar` was removed from the rest-day card because a bar
+  that fills implies a target, and this app doesn't set them. See
+  [the copy review](docs/copy-review-1.4.3.md).
 - **Native SwiftUI** — size pills (bespoke per the brief), the sheet itself, and the
   quick-add row, which uses `GlassEffectContainer` so the four buttons merge as one
   glass mass the way Apple's own controls do.
@@ -346,6 +350,39 @@ than inverted, because an inverted ramp falls outside the band at both ends.
 Alcohol-free is deliberately *not* a step in that ramp — palest blue would read as
 "a small amount of drinking" rather than "none". It gets a neutral fill plus an
 outline, so it stays separable from both neighbours with no colour at all.
+
+## Privacy
+
+`PrivacyInfo.xcprivacy` ships in **both** targets — Apple evaluates each bundle
+separately, and the app's manifest does not cover the widget's appex.
+
+Both declare no tracking and an empty `NSPrivacyCollectedDataTypes`. The drink log is
+health data, but it leaves the device only through the user's own private CloudKit
+database and their own HealthKit store: there is no account system, no server, and no
+networking code in the app at all. Both declare `NSPrivacyAccessedAPICategoryUserDefaults`
+with reason `CA92.1` — the App Group case — which is `AppGroup.defaults`.
+
+**If a backend is ever added, `NSPrivacyCollectedDataTypes` stops being empty** and the
+App Store nutrition labels change with it.
+
+Every user-visible string has been reviewed against App Store guideline 1.4.3 — see
+[`docs/copy-review-1.4.3.md`](docs/copy-review-1.4.3.md), which records what was
+changed and what was checked and left alone.
+
+## Localization
+
+**The app is not localized yet.** `Localizable.xcstrings` exists in both targets but
+is empty — `SWIFT_EMIT_LOC_STRINGS` is already on, so the next Xcode build populates
+both catalogs from the existing literals. That step needs Xcode and can't be done
+from CI.
+
+Plural forms are declared per region (`Region.unitNamePlural`, `unitName(for:)`)
+rather than built by appending `"s"`, which six call sites used to do. That isn't
+localization; it means a catalog has one place to replace instead of six.
+
+[`docs/localization-status.md`](docs/localization-status.md) lists what remains and
+the order to do it in — interpolated sentences and `== 1` ternaries both need the
+catalog populated first.
 
 ## Not built
 

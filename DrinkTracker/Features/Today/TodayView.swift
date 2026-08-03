@@ -158,7 +158,7 @@ struct TodayView: View {
           Spacer()
         }
         .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(height: GlassTokens.Layout.minimumTouchTarget)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
         .contentShape(.rect)
       }
       .buttonStyle(.plain)
@@ -250,8 +250,7 @@ struct TodayView: View {
 
   private var unitLabel: String {
     let region = settings.effectiveRegion
-    let noun = total == 1 ? region.unitName : region.unitName + "s"
-    return "\(noun) today"
+    return "\(region.unitName(for: total)) today"
   }
 
   /// The "last logged" line only appears once something has been logged this

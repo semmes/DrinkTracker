@@ -126,37 +126,31 @@ struct TrendsView: View {
         )
       }
 
+      // No progress bar here, deliberately.
+      //
+      // It used to carry one, filling as the count rose toward the whole period.
+      // A bar that fills has a full state, a full state is a target, and a target
+      // for "days you didn't drink" is a goal — which is the thing this app says
+      // in its own About screen that it doesn't do. The count says everything the
+      // bar said, without implying a direction to move in.
       SUCard(model: .glass) {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Text("Days with nothing logged")
             .font(GlassTokens.Typography.cardLabel)
             .foregroundStyle(.secondary)
 
-          HStack(spacing: GlassTokens.Spacing.regular) {
-            Text("\(restDays) of \(totals.count)")
-              .font(GlassTokens.Typography.cardValue)
-              .foregroundStyle(.primary)
-
-            SUProgressBar(
-              model: ProgressBarVM {
-                $0.color = .accent
-                $0.style = .light
-                $0.size = .medium
-                $0.minValue = 0
-                $0.maxValue = CGFloat(max(totals.count, 1))
-                $0.currentValue = CGFloat(restDays)
-              }
-            )
-            .frame(height: 8)
-          }
+          Text("\(restDays) of \(totals.count)")
+            .font(GlassTokens.Typography.cardValue)
+            .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
       }
     }
   }
 
   private var unitNounPlural: String {
-    settings.effectiveRegion.unitName + "s"
+    settings.effectiveRegion.unitNamePlural
   }
 }
 
