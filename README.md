@@ -111,6 +111,7 @@ DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persi
 Shared/                     compiled into BOTH targets
                               AppGroup, AppSettings, DrinkEntry (SwiftData),
                               DrinkRepository, LogDrinkIntent
+DrinkTrackerTests/          xctest bundle — the SwiftData layer, in-memory store
 DrinkTracker/               App target
   DesignSystem/               AppTheme, GlassTokens, FlowLayout
   Persistence/                DrinkStore (HealthKit-aware wrapper)
@@ -138,6 +139,15 @@ without a simulator. `DrinkEntry` is a thin SwiftData shell that maps to and fro
 ```bash
 cd DrinkTrackerCore && swift test
 ```
+
+The SwiftData layer is tested separately, because `@Model` only expands inside Xcode:
+
+```bash
+xcodebuild test -project DrinkTracker.xcodeproj -scheme DrinkTracker \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' -only-testing:DrinkTrackerTests
+```
+
+Both run on every pull request — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Known spec discrepancies
 

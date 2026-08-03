@@ -69,3 +69,50 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
+
+  # Tier 2 (docs/PRD.md §4). SwiftData's @Model macro only expands inside Xcode,
+  # so anything about rows has to run here rather than in the SPM package.
+  #
+  # This one needs a bootable simulator, unlike the build job — an xctest bundle
+  # has to actually launch somewhere.
+  integration-tests:
+    name: Integration tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Select newest installed Xcode
+        run: |
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selecting $latest"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+
+      - name: Pick an available simulator
+        id: sim
+        run: |
+          # Resolved at run time rather than pinned to a device name: runner
+          # images rotate which simulators ship, and pinning "iPhone 17 Pro"
+          # turns an image update into a red build for no reason.
+          udid=$(xcrun simctl list devices available \
+            | grep -E "^\s+iPhone" \
+            | head -1 \
+            | grep -oE "[0-9A-F]{8}-[0-9A-F-]{27}")
+          if [ -z "$udid" ]; then
+            echo "No iPhone simulator available on this runner image:"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Using simulator $udid"
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project DrinkTracker.xcodeproj \
+            -scheme DrinkTracker \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -only-testing:DrinkTrackerTests \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
