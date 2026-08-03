@@ -31,26 +31,18 @@ Direct install from Xcode. For *this* test it beats TestFlight on every axis: a 
 build, the Xcode console attached, and a thirty-second turnaround if we need to change
 something and retry.
 
-1. **Fill in your Team ID.** `Config/Signing.xcconfig` currently has
-   `DEVELOPMENT_TEAM =` empty — that's the only value missing. Find it at
-   [developer.apple.com/account](https://developer.apple.com/account) under Membership
-   details, or in Xcode → Settings → Accounts → the Team column. It's a 10-character
-   string like `A1B2C3D4E5`, and it isn't a secret.
+1. **Add your Apple ID** to Xcode → Settings → Accounts, if it isn't already.
+   `DEVELOPMENT_TEAM` is already set in `Config/Signing.xcconfig`, so there is
+   nothing to fill in.
 
-   ```
-   DEVELOPMENT_TEAM = A1B2C3D4E5
-   ```
-
-2. **Add your Apple ID** to Xcode → Settings → Accounts, if it isn't already.
-
-3. **Confirm both targets are signing.** Select the **DrinkTracker** target → Signing &
+2. **Confirm both targets are signing.** Select the **DrinkTracker** target → Signing &
    Capabilities → your team is picked, "Automatically manage signing" is on. Repeat for
    **DrinkTrackerWidgetExtension**. Automatic signing registers both App IDs, the App
    Group, and the iCloud container on first device build.
 
-4. **Select your device and run.** (⌘R)
+3. **Select your device and run.** (⌘R)
 
-If step 4 reports the App Group can't be created, register it once by hand at
+If step 3 reports the App Group can't be created, register it once by hand at
 [developer.apple.com](https://developer.apple.com/account) → Identifiers → App Groups
 as exactly `group.com.shawnsemmes.DrinkTracker`, then rebuild.
 

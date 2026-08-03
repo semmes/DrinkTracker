@@ -29,9 +29,12 @@ Both targets read it, so the bundle identifiers, the App Group, and the iCloud
 container cannot drift apart.
 
 ```
-DEVELOPMENT_TEAM  =                  # your 10-character Team ID
+DEVELOPMENT_TEAM  = TN2VF665NJ       # 10-character Team ID (not a secret)
 BUNDLE_ID_PREFIX  = com.shawnsemmes  # a domain you control
 ```
+
+Both are filled in, so a device build needs nothing beyond an Apple ID signed into
+Xcode. Fork this and you'll want your own `DEVELOPMENT_TEAM`.
 
 Derived automatically:
 
@@ -46,15 +49,14 @@ Derived automatically:
 a Swift literal can't fall out of step with the entitlement — a mismatch wouldn't
 fail the build, it would silently give the app and the widget separate stores.
 
-**Simulator needs nothing.** It doesn't require signing, so `DEVELOPMENT_TEAM` can
-stay empty and everything above already works — verified: the App Group container is
-created and the SwiftData store lands inside it.
+**Simulator needs nothing.** It doesn't require signing at all — verified: the App
+Group container is created and the SwiftData store lands inside it.
 
 **For a device you need a paid Apple Developer Program membership** ($99/yr; the free
 tier does not grant App Groups or iCloud). Then:
 
 1. Xcode → Settings → Accounts → add your Apple ID.
-2. Put your Team ID in `Config/Signing.xcconfig`.
+2. Team ID is already set in `Config/Signing.xcconfig`.
 3. Select the **DrinkTracker** target → Signing & Capabilities → confirm your team is
    picked and "Automatically manage signing" is on. Repeat for
    **DrinkTrackerWidgetExtension**.

@@ -11,7 +11,7 @@
 //
 // Leave this empty to keep building for the Simulator, which doesn't require
 // signing. It must be filled in before building for a device.
-DEVELOPMENT_TEAM =
+DEVELOPMENT_TEAM = TN2VF665NJ
 
 // Reverse-DNS prefix for the bundle identifiers. Must be a domain you control.
 // Derived identifiers:
