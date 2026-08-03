@@ -61,7 +61,7 @@ struct RecentSummaryCard: View {
   }
 
   private var unitNoun: String {
-    region.unitName + "s"
+    region.unitNamePlural
   }
 
   private func figure(value: String, label: String) -> some View {

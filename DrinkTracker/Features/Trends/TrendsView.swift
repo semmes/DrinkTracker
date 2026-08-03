@@ -150,7 +150,7 @@ struct TrendsView: View {
   }
 
   private var unitNounPlural: String {
-    settings.effectiveRegion.unitName + "s"
+    settings.effectiveRegion.unitNamePlural
   }
 }
 

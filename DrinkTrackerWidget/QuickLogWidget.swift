@@ -85,8 +85,7 @@ struct QuickLogWidgetView: View {
   @Environment(\.widgetFamily) private var family
 
   private var unitLabel: String {
-    let noun = entry.total == 1 ? entry.region.unitName : entry.region.unitName + "s"
-    return "\(noun) today"
+    return "\(entry.region.unitName(for: entry.total)) today"
   }
 
   /// Small shows beer only — the most common case — because four buttons at that

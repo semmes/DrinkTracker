@@ -367,6 +367,21 @@ Every user-visible string has been reviewed against App Store guideline 1.4.3 �
 [`docs/copy-review-1.4.3.md`](docs/copy-review-1.4.3.md), which records what was
 changed and what was checked and left alone.
 
+## Localization
+
+**The app is not localized yet.** `Localizable.xcstrings` exists in both targets but
+is empty — `SWIFT_EMIT_LOC_STRINGS` is already on, so the next Xcode build populates
+both catalogs from the existing literals. That step needs Xcode and can't be done
+from CI.
+
+Plural forms are declared per region (`Region.unitNamePlural`, `unitName(for:)`)
+rather than built by appending `"s"`, which six call sites used to do. That isn't
+localization; it means a catalog has one place to replace instead of six.
+
+[`docs/localization-status.md`](docs/localization-status.md) lists what remains and
+the order to do it in — interpolated sentences and `== 1` ternaries both need the
+catalog populated first.
+
 ## Not built
 
 - **The widget offers no size/ABV choice** — one tap logs the type's default. That is

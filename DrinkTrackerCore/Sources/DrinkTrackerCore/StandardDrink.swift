@@ -51,7 +51,6 @@ extension StandardDrink {
   /// The live "≈ N standard drink(s)" line in the drink-detail sheet.
   public static func liveEstimate(_ count: Double, region: Region = .unitedStates) -> String {
     let rounded = (count * 10).rounded() / 10
-    let noun = rounded == 1 ? region.unitName : region.unitName + "s"
-    return "≈ \(formatted(count)) \(noun)"
+    return "≈ \(formatted(count)) \(region.unitName(for: rounded))"
   }
 }

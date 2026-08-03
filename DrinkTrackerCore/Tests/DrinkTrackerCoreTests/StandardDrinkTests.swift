@@ -25,6 +25,22 @@ struct StandardDrinkTests {
     #expect(abs(Region.unitedStates.gramsPureAlcoholPerStandardDrink - 14.0) < 0.05)
   }
 
+  /// Plural forms are declared per region rather than built by appending "s".
+  /// Six call sites used to do the latter, which is an English rule applied by
+  /// string surgery and the first thing to break under translation.
+  @Test("Each region declares both forms, and agreement picks the right one")
+  func unitNameAgreement() {
+    for region in Region.allCases {
+      #expect(region.unitName(for: 1) == region.unitName)
+      #expect(region.unitName(for: 0) == region.unitNamePlural)
+      #expect(region.unitName(for: 2) == region.unitNamePlural)
+      #expect(region.unitName(for: 0.5) == region.unitNamePlural)
+      #expect(region.unitNamePlural != region.unitName)
+    }
+    #expect(Region.unitedKingdom.unitNamePlural == "units")
+    #expect(Region.unitedStates.unitNamePlural == "standard drinks")
+  }
+
   @Test("UK and Australian units derive from their gram definitions")
   func regionalUnits() {
     #expect(Region.unitedKingdom.gramsPureAlcoholPerStandardDrink == 8)

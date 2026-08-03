@@ -42,9 +42,9 @@ struct DrinkRow: View {
   }
 
   private var accessibilityDescription: String {
-    let count = StandardDrink.formatted(drink.standardDrinks(in: region))
-    let noun = drink.standardDrinks(in: region) == 1 ? region.unitName : region.unitName + "s"
-    return "\(drink.type.displayName), \(detail), \(count) \(noun)"
+    let value = drink.standardDrinks(in: region)
+    let count = StandardDrink.formatted(value)
+    return "\(drink.type.displayName), \(detail), \(count) \(region.unitName(for: value))"
   }
 }
 
