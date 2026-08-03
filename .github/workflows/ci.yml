@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Tier 1 (docs/PRD.md §4). Pure value types, no simulator and no signing —
+  # DrinkTrackerCore declares .macOS(.v15) precisely so this can run natively.
+  domain-tests:
+    name: Domain tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: swift test
+        working-directory: DrinkTrackerCore
+        run: swift test
+
+  # Builds the app scheme, which builds and embeds the widget extension as a
+  # target dependency — one scheme covers both targets.
+  #
+  # CODE_SIGNING_ALLOWED=NO because the simulator needs no signing and CI has no
+  # team; see README "Signing and provisioning".
+  build:
+    name: Build (iOS Simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest installed Xcode
+        run: |
+          # The project deploys to iOS 26.0, so this needs Xcode 26 or newer. If
+          # the runner image is older the build fails here with a clear SDK error
+          # rather than something obscure further down.
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selecting $latest"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i "ios" || true
+
+      - name: Resolve package dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project DrinkTracker.xcodeproj \
+            -scheme DrinkTracker
+
+      - name: Build
+        run: |
+          # generic/platform rather than a named device: runner images rotate
+          # their installed simulators, and a build job doesn't need a bootable
+          # one. Anything requiring a real device is Tier 4 and can't run here.
+          set -o pipefail
+          xcodebuild build \
+            -project DrinkTracker.xcodeproj \
+            -scheme DrinkTracker \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO

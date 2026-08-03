@@ -143,7 +143,7 @@ behaviours that need it, all currently untested:
 - `AppSettings` round-tripping through App Group defaults, including
   `storedRegion()`'s nil-to-US fallback.
 
-**Tier 3 — Simulator.** Build both schemes, then exercise the specific interaction and
+**Tier 3 — Simulator.** Build the app scheme, then exercise the specific interaction and
 **state the observed numbers in the commit message.** The existing commits already do
 this well — "logging 3 wines took the total from 5.9 to 8.9, and removing one took it
 to 7.9" is a claim someone can check. This tier codifies that as required rather than
@@ -168,8 +168,10 @@ is the model here: it says exactly what was established and exactly what was not
 2. Open a **draft PR** early. `semmes/drinktracker` has had zero PRs and zero issues to
    date — every commit landed directly on `main`. The PR is where a change gets
    examined before it becomes history.
-3. CI must be green (Iteration 1 adds it): at minimum `swift test` on
-   `DrinkTrackerCore` plus an `xcodebuild` build of both schemes.
+3. CI must be green — `.github/workflows/ci.yml` runs `swift test` on
+   `DrinkTrackerCore` and an `xcodebuild` build of the `DrinkTracker` scheme.
+   That one scheme covers both targets: the widget extension is a target
+   dependency of the app and is embedded by the same build.
 4. Self-review against §2. A new surface reviews every invariant; a fix reviews the
    ones it touches.
 5. Merge to `main`.
@@ -220,8 +222,11 @@ what it set out to do, and the open risks are all about whether it does it *corr
   intent bug from a widget-dispatch bug. Then fix it, or document it as an OS
   limitation with the evidence.
 - **b. Add the `DrinkTrackerTests` target** and the Tier-2 tests listed in §4.
-- **c. Add `.github/workflows/ci.yml`** on a macOS runner, plus
-  `.github/pull_request_template.md`.
+- **c. CI.** ✅ Done — `.github/workflows/ci.yml` runs the domain tests and an
+  unsigned simulator build on every PR, plus `.github/pull_request_template.md`
+  carrying the §2/§4 checklist. This one comes first on purpose: nothing else in
+  this iteration can be verified from a machine without a Swift toolchain, and CI
+  is what turns "I believe this builds" into evidence.
 - **d. Decide the three spec discrepancies** the README documents as implemented
   literally and pinned by test. Each becomes an ADR; where the answer changes
   behaviour, a one-line default change and an updated test in the same commit.
