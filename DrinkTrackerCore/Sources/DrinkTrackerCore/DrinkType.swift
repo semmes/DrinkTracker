@@ -76,17 +76,33 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
 
   /// The size pill pre-selected when the sheet opens.
   ///
-  /// `.other` has no presets, so it opens on Custom seeded with `defaultVolumeOunces`.
+  /// Derived from `defaultVolumeOunces` rather than being the first pill in the
+  /// list. The two have to agree — the selected pill's volume is what
+  /// `DrinkDraft.volumeOunces` actually uses — and deriving one from the other
+  /// makes disagreeing impossible. Position in `sizeOptions` is then free to be
+  /// about presentation order, which is what it looks like it's about.
+  ///
+  /// `.other` has no presets, so it falls through to Custom seeded with
+  /// `defaultVolumeOunces`.
   public var defaultSizeOption: DrinkSizeOption {
-    sizeOptions[0]
+    sizeOptions.first { $0.volumeOunces == defaultVolumeOunces } ?? .custom
   }
 
   /// Volume the sheet opens with, in US fluid ounces.
+  ///
+  /// Beer, wine, and spirit each resolve to almost exactly 1.0 US standard drink
+  /// at their default ABV, so "one drink" in the app means one drink. Spirit uses
+  /// the 1.5 oz shot for that reason: at 40% it is 0.6 fl oz of ethanol, which is
+  /// the US definition exactly. See
+  /// docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md.
   public var defaultVolumeOunces: Double {
     switch self {
     case .beer: 12
     case .wine: 5
-    case .spirit: 1
+    case .spirit: 1.5
+    // Other is the deliberate exception: 8 oz @ 10% is 1.33 standard drinks. It
+    // has no presets and no typical serving to anchor to, so its default is a
+    // starting point for the Custom field rather than a claim about a real drink.
     case .other: 8
     }
   }

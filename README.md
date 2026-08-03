@@ -107,7 +107,7 @@ DrinkTracker.xcodeproj      two targets: the app and the widget extension
 DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persistence
   Sources/                    Region, DrinkType, StandardDrink, LoggedDrink,
                               DrinkDraft, TrendSummary
-  Tests/                      24 tests, all passing
+  Tests/                      27 tests, all passing
 Shared/                     compiled into BOTH targets
                               AppGroup, AppSettings, DrinkEntry (SwiftData),
                               DrinkRepository, LogDrinkIntent
@@ -151,16 +151,16 @@ Both run on every pull request — see [`.github/workflows/ci.yml`](.github/work
 
 ## Known spec discrepancies
 
-Three places where the brief contradicts itself. All are implemented **as literally
-written**, with tests pinning the current behaviour so nothing is silently "corrected".
-Each is a one-line change if you want it to go the other way.
+Three places where the brief contradicts itself. Two are now settled decisions with
+records; the remaining one is implemented **as literally written**, with tests
+pinning the behaviour so nothing is silently "corrected".
 
-1. **Spirit and Other defaults don't hit 1.0 standard drinks.** The brief says every
-   default size/ABV pair should resolve to "almost exactly 1.0", and calls that
-   load-bearing. But its own table gives Spirit `1 oz @ 40%` = **0.67** and Other
-   `8 oz @ 10%` = **1.33**. Beer and Wine do land on 1.0. To satisfy the invariant,
-   Spirit's default would need to be the 1.5 oz shot (already a listed size option),
-   and Other would need 6 oz @ 10% or 8 oz @ 7.5%.
+1. **~~Spirit and Other defaults don't hit 1.0 standard drinks.~~** *Settled.* The
+   one-drink invariant is real, and Spirit now defaults to the 1.5 oz shot — 0.6 fl
+   oz of ethanol at 40%, the US definition exactly. Other stays at 8 oz @ 10% as a
+   deliberate exception: it has no presets and no typical serving to anchor to, so
+   its default seeds the Custom field rather than describing a real drink. See
+   [ADR-0005](docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md).
 
 2. **The UK figures don't describe the same quantity.** The brief says "0.28 fl oz /
    8g". 8 g of ethanol is ~0.343 US fl oz, not 0.28 — and 0.28 fl oz is ~6.5 g. The
