@@ -352,7 +352,9 @@ struct DrinkDetailSheet: View {
 
 // MARK: - Pieces
 
-private struct SectionLabel: View {
+/// Shared by the drink sheet and the calendar's day sheet, so the two read as the
+/// same surface rather than two takes on one.
+struct SectionLabel: View {
   let text: String
 
   init(_ text: String) { self.text = text }

@@ -78,6 +78,14 @@ struct TodayView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
           NavigationLink {
+            CalendarView()
+          } label: {
+            Image(systemName: "calendar")
+          }
+          .accessibilityLabel("Calendar")
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+          NavigationLink {
             TrendsView()
           } label: {
             Image(systemName: "chart.bar.xaxis")

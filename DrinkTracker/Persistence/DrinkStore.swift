@@ -51,6 +51,22 @@ struct DrinkStore {
     return saved
   }
 
+  /// Records that a day had no alcohol.
+  ///
+  /// Returns Void rather than the repository's Bool: the calendar only offers this
+  /// on a day with no entries, so the refusal case can't be reached from there, and
+  /// a discarded Bool at every call site would suggest otherwise.
+  ///
+  /// No widget reload — the widget shows today's total, and a day with no alcohol
+  /// totals what an unlogged day totals.
+  func markAlcoholFree(_ day: Date) {
+    repository.markAlcoholFree(day)
+  }
+
+  func unmarkAlcoholFree(_ day: Date) {
+    repository.unmarkAlcoholFree(day)
+  }
+
   func delete(_ drink: LoggedDrink) async {
     if let sampleID = drink.healthKitSampleID {
       await health.deleteSample(id: sampleID)
