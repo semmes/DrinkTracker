@@ -224,10 +224,12 @@ what it set out to do, and the open risks are all about whether it does it *corr
 
 - **a. Resolve the widget's one-tap logging.** It has never been observed working.
   `perform()` is never entered — the `Diagnostics.record("entered")` breadcrumb stays
-  absent after a tap. Run the Shortcuts bisect the README describes, on a device: the
-  same `perform()` body runs in the app's process from Shortcuts, which separates an
+  absent after a tap. The protocol is written up in
+  [device-test-widget-dispatch.md](device-test-widget-dispatch.md): the Shortcuts
+  bisect runs the same `perform()` body in the app's process, which separates an
   intent bug from a widget-dispatch bug. Then fix it, or document it as an OS
-  limitation with the evidence.
+  limitation with the evidence. Diagnostics is visible in TestFlight builds as well as
+  Debug for exactly this reason — a build that can't be diagnosed can't be tested.
 - **b. Integration tests.** ✅ Done — the `DrinkTrackerTests` target and the Tier-2
   tests listed in §4, run in CI on a simulator. Remaining: `DrinkStore` and
   `HealthKitService` need a host-based target, which is deliberately deferred.

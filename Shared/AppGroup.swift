@@ -82,6 +82,25 @@ enum Diagnostics {
   static var storeMode: String? {
     AppGroup.defaults.string(forKey: storeModeKey)
   }
+
+  /// Whether the diagnostics UI should be shown.
+  ///
+  /// Debug builds always. **TestFlight builds too**, which is the point: the widget
+  /// dispatch question can only be answered on a real device, and a tester holding a
+  /// Release build has no way to read the breadcrumb — so the only report they can
+  /// make is "nothing happened", which is precisely the answer that distinguishes
+  /// nothing. A build that can't be diagnosed can't be tested.
+  ///
+  /// App Store builds never. TestFlight is identified by its sandbox receipt, which
+  /// is the standard signal and the only one that separates TestFlight from a
+  /// production install — both are Release, so `#if DEBUG` cannot tell them apart.
+  static var isVisible: Bool {
+    #if DEBUG
+    return true
+    #else
+    return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    #endif
+  }
 }
 
 // MARK: - Shared store

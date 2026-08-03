@@ -18,9 +18,9 @@ struct SettingsView: View {
           regionSection
           healthSection
           aboutSection
-          #if DEBUG
-          diagnosticsSection
-          #endif
+          if Diagnostics.isVisible {
+            diagnosticsSection
+          }
         }
         .screenMargin()
         .padding(.vertical, GlassTokens.Spacing.section)
@@ -117,15 +117,14 @@ struct SettingsView: View {
 
   // MARK: - Diagnostics
 
-  #if DEBUG
-  /// Debug builds only — never ships.
+  /// Debug and TestFlight builds only — see `Diagnostics.isVisible`.
   ///
   /// Exists for one job: telling you why a widget tap did nothing. On a device you
   /// can't read the App Group's container, and the extension's console output is
   /// largely unreadable, so the breadcrumb it leaves is surfaced here instead.
   private var diagnosticsSection: some View {
     SettingsSection(
-      title: "Diagnostics (debug build)",
+      title: "Diagnostics (test build)",
       footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke. Store mode should read \"shared + CloudKit\"; \"no CloudKit\" means the log is on this device only, and \"IN MEMORY\" means nothing is being saved at all."
     ) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
@@ -161,7 +160,6 @@ struct SettingsView: View {
         .fixedSize(horizontal: false, vertical: true)
     }
   }
-  #endif
 
   // MARK: - About
 

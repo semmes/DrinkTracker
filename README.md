@@ -215,8 +215,12 @@ out-of-process view hierarchy in the Simulator rather than a defect in the app �
 
 ### How to diagnose it on a device
 
-**Settings → Diagnostics** (debug builds only) shows the App Group status and what
-the widget's intent did last:
+**Follow [`docs/device-test-widget-dispatch.md`](docs/device-test-widget-dispatch.md)** —
+a step-by-step protocol with a table saying what each combination of readings means.
+The short version follows.
+
+**Settings → Diagnostics** (Debug and TestFlight builds) shows the App Group status
+and what the widget's intent did last:
 
 | Reading | Meaning |
 |---|---|
