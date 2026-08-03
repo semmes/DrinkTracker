@@ -106,7 +106,7 @@ enum Diagnostics {
 // MARK: - Shared store
 
 enum SharedModelContainer {
-  static let schema = Schema([DrinkEntry.self])
+  static let schema = Schema([DrinkEntry.self, AlcoholFreeDay.self])
 
   /// Where the store lives.
   ///

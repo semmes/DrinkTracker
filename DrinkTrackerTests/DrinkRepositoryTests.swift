@@ -16,9 +16,15 @@ struct DrinkRepositoryTests {
   /// Swift Testing builds a fresh instance per test, so each one gets its own
   /// empty store without any teardown.
   init() throws {
+    // Built from the shared schema rather than a hand-listed model, so a model
+    // added to the store but forgotten here fails loudly instead of quietly going
+    // untested.
     let container = try ModelContainer(
-      for: DrinkEntry.self,
-      configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+      for: SharedModelContainer.schema,
+      configurations: ModelConfiguration(
+        schema: SharedModelContainer.schema,
+        isStoredInMemoryOnly: true
+      )
     )
     self.context = ModelContext(container)
     self.repository = DrinkRepository(context: context)

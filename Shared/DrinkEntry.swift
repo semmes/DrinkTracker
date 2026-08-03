@@ -57,3 +57,28 @@ extension Array where Element == DrinkEntry {
   /// Convenience for handing a `@Query` result to the pure domain layer.
   var loggedDrinks: [LoggedDrink] { map(\.logged) }
 }
+
+// MARK: - Alcohol-free days
+
+/// A day the user recorded as having no alcohol.
+///
+/// This exists because "no entries" and "no alcohol" are different facts, and the
+/// calendar has to tell them apart. Every day before the app was installed has no
+/// entries; treating that as abstinence would have the year view claim a history
+/// that never happened. Only an explicit marker can say "I was here, and there was
+/// nothing to log."
+///
+/// Shaped for CloudKit like `DrinkEntry`: a default value on every stored property
+/// and no `@Attribute(.unique)`. Uniqueness per day is enforced by the repository
+/// instead — see `DrinkRepository.markAlcoholFree`.
+@Model
+final class AlcoholFreeDay {
+  /// Start of the day, in the calendar in force when it was recorded.
+  var day: Date = Date()
+  var recordedAt: Date = Date()
+
+  init(day: Date, recordedAt: Date = Date()) {
+    self.day = day
+    self.recordedAt = recordedAt
+  }
+}

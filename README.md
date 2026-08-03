@@ -106,17 +106,20 @@ accessibility behaviour for free.
 DrinkTracker.xcodeproj      two targets: the app and the widget extension
 DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persistence
   Sources/                    Region, DrinkType, StandardDrink, LoggedDrink,
-                              DrinkDraft, TrendSummary
-  Tests/                      27 tests, all passing
+                              DrinkDraft, TrendSummary, DayIntensity,
+                              CalendarGrid, RecentSummary
+  Tests/                      50 tests, all passing
 Shared/                     compiled into BOTH targets
-                              AppGroup, AppSettings, DrinkEntry (SwiftData),
-                              DrinkRepository, LogDrinkIntent
-DrinkTrackerTests/          xctest bundle — the SwiftData layer, in-memory store
+                              AppGroup, AppSettings, DrinkEntry + AlcoholFreeDay
+                              (SwiftData), DrinkRepository, LogDrinkIntent
+DrinkTrackerTests/          xctest bundle — 31 tests, the SwiftData layer in-memory
 DrinkTracker/               App target
-  DesignSystem/               AppTheme, GlassTokens, FlowLayout
+  DesignSystem/               AppTheme, GlassTokens, FlowLayout, CountStepper,
+                              IntensityPalette
   Persistence/                DrinkStore (HealthKit-aware wrapper)
   Services/                   HealthKitService, DrinkTrackerShortcuts
-  Features/                   Onboarding, Today, DrinkDetail, Trends, Settings
+  Features/                   Onboarding, Today, DrinkDetail, Calendar, Trends,
+                              Settings
 DrinkTrackerWidget/         Widget extension target
 ```
 
@@ -281,8 +284,76 @@ The quick-add path is deliberately untouched by this: no type picker, no time
 control, still two taps. The extra controls appear only when editing an existing
 entry or adding one retroactively — the cases where "now" is the wrong answer.
 
+## Calendar and year view
+
+The chart on Trends answers *how much*. The calendar answers *which days*.
+
+- **Month view** — every day shaded by how much was logged. Tap any past day to
+  record it. Future days are dimmed and inert; a calendar you can scroll forward
+  into invites logging drinks that haven't happened.
+- **Year view** — twelve months at once. Cells are 11pt, far below a touch target,
+  so nothing there is tappable: it is a reading surface, and days are edited in the
+  month view.
+- **Recording a past day** is a count, not a size and a strength. Reconstructing
+  exact volumes days later is guesswork, and demanding precision someone doesn't
+  have produces worse data than accepting the number they do remember. It seeds
+  type, size, and ABV from what you usually log, and every entry it creates stays
+  individually editable.
+- **Zero is a value on the counter**, not a separate button — "I had none" and "I
+  had three" are the same question answered differently, so answering *none* costs
+  the same two taps as any other answer.
+
+### Alcohol-free days are recorded, not inferred
+
+`AlcoholFreeDay` is a separate model because **"no entries" and "no alcohol" are
+different facts**. Every day before the app was installed has no entries; treating
+that as abstinence would have the year view claim a history that never happened. So
+the calendar has five states, not four, and blank means *no record* — the year view
+says so in as many words, and prints how many of its days are actually accounted
+for.
+
+The repository refuses to mark a day that already has drinks. Keeping a dormant
+contradictory marker would be worse than refusing: it would reassert itself the
+moment those entries were removed, claiming abstinence the user never stated.
+
+### The colour ramp
+
+`IntensityPalette` is the only place in the app that defines literal colours, and
+[`GlassTokens`](DrinkTracker/DesignSystem/GlassTokens.swift) still defines none. The
+exception is narrow and deliberate: in a heatmap the colour *is* the data, and data
+has to be specified rather than inherited from the system.
+
+A green→yellow→orange→red ramp — the obvious choice, and what comparable apps use —
+is wrong twice over. Under protanopia and deuteranopia those hues collapse toward
+the same yellow-brown, and they sit at similar lightness so nothing survives to
+separate them; the worst pair in it is *no alcohol* against *1–2 drinks*, which is
+the distinction the calendar most needs to carry. It also delivers a verdict, which
+the tone rules and `QuickLogWidget` both rule out.
+
+A single blue hue stepped light→dark fixes both. Lightness survives every form of
+colour vision deficiency **and** greyscale, and darker reads as *more*, not *worse*.
+
+| | 1–2 | 3–5 | 6+ |
+|---|---|---|---|
+| Light | `#86b6ef` | `#2a78d6` | `#0d366b` |
+| Dark | `#184f95` | `#3987e5` | `#9ec5f4` |
+
+Both modes pass monotone lightness, adjacent ΔL ≥ 0.06, light-end contrast ≥ 2:1,
+and single-hue checks. Dark is stepped independently against the dark surface rather
+than inverted, because an inverted ramp falls outside the band at both ends.
+**Re-validate these values if you change them; don't eyeball them.**
+
+Alcohol-free is deliberately *not* a step in that ramp — palest blue would read as
+"a small amount of drinking" rather than "none". It gets a neutral fill plus an
+outline, so it stays separable from both neighbours with no colour at all.
+
 ## Not built
 
 - **The widget offers no size/ABV choice** — one tap logs the type's default. That is
   intentional (it mirrors the sheet's fast path), and corrections happen in the app.
 - **No bulk edit or export.** Entries are managed one at a time.
+- **No score.** A single figure summarising 30 days is a target, and the cheapest way
+  to protect a target is to stop logging. See
+  [ADR-0006](docs/decisions/0006-a-summary-not-a-score.md).
+- **No social or sharing features.** Not requested, and comparison is a verdict by
+  another route.

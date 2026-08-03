@@ -66,6 +66,54 @@ struct DrinkRepository {
     drinks(on: day, calendar: calendar).reduce(0) { $0 + $1.standardDrinks(in: region) }
   }
 
+  // MARK: - Alcohol-free days
+
+  /// Records that a day had no alcohol. Idempotent — marking twice is one marker.
+  ///
+  /// Refuses to mark a day that already has entries. The two would contradict each
+  /// other, and silently keeping both leaves a dormant marker that reappears the
+  /// moment those entries are removed — asserting abstinence for a day the user
+  /// never said that about. Remove the entries first; the caller checks.
+  @discardableResult
+  func markAlcoholFree(_ day: Date, calendar: Calendar = .current) -> Bool {
+    let startOfDay = calendar.startOfDay(for: day)
+    guard drinks(on: startOfDay, calendar: calendar).isEmpty else { return false }
+    guard alcoholFreeDay(on: startOfDay) == nil else { return true }
+    context.insert(AlcoholFreeDay(day: startOfDay))
+    try? context.save()
+    return true
+  }
+
+  func unmarkAlcoholFree(_ day: Date, calendar: Calendar = .current) {
+    let startOfDay = calendar.startOfDay(for: day)
+    guard let existing = alcoholFreeDay(on: startOfDay) else { return }
+    context.delete(existing)
+    try? context.save()
+  }
+
+  func isMarkedAlcoholFree(_ day: Date, calendar: Calendar = .current) -> Bool {
+    alcoholFreeDay(on: calendar.startOfDay(for: day)) != nil
+  }
+
+  func alcoholFreeDay(on startOfDay: Date) -> AlcoholFreeDay? {
+    var descriptor = FetchDescriptor<AlcoholFreeDay>(
+      predicate: #Predicate { $0.day == startOfDay }
+    )
+    descriptor.fetchLimit = 1
+    return (try? context.fetch(descriptor))?.first
+  }
+
+  /// Every marked day, as start-of-day dates.
+  ///
+  /// A `Set` because the calendar asks "is this day marked" once per cell — 365
+  /// times for a year grid — and a linear scan per cell would be quadratic.
+  func allAlcoholFreeDays() -> Set<Date> {
+    let entries = (try? context.fetch(FetchDescriptor<AlcoholFreeDay>())) ?? []
+    return Set(entries.map(\.day))
+  }
+
+  // MARK: - HealthKit
+
   /// Entries that never made it into Health, oldest first.
   func awaitingHealthKitSync() -> [DrinkEntry] {
     let descriptor = FetchDescriptor<DrinkEntry>(
