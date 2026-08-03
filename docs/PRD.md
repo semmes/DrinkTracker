@@ -103,6 +103,17 @@ simulator.
 *Failure mode:* untestable arithmetic in an app whose entire value proposition is that
 the arithmetic is right.
 
+**10. The intensity ramp is one hue, and changes to it are validated, not eyeballed.**
+`IntensityPalette` is the only place in the app that defines literal colours — a
+deliberate, narrow exception to `GlassTokens` defining none, because in a heatmap the
+colour *is* the data. It carries magnitude in **lightness**, which is the one channel
+that survives every form of colour vision deficiency and greyscale. Alcohol-free sits
+off the ramp entirely, with an outline as a second encoding channel.
+*Failure mode:* a hue-based ramp (green→yellow→orange→red is the tempting one) is
+unreadable for ~8% of men and delivers a verdict besides — see invariant 8. Both
+failures are invisible to anyone with normal colour vision reviewing the diff, which
+is exactly why the check has to be mechanical. See [ADR-0007](decisions/0007-one-hue-intensity-ramp.md).
+
 ---
 
 ## 3. Change classes
@@ -127,7 +138,7 @@ Four tiers, ordered by what each can actually prove. The point of naming them is
 **simulator-green is routinely mistaken for verified**, and several of this app's most
 important behaviours cannot be observed in a simulator at all.
 
-**Tier 1 — Domain.** `cd DrinkTrackerCore && swift test` (24 tests today.)
+**Tier 1 — Domain.** `cd DrinkTrackerCore && swift test` (50 tests today.)
 Pure value-type math: standard-drink formulas, regional definitions, draft behaviour,
 trend grouping. Runs anywhere, no simulator, no signing. **Every change to a formula,
 a default, or a grouping rule lands with a test here.**
@@ -284,6 +295,10 @@ the CloudKit claim is either verified or marked unverified.
 **Goal:** the deferred features, re-examined against §2 rather than assumed.
 
 Currently in the README's "Not built" list, plus what has come up since:
+- **Calendar and year view.** ✅ Done, pulled forward ahead of the rest of this
+  iteration on request. Brought `AlcoholFreeDay`, the intensity ramp
+  ([ADR-0007](decisions/0007-one-hue-intensity-ramp.md)), and the 30-day summary
+  that stands in for a score ([ADR-0006](decisions/0006-a-summary-not-a-score.md)).
 - **Export.** Probably the highest-value item here: it is the natural answer to "show
   this to my doctor", and it is a plain data question with no tone risk.
 - **Longer trend ranges** (90-day, year). Watch invariant 3 — a year of history spans
