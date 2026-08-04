@@ -131,3 +131,52 @@ struct LogDrinkIntent: AppIntent {
     }
   }
 }
+
+// MARK: - Count-first intent
+
+/// Logs one drink, seeded the same way as Today's counter — no parameter at all.
+///
+/// This is the widget's mirror of the app's primary control. Parameterless on
+/// purpose, twice over: it matches the count-first model (the user states *one
+/// more*, not a type), and it structurally cannot repeat the resolution failure
+/// that silently broke the typed intent — there is nothing to resolve.
+///
+/// Minus deliberately has no widget counterpart. Removing an entry must retire
+/// its HealthKit sample, and only the app process does that reliably; a widget
+/// delete would leave Health holding a sample for a drink that no longer exists.
+/// Adding is safe from here because `backfillHealthKit` sweeps up unsampled
+/// entries on next foreground — the asymmetry is the HealthKit mirror's, not an
+/// oversight.
+struct LogOneDrinkIntent: AppIntent {
+  static var title: LocalizedStringResource { "Log One Drink" }
+  static var description: IntentDescription {
+    IntentDescription("Logs one drink, matching what you usually log.")
+  }
+
+  static var openAppWhenRun: Bool { false }
+
+  init() {}
+
+  @MainActor
+  func perform() async throws -> some IntentResult {
+    Diagnostics.record("entered (one-drink)")
+    do {
+      let container = try SharedModelContainer.make()
+      let repository = DrinkRepository(context: container.mainContext)
+
+      let history = ((try? container.mainContext.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
+        .loggedDrinks
+      let drink = DrinkDraft
+        .quickCount(1, from: history)
+        .makeLoggedDrink(region: AppSettings.storedRegion())
+      try repository.saveOrThrow(drink)
+      Diagnostics.record("saved (one-drink)")
+
+      WidgetCenter.shared.reloadAllTimelines()
+      return .result()
+    } catch {
+      Diagnostics.record("failed (one-drink): \(error)")
+      throw error
+    }
+  }
+}

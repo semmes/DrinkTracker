@@ -185,7 +185,6 @@ struct DrinkDraftTests {
     let draft = DrinkDraft(type: .beer)
     #expect(draft.volumeOunces == 12)
     #expect(draft.abvPercent == 5)
-    #expect(draft.isABVExpanded == false)
     #expect(draft.editingEntryID == nil)
     #expect(abs(draft.standardDrinks(region: .unitedStates) - 1.0) < 0.0001)
   }

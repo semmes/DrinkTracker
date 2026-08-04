@@ -16,6 +16,7 @@ struct SettingsView: View {
       ScrollView {
         VStack(spacing: GlassTokens.Spacing.section) {
           regionSection
+          iCloudSection
           healthSection
           aboutSection
           if Diagnostics.isVisible {
@@ -60,6 +61,76 @@ struct SettingsView: View {
       return "You skipped this during setup, so totals currently use the US definition. Pick one to change it."
     }
     return "This is the unit your totals are shown in. Changing it re-expresses everything, including past days — what you drank doesn't change, only how it's counted."
+  }
+
+  // MARK: - iCloud
+
+  /// Release-visible sync state — the answer to a question the diagnostics used
+  /// to keep to themselves. Modeled on the Health row: an icon, a factual status,
+  /// and a footnote saying what it means for the user's data. No alarm styling;
+  /// the words carry it. The in-memory case is the one exception, because "nothing
+  /// is being saved" is the single most important sentence this screen can say.
+  private var iCloudSection: some View {
+    SettingsSection(title: "iCloud", footnote: iCloudFootnote) {
+      HStack {
+        Label {
+          Text(iCloudStatusText)
+            .font(.body)
+            .foregroundStyle(.primary)
+        } icon: {
+          Image(systemName: iCloudStatusSymbol)
+            .foregroundStyle(iCloudStatusIsHealthy ? Color.accentColor : Color.secondary)
+        }
+        Spacer()
+      }
+      .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+      .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control)
+    }
+  }
+
+  private var iCloudStatusIsHealthy: Bool {
+    !Diagnostics.isStoreInMemory && Diagnostics.cloudKitStatusCode == "available"
+  }
+
+  private var iCloudStatusText: String {
+    if Diagnostics.isStoreInMemory {
+      return "Not saving — storage unavailable"
+    }
+    switch Diagnostics.cloudKitStatusCode {
+    case "available": return "Syncing with iCloud"
+    case "noAccount": return "Not syncing — no iCloud account"
+    case "restricted": return "Not syncing — iCloud is restricted"
+    case "temporarilyUnavailable": return "Sync temporarily unavailable"
+    default: return "Sync status not checked yet"
+    }
+  }
+
+  private var iCloudStatusSymbol: String {
+    if Diagnostics.isStoreInMemory { return "exclamationmark.triangle" }
+    switch Diagnostics.cloudKitStatusCode {
+    case "available": return "checkmark.icloud"
+    case "noAccount", "restricted": return "icloud.slash"
+    default: return "icloud"
+    }
+  }
+
+  private var iCloudFootnote: String {
+    if Diagnostics.isStoreInMemory {
+      return "The app couldn't open its storage, so drinks logged in this session won't be kept. Restarting the app usually resolves this."
+    }
+    switch Diagnostics.cloudKitStatusCode {
+    case "available":
+      return "Your log follows your iCloud account across your devices."
+    case "noAccount":
+      return "Your log is kept on this device. Sign into iCloud in the Settings app to sync it across devices."
+    case "restricted":
+      return "Your log is kept on this device. iCloud access is restricted on this device, for example by Screen Time or a device profile."
+    case "temporarilyUnavailable":
+      return "Your log is kept on this device and will sync when iCloud is available again."
+    default:
+      return "Your log is kept on this device either way."
+    }
   }
 
   // MARK: - Health
