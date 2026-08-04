@@ -69,13 +69,39 @@ struct LogDrinkIntent: AppIntent {
   /// Keeps the tap in the background — opening the app would defeat the purpose.
   static var openAppWhenRun: Bool { false }
 
-  @Parameter(title: "Drink")
+  /// **The default is load-bearing, not tidiness.**
+  ///
+  /// A non-optional `@Parameter` with no default is a parameter the system may need
+  /// to *ask* for. When it can't resolve one, AppIntents' normal move is to prompt —
+  /// which Shortcuts can do and a home-screen widget cannot. The tap is then
+  /// abandoned before `perform()` is ever entered: no crash, no log, nothing.
+  ///
+  /// That is exactly the observed failure — the `Diagnostics.record("entered")`
+  /// breadcrumb on the first line of `perform()` never appeared, at any widget size,
+  /// while the intent was correctly present in the extension's metadata. Registration
+  /// was never the problem; resolution was.
+  ///
+  /// With a default, resolution cannot fail, so there is nothing to prompt for. The
+  /// value the button encodes still wins whenever it arrives — the default is only
+  /// what makes the parameter answerable without a human.
+  @Parameter(title: "Drink", default: .beer)
   var drinkType: QuickLogDrinkType
+
+  /// Shown when the intent is configured in Shortcuts.
+  static var parameterSummary: some ParameterSummary {
+    Summary("Log a \(\.$drinkType)")
+  }
 
   init() {}
 
   init(drinkType: DrinkType) {
     self.drinkType = QuickLogDrinkType(drinkType)
+    // Which process built this, and for what. The widget extension and the app
+    // both construct these, and knowing which one got as far as constructing is
+    // half the answer when a tap does nothing.
+    Diagnostics.recordIntentBuild(
+      "\(drinkType.rawValue) · \(Bundle.main.bundleIdentifier ?? "unknown bundle")"
+    )
   }
 
   @MainActor

@@ -290,6 +290,29 @@ the CloudKit claim is either verified or marked unverified.
 
 **Exit criteria:** a submittable build, with the copy review recorded.
 
+### From the first real run (2026-08)
+
+Found by actually launching it, which is the point of Tiers 3 and 4.
+
+- **`remote-notification` background mode was missing.** CloudKit logged
+  `BUG IN CLIENT OF CLOUDKIT` on launch. Without it, mirroring only reconciles on
+  foreground rather than on push, so a second device's changes arrive late or not at
+  all. Fixed via `INFOPLIST_KEY_UIBackgroundModes`; `aps-environment` was already in
+  the entitlements. **Still unverified** — proving push-driven sync needs two signed-in
+  devices, which is 1(e).
+- **`make()` does not throw when iCloud is unavailable.** It succeeds and mirroring
+  fails asynchronously, so the fallback ladder never runs for the common case and
+  `storeMode` was reporting a wish. Fixed by asking `CKAccountStatus` directly. See
+  the amendment on [ADR-0004](decisions/0004-a-failed-store-degrades-to-memory.md).
+- **Open — sync-state UI for release builds.** `iCloud sync` is behind
+  `Diagnostics.isVisible`, so a shipping user whose sync is silently dead still has no
+  way to know. Same copy decision as the in-memory case already tracked in §8; both
+  should be resolved together.
+- **Open — no schema migration plan.** `AlcoholFreeDay` was added to the schema after
+  the store already existed. Additive changes are handled by SwiftData's lightweight
+  migration, but nothing pins that, and the next change may not be additive. A
+  `VersionedSchema` and a migration test belong in Iteration 3 at the latest.
+
 ### Iteration 3 — Depth
 
 **Goal:** the deferred features, re-examined against §2 rather than assumed.

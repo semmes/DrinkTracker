@@ -66,10 +66,17 @@ Open the app → **Settings** → **Diagnostics**.
 |---|---|---|
 | App Group | `shared` | `UNAVAILABLE` means the entitlement isn't provisioned. Stop — nothing below will mean anything. |
 | Group ID | `group.com.shawnsemmes.DrinkTracker` | A different value means `BUNDLE_ID_PREFIX` doesn't match what was provisioned. |
-| Store mode | `shared + CloudKit` | `shared, no CloudKit` is survivable for this test. `IN MEMORY` means stop — nothing is being saved at all. |
+| Store mode | `shared, CloudKit requested` | `shared, no CloudKit` is survivable for this test. `IN MEMORY` means stop — nothing is being saved at all. |
+| iCloud sync | `syncing` | `no iCloud account` is expected in the Simulator and survivable here. This is the real answer; Store mode is only what was asked for. |
 
-**Record what you see even if it all looks right.** "Store mode" has never been read on
-a device, so whatever it says is new information.
+**Record what you see even if it all looks right.** "Store mode" and "iCloud sync"
+have never been read on a device, so whatever they say is new information.
+
+> **In the Simulator you will always see `no iCloud account`,** and the console will
+> carry `CKAccountStatusNoAccount` plus a CoreData+CloudKit recovery failure. That is
+> the Simulator having no iCloud account signed in, not a fault in the app — the
+> store still works locally. It is also why the widget test below cannot be done
+> there.
 
 ## Step 1 — Baseline: does logging work at all in-app?
 
@@ -130,11 +137,24 @@ Copy these four lines out of Diagnostics (the values are selectable), for both S
 and Step 3:
 
 ```
-App Group:       …
-Group ID:        …
-Store mode:      …
-Last widget tap: …
+App Group:            …
+Group ID:             …
+Store mode:           …
+iCloud sync:          …
+Intent last built by: …
+Last widget tap:      …
 ```
+
+**"Intent last built by" is the new one and it does the real work.** It records which
+*process* constructed a `LogDrinkIntent`, so it separates two failures that used to
+look identical:
+
+| Intent last built by | Last widget tap | Meaning |
+|---|---|---|
+| `never built` | `never ran` | The widget never rendered its buttons. The extension isn't running at all. |
+| `beer · …DrinkTracker.Widget` | `never ran` | The extension built the button and the tap never reached `perform()`. **Dispatch or parameter resolution** — this was the state before the `default:` fix. |
+| `beer · …DrinkTracker.Widget` | `entered` / `saved` | It ran. Any remaining fault is in what it did. |
+| `beer · …DrinkTracker` (no `.Widget`) | anything | The *app* built it, not the extension — the reading is from Shortcuts, not the widget. |
 
 Plus:
 - Did the **Today total** change after Step 2? After Step 3?
