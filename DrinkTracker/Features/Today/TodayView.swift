@@ -20,8 +20,6 @@ struct TodayView: View {
   @State private var lastLogged: LoggedDrink?
   @State private var isShowingSettings = false
   @State private var deletion = DeletionCoordinator()
-  /// The count-first counter. Zero means "record today as having no alcohol".
-  @State private var quickCount = 0
 
   @Environment(\.scenePhase) private var scenePhase
 
@@ -38,8 +36,7 @@ struct TodayView: View {
       List {
         Section {
           VStack(spacing: GlassTokens.Spacing.block) {
-            metric
-            quickLogControls
+            counterHero
             detailedSection
           }
           .padding(.top, GlassTokens.Spacing.tight)
@@ -140,59 +137,91 @@ struct TodayView: View {
     await store.backfillHealthKit()
   }
 
-  // MARK: - Count-first logging
+  // MARK: - The counter
 
-  /// The primary control: how many drinks, including none.
+  /// One number, and it is the log itself.
   ///
-  /// A count is the question most people answer most days, so it comes first and
-  /// needs no type, size, or strength. Zero is a value on the same counter, not a
-  /// separate affordance — "I had none" and "I had three" are the same question
-  /// answered differently (see the calendar's day sheet, which set the pattern).
-  /// The typed path still exists one disclosure below for anyone who wants
-  /// granularity, and every entry the counter creates is a real, editable, typed
-  /// drink, so nothing recorded here is coarser than the rest of the log.
-  private var quickLogControls: some View {
-    VStack(spacing: GlassTokens.Spacing.regular) {
+  /// The first cut of this screen showed two numbers — the day's total on top and
+  /// a batch counter below — which asked the user to hold a distinction the design
+  /// had invented. Now the counter *is* today: plus logs a drink the moment it is
+  /// tapped, minus removes the most recent one through the same path as a
+  /// swipe-delete (undo bar included), and the number can never disagree with the
+  /// list below because they are the same data.
+  ///
+  /// Standard drinks demote to a caption. The count is the number people think in;
+  /// the region-lensed figure stays one line away for when the two diverge.
+  private var counterHero: some View {
+    VStack(spacing: GlassTokens.Spacing.tight) {
       CountStepper(
-        value: $quickCount,
-        range: counterRange,
+        value: liveCount,
+        range: 0...max(12, todaysEntries.count),
         style: .prominent,
-        unitLabel: "Drinks"
+        unitLabel: "Drinks today"
       )
 
-      if quickCount == 0 {
-        if isTodayMarkedAlcoholFree {
-          markedTodayState
-        } else {
-          SUButton(model: .primary("Record no alcohol today")) {
-            store.markAlcoholFree(Date())
+      Text(todaysEntries.count == 1 ? "drink today" : "drinks today")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .accessibilityHidden(true)
+
+      // The precise figure, one line down. Reads "≈ 2.6 standard drinks" — or
+      // "≈ 4.5 units" under the UK lens, where count and measure diverge most.
+      if total > 0 {
+        Text("≈ \(StandardDrink.formatted(total)) \(settings.effectiveRegion.unitName(for: total))")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+
+      lastLoggedLine
+
+      if todaysEntries.isEmpty {
+        Group {
+          if isTodayMarkedAlcoholFree {
+            markedTodayState
+          } else {
+            SUButton(model: .primary("Record no alcohol today")) {
+              store.markAlcoholFree(Date())
+            }
           }
         }
-      } else {
-        SUButton(model: .primary(quickLogTitle)) {
-          logQuickCount()
-        }
+        .padding(.top, GlassTokens.Spacing.regular)
       }
     }
-    // Once something is logged today, "record none" stops being an answer —
-    // mirror the day sheet: the counter floors at 1 and the button reads "Add".
-    .onChange(of: todaysEntries.isEmpty) { _, isEmpty in
-      if !isEmpty && quickCount == 0 { quickCount = 1 }
-    }
-    .onAppear {
-      if !todaysEntries.isEmpty && quickCount == 0 { quickCount = 1 }
-    }
+    .frame(maxWidth: .infinity)
   }
 
-  private var counterRange: ClosedRange<Int> {
-    todaysEntries.isEmpty ? 0...12 : 1...12
+  /// The counter's binding writes straight to the log: an increment saves a
+  /// seeded drink, a decrement deletes today's most recent entry. The getter
+  /// re-reads the query, so the displayed number is always the stored truth —
+  /// there is no separate counter state to fall out of sync.
+  private var liveCount: Binding<Int> {
+    Binding(
+      get: { todaysEntries.count },
+      set: { newValue in
+        let current = todaysEntries.count
+        if newValue > current {
+          addOneDrink()
+        } else if newValue < current, let recent = todaysEntries.first?.logged {
+          // Same path as swipe-to-remove, so the undo bar appears and the
+          // HealthKit sample is retired.
+          Task { await deletion.delete(recent, using: store) }
+        }
+      }
+    )
   }
 
-  private var quickLogTitle: String {
-    if todaysEntries.isEmpty {
-      return quickCount == 1 ? "Log 1 drink" : "Log \(quickCount) drinks"
+  /// One drink, logged now, seeded from what is usually logged — the same rule
+  /// as the calendar's day sheet (see `DrinkDraft.quickCount`). History is
+  /// fetched at tap time; this view otherwise only queries today.
+  private func addOneDrink() {
+    let history = ((try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+    let drink = DrinkDraft
+      .quickCount(1, from: history)
+      .makeLoggedDrink(region: settings.effectiveRegion)
+    Task {
+      let saved = await store.save(drink)
+      lastLogged = saved
     }
-    return quickCount == 1 ? "Add 1 more" : "Add \(quickCount) more"
   }
 
   private var isTodayMarkedAlcoholFree: Bool {
@@ -212,22 +241,6 @@ struct TodayView: View {
       .font(.footnote)
     }
     .frame(maxWidth: .infinity)
-  }
-
-  /// Logs N drinks seeded from what's usually logged — the same rule as the
-  /// calendar's day sheet, so "3 drinks" means the same thing on both surfaces.
-  /// The full history is fetched at tap time rather than held as a third query;
-  /// this view otherwise only needs today.
-  private func logQuickCount() {
-    let history = ((try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
-    let drinks = DrinkDraft
-      .quickCount(quickCount, from: history)
-      .makeLoggedDrinks(region: settings.effectiveRegion)
-    Task {
-      let saved = await store.save(drinks)
-      lastLogged = saved
-    }
-    quickCount = 1
   }
 
   // MARK: - Detailed logging
@@ -358,38 +371,13 @@ struct TodayView: View {
     }
   }
 
-  // MARK: - Primary metric
+  // MARK: - Supporting figures
 
+  /// Today's total in the current region's units — the caption under the counter.
   private var total: Double {
     todaysEntries.loggedDrinks.reduce(0) {
       $0 + $1.standardDrinks(in: settings.effectiveRegion)
     }
-  }
-
-  private var metric: some View {
-    VStack(spacing: GlassTokens.Spacing.tight) {
-      Text(StandardDrink.formatted(total))
-        .font(GlassTokens.Typography.metric)
-        .foregroundStyle(.primary)
-        .contentTransition(.numericText(value: total))
-        .animation(.snappy, value: total)
-        .accessibilityHidden(true)
-
-      Text(unitLabel)
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
-
-      lastLoggedLine
-    }
-    .frame(maxWidth: .infinity)
-    .accessibilityElement(children: .contain)
-    .accessibilityLabel("\(StandardDrink.formatted(total)) \(unitLabel)")
-  }
-
-  private var unitLabel: String {
-    let region = settings.effectiveRegion
-    return "\(region.unitName(for: total)) today"
   }
 
   /// The "last logged" line only appears once something has been logged this

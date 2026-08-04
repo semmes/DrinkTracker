@@ -18,9 +18,9 @@ this document exists to fix.
 **North star:** an accurate answer to *how much am I actually drinking*.
 
 Everything follows from the word *accurate*. Friction produces under-logging, and
-under-logging makes the answer a lie. That is why logging is two taps in the app and
-one from the widget, why every control in the drink sheet is optional refinement
-rather than a gate, and why corrections are as cheap as the original log.
+under-logging makes the answer a lie. That is why logging is one tap on Today's
+counter and one from the widget, why every control in the drink sheet is optional
+refinement rather than a gate, and why corrections are as cheap as the original log.
 
 **What it refuses to be**, and where each refusal is currently upheld:
 
@@ -45,10 +45,11 @@ prompted it.
 The rules a change must not break. Each one's failure mode is stated because most of
 them fail *silently* — that is precisely why they are written down.
 
-**1. The fast path stays at two taps in the app, one from the widget.**
-Count-first: `TodayView`'s counter → Log is two taps, zero included. The typed path
-(`quickAddRow` → `DrinkDetailSheet` → Log) sits one persisted disclosure deeper for
-those who want size and strength — see [ADR-0009](decisions/0009-count-first-logging.md).
+**1. The fast path is one tap in the app, one from the widget.**
+`TodayView`'s counter acts on the log directly: plus records a seeded drink, minus
+removes the most recent (undoable). The typed path (`quickAddRow` →
+`DrinkDetailSheet` → Log) sits one persisted disclosure deeper for those who want
+size and strength — see [ADR-0009](decisions/0009-count-first-logging.md).
 `QuickLogWidget` logs the type's default outright.
 *Failure mode:* every added step is paid in entries that never get logged, which
 defeats the north star.

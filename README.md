@@ -284,10 +284,12 @@ process last built an intent, and what the last tap did. The full protocol lives
 
 ## Count-first logging
 
-Today leads with a counter: how many drinks, zero included. Zero on a day with
-nothing logged records the day as **alcohol-free** — for today, right on Today, not
-just for past days via the calendar. Once entries exist the counter floors at one
-and the button reads "Add", because "add none" is not an answer.
+Today leads with a single counter that **is** the day's log: plus records a drink
+the moment it's tapped, minus removes the most recent one (undoable, same as a
+swipe-delete), and standard drinks appear as a caption underneath. One tap per
+drink, no confirm step. On an empty day, "Record no alcohol today" makes the zero
+explicit — and deleting your last drink deliberately does *not* auto-mark the day,
+because removing an entry says nothing about abstinence.
 
 A counted drink is seeded from the type you log most often, at the size and strength
 you last logged it (`DrinkDraft.quickCount` — the same rule the calendar's day sheet
