@@ -13,14 +13,22 @@ enum AppTheme {
   static func install() {
     var theme = Theme()
 
-    // System blue, matching Apple's default tint. Swap this single value if the
-    // app ever takes on a brand color of its own.
+    // Tallyist Blue, step 500 of the documented ramp — the day the note below
+    // this used to carry ("swap this single value if the app ever takes on a
+    // brand color") arrived with the design system.
+    //
+    // 500 in BOTH modes for fills, per design review R2: white on 500 measures
+    // 5.39:1 regardless of surface, while white on the dark-mode text accent
+    // (400) is only 3.64:1. Text and glyphs get the 500/400 pair from the
+    // AccentColor asset; component fills stay 500 here. The tint backgrounds
+    // are ramp steps 150 and 650 — every blue in the app is a named step, so
+    // "another blue" has nowhere to hide (design-system.md §2, R3).
     theme.colors.accent = ComponentColor(
-      main: .universal(.hex("#007AFF")),
+      main: .universal(.hex("#256ABF")),
       contrast: .universal(.hex("#FFFFFF")),
       background: .themed(
-        light: .hex("#E1EEFE"),
-        dark: .hex("#2B3E53")
+        light: .hex("#B7D3F6"),
+        dark: .hex("#104281")
       )
     )
 
