@@ -99,3 +99,18 @@ composite score (ADR-0006).
 The calendar's colours were reviewed as copy, because they make a statement the same
 way words do. A red-for-heavy, green-for-clear ramp is a verdict rendered in colour,
 and it was rejected partly on those grounds. See ADR-0007.
+
+---
+
+## Addendum (2026-08): the iCloud status row
+
+New release-visible strings in `SettingsView.iCloudSection`, reviewed against the
+same standard on addition:
+
+| String | Note |
+|---|---|
+| "Syncing with iCloud" / "Not syncing — no iCloud account" | States of the system, not of the person |
+| "Not saving — storage unavailable" | The one deliberately alarming line: "nothing is being saved" is the most important sentence this screen can say, and softening it would be the failure |
+| Footnotes | Each says what the state means for *the user's data* and what, if anything, they can do — never blame, never urgency beyond the facts |
+
+No 1.4.3 exposure: none of these strings reference drinking behaviour at all.

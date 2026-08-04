@@ -308,10 +308,8 @@ Found by actually launching it, which is the point of Tiers 3 and 4.
   fails asynchronously, so the fallback ladder never runs for the common case and
   `storeMode` was reporting a wish. Fixed by asking `CKAccountStatus` directly. See
   the amendment on [ADR-0004](decisions/0004-a-failed-store-degrades-to-memory.md).
-- **Open — sync-state UI for release builds.** `iCloud sync` is behind
-  `Diagnostics.isVisible`, so a shipping user whose sync is silently dead still has no
-  way to know. Same copy decision as the in-memory case already tracked in §8; both
-  should be resolved together.
+- **Sync-state UI for release builds.** ✅ Done — `SettingsView.iCloudSection`,
+  always visible, mapped from a machine-readable status code the probe records.
 - **Open — no schema migration plan.** `AlcoholFreeDay` was added to the schema after
   the store already existed. Additive changes are handled by SwiftData's lightweight
   migration, but nothing pins that, and the next change may not be additive. A
@@ -346,4 +344,4 @@ Currently in the README's "Not built" list, plus what has come up since:
 | Does iPad get a distinct layout, or does it stay a scaled iPhone app? | Before Iteration 2's App Store metadata; iPad screenshots force the answer. |
 | Should the widget's defaults ever be configurable? | Iteration 3, and only via an ADR that addresses why the fast-path argument no longer holds. |
 | Is there a second widget family or a Control Center control worth having? | After 1(a) — a widget whose intent dispatch is unresolved is not a foundation to build on. |
-| Should a degraded store mode be visible in a release build? Today Diagnostics is `#if DEBUG`, so a user whose log is in-memory or unsynced can't tell. Needs a copy decision — the factual "Apple Health" status row is the model, and the tone rules in §1 apply. | Iteration 2's copy review, or sooner if Tier 4 testing shows the fallback fires in practice. See [ADR-0004](decisions/0004-a-failed-store-degrades-to-memory.md). |
+| ~~Should a degraded store mode be visible in a release build?~~ **Resolved (2026-08):** Settings now carries an always-visible iCloud row on the Health-row model — syncing / not syncing and why / not saving at all — with factual copy per §1. See `SettingsView.iCloudSection`. |

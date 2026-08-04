@@ -4,15 +4,18 @@ import SwiftData
 import SwiftUI
 import WidgetKit
 
-/// Home-screen quick-log widget.
+/// Home-screen counter widget.
 ///
-/// Extends the brief's fast-default pattern to its logical end: the two-tap in-app
-/// path becomes one tap from the home screen, using the same per-type defaults the
-/// sheet opens with. Anything needing correction is edited in the app afterwards —
-/// edit-after, not gate-before.
+/// Mirrors Today's primary control: the count of drinks, and a ＋ that logs one
+/// seeded drink in a single tap. The typed quick-add buttons this widget used to
+/// carry moved behind the app's "Log by type" disclosure, and the widget follows
+/// the same count-first model — one mental model on both surfaces.
 ///
-/// Tone matches the rest of the app: today's number and nothing else. No goal, no
-/// streak, no colour that reads as a verdict.
+/// There is deliberately no − here. Removing an entry must retire its HealthKit
+/// sample, which only the app process does reliably; see `LogOneDrinkIntent`.
+///
+/// Tone matches the rest of the app: today's numbers and nothing else. No goal,
+/// no streak, no colour that reads as a verdict.
 struct QuickLogWidget: Widget {
   static let kind = "QuickLogWidget"
 
@@ -21,8 +24,8 @@ struct QuickLogWidget: Widget {
       QuickLogWidgetView(entry: entry)
         .containerBackground(.fill.tertiary, for: .widget)
     }
-    .configurationDisplayName("Quick Log")
-    .description("See today's total and log a drink in one tap.")
+    .configurationDisplayName("Tallyist")
+    .description("See today's count and log a drink in one tap.")
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }
@@ -31,11 +34,15 @@ struct QuickLogWidget: Widget {
 
 struct QuickLogEntry: TimelineEntry {
   let date: Date
+  /// Number of drinks logged today — the widget's headline, matching Today.
+  let drinkCount: Int
+  /// The same day expressed in the current region's units, for the caption.
   let total: Double
   let region: Region
 
   static let placeholder = QuickLogEntry(
     date: Date(timeIntervalSince1970: 0),
+    drinkCount: 2,
     total: 2,
     region: .unitedStates
   )
@@ -51,7 +58,7 @@ struct QuickLogProvider: TimelineProvider {
   }
 
   func getTimeline(in context: Context, completion: @escaping (Timeline<QuickLogEntry>) -> Void) {
-    // Refresh at the next midnight so the total resets with the day. Logging
+    // Refresh at the next midnight so the count resets with the day. Logging
     // through the intent reloads the timeline directly, so there's no need to
     // poll in between.
     let entry = currentEntry()
@@ -70,10 +77,12 @@ struct QuickLogProvider: TimelineProvider {
     let now = Date()
     let region = AppSettings.storedRegion()
     guard let container = try? SharedModelContainer.make() else {
-      return QuickLogEntry(date: now, total: 0, region: region)
+      return QuickLogEntry(date: now, drinkCount: 0, total: 0, region: region)
     }
-    let total = DrinkRepository(context: ModelContext(container)).total(on: now, region: region)
-    return QuickLogEntry(date: now, total: total, region: region)
+    let repository = DrinkRepository(context: ModelContext(container))
+    let todays = repository.drinks(on: now)
+    let total = todays.reduce(0) { $0 + $1.standardDrinks(in: region) }
+    return QuickLogEntry(date: now, drinkCount: todays.count, total: total, region: region)
   }
 }
 
@@ -84,70 +93,56 @@ struct QuickLogWidgetView: View {
 
   @Environment(\.widgetFamily) private var family
 
-  private var unitLabel: String {
-    return "\(entry.region.unitName(for: entry.total)) today"
+  private var countLabel: String {
+    entry.drinkCount == 1 ? "drink today" : "drinks today"
   }
 
-  /// Small shows beer only — the most common case — because four buttons at that
-  /// size would land under the 44pt touch target.
-  private var visibleTypes: [DrinkType] {
-    family == .systemSmall ? [.beer] : DrinkType.allCases
+  private var standardDrinksCaption: String {
+    "≈ \(StandardDrink.formatted(entry.total)) \(entry.region.unitName(for: entry.total))"
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      VStack(alignment: .leading, spacing: 0) {
-        Text(StandardDrink.formatted(entry.total))
-          .font(.system(size: family == .systemSmall ? 40 : 34, weight: .semibold, design: .rounded))
+    HStack(alignment: .center, spacing: 12) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text("\(entry.drinkCount)")
+          .font(.system(size: family == .systemSmall ? 44 : 40, weight: .semibold, design: .rounded))
           .foregroundStyle(.primary)
-        Text(unitLabel)
+          .contentTransition(.numericText(value: Double(entry.drinkCount)))
+        Text(countLabel)
           .font(.caption2)
           .foregroundStyle(.secondary)
           .lineLimit(1)
           .minimumScaleFactor(0.8)
+        if entry.total > 0 && family != .systemSmall {
+          Text(standardDrinksCaption)
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+        }
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("\(StandardDrink.formatted(entry.total)) \(unitLabel)")
+      .accessibilityLabel("\(entry.drinkCount) \(countLabel)")
 
       Spacer(minLength: 0)
 
-      HStack(spacing: 6) {
-        ForEach(visibleTypes) { type in
-          QuickLogButton(type: type, isCompact: family != .systemSmall)
-        }
+      // No `.buttonStyle(.plain)` — in a widget that suppresses interaction
+      // handling entirely, which cost real debugging time once.
+      Button(intent: LogOneDrinkIntent()) {
+        Image(systemName: "plus")
+          .font(.system(size: family == .systemSmall ? 22 : 24, weight: .semibold))
+          .frame(
+            width: family == .systemSmall ? 52 : 60,
+            height: family == .systemSmall ? 52 : 60
+          )
+          .background(.quaternary, in: .circle)
+          .contentShape(.circle)
       }
+      .buttonStyle(.borderless)
+      .tint(.accentColor)
+      .accessibilityLabel("Log one drink")
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-  }
-}
-
-/// One tap logs the type at its default size and ABV, without opening the app.
-private struct QuickLogButton: View {
-  let type: DrinkType
-  let isCompact: Bool
-
-  var body: some View {
-    // No `.buttonStyle(.plain)` here: in a widget that suppresses the button's
-    // interaction handling, so taps never dispatch the intent. The styling lives
-    // inside the label instead.
-    Button(intent: LogDrinkIntent(drinkType: type)) {
-      HStack(spacing: 4) {
-        Image(systemName: type.symbolName)
-          .font(.caption)
-        if !isCompact {
-          Text(type.displayName)
-            .font(.caption.weight(.medium))
-            .lineLimit(1)
-        }
-      }
-      .frame(maxWidth: .infinity)
-      .frame(height: 32)
-      .background(.quaternary, in: .rect(cornerRadius: 10, style: .continuous))
-      .contentShape(.rect)
-    }
-    .buttonStyle(.borderless)
-    .tint(.accentColor)
-    .accessibilityLabel("Log \(type.displayName.lowercased())")
   }
 }
 

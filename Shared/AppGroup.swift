@@ -142,6 +142,24 @@ enum Diagnostics {
     AppGroup.defaults.string(forKey: cloudKitStatusKey)
   }
 
+  static let cloudKitStatusCodeKey = "cloudKitStatusCode"
+
+  /// Machine-readable form of the same answer, for the release-facing Settings
+  /// row — UI copy maps from this rather than parsing the diagnostic string.
+  static func recordCloudKitStatusCode(_ code: String) {
+    AppGroup.defaults.set(code, forKey: cloudKitStatusCodeKey)
+  }
+
+  static var cloudKitStatusCode: String? {
+    AppGroup.defaults.string(forKey: cloudKitStatusCodeKey)
+  }
+
+  /// Whether the store fell back to memory — the one state where nothing at all
+  /// is being saved. Surfaced in release builds, not just diagnostics.
+  static var isStoreInMemory: Bool {
+    storeMode?.hasPrefix("IN MEMORY") == true
+  }
+
   /// Whether the diagnostics UI should be shown.
   ///
   /// Debug builds always. **TestFlight builds too**, which is the point: the widget

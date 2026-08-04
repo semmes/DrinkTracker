@@ -10,7 +10,6 @@ public struct DrinkDraft: Equatable, Sendable {
   /// Volume used when `selectedSize` is the Custom pill.
   public var customVolumeOunces: Double
   public var abvPercent: Double
-  public var isABVExpanded: Bool
   /// Set when the draft came from tapping Edit on an existing entry.
   public var editingEntryID: UUID?
   /// When the drink happened.
@@ -35,7 +34,6 @@ public struct DrinkDraft: Equatable, Sendable {
     self.selectedSize = type.defaultSizeOption
     self.customVolumeOunces = type.defaultVolumeOunces
     self.abvPercent = type.defaultABVPercent
-    self.isABVExpanded = false
     self.editingEntryID = nil
     self.loggedAt = loggedAt
   }
@@ -47,7 +45,6 @@ public struct DrinkDraft: Equatable, Sendable {
     self.selectedSize = match ?? .custom
     self.customVolumeOunces = drink.volumeOunces
     self.abvPercent = drink.abvPercent
-    self.isABVExpanded = false
     self.editingEntryID = drink.id
     self.loggedAt = drink.loggedAt
   }

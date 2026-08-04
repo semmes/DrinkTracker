@@ -207,53 +207,40 @@ struct DrinkDetailSheet: View {
 
   // MARK: - ABV
 
-  /// Collapsed by default. The row reads as a value, not an empty control, so
-  /// the default is visible without the slider taking up space.
+  /// Always visible. It was collapsed behind a disclosure row until the quantity
+  /// section's removal freed the space — strength is the control this sheet
+  /// exists for, and hiding it behind a tap was friction with no payoff left.
   private var abvSection: some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-      Button {
-        withAnimation(.smooth(duration: 0.25)) {
-          draft.isABVExpanded.toggle()
-        }
-      } label: {
+      HStack {
+        SectionLabel("Strength")
+        Spacer()
+        Text("\(LoggedDrink.displayPercent(draft.abvPercent))% ABV")
+          .font(.body.weight(.medium))
+          .foregroundStyle(.primary)
+          .contentTransition(.numericText(value: draft.abvPercent))
+          .animation(.snappy, value: draft.abvPercent)
+      }
+
+      VStack(spacing: GlassTokens.Spacing.tight) {
+        SUSlider(
+          currentValue: abvBinding,
+          model: .abv(range: draft.type.abvRange)
+        )
+        .frame(height: 24)
+
         HStack {
-          Text("ABV: \(LoggedDrink.displayPercent(draft.abvPercent))%")
-            .font(.body)
-            .foregroundStyle(.primary)
+          Text("\(LoggedDrink.displayPercent(draft.type.abvRange.lowerBound))%")
           Spacer()
-          Image(systemName: "chevron.down")
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(.secondary)
-            .rotationEffect(.degrees(draft.isABVExpanded ? 180 : 0))
+          Text("\(LoggedDrink.displayPercent(draft.type.abvRange.upperBound))%")
         }
-        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
-        .contentShape(.rect)
+        .font(.caption)
+        .foregroundStyle(.secondary)
       }
-      .buttonStyle(.plain)
-      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-      .accessibilityLabel("Alcohol by volume, \(LoggedDrink.displayPercent(draft.abvPercent)) percent")
-      .accessibilityHint(draft.isABVExpanded ? "Collapses the slider" : "Expands a slider to adjust")
-
-      if draft.isABVExpanded {
-        VStack(spacing: GlassTokens.Spacing.tight) {
-          SUSlider(
-            currentValue: abvBinding,
-            model: .abv(range: draft.type.abvRange)
-          )
-          .frame(height: 24)
-
-          HStack {
-            Text("\(LoggedDrink.displayPercent(draft.type.abvRange.lowerBound))%")
-            Spacer()
-            Text("\(LoggedDrink.displayPercent(draft.type.abvRange.upperBound))%")
-          }
-          .font(.caption)
-          .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, GlassTokens.Spacing.tight)
-        .transition(.opacity.combined(with: .move(edge: .top)))
-      }
+      .padding(.horizontal, GlassTokens.Spacing.tight)
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("Alcohol by volume")
+      .accessibilityValue("\(LoggedDrink.displayPercent(draft.abvPercent)) percent")
     }
   }
 

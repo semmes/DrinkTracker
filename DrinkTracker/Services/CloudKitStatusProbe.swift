@@ -24,9 +24,25 @@ enum CloudKitStatusProbe {
   static func refresh() async {
     let container = CKContainer(identifier: AppGroup.iCloudContainerIdentifier)
     do {
-      Diagnostics.recordCloudKitStatus(describe(try await container.accountStatus()))
+      let status = try await container.accountStatus()
+      Diagnostics.recordCloudKitStatus(describe(status))
+      Diagnostics.recordCloudKitStatusCode(code(for: status))
     } catch {
       Diagnostics.recordCloudKitStatus("could not check — \(error.localizedDescription)")
+      Diagnostics.recordCloudKitStatusCode("unknown")
+    }
+  }
+
+  /// Stable keys for the release-facing Settings row, so UI copy lives in the
+  /// view rather than being parsed back out of a diagnostic string.
+  private static func code(for status: CKAccountStatus) -> String {
+    switch status {
+    case .available: "available"
+    case .noAccount: "noAccount"
+    case .restricted: "restricted"
+    case .temporarilyUnavailable: "temporarilyUnavailable"
+    case .couldNotDetermine: "unknown"
+    @unknown default: "unknown"
     }
   }
 
