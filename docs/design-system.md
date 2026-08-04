@@ -166,7 +166,8 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` | Value + noun. No deltas, no arrows, no progress bars (copy review F2) |
-| **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present |
+| **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring + 22% wash, never a solid fill — the day's own colour stays legible |
+| **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | The day sheet's counter applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
@@ -208,8 +209,10 @@ sharing one step between them was the error.*
 3.64:1. Resolution: fills use **500 in both modes** (white label 5.39:1
 everywhere); only accent *text and glyphs* switch to 400 in dark. The single
 `AccentColor` asset carries the text-accent pair (500/400); ComponentsKit's
-primary button is themed to the fill token in `AppTheme`. *Proposed follow-up:*
-verify the themed fill on device in dark mode.
+primary button is themed to the fill token in `AppTheme`, and native fills use
+the dedicated `AccentFill` asset (500, both modes) — after an audit found one
+site (`SizePill`) filling with the text accent. *Remaining follow-up:* eyeball
+the dark-mode fills on device.
 
 **R3 — The icon mark and the ramp told different blues.** The draft icon used
 650 while the accent moved to 500, risking a family of near-miss blues.

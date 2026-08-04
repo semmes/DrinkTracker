@@ -154,6 +154,74 @@ struct CalendarGridTests {
     #expect(august.leadingBlanks == 5)
   }
 
+  /// August 2026, Sunday-first: six leading blanks, so row 0 holds only the 1st in
+  /// its last column, and every later row starts on a Sunday.
+  @Test("Grid positions map to day indices, and blanks map to nothing")
+  func dayIndexFromPosition() {
+    let august = TrendSummary.monthGrid(
+      containing: date(2026, 8, 1),
+      totalsByDay: [:],
+      alcoholFreeDays: [],
+      calendar: calendar
+    )
+
+    // The 1st sits at row 0, column 6 (Saturday).
+    #expect(august.dayIndex(row: 0, column: 6) == 0)
+    // The blanks before it are not days.
+    #expect(august.dayIndex(row: 0, column: 0) == nil)
+    #expect(august.dayIndex(row: 0, column: 5) == nil)
+    // Row 1 starts on Sunday the 2nd.
+    #expect(august.dayIndex(row: 1, column: 0) == 1)
+    #expect(august.dayIndex(row: 1, column: 6) == 7)
+    // The 31st is a Monday: row 5, column 1.
+    #expect(august.dayIndex(row: 5, column: 1) == 30)
+    // Past the month's end, and off the grid entirely.
+    #expect(august.dayIndex(row: 5, column: 2) == nil)
+    #expect(august.dayIndex(row: 6, column: 0) == nil)
+    #expect(august.dayIndex(row: -1, column: 0) == nil)
+    #expect(august.dayIndex(row: 0, column: 7) == nil)
+  }
+
+  @Test("A selection run is the same days whichever way the drag went")
+  func selectionRunIsOrderInsensitive() {
+    let august = TrendSummary.monthGrid(
+      containing: date(2026, 8, 1),
+      totalsByDay: [:],
+      alcoholFreeDays: [],
+      calendar: calendar
+    )
+
+    let forward = august.days(between: 7, and: 11)
+    let backward = august.days(between: 11, and: 7)
+    #expect(forward == backward)
+    #expect(forward.count == 5)
+    #expect(forward.first?.date == date(2026, 8, 8))
+    #expect(forward.last?.date == date(2026, 8, 12))
+  }
+
+  @Test("A selection run clamps to the month instead of failing")
+  func selectionRunClamps() {
+    let august = TrendSummary.monthGrid(
+      containing: date(2026, 8, 1),
+      totalsByDay: [:],
+      alcoholFreeDays: [],
+      calendar: calendar
+    )
+
+    // An anchor inside the month dragged past its end keeps the valid extent.
+    let clamped = august.days(between: 28, and: 40)
+    #expect(clamped.count == 3)
+    #expect(clamped.last?.date == date(2026, 8, 31))
+
+    // A run that starts before the grid clamps at the 1st.
+    let fromBefore = august.days(between: -3, and: 2)
+    #expect(fromBefore.count == 3)
+    #expect(fromBefore.first?.date == date(2026, 8, 1))
+
+    // A single-cell "run" is that one day.
+    #expect(august.days(between: 4, and: 4).count == 1)
+  }
+
   @Test("Totals and markers land on the right days")
   func cellsCarryTheirData() {
     let third = date(2026, 8, 3)

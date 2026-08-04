@@ -365,6 +365,12 @@ The chart on Trends answers *how much*. The calendar answers *which days*.
 - **Zero is a value on the counter**, not a separate button — "I had none" and "I
   had three" are the same question answered differently, so answering *none* costs
   the same two taps as any other answer.
+- **Filling several days at once** — touch and hold a day, then drag across a run
+  of days to give them all the same answer: zero marks each alcohol-free, N logs
+  N drinks on each. Days that already have a record are never touched by a bulk
+  fill; the sheet says how many it is keeping, and the per-day sheet remains both
+  the way to change a recorded day and the VoiceOver path
+  ([ADR-0011](docs/decisions/0011-bulk-fill-never-touches-a-recorded-day.md)).
 
 ### Alcohol-free days are recorded, not inferred
 
