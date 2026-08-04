@@ -142,6 +142,10 @@ struct SettingsView: View {
           value: Diagnostics.cloudKitStatus ?? "not checked yet"
         )
         diagnosticRow(
+          "Intent last built by",
+          value: Diagnostics.lastIntentBuild ?? "never built"
+        )
+        diagnosticRow(
           "Last widget tap",
           value: Diagnostics.lastWidgetLog ?? "never ran"
         )

@@ -80,6 +80,29 @@ enum Diagnostics {
     AppGroup.defaults.string(forKey: lastWidgetLogKey)
   }
 
+  static let intentBuildKey = "lastIntentBuild"
+
+  /// Records that a `LogDrinkIntent` was *constructed*, and by which process.
+  ///
+  /// Separate key from `lastWidgetLog` on purpose: construction and execution are
+  /// different events, and one overwriting the other is what made the last round of
+  /// this inconclusive. Together they bisect the remaining possibilities —
+  ///
+  /// - build absent → the widget never rendered its buttons at all
+  /// - build present, `lastWidgetLog` absent → the tap never reached `perform()`,
+  ///   which is dispatch or parameter resolution
+  /// - both present → the intent ran, and the fault is in what it did
+  ///
+  /// Diagnostic scaffolding. It writes on every timeline render, which is why it
+  /// records something cheap.
+  static func recordIntentBuild(_ description: String) {
+    AppGroup.defaults.set(description, forKey: intentBuildKey)
+  }
+
+  static var lastIntentBuild: String? {
+    AppGroup.defaults.string(forKey: intentBuildKey)
+  }
+
   static let storeModeKey = "storeMode"
 
   /// Which configuration the shared store was last opened with.
