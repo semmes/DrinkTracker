@@ -446,6 +446,18 @@ Every user-visible string has been reviewed against App Store guideline 1.4.3 �
 [`docs/copy-review-1.4.3.md`](docs/copy-review-1.4.3.md), which records what was
 changed and what was checked and left alone.
 
+### The privacy policy
+
+[`docs/privacy-policy.md`](docs/privacy-policy.md) is the canonical policy, and its
+public URL on this repository is what App Store Connect points to:
+
+    https://github.com/semmes/DrinkTracker/blob/main/docs/privacy-policy.md
+
+The same text ships natively in the app (`PrivacyPolicyView`, Settings → About →
+Privacy Policy) because guideline 5.1.1 wants the policy accessible *inside* the
+app too, and a native screen works offline and respects Dynamic Type. **The two
+copies change together** — a policy edit that touches only one of them is a bug.
+
 ## Localization
 
 **The app is not localized yet.** `Localizable.xcstrings` exists in both targets but
