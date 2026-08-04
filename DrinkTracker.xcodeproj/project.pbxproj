@@ -426,7 +426,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Drink Tracker";
+				INFOPLIST_KEY_CFBundleDisplayName = "Tallyist";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Drink Tracker reads your logged alcoholic beverages from Health so your daily and weekly totals stay accurate across devices.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Drink Tracker saves the drinks you log to Health, so your data stays in one place that you control.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -456,7 +456,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Drink Tracker";
+				INFOPLIST_KEY_CFBundleDisplayName = "Tallyist";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Drink Tracker reads your logged alcoholic beverages from Health so your daily and weekly totals stay accurate across devices.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Drink Tracker saves the drinks you log to Health, so your data stays in one place that you control.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

@@ -98,6 +98,34 @@ public struct DrinkDraft: Equatable, Sendable {
     return draft
   }
 
+  /// A draft for count-first logging: "N drinks", no type chosen by the user.
+  ///
+  /// The count is the user's statement; everything else is the best available
+  /// stand-in. Seeded from the type they log most often, at the size and strength
+  /// they last logged it — the same rule the calendar's day sheet describes — so a
+  /// habitual wine drinker's "3 drinks" counts as three of *their* wine rather
+  /// than three of an abstract unit. Every entry this produces is a real, typed,
+  /// individually editable drink (ADR-0003), so precision is recoverable later.
+  ///
+  /// With no history at all it falls back to beer's defaults, which resolve to
+  /// exactly 1.0 US standard drinks (ADR-0005) — a fresh install's "N drinks"
+  /// therefore means N standard drinks until the log says otherwise.
+  public static func quickCount(
+    _ count: Int,
+    from history: [LoggedDrink],
+    at date: Date = Date()
+  ) -> DrinkDraft {
+    var draft: DrinkDraft
+    if let type = TrendSummary.mostLoggedType(in: history),
+       let recent = TrendSummary.mostRecentDrink(ofType: type, in: history) {
+      draft = .repeating(recent, at: date)
+    } else {
+      draft = DrinkDraft(type: .beer, loggedAt: date)
+    }
+    draft.quantity = max(1, count)
+    return draft
+  }
+
   public var volumeOunces: Double {
     selectedSize.volumeOunces ?? customVolumeOunces
   }

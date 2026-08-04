@@ -132,7 +132,9 @@ struct DrinkTypeDefaultsTests {
 
   @Test("Only Other is custom-only")
   func sizeOptions() {
-    #expect(DrinkType.beer.sizeOptions.count == 4)
+    // Beer dropped the 22 oz bottle: two common sizes plus Custom.
+    #expect(DrinkType.beer.sizeOptions.count == 3)
+    #expect(!DrinkType.beer.sizeOptions.contains { $0.volumeOunces == 22 })
     #expect(DrinkType.wine.sizeOptions.count == 3)
     #expect(DrinkType.spirit.sizeOptions.count == 4)
     #expect(DrinkType.other.sizeOptions == [.custom])
@@ -256,7 +258,37 @@ struct DrinkDraftTests {
     #expect(zero.makeLoggedDrinks(region: .unitedStates).count == 1)
   }
 
-  @Test("Repeating a drink copies it but makes a new entry")
+  @Test("Quick count seeds from the most-logged type at its last-logged size")
+  func quickCountSeedsFromHistory() {
+    let history = [
+      LoggedDrink(loggedAt: Date(timeIntervalSince1970: 1_000), type: .wine, volumeOunces: 5, abvPercent: 12),
+      LoggedDrink(loggedAt: Date(timeIntervalSince1970: 3_000), type: .wine, volumeOunces: 8, abvPercent: 13),
+      LoggedDrink(loggedAt: Date(timeIntervalSince1970: 2_000), type: .beer, volumeOunces: 12, abvPercent: 5)
+    ]
+    let draft = DrinkDraft.quickCount(3, from: history)
+    #expect(draft.type == .wine)
+    #expect(draft.volumeOunces == 8)
+    #expect(draft.abvPercent == 13)
+    #expect(draft.quantity == 3)
+    #expect(draft.editingEntryID == nil)
+    #expect(draft.makeLoggedDrinks(region: .unitedStates).count == 3)
+  }
+
+  @Test("Quick count with no history is beer's defaults — one standard drink each")
+  func quickCountEmptyHistory() {
+    let draft = DrinkDraft.quickCount(2, from: [])
+    #expect(draft.type == .beer)
+    #expect(abs(draft.standardDrinks(region: .unitedStates) - 1.0) < 0.01)
+    #expect(draft.quantity == 2)
+  }
+
+  @Test("Quick count never produces fewer than one drink")
+  func quickCountClampsToOne() {
+    #expect(DrinkDraft.quickCount(0, from: []).quantity == 1)
+    #expect(DrinkDraft.quickCount(-3, from: []).quantity == 1)
+  }
+
+    @Test("Repeating a drink copies it but makes a new entry")
   func repeatingADrink() {
     let original = LoggedDrink(
       loggedAt: Date(timeIntervalSince1970: 1_700_000_000),

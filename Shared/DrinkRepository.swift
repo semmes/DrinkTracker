@@ -27,12 +27,23 @@ struct DrinkRepository {
   ///
   /// Used by the widget's intent, where a swallowed error looks exactly like a
   /// missed tap and there is no UI to notice the missing entry.
-  func saveOrThrow(_ drink: LoggedDrink) throws {
+  func saveOrThrow(_ drink: LoggedDrink, calendar: Calendar = .current) throws {
     if let existing = entry(with: drink.id) {
       existing.apply(drink)
     } else {
       context.insert(DrinkEntry(drink))
     }
+
+    // Evidence beats assertion: a drink landing on a day marked alcohol-free
+    // removes the marker. Leaving it dormant would be worse than a visible
+    // contradiction — it would resurrect the moment the entries were deleted,
+    // claiming abstinence for a day the user just said had drinks. Sitting here
+    // rather than in the UI means every write path gets it: the app, the
+    // calendar backfill, and the widget's intent alike.
+    if let marker = alcoholFreeDay(on: calendar.startOfDay(for: drink.loggedAt)) {
+      context.delete(marker)
+    }
+
     try context.save()
   }
 

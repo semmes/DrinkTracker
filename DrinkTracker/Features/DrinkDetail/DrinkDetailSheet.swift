@@ -50,8 +50,11 @@ struct DrinkDetailSheet: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.section) {
           typeSection
           sizeSection
-          abvSection
+          // Quantity sits above ABV so it is visible and tappable at the medium
+          // detent when the sheet opens, rather than below the fold — the count
+          // is changed far more often than the strength.
           quantitySection
+          abvSection
           if showsTimeControl { timeSection }
         }
         .screenMargin()
