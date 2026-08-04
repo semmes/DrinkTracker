@@ -18,6 +18,12 @@ struct CalendarView: View {
   @State private var selectedDay: SelectedDay?
   @State private var editingDraft: DrinkDraft?
 
+  // Drag-to-select. The anchor is set once per gesture, where the long press
+  // landed; the current index follows the finger. Both clear on release.
+  @State private var dragAnchorIndex: Int?
+  @State private var dragCurrentIndex: Int?
+  @State private var bulkSelection: BulkSelection?
+
   private var calendar: Calendar { .current }
 
   var body: some View {
@@ -26,6 +32,7 @@ struct CalendarView: View {
         monthHeader
         weekdayHeader
         monthGrid
+        selectionHint
         IntensityLegend()
         RecentSummaryCard(summary: summary, region: settings.effectiveRegion)
       }
@@ -65,6 +72,13 @@ struct CalendarView: View {
       } onCancel: {
         editingDraft = nil
       }
+    }
+    .sheet(item: $bulkSelection) { selection in
+      BulkFillSheet(
+        days: selection.days,
+        seed: seedDrink,
+        onApply: { count, dates in bulkFill(count, on: dates) }
+      )
     }
   }
 
@@ -131,6 +145,32 @@ struct CalendarView: View {
       .quickCount(count, from: allEntries.loggedDrinks, at: noon)
       .makeLoggedDrinks(region: settings.effectiveRegion)
     Task { await store.save(drinks) }
+  }
+
+  /// One answer, applied to every date the bulk sheet decided to write.
+  ///
+  /// The sheet has already dropped days with any record, so this only ever touches
+  /// blank days — but `markAlcoholFree` still refuses a day with entries, so even a
+  /// stale selection can't produce a contradiction. Seeding is captured once before
+  /// the loop: "the same value" on every day means the same drink, not a seed that
+  /// drifts as the loop's own writes change what's most recent.
+  private func bulkFill(_ count: Int, on dates: [Date]) {
+    if count == 0 {
+      for date in dates { store.markAlcoholFree(date) }
+      return
+    }
+    let history = allEntries.loggedDrinks
+    let region = settings.effectiveRegion
+    let store = store
+    Task {
+      for date in dates {
+        let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
+        let drinks = DrinkDraft
+          .quickCount(count, from: history, at: noon)
+          .makeLoggedDrinks(region: region)
+        await store.save(drinks)
+      }
+    }
   }
 
   // MARK: - Header
@@ -220,7 +260,8 @@ struct CalendarView: View {
           IntensityCell(
             day: day,
             side: side,
-            isToday: calendar.isDateInToday(day.date)
+            isToday: calendar.isDateInToday(day.date),
+            isSelected: selectedDates.contains(day.date)
           )
           .onTapGesture {
             guard day.date <= Date() else { return }
@@ -229,8 +270,73 @@ struct CalendarView: View {
           .opacity(day.date > Date() ? 0.3 : 1)
         }
       }
+      .coordinateSpace(.named("monthGrid"))
+      .gesture(dragSelectGesture(side: side, spacing: spacing))
+      // A tick as the selection grows or shrinks a cell, so the finger can feel
+      // the extent without the eye leaving the far end of the run.
+      .sensoryFeedback(.selection, trigger: dragCurrentIndex)
     }
     .frame(height: gridHeight)
+  }
+
+  /// Discoverability for a gesture with no visible affordance. One quiet line —
+  /// the tap path works without ever reading it.
+  private var selectionHint: some View {
+    Text("Touch and hold a day, then drag to fill several at once.")
+      .font(.caption)
+      .foregroundStyle(.secondary)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  // MARK: - Drag selection
+
+  /// Long-press first, so the drag doesn't fight the scroll view: a pan scrolls,
+  /// a still quarter-second claims the gesture for selection. The drag then takes
+  /// zero further movement to start, because the press point itself is the anchor.
+  private func dragSelectGesture(side: CGFloat, spacing: CGFloat) -> some Gesture {
+    LongPressGesture(minimumDuration: 0.25)
+      .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .named("monthGrid")))
+      .onChanged { value in
+        guard case .second(true, let drag?) = value else { return }
+        if dragAnchorIndex == nil {
+          dragAnchorIndex = dayIndex(at: drag.startLocation, side: side, spacing: spacing)
+        }
+        // Off-grid positions return nil and keep the last extent, so a finger
+        // that wanders past an edge doesn't drop the selection it built.
+        if let current = dayIndex(at: drag.location, side: side, spacing: spacing) {
+          dragCurrentIndex = current
+        }
+      }
+      .onEnded { value in
+        let selection = selectedDays
+        dragAnchorIndex = nil
+        dragCurrentIndex = nil
+        guard case .second = value, !selection.isEmpty else { return }
+        bulkSelection = BulkSelection(days: selection)
+      }
+  }
+
+  /// The dragged-over run, oldest first, without future days. A drag whose anchor
+  /// never landed on a day (a leading blank) selects nothing.
+  private var selectedDays: [CalendarDay] {
+    guard let anchor = dragAnchorIndex else { return [] }
+    let current = dragCurrentIndex ?? anchor
+    let now = Date()
+    return grid.days(between: anchor, and: current).filter { $0.date <= now }
+  }
+
+  private var selectedDates: Set<Date> {
+    Set(selectedDays.map(\.date))
+  }
+
+  /// Point → (row, column) → day index, using the same `side` and `spacing` the
+  /// grid was laid out with. The arithmetic that decides which day that is lives
+  /// in `MonthGrid.dayIndex(row:column:)`, where it has tests.
+  private func dayIndex(at point: CGPoint, side: CGFloat, spacing: CGFloat) -> Int? {
+    guard point.x >= 0, point.y >= 0 else { return nil }
+    let column = Int(point.x / (side + spacing))
+    let row = Int(point.y / (side + spacing))
+    return grid.dayIndex(row: row, column: column)
   }
 
   private var gridHeight: CGFloat {
@@ -251,4 +357,11 @@ struct CalendarView: View {
 struct SelectedDay: Identifiable, Hashable {
   let date: Date
   var id: TimeInterval { date.timeIntervalSince1970 }
+}
+
+/// Wraps a drag-selected run of days for `.sheet(item:)`, same reasoning as above.
+struct BulkSelection: Identifiable, Hashable {
+  /// Chronological, past days only — filtered before the sheet is presented.
+  let days: [CalendarDay]
+  var id: Date { days.first?.date ?? .distantPast }
 }

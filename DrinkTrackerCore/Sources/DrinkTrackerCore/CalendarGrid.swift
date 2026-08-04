@@ -56,6 +56,35 @@ public struct MonthGrid: Identifiable, Hashable, Sendable {
   public var recordedDayCount: Int {
     days.count { $0.intensity.isRecorded }
   }
+
+  // MARK: - Drag selection
+
+  /// Maps a grid position — row and weekday column — to an index into `days`.
+  ///
+  /// This is the arithmetic behind the calendar's drag-to-select: the view turns a
+  /// touch point into a row and column, and this answers which day (if any) sits
+  /// there. `nil` for the leading blanks, for positions past the month's end, and
+  /// for anything outside the seven columns — a drag that wanders off the grid
+  /// selects nothing extra rather than clamping to a day the finger isn't on.
+  public func dayIndex(row: Int, column: Int) -> Int? {
+    guard row >= 0, (0..<7).contains(column) else { return nil }
+    let index = row * 7 + column - leadingBlanks
+    return days.indices.contains(index) ? index : nil
+  }
+
+  /// The contiguous run of days between two indices, inclusive, in either order.
+  ///
+  /// Order-insensitive because a drag can move backwards past its anchor — selecting
+  /// the 12th through the 8th is the same run as the 8th through the 12th. Indices
+  /// are clamped to the month, so a drag that leaves the grid keeps its last valid
+  /// extent instead of failing.
+  public func days(between first: Int, and second: Int) -> [CalendarDay] {
+    guard !days.isEmpty else { return [] }
+    let lower = max(0, min(first, second))
+    let upper = min(days.count - 1, max(first, second))
+    guard lower <= upper else { return [] }
+    return Array(days[lower...upper])
+  }
 }
 
 extension TrendSummary {

@@ -166,7 +166,8 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` | Value + noun. No deltas, no arrows, no progress bars (copy review F2) |
-| **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present |
+| **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring + 22% wash, never a solid fill — the day's own colour stays legible |
+| **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | The day sheet's counter applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |

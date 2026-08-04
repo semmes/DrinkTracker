@@ -330,7 +330,11 @@ Currently in the README's "Not built" list, plus what has come up since:
   region changes.
 - **Widget size/ABV choice.** Explicitly rejected once, as the widget mirrors the
   sheet's fast path. Reopening it needs an ADR, not just an implementation.
-- **Bulk edit.**
+- **Bulk edit.** Adjacent ground is now covered: bulk *fill* (drag-select blank
+  days, one answer for all) shipped with the calendar, and deliberately never
+  touches a recorded day
+  ([ADR-0011](decisions/0011-bulk-fill-never-touches-a-recorded-day.md)). Bulk
+  *edit* of recorded days remains unbuilt and needs its own confirmation design.
 
 **Not scheduled until Iterations 1 and 2 close.**
 
