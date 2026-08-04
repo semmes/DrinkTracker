@@ -43,11 +43,16 @@ struct IntensityCell: View {
 
       // A wash and a ring rather than a solid accent fill: the day's own intensity
       // colour has to stay legible underneath, because what's selected still shows
-      // what's recorded. Strokes count as glyphs, so the text accent is right here
-      // (design review R2 — only solid fills under white labels need AccentFill).
+      // what's recorded. The wash goes only on blank days — the ones a bulk fill
+      // can write to — so the highlight itself previews which days the action will
+      // touch; recorded days get the ring alone (Tallyist prototype handoff).
+      // Strokes count as glyphs, so the text accent is right here (design review
+      // R2 — only solid fills under white labels need AccentFill).
       if isSelected {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-          .fill(Color.accentColor.opacity(0.22))
+        if !intensity.isRecorded {
+          RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color.accentColor.opacity(0.15))
+        }
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
           .strokeBorder(Color.accentColor, lineWidth: max(1.5, side * 0.06))
       }

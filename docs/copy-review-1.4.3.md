@@ -114,3 +114,25 @@ same standard on addition:
 | Footnotes | Each says what the state means for *the user's data* and what, if anything, they can do — never blame, never urgency beyond the facts |
 
 No 1.4.3 exposure: none of these strings reference drinking behaviour at all.
+
+---
+
+## Addendum (2026-08): the onboarding refresh and the calendar action bar
+
+The prototype handoff replaced most onboarding copy and added the calendar's
+selection bar. All new strings reviewed against the same standard on arrival.
+(`HealthContextView` is `PrivacyView` since this change.)
+
+| String | Note |
+|---|---|
+| "Your drinks, tallied" / "One tap per drink, like tick marks on a napkin, except this napkin does charts. No goals, no lectures, no judgement." | Personality without advocacy: it describes the mechanism and disclaims judgment outright. Nothing invites drinking; a tally is what the app *is* |
+| "(that's five)" | A joke about counting, not about drinking |
+| "Your tab is nobody's business" / "…We couldn't peek even if we wanted to." | Every clause checkable: private CloudKit database, no account, no server, no networking code. Reviewed as a privacy claim the way Finding 1 was — it survives the same test |
+| "Share with a doctor if you choose. Your Apple Health data can give a provider the full picture of your drinking, daily to yearly" | The one place the app mentions a clinical use, framed as the user's choice. Factual and empowering, not diagnostic |
+| "How big is a drink, anyway?" / "…Pick your region so the math pours right. Not sure? Skip it, no quiz later." | "Pours right" is wordplay about arithmetic, not an invitation. "No quiz later" honours the no-lectures promise |
+| "Start tallying" / "Sounds good" / "Finish up" / "I'll decide later" | Verbs about using the app, none about drinking |
+| "N days selected" / "Days that already have a record are kept" / "Mark no drinks" / "Log drinks…" | Factual in both directions, same register as the day sheet (ADR-0011). "Mark no drinks" states a fact being recorded; it carries no praise |
+
+No new 1.4.3 exposure. The tone rules held: the personality lives in *how the
+mechanism is described*, never in encouragement or judgment of the behaviour
+being recorded.
