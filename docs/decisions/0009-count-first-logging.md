@@ -77,6 +77,16 @@ recorded day shows the removable state. Minus-to-zero deliberately does *not*
 auto-mark the day — deleting your last entry says nothing about abstinence, and
 the marker stays an explicit statement.
 
+## Second revision (2026-08): the sheet's "How many" is gone
+
+With the counter established as *the* way to say a number, the drink sheet's
+quantity stepper became a second control for the same statement. It was removed —
+the sheet's job is now purely size and strength, which also frees room for making
+the ABV slider directly accessible (queued as the next enhancement). Backfilling a
+count for a past day still lives in the calendar's day sheet, where it belongs.
+`DrinkDraft.quantity` and `makeLoggedDrinks` are unchanged domain API — the counter
+and the day sheet both still use them.
+
 ## How to reopen
 
 If real usage shows granular users buried (the disclosure tap resented daily) or

@@ -312,20 +312,19 @@ Called **repeat logging**, never "party mode" — a settled decision, not a plac
 Read [ADR-0001](docs/decisions/0001-repeat-logging-is-not-party-mode.md) before
 touching any of this copy.
 
-- **One-tap repeat.** Once something is logged today, a row appears under quick-add
-  reading "Another beer · 12oz · 5%". One tap logs an identical drink at the current
-  time. It's a *new entry*, not an edit, so the original is untouched.
-- **Quantity.** The drink sheet has a "How many" stepper (1–12). The live estimate
-  and the button both reflect it — "≈ 3 standard drinks", "Log 3 drinks".
+- **The counter.** Repeated taps on Today's ＋ are the primary way to log several —
+  each tap is its own entry.
+- **One-tap repeat.** Under "Log by type", a row reading "Another beer · 12oz · 5%"
+  logs an identical drink at the current time. A *new entry*, not an edit.
+- **Backfilling a count.** The calendar's day sheet takes "how many" for a past day.
 
-Quantity saves **N separate entries**, not one entry with a count — see
-[ADR-0003](docs/decisions/0003-quantity-saves-separate-entries.md). Verified: logging
-3 wines produced three rows, and removing one took the total from 8.9 to 7.9 while
-leaving the other two.
+The drink sheet itself no longer carries a "How many" stepper — the counter made it
+a second way to do the same thing, and removing it clears the sheet for size and
+strength, which are its actual job.
 
-The stepper sits at 1 unless touched, so the two-tap fast path is unaffected. It's
-hidden when editing, where fanning one entry into several would be a strange thing
-for an edit to do.
+However it is said, several drinks save as **N separate entries**, never one entry
+with a count — see
+[ADR-0003](docs/decisions/0003-quantity-saves-separate-entries.md).
 
 ## Correcting the log
 
