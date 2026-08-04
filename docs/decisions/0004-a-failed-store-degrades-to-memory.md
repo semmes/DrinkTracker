@@ -58,6 +58,45 @@ configuration actually opened, and Settings → Diagnostics shows it.
   ladder so they agree at any given moment, but two processes opening while iCloud
   availability changes could still land on different rungs. Needs a device.
 
+## Amendment, 2026-08 — the fallback fires less often than this assumed
+
+**A simulator run showed the central assumption here was wrong.** This ADR was
+written as though `SharedModelContainer.make()` would *throw* when iCloud is
+unavailable, and the whole ladder was designed around catching that.
+
+It doesn't. With no iCloud account signed in, `ModelContainer(…)` with
+`cloudKitDatabase: .automatic` **succeeds**. The container is returned, the store
+opens, and `NSCloudKitMirroringDelegate` fails afterwards, asynchronously, on its
+own schedule:
+
+```
+Failed to set up CloudKit integration for store: …
+Error Domain=NSCocoaErrorDomain Code=134400
+  "Unable to initialize without an iCloud account (CKAccountStatusNoAccount)."
+```
+
+That error never reaches the `catch`. Consequences:
+
+- **The no-CloudKit rung effectively never fires** for the ordinary "not signed
+  into iCloud" case — the one it was written for. It remains correct for a genuine
+  container-creation failure, which is rarer than assumed.
+- **`Diagnostics.storeMode` was reporting a wish, not a fact.** It said
+  `shared + CloudKit` while nothing synced, because it is written at open time and
+  the answer doesn't exist yet. Reworded to `shared, CloudKit requested`.
+- Everything looked healthy while sync was dead — the exact class of silent failure
+  the diagnostics exist to surface, hiding inside the diagnostics themselves.
+
+The fix is not more fallback logic. It is asking the question directly:
+`CloudKitStatusProbe` calls `CKContainer.accountStatus()` on launch and on each
+foreground, and Settings shows it as **iCloud sync** next to **Store mode**. The two
+are separate facts and are now displayed as such.
+
+The decision itself stands — keep the App Group, give up only mirroring, record
+every rung. Only the claim about *when* the ladder runs was wrong, and it was wrong
+because it was reasoned about rather than observed. It sat in the repository as
+settled for several commits before a five-minute run disproved it, which is the
+argument for Tier 3 and Tier 4 in PRD §4 stated better than the PRD states it.
+
 ## How to reopen
 
 If Tier 4 testing shows the no-CloudKit rung corrupts or silently drops writes on a

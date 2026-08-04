@@ -112,12 +112,20 @@ struct TodayView: View {
       .sheet(isPresented: $isShowingSettings) {
         SettingsView()
       }
-      .task { await backfillHealthKit() }
+      .task {
+        await backfillHealthKit()
+        await CloudKitStatusProbe.refresh()
+      }
       .onChange(of: scenePhase) { _, phase in
         // Anything logged from the widget while the app was away lands without a
-        // Health sample; sweep those up on return.
+        // Health sample; sweep those up on return. The iCloud check rides along,
+        // since the user can sign in while the app is backgrounded and nothing
+        // else would notice.
         if phase == .active {
-          Task { await backfillHealthKit() }
+          Task {
+            await backfillHealthKit()
+            await CloudKitStatusProbe.refresh()
+          }
         }
       }
     }

@@ -29,6 +29,19 @@ enum AppGroup {
   /// Must match the widget target's `PRODUCT_BUNDLE_IDENTIFIER` suffix.
   private static let widgetSuffix = ".Widget"
 
+  /// The iCloud container, derived the same way the App Group is.
+  ///
+  /// The entitlement declares `iCloud.$(BUNDLE_ID_PREFIX).DrinkTracker`, which is
+  /// the host app's bundle identifier with an `iCloud.` prefix — so this computes
+  /// it rather than repeating the literal, for the same reason `identifier` does.
+  static var iCloudContainerIdentifier: String {
+    var bundleID = Bundle.main.bundleIdentifier ?? ""
+    if bundleID.hasSuffix(widgetSuffix) {
+      bundleID = String(bundleID.dropLast(widgetSuffix.count))
+    }
+    return "iCloud." + bundleID
+  }
+
   /// Defaults visible to both targets.
   ///
   /// Falls back to `.standard` if the group is unavailable, which happens when the
@@ -71,6 +84,9 @@ enum Diagnostics {
 
   /// Which configuration the shared store was last opened with.
   ///
+  /// "requested" is doing real work in that string. Opening with CloudKit enabled
+  /// says nothing about whether mirroring then succeeded — see `cloudKitStatus`.
+  ///
   /// Both degraded modes are invisible from the UI otherwise: losing CloudKit
   /// looks exactly like "nothing has synced yet", and losing the store entirely
   /// looks like an empty log. Recording the mode is what makes them
@@ -81,6 +97,26 @@ enum Diagnostics {
 
   static var storeMode: String? {
     AppGroup.defaults.string(forKey: storeModeKey)
+  }
+
+  static let cloudKitStatusKey = "cloudKitStatus"
+
+  /// Whether CloudKit mirroring is *actually* working, as opposed to requested.
+  ///
+  /// These are different questions, which a device run made obvious. Opening the
+  /// container with `cloudKitDatabase: .automatic` succeeds even with no iCloud
+  /// account: `ModelContainer(…)` returns normally and `NSCloudKitMirroringDelegate`
+  /// fails afterwards, asynchronously, with `CKAccountStatusNoAccount`. So
+  /// `storeMode` can only ever report what was asked for — it is written before
+  /// the answer exists.
+  ///
+  /// This is the answer, and it has to be fetched separately.
+  static func recordCloudKitStatus(_ status: String) {
+    AppGroup.defaults.set(status, forKey: cloudKitStatusKey)
+  }
+
+  static var cloudKitStatus: String? {
+    AppGroup.defaults.string(forKey: cloudKitStatusKey)
   }
 
   /// Whether the diagnostics UI should be shown.
@@ -151,7 +187,7 @@ enum SharedModelContainer {
         for: schema,
         configurations: configuration(cloudKit: .automatic)
       )
-      Diagnostics.recordStoreMode("shared + CloudKit")
+      Diagnostics.recordStoreMode("shared, CloudKit requested")
       return container
     } catch {
       let container = try ModelContainer(

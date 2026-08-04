@@ -66,10 +66,17 @@ Open the app → **Settings** → **Diagnostics**.
 |---|---|---|
 | App Group | `shared` | `UNAVAILABLE` means the entitlement isn't provisioned. Stop — nothing below will mean anything. |
 | Group ID | `group.com.shawnsemmes.DrinkTracker` | A different value means `BUNDLE_ID_PREFIX` doesn't match what was provisioned. |
-| Store mode | `shared + CloudKit` | `shared, no CloudKit` is survivable for this test. `IN MEMORY` means stop — nothing is being saved at all. |
+| Store mode | `shared, CloudKit requested` | `shared, no CloudKit` is survivable for this test. `IN MEMORY` means stop — nothing is being saved at all. |
+| iCloud sync | `syncing` | `no iCloud account` is expected in the Simulator and survivable here. This is the real answer; Store mode is only what was asked for. |
 
-**Record what you see even if it all looks right.** "Store mode" has never been read on
-a device, so whatever it says is new information.
+**Record what you see even if it all looks right.** "Store mode" and "iCloud sync"
+have never been read on a device, so whatever they say is new information.
+
+> **In the Simulator you will always see `no iCloud account`,** and the console will
+> carry `CKAccountStatusNoAccount` plus a CoreData+CloudKit recovery failure. That is
+> the Simulator having no iCloud account signed in, not a fault in the app — the
+> store still works locally. It is also why the widget test below cannot be done
+> there.
 
 ## Step 1 — Baseline: does logging work at all in-app?
 

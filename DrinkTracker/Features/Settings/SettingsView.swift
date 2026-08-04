@@ -125,7 +125,7 @@ struct SettingsView: View {
   private var diagnosticsSection: some View {
     SettingsSection(
       title: "Diagnostics (test build)",
-      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke. Store mode should read \"shared + CloudKit\"; \"no CloudKit\" means the log is on this device only, and \"IN MEMORY\" means nothing is being saved at all."
+      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke. Store mode is what was asked for when the store opened; iCloud sync is what actually happened, and they can disagree — a store opens fine with CloudKit requested and no iCloud account, then simply never syncs. \"IN MEMORY\" means nothing is being saved at all."
     ) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
         diagnosticRow(
@@ -136,6 +136,10 @@ struct SettingsView: View {
         diagnosticRow(
           "Store mode",
           value: Diagnostics.storeMode ?? "not opened yet"
+        )
+        diagnosticRow(
+          "iCloud sync",
+          value: Diagnostics.cloudKitStatus ?? "not checked yet"
         )
         diagnosticRow(
           "Last widget tap",
