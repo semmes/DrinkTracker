@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#e9e7e2;font-family:-apple-system,system-ui,sans-serif;}
+a{color:#256ABF;}a:hover{color:#1c5cab;}
+*::-webkit-scrollbar{width:0;height:0;}
+@keyframes obUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes obPop{0%{opacity:0;transform:scale(0.4)}65%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes tallyStroke{to{stroke-dashoffset:0}}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.25),0 0 0 0.5px rgba(0,0,0,0.06);cursor:pointer;}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:28px 20px 48px;gap:18px;box-sizing:border-box;">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+    <div style="font:600 13px/1.2 ui-monospace,Menlo,monospace;color:rgba(0,0,0,0.55);">Tallyist — pixel recreation from semmes/DrinkTracker (iOS 26 · Liquid Glass)</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+      <sc-for list="{{chips}}" as="ch" hint-placeholder-count="7">
+        <button onClick="{{ch.onTap}}" style="font:600 11px ui-monospace,Menlo,monospace;padding:5px 10px;border-radius:6px;border:none;cursor:pointer;background:{{ch.bg}};color:{{ch.fg}};">{{ch.label}}</button>
+      </sc-for>
+    </div>
+    <div style="font:400 11px/1.4 ui-monospace,Menlo,monospace;color:rgba(0,0,0,0.4);">tap everything — counter logs for real · cells open the day sheet · swipe actions not recreated (tap a row to edit)</div>
+  </div>
+  <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px">
+    <div style="position:relative;height:100%;font-family:-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased;">
+
+      <sc-if value="{{isOnboarding}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Onboarding" style="height:100%;display:flex;flex-direction:column;padding:80px 20px 58px;box-sizing:border-box;">
+          <div style="display:flex;justify-content:center;gap:6px;padding-bottom:14px;">
+            <sc-for list="{{obDots}}" as="d" hint-placeholder-count="3">
+              <div style="width:{{d.w}};height:8px;border-radius:4px;background:{{d.bg}};transition:width 0.3s,background 0.3s;"></div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ob1}}" hint-placeholder-val="{{false}}">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;animation:obUp 0.5s ease-out both;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding-bottom:24px;">
+                <svg width="148" height="132" viewBox="0 0 112 118" style="transform:rotate(-4deg);overflow:visible;">
+                  <g stroke="#256ABF" stroke-width="11" stroke-linecap="round" fill="none">
+                    <line x1="14" y1="14" x2="14" y2="104" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1;animation:tallyStroke 0.35s ease-out 0.15s forwards;"></line>
+                    <line x1="42" y1="14" x2="42" y2="104" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1;animation:tallyStroke 0.35s ease-out 0.32s forwards;"></line>
+                    <line x1="70" y1="14" x2="70" y2="104" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1;animation:tallyStroke 0.35s ease-out 0.49s forwards;"></line>
+                    <line x1="98" y1="14" x2="98" y2="104" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1;animation:tallyStroke 0.35s ease-out 0.66s forwards;"></line>
+                  </g>
+                  <line x1="2" y1="96" x2="110" y2="24" stroke="#7FA9DD" stroke-width="11" stroke-linecap="round" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1;animation:tallyStroke 0.4s ease-out 0.92s forwards;"></line>
+                </svg>
+                <div style="font-size:13px;color:rgba(60,60,67,0.45);opacity:0;animation:obUp 0.4s ease-out 1.35s forwards;">(that's five)</div>
+              </div>
+              <div style="font-size:34px;font-weight:700;line-height:41px;color:#000;">Your drinks, tallied</div>
+              <div style="font-size:17px;line-height:23px;color:rgba(60,60,67,0.6);">One tap per drink, like tick marks on a napkin, except this napkin does charts. No goals, no lectures, no judgement.</div>
+            </div>
+            <button onClick="{{onOb1Next}}" style="width:100%;height:52px;border-radius:16px;border:none;background:#256ABF;color:#fff;font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;">Start tallying</button>
+          </sc-if>
+          <sc-if value="{{ob2}}" hint-placeholder-val="{{false}}">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;animation:obUp 0.5s ease-out both;">
+              <div style="display:flex;padding-bottom:18px;">
+                <div style="width:76px;height:76px;border-radius:38px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);animation:obPop 0.5s ease-out 0.1s both;">
+                  <svg width="36" height="36" viewBox="0 0 24 24"><path d="M8 10V7a4 4 0 1 1 8 0v3h.5c.8 0 1.5.7 1.5 1.5v7c0 .8-.7 1.5-1.5 1.5h-9c-.8 0-1.5-.7-1.5-1.5v-7C6 10.7 6.7 10 7.5 10H8zm2 0h4V7a2 2 0 1 0-4 0v3z" fill="#256ABF"></path></svg>
+                </div>
+              </div>
+              <div style="font-size:34px;font-weight:700;line-height:41px;color:#000;">Your tab is nobody's business</div>
+              <div style="font-size:17px;line-height:23px;color:rgba(60,60,67,0.6);">Your log lives in your own iCloud and Apple Health. No account, no server, no ads. We couldn't peek even if we wanted to.</div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:8px;">
+                <div style="display:flex;align-items:center;gap:8px;color:rgba(60,60,67,0.6);font-size:15px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24"><path d="M8 10V7a4 4 0 1 1 8 0v3h.5c.8 0 1.5.7 1.5 1.5v7c0 .8-.7 1.5-1.5 1.5h-9c-.8 0-1.5-.7-1.5-1.5v-7C6 10.7 6.7 10 7.5 10H8zm2 0h4V7a2 2 0 1 0-4 0v3z" fill="rgba(60,60,67,0.6)"></path></svg>
+                  <span>Private by default</span>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:8px;color:rgba(60,60,67,0.6);font-size:15px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><path d="M12 3c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zM5 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5v1H5v-1z" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="1.8" stroke-linejoin="round"></path><g stroke="rgba(60,60,67,0.6)" stroke-width="1.8" stroke-linecap="round"><line x1="18.5" y1="14.5" x2="18.5" y2="19.5"></line><line x1="16" y1="17" x2="21" y2="17"></line></g></svg>
+                  <span>Share with a doctor if you choose. Your Apple Health data can give a provider the full picture of your drinking, daily to yearly</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;color:rgba(60,60,67,0.6);font-size:15px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="2"></circle><g stroke="rgba(60,60,67,0.6)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5.5"></line><line x1="12" y1="18.5" x2="12" y2="21.5"></line><line x1="2.5" y1="12" x2="5.5" y2="12"></line><line x1="18.5" y1="12" x2="21.5" y2="12"></line><line x1="5.3" y1="5.3" x2="7.4" y2="7.4"></line><line x1="16.6" y1="16.6" x2="18.7" y2="18.7"></line><line x1="18.7" y1="5.3" x2="16.6" y2="7.4"></line><line x1="7.4" y1="16.6" x2="5.3" y2="18.7"></line></g></svg>
+                  <span>Change access anytime in Settings</span>
+                </div>
+              </div>
+            </div>
+            <button onClick="{{onOb2Next}}" style="width:100%;height:52px;border-radius:16px;border:none;background:#256ABF;color:#fff;font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;">Sounds good</button>
+          </sc-if>
+          <sc-if value="{{ob3}}" hint-placeholder-val="{{false}}">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;animation:obUp 0.5s ease-out both;">
+              <div style="font-size:34px;font-weight:700;line-height:41px;color:#000;">How big is a drink, anyway?</div>
+              <div style="font-size:17px;line-height:23px;color:rgba(60,60,67,0.6);">A "standard drink" isn't standard everywhere. Pick your region so the math pours right. Not sure? Skip it, no quiz later.</div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:12px;">
+                <sc-for list="{{obRows}}" as="r" hint-placeholder-count="3">
+                  <div onClick="{{r.onTap}}" style="display:flex;align-items:center;min-height:60px;padding:0 16px;border-radius:14px;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                      <span style="font-size:17px;color:#000;">{{r.name}}</span>
+                      <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{r.sub}}</span>
+                    </div>
+                    <sc-if value="{{r.sel}}" hint-placeholder-val="{{false}}">
+                      <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#256ABF"></circle><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{r.unsel}}" hint-placeholder-val="{{true}}">
+                      <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="rgba(60,60,67,0.4)" stroke-width="1.6"></circle></svg>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <button onClick="{{onObFinish}}" style="width:100%;height:52px;border-radius:16px;border:none;background:#256ABF;color:#fff;font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;">Finish up</button>
+              <button onClick="{{onObSkip}}" style="width:100%;height:36px;border:none;background:none;color:#256ABF;font-size:16px;font-weight:500;font-family:inherit;cursor:pointer;">I'll decide later</button>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isToday}}" hint-placeholder-val="{{true}}">
+        <div data-screen-label="Today" style="height:100%;overflow:auto;padding:62px 0 90px;box-sizing:border-box;">
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding:6px 16px 0;">
+            <div onClick="{{onGoHistory}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="19" height="19" viewBox="0 0 24 24"><g fill="#256ABF"><circle cx="4" cy="6" r="1.6"></circle><circle cx="4" cy="12" r="1.6"></circle><circle cx="4" cy="18" r="1.6"></circle></g><g stroke="#256ABF" stroke-width="2.2" stroke-linecap="round"><line x1="9" y1="6" x2="21" y2="6"></line><line x1="9" y1="12" x2="21" y2="12"></line><line x1="9" y1="18" x2="21" y2="18"></line></g></svg>
+            </div>
+            <div onClick="{{onGoCalendar}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="19" height="19" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3.5" fill="none" stroke="#256ABF" stroke-width="2"></rect><line x1="3" y1="9.5" x2="21" y2="9.5" stroke="#256ABF" stroke-width="2"></line><line x1="8" y1="2.5" x2="8" y2="6" stroke="#256ABF" stroke-width="2" stroke-linecap="round"></line><line x1="16" y1="2.5" x2="16" y2="6" stroke="#256ABF" stroke-width="2" stroke-linecap="round"></line></svg>
+            </div>
+            <div onClick="{{onGoTrends}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="19" height="19" viewBox="0 0 24 24"><g fill="#256ABF"><rect x="4" y="11" width="3.6" height="7" rx="1"></rect><rect x="10.2" y="7" width="3.6" height="11" rx="1"></rect><rect x="16.4" y="3.5" width="3.6" height="14.5" rx="1"></rect></g><line x1="3" y1="21" x2="21" y2="21" stroke="#256ABF" stroke-width="2" stroke-linecap="round"></line></svg>
+            </div>
+            <div onClick="{{onOpenSettings}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="19" height="19" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="#256ABF" stroke-width="2"></circle><g stroke="#256ABF" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2.5" x2="12" y2="5.2"></line><line x1="12" y1="18.8" x2="12" y2="21.5"></line><line x1="2.5" y1="12" x2="5.2" y2="12"></line><line x1="18.8" y1="12" x2="21.5" y2="12"></line><line x1="5.3" y1="5.3" x2="7.2" y2="7.2"></line><line x1="16.8" y1="16.8" x2="18.7" y2="18.7"></line><line x1="18.7" y1="5.3" x2="16.8" y2="7.2"></line><line x1="7.2" y1="16.8" x2="5.3" y2="18.7"></line></g></svg>
+            </div>
+          </div>
+          <div style="padding:2px 20px 10px;font-size:34px;font-weight:700;line-height:41px;letter-spacing:0.4px;color:#000;">Today</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 20px 0;">
+            <div style="display:flex;align-items:center;gap:24px;">
+              <div onClick="{{onMinus}}" style="width:64px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{minusOpacity}};background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                <svg width="26" height="26" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" stroke="{{minusColor}}" stroke-width="2.6" stroke-linecap="round"></line></svg>
+              </div>
+              <div style="min-width:96px;text-align:center;font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:68px;font-weight:600;color:#000;font-variant-numeric:tabular-nums;line-height:1.05;">{{count}}</div>
+              <div onClick="{{onPlus}}" style="width:64px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                <svg width="26" height="26" viewBox="0 0 24 24"><g stroke="#256ABF" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><line x1="12" y1="5" x2="12" y2="19"></line></g></svg>
+              </div>
+            </div>
+            <div style="font-size:15px;color:rgba(60,60,67,0.6);">{{drinkWord}}</div>
+            <sc-if value="{{showStd}}" hint-placeholder-val="{{true}}">
+              <div style="font-size:13px;color:rgba(60,60,67,0.6);">{{stdLine}}</div>
+            </sc-if>
+            <sc-if value="{{showLastLine}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;gap:8px;align-items:baseline;padding-top:8px;">
+                <span style="font-size:13px;color:rgba(60,60,67,0.6);">Logged {{lastLine}}</span>
+                <span onClick="{{onEditLast}}" style="font-size:13px;font-weight:500;color:#256ABF;cursor:pointer;">Edit</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{showRecordAF}}" hint-placeholder-val="{{false}}">
+              <button onClick="{{onMarkAF}}" style="width:100%;height:52px;margin-top:12px;border-radius:16px;border:none;background:#256ABF;color:#fff;font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;">Record no alcohol today</button>
+            </sc-if>
+            <sc-if value="{{showMarkedAF}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:12px;">
+                <div style="display:flex;align-items:center;gap:7px;font-size:15px;color:rgba(60,60,67,0.6);">
+                  <svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="1.8"></circle><path d="M8 12.5l2.6 2.6 5.4-6" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  <span>Recorded as no alcohol today</span>
+                </div>
+                <span onClick="{{onUnmarkAF}}" style="font-size:13px;color:#256ABF;cursor:pointer;">Remove that record</span>
+              </div>
+            </sc-if>
+          </div>
+          <div style="padding:32px 20px 0;">
+            <div onClick="{{onToggleDetailed}}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:32px;cursor:pointer;">
+              <span style="font-size:13px;color:rgba(60,60,67,0.6);">Log by type — size and strength</span>
+              <svg width="11" height="11" viewBox="0 0 24 24" style="transform:rotate({{chevRot}});transition:transform 0.25s;"><path d="M4 8l8 8 8-8" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <sc-if value="{{detailedOpen}}" hint-placeholder-val="{{true}}">
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:8px;">
+                <div style="display:flex;gap:8px;">
+                  <div onClick="{{onQABeer}}" style="flex:1;height:88px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="{{beerD}}" fill="#256ABF"></path></svg>
+                    <span style="font-size:12px;color:#000;">Beer</span>
+                  </div>
+                  <div onClick="{{onQAWine}}" style="flex:1;height:88px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="{{wineD}}" fill="#256ABF"></path></svg>
+                    <span style="font-size:12px;color:#000;">Wine</span>
+                  </div>
+                  <div onClick="{{onQASpirit}}" style="flex:1;height:88px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="{{spiritD}}" fill="#256ABF"></path></svg>
+                    <span style="font-size:12px;color:#000;">Spirit</span>
+                  </div>
+                  <div onClick="{{onQAOther}}" style="flex:1;height:88px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <svg width="24" height="24" viewBox="0 0 24 24"><path d="{{otherD}}" fill="#256ABF"></path></svg>
+                    <span style="font-size:12px;color:#000;">Other</span>
+                  </div>
+                </div>
+                <sc-if value="{{showRepeat}}" hint-placeholder-val="{{false}}">
+                  <div onClick="{{onRepeat}}" style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:14px;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <svg width="14" height="14" viewBox="0 0 24 24"><path d="M18.4 8.6A7.5 7.5 0 1 0 19.5 12" fill="none" stroke="#256ABF" stroke-width="2.4" stroke-linecap="round"></path><path d="M19.5 3.5v5.1h-5.1" fill="none" stroke="#256ABF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    <span style="font-size:15px;color:#000;">{{repeatTitle}}</span>
+                    <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{repeatDetail}}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+          <sc-if value="{{showTodayRows}}" hint-placeholder-val="{{true}}">
+            <div style="padding:24px 20px 0;">
+              <div style="font-size:12px;color:rgba(60,60,67,0.6);padding-bottom:6px;">Logged today</div>
+              <sc-for list="{{todayRows}}" as="row" hint-placeholder-count="2">
+                <div onClick="{{row.onTap}}" style="display:flex;align-items:center;gap:12px;min-height:48px;padding:4px 0;cursor:pointer;border-bottom:{{row.sep}};">
+                  <svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0;width:28px;"><path d="{{row.iconD}}" fill="#256ABF"></path></svg>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                    <span style="font-size:17px;color:#000;">{{row.name}}</span>
+                    <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{row.detail}}</span>
+                  </div>
+                  <span style="font-size:16px;font-weight:500;color:rgba(60,60,67,0.6);font-variant-numeric:tabular-nums;">{{row.val}}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isCalendar}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Calendar" style="height:100%;overflow:auto;padding:62px 0 60px;box-sizing:border-box;">
+          <div style="display:flex;justify-content:space-between;padding:6px 16px 0;">
+            <div onClick="{{onGoToday}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <div onClick="{{onGoYear}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="18" height="18" viewBox="0 0 24 24"><g fill="none" stroke="#256ABF" stroke-width="1.8"><rect x="3" y="3" width="5" height="5" rx="1"></rect><rect x="9.5" y="3" width="5" height="5" rx="1"></rect><rect x="16" y="3" width="5" height="5" rx="1"></rect><rect x="3" y="9.5" width="5" height="5" rx="1"></rect><rect x="9.5" y="9.5" width="5" height="5" rx="1"></rect><rect x="16" y="9.5" width="5" height="5" rx="1"></rect><rect x="3" y="16" width="5" height="5" rx="1"></rect><rect x="9.5" y="16" width="5" height="5" rx="1"></rect><rect x="16" y="16" width="5" height="5" rx="1"></rect></g></svg>
+            </div>
+          </div>
+          <div style="padding:2px 20px 10px;font-size:34px;font-weight:700;line-height:41px;letter-spacing:0.4px;color:#000;">Calendar</div>
+          <div style="display:flex;flex-direction:column;gap:24px;padding:12px 20px 0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div onClick="{{onPrevMonth}}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                <svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+              <span style="font-size:22px;font-weight:600;color:#000;">{{monthTitle}}</span>
+              <div onClick="{{onNextMonth}}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{nextMonthOpacity}};">
+                <svg width="12" height="20" viewBox="0 0 12 20"><path d="M2 2l8 8-8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:-12px;margin-left:-10px;margin-right:-10px;">
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">S</div>
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">M</div>
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">T</div>
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">W</div>
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">T</div>
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">F</div>
+              <div style="text-align:center;font-size:12px;font-weight:500;color:rgba(60,60,67,0.6);">S</div>
+            </div>
+            <div onPointerUp="{{onCalGridUp}}" onPointerLeave="{{onCalGridLeave}}" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:-12px;margin-left:-10px;margin-right:-10px;">
+              <sc-for list="{{blanks}}" as="b" hint-placeholder-count="3">
+                <div style="aspect-ratio:1;"></div>
+              </sc-for>
+              <sc-for list="{{cells}}" as="c" hint-placeholder-count="30">
+                <div onPointerDown="{{c.onDown}}" onPointerEnter="{{c.onEnter}}" style="aspect-ratio:1;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:19px;opacity:{{c.dim}};background:{{c.bg}};color:{{c.ink}};font-weight:{{c.fw}};box-shadow:{{c.bs}};touch-action:none;user-select:none;-webkit-user-select:none;">{{c.n}}</div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;">
+              <sc-for list="{{legend}}" as="l" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:14px;height:14px;border-radius:4px;background:{{l.bg}};box-shadow:{{l.bs}};"></div>
+                  <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{l.label}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <span style="font-size:12px;color:rgba(60,60,67,0.45);margin-top:-16px;">Tip: press and drag across days to mark a stretch of no-drink days</span>
+            <div style="border-radius:26px;padding:16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;color:rgba(60,60,67,0.6);">Last 30 days</span>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                  <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{r30dw}}</span>
+                  <span style="font-size:13px;color:rgba(60,60,67,0.6);">{{r30dwLabel}}</span>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                  <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{r30af}}</span>
+                  <span style="font-size:13px;color:rgba(60,60,67,0.6);">{{r30afLabel}}</span>
+                </div>
+              </div>
+              <div style="height:0.5px;background:rgba(60,60,67,0.15);"></div>
+              <div style="display:flex;gap:12px;">
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                  <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{r30tot}}</span>
+                  <span style="font-size:13px;color:rgba(60,60,67,0.6);">{{r30totLabel}}</span>
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                  <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{r30avg}}</span>
+                  <span style="font-size:13px;color:rgba(60,60,67,0.6);">on days you drank</span>
+                </div>
+              </div>
+              <sc-if value="{{showR30un}}" hint-placeholder-val="{{true}}">
+                <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{r30unNote}}</span>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{showCalSelBar}}" hint-placeholder-val="{{false}}">
+          <div style="position:absolute;left:16px;right:16px;bottom:24px;z-index:30;border-radius:22px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.78);backdrop-filter:blur(20px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.06);box-shadow:0 8px 24px rgba(0,0,0,0.18);animation:obUp 0.3s ease-out both;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;">
+              <span style="font-size:15px;font-weight:600;color:#000;">{{calSelTitle}}</span>
+              <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{calSelSub}}</span>
+            </div>
+            <button onClick="{{onCalSelApply}}" style="height:40px;padding:0 14px;border-radius:14px;border:none;background:#256ABF;color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;">Mark no drinks</button>
+            <div onClick="{{onCalSelCancel}}" style="width:32px;height:32px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(0,0,0,0.06);">
+              <svg width="11" height="11" viewBox="0 0 12 12"><g stroke="rgba(60,60,67,0.7)" stroke-width="2" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="10.5" y2="10.5"></line><line x1="10.5" y1="1.5" x2="1.5" y2="10.5"></line></g></svg>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{isYear}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Year view" style="height:100%;overflow:auto;padding:62px 0 60px;box-sizing:border-box;">
+          <div style="display:flex;justify-content:flex-start;padding:6px 16px 0;">
+            <div onClick="{{onGoCalendar}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+          </div>
+          <div style="padding:2px 20px 10px;font-size:34px;font-weight:700;line-height:41px;letter-spacing:0.4px;color:#000;">{{yearTitle}}</div>
+          <div style="display:flex;flex-direction:column;gap:24px;padding:12px 20px 0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div onClick="{{onPrevYear}}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+                <svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+              <span style="font-size:22px;font-weight:600;color:#000;">{{yearTitle}}</span>
+              <div onClick="{{onNextYear}}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{nextYearOpacity}};">
+                <svg width="12" height="20" viewBox="0 0 12 20"><path d="M2 2l8 8-8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px 20px;margin-top:-12px;">
+              <sc-for list="{{months}}" as="m" hint-placeholder-count="12">
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <span style="font-size:12px;font-weight:600;color:rgba(60,60,67,0.6);">{{m.name}}</span>
+                  <div style="display:grid;grid-template-columns:repeat(7,11px);gap:2px;">
+                    <sc-for list="{{m.blanks}}" as="b" hint-placeholder-count="2">
+                      <div style="width:11px;height:11px;"></div>
+                    </sc-for>
+                    <sc-for list="{{m.cells}}" as="c" hint-placeholder-count="30">
+                      <div style="width:11px;height:11px;border-radius:3px;background:{{c.bg}};box-shadow:{{c.bs}};"></div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;">
+              <sc-for list="{{legend}}" as="l" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <div style="width:12px;height:12px;border-radius:4px;background:{{l.bg}};box-shadow:{{l.bs}};"></div>
+                  <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{l.label}}</span>
+                </div>
+              </sc-for>
+            </div>
+            <span style="font-size:12px;line-height:1.4;color:rgba(60,60,67,0.6);">{{yearSummary}}</span>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isTrends}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Trends" style="height:100%;overflow:auto;padding:62px 0 60px;box-sizing:border-box;">
+          <div style="display:flex;justify-content:flex-start;padding:6px 16px 0;">
+            <div onClick="{{onGoToday}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+          </div>
+          <div style="padding:2px 20px 10px;font-size:34px;font-weight:700;line-height:41px;letter-spacing:0.4px;color:#000;">Trends</div>
+          <div style="display:flex;flex-direction:column;gap:24px;padding:12px 20px 0;">
+            <div style="display:flex;padding:2px;border-radius:12px;background:rgba(120,120,128,0.16);">
+              <div onClick="{{onWeek}}" style="flex:1;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:600;background:{{weekBg}};color:{{weekFg}};">Week</div>
+              <div onClick="{{onMonth}}" style="flex:1;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:600;background:{{monthBg}};color:{{monthFg}};">Month</div>
+            </div>
+            <div style="border-radius:26px;padding:16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;color:rgba(60,60,67,0.6);">{{chartLabel}}</span>
+              <div style="display:flex;gap:8px;">
+                <div style="display:flex;flex-direction:column;justify-content:space-between;height:200px;padding-bottom:0;">
+                  <span style="font-size:11px;color:rgba(60,60,67,0.6);text-align:right;font-variant-numeric:tabular-nums;">{{yMax}}</span>
+                  <span style="font-size:11px;color:rgba(60,60,67,0.6);text-align:right;font-variant-numeric:tabular-nums;">{{yMid}}</span>
+                  <span style="font-size:11px;color:rgba(60,60,67,0.6);text-align:right;font-variant-numeric:tabular-nums;">0</span>
+                </div>
+                <div style="flex:1;position:relative;height:200px;">
+                  <div style="position:absolute;left:0;right:0;top:0;height:0.5px;background:rgba(60,60,67,0.15);"></div>
+                  <div style="position:absolute;left:0;right:0;top:50%;height:0.5px;background:rgba(60,60,67,0.15);"></div>
+                  <div style="position:absolute;left:0;right:0;bottom:0;height:0.5px;background:rgba(60,60,67,0.25);"></div>
+                  <div style="position:absolute;left:0;right:0;bottom:0;top:0;display:flex;align-items:flex-end;gap:{{barGap}};">
+                    <sc-for list="{{bars}}" as="bar" hint-placeholder-count="7">
+                      <div style="flex:1;height:{{bar.hp}};border-radius:5px;background:linear-gradient(to top,#256ABF,#5598e7);"></div>
+                    </sc-for>
+                  </div>
+                  <sc-if value="{{showAvg}}" hint-placeholder-val="{{true}}">
+                    <div style="position:absolute;left:0;right:0;bottom:{{avgBottom}};border-top:1.2px dashed rgba(60,60,67,0.5);">
+                      <span style="position:absolute;left:0;top:-16px;font-size:11px;color:rgba(60,60,67,0.6);">Your average</span>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="display:flex;gap:{{barGap}};padding-left:26px;">
+                <sc-for list="{{bars}}" as="bar" hint-placeholder-count="7">
+                  <span style="flex:1;text-align:center;font-size:10px;color:rgba(60,60,67,0.6);white-space:nowrap;overflow:visible;">{{bar.lbl}}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;">
+              <div style="flex:1;border-radius:26px;padding:16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:2px;">
+                <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{statSum}}</span>
+                <span style="font-size:13px;color:rgba(60,60,67,0.6);">{{statSumLabel}}</span>
+              </div>
+              <div style="flex:1;border-radius:26px;padding:16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:2px;">
+                <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{statAvg}}</span>
+                <span style="font-size:13px;color:rgba(60,60,67,0.6);">per day on average</span>
+              </div>
+            </div>
+            <div style="border-radius:26px;padding:16px;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);display:flex;flex-direction:column;gap:8px;">
+              <span style="font-size:13px;color:rgba(60,60,67,0.6);">Days with nothing logged</span>
+              <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{restLine}}</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isHistory}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="History" style="height:100%;overflow:auto;padding:62px 0 90px;box-sizing:border-box;">
+          <div style="display:flex;justify-content:space-between;padding:6px 16px 0;">
+            <div onClick="{{onGoToday}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" fill="none" stroke="#256ABF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+            <div onClick="{{onAddHistory}}" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.55);backdrop-filter:blur(14px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+              <svg width="18" height="18" viewBox="0 0 24 24"><g stroke="#256ABF" stroke-width="2.4" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><line x1="12" y1="5" x2="12" y2="19"></line></g></svg>
+            </div>
+          </div>
+          <div style="padding:2px 20px 10px;font-size:34px;font-weight:700;line-height:41px;letter-spacing:0.4px;color:#000;">History</div>
+          <div style="display:flex;flex-direction:column;gap:18px;padding:8px 20px 0;">
+            <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;padding:0 16px;">
+                  <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{g.header}}</span>
+                  <span style="font-size:12px;color:rgba(60,60,67,0.6);font-variant-numeric:tabular-nums;">{{g.total}}</span>
+                </div>
+                <div style="background:#fff;border-radius:20px;overflow:hidden;">
+                  <sc-for list="{{g.drinks}}" as="row" hint-placeholder-count="2">
+                    <div onClick="{{row.onTap}}" style="display:flex;align-items:center;gap:12px;min-height:52px;padding:4px 16px;cursor:pointer;border-bottom:{{row.sep}};">
+                      <svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0;width:28px;"><path d="{{row.iconD}}" fill="#256ABF"></path></svg>
+                      <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                        <span style="font-size:17px;color:#000;">{{row.name}}</span>
+                        <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{row.detail}}</span>
+                      </div>
+                      <span style="font-size:16px;font-weight:500;color:rgba(60,60,67,0.6);font-variant-numeric:tabular-nums;">{{row.val}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showUndo}}" hint-placeholder-val="{{false}}">
+        <div style="position:absolute;left:20px;right:20px;bottom:44px;z-index:25;display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,0.75);backdrop-filter:blur(20px) saturate(1.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 4px 16px rgba(0,0,0,0.12);">
+          <span style="flex:1;font-size:15px;color:#000;">{{undoText}}</span>
+          <span onClick="{{onUndo}}" style="font-size:15px;font-weight:600;color:#256ABF;cursor:pointer;">Undo</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{sheetDim}}" hint-placeholder-val="{{false}}">
+        <div onClick="{{onCloseSheet}}" style="position:absolute;inset:0;z-index:30;background:rgba(0,0,0,0.18);"></div>
+      </sc-if>
+
+      <sc-if value="{{sheetDrink}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Drink detail sheet" style="position:absolute;left:0;right:0;bottom:0;height:66%;z-index:31;border-radius:34px 34px 0 0;background:rgba(248,248,252,0.94);backdrop-filter:blur(30px) saturate(1.8);box-shadow:0 -10px 40px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;">
+          <div style="display:flex;justify-content:center;padding:8px 0 0;"><div style="width:36px;height:5px;border-radius:3px;background:rgba(60,60,67,0.25);"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0;">
+            <span style="font-size:22px;font-weight:600;color:#000;">{{sheetTitle}}</span>
+            <div onClick="{{onCloseSheet}}" style="width:30px;height:30px;border-radius:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(120,120,128,0.14);">
+              <svg width="13" height="13" viewBox="0 0 24 24"><g stroke="rgba(60,60,67,0.7)" stroke-width="2.6" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></g></svg>
+            </div>
+          </div>
+          <div style="flex:1;overflow:auto;padding:12px 20px 0;display:flex;flex-direction:column;gap:24px;">
+            <sc-if value="{{showTypePicker}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">Drink</span>
+                <div style="display:flex;padding:2px;border-radius:10px;background:rgba(120,120,128,0.16);">
+                  <sc-for list="{{typeSegs}}" as="t" hint-placeholder-count="4">
+                    <div onClick="{{t.onTap}}" style="flex:1;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:600;background:{{t.bg}};color:#000;box-shadow:{{t.bs}};">{{t.name}}</div>
+                  </sc-for>
+                </div>
+                <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;padding-top:8px;">When</span>
+                <div style="display:flex;gap:8px;">
+                  <div style="padding:8px 12px;border-radius:9px;background:rgba(120,120,128,0.12);font-size:17px;color:#000;">{{whenDate}}</div>
+                  <div style="padding:8px 12px;border-radius:9px;background:rgba(120,120,128,0.12);font-size:17px;color:#000;">{{whenTime}}</div>
+                </div>
+              </div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">Size</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <sc-for list="{{pills}}" as="p" hint-placeholder-count="3">
+                  <div onClick="{{p.onTap}}" style="min-height:44px;padding:0 16px;border-radius:22px;display:flex;align-items:center;cursor:pointer;font-size:15px;background:{{p.bg}};color:{{p.fg}};border:0.5px solid rgba(0,0,0,0.05);box-shadow:{{p.bs}};">{{p.label}}</div>
+                </sc-for>
+              </div>
+              <sc-if value="{{showCustom}}" hint-placeholder-val="{{false}}">
+                <div style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,0.7);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                  <input value="{{customOz}}" onChange="{{onCustomOz}}" inputMode="decimal" style="flex:1;border:none;outline:none;background:none;font-size:17px;font-family:inherit;color:#000;">
+                  <span style="font-size:17px;color:rgba(60,60,67,0.6);">oz</span>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;padding-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">Strength</span>
+                <span style="font-size:17px;font-weight:500;color:#000;font-variant-numeric:tabular-nums;">{{abvLabel}}% ABV</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding:0 8px;">
+                <input type="range" min="0" max="{{abvMax}}" step="0.5" value="{{abvVal}}" onChange="{{onAbv}}" onInput="{{onAbv}}" style="width:100%;background:{{sliderBg}};">
+                <div style="display:flex;justify-content:space-between;">
+                  <span style="font-size:12px;color:rgba(60,60,67,0.6);">0%</span>
+                  <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{abvMax}}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:12px 20px 28px;display:flex;flex-direction:column;gap:12px;border-top:0.5px solid rgba(60,60,67,0.1);">
+            <span style="font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:28px;font-weight:600;color:#000;">{{estimate}}</span>
+            <button onClick="{{onLogSheet}}" style="width:100%;height:52px;border-radius:16px;border:none;background:#256ABF;color:#fff;font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;opacity:{{logOpacity}};">{{logTitle}}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{sheetDay}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Day log sheet" style="position:absolute;left:0;right:0;bottom:0;height:62%;z-index:31;border-radius:34px 34px 0 0;background:rgba(248,248,252,0.94);backdrop-filter:blur(30px) saturate(1.8);box-shadow:0 -10px 40px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;">
+          <div style="display:flex;justify-content:center;padding:8px 0 0;"><div style="width:36px;height:5px;border-radius:3px;background:rgba(60,60,67,0.25);"></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px 0;">
+            <span style="font-size:17px;font-weight:600;color:#000;">{{dayTitle}}</span>
+            <span onClick="{{onCloseSheet}}" style="font-size:17px;font-weight:600;color:#256ABF;cursor:pointer;">Done</span>
+          </div>
+          <div style="flex:1;overflow:auto;padding:20px 20px 28px;display:flex;flex-direction:column;gap:24px;">
+            <sc-if value="{{showDayExisting}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">Logged that day</span>
+                <sc-for list="{{dayExisting}}" as="row" hint-placeholder-count="2">
+                  <div onClick="{{row.onTap}}" style="display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" style="flex-shrink:0;width:28px;"><path d="{{row.iconD}}" fill="#256ABF"></path></svg>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                      <span style="font-size:17px;color:#000;">{{row.name}}</span>
+                      <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{row.detail}}</span>
+                    </div>
+                    <span style="font-size:16px;font-weight:500;color:rgba(60,60,67,0.6);font-variant-numeric:tabular-nums;">{{row.val}}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">{{daySecLabel}}</span>
+              <div style="display:flex;align-items:center;justify-content:center;gap:24px;">
+                <div onClick="{{onDayMinus}}" style="width:64px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:{{dayMinusOpacity}};background:rgba(255,255,255,0.7);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                  <svg width="26" height="26" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" stroke="{{dayMinusColor}}" stroke-width="2.6" stroke-linecap="round"></line></svg>
+                </div>
+                <div style="min-width:96px;text-align:center;font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui;font-size:68px;font-weight:600;color:#000;font-variant-numeric:tabular-nums;line-height:1.05;">{{dayCount}}</div>
+                <div onClick="{{onDayPlus}}" style="width:64px;height:64px;border-radius:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.7);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                  <svg width="26" height="26" viewBox="0 0 24 24"><g stroke="#256ABF" stroke-width="2.6" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line><line x1="12" y1="5" x2="12" y2="19"></line></g></svg>
+                </div>
+              </div>
+              <span style="font-size:12px;line-height:1.4;color:rgba(60,60,67,0.6);text-align:center;">{{dayCaption}}</span>
+            </div>
+            <button onClick="{{onDayAction}}" style="width:100%;height:52px;border-radius:16px;border:none;background:#256ABF;color:#fff;font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;flex-shrink:0;">{{dayActionTitle}}</button>
+            <sc-if value="{{showDayMarked}}" hint-placeholder-val="{{false}}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <div style="display:flex;align-items:center;gap:7px;font-size:15px;color:rgba(60,60,67,0.6);">
+                  <svg width="17" height="17" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="1.8"></circle><path d="M8 12.5l2.6 2.6 5.4-6" fill="none" stroke="rgba(60,60,67,0.6)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  <span>Already recorded as no alcohol</span>
+                </div>
+                <span onClick="{{onClearDayAF}}" style="font-size:13px;color:#256ABF;cursor:pointer;">Remove that record</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{sheetSettings}}" hint-placeholder-val="{{false}}">
+        <div data-screen-label="Settings" style="position:absolute;left:0;right:0;bottom:0;top:18px;z-index:31;border-radius:34px 34px 0 0;background:#F2F2F7;box-shadow:0 -10px 40px rgba(0,0,0,0.25);display:flex;flex-direction:column;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:flex-end;padding:16px 20px 0;">
+            <span onClick="{{onCloseSheet}}" style="font-size:17px;font-weight:600;color:#256ABF;cursor:pointer;">Done</span>
+          </div>
+          <div style="padding:2px 20px 10px;font-size:34px;font-weight:700;line-height:41px;letter-spacing:0.4px;color:#000;">Settings</div>
+          <div style="flex:1;overflow:auto;padding:12px 20px 40px;display:flex;flex-direction:column;gap:24px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">Standard drink size</span>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <sc-for list="{{regionRows}}" as="r" hint-placeholder-count="3">
+                  <div onClick="{{r.onTap}}" style="display:flex;align-items:center;min-height:60px;padding:0 16px;border-radius:14px;cursor:pointer;background:rgba(255,255,255,0.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                      <span style="font-size:17px;color:#000;">{{r.name}}</span>
+                      <span style="font-size:12px;color:rgba(60,60,67,0.6);">{{r.sub}}</span>
+                    </div>
+                    <sc-if value="{{r.sel}}" hint-placeholder-val="{{false}}">
+                      <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#256ABF"></circle><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{r.unsel}}" hint-placeholder-val="{{true}}">
+                      <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="rgba(60,60,67,0.4)" stroke-width="1.6"></circle></svg>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <span style="font-size:12px;line-height:1.4;color:rgba(60,60,67,0.6);">This is the unit your totals are shown in. Changing it re-expresses everything, including past days — what you drank doesn't change, only how it's counted.</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">iCloud</span>
+              <div style="display:flex;align-items:center;gap:10px;min-height:44px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,0.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                <svg width="21" height="21" viewBox="0 0 24 24"><path d="M17.5 17.5H7a4 4 0 1 1 .7-7.94A5.5 5.5 0 0 1 18.4 11a3.25 3.25 0 0 1-.9 6.5z" fill="none" stroke="#256ABF" stroke-width="1.8" stroke-linejoin="round"></path><path d="M10.2 13.2l1.8 1.8 3.2-3.4" fill="none" stroke="#256ABF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <span style="font-size:17px;color:#000;">Syncing with iCloud</span>
+              </div>
+              <span style="font-size:12px;line-height:1.4;color:rgba(60,60,67,0.6);">Your log follows your iCloud account across your devices.</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">Apple Health</span>
+              <div style="display:flex;align-items:center;gap:10px;min-height:44px;padding:0 16px;border-radius:14px;background:rgba(255,255,255,0.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                <svg width="21" height="21" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#256ABF"></circle><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <span style="font-size:17px;color:#000;">Saving to Health</span>
+              </div>
+              <span style="font-size:12px;line-height:1.4;color:rgba(60,60,67,0.6);">Your log is written to Health as alcoholic beverages. Change access in the Health app under Sharing.</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:13px;font-weight:500;color:rgba(60,60,67,0.6);text-transform:uppercase;">About</span>
+              <div style="padding:16px;border-radius:14px;background:rgba(255,255,255,0.8);border:0.5px solid rgba(0,0,0,0.05);box-shadow:inset 1px 1px 1px rgba(255,255,255,0.7),0 1px 3px rgba(0,0,0,0.06);">
+                <span style="font-size:15px;line-height:1.4;color:rgba(60,60,67,0.6);">Drink Tracker keeps a record of what you drink so you can see your own pattern. It doesn't set goals, keep streaks, or offer advice.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:1040},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;today&quot;,&quot;calendar&quot;,&quot;year&quot;,&quot;trends&quot;,&quot;history&quot;,&quot;onboarding&quot;],&quot;default&quot;:&quot;today&quot;,&quot;section&quot;:&quot;Prototype&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;todayCount&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2,&quot;min&quot;:0,&quot;max&quot;:12,&quot;section&quot;:&quot;Prototype (seeds on load)&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;region&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;us&quot;,&quot;uk&quot;,&quot;au&quot;],&quot;default&quot;:&quot;us&quot;,&quot;section&quot;:&quot;App state&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.T = {
+      beer: { name: 'Beer', oz: 12, abv: 5, abvMax: 15, sizes: [{ label: '12 oz can', oz: 12 }, { label: '16 oz pint', oz: 16 }, { label: 'Custom', oz: null }] },
+      wine: { name: 'Wine', oz: 5, abv: 12, abvMax: 20, sizes: [{ label: '5 oz glass', oz: 5 }, { label: '8 oz glass', oz: 8 }, { label: 'Custom', oz: null }] },
+      spirit: { name: 'Spirit', oz: 1.5, abv: 40, abvMax: 60, sizes: [{ label: '1 oz shot', oz: 1 }, { label: '1.5 oz shot', oz: 1.5 }, { label: '2 oz double', oz: 2 }, { label: 'Custom', oz: null }] },
+      other: { name: 'Other', oz: 8, abv: 10, abvMax: 60, sizes: [{ label: 'Custom', oz: null }] }
+    };
+    this.IC = {
+      beer: 'M5 4c0-.6.4-1 1-1h9c.6 0 1 .4 1 1v15c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1V4zm12 4h1.5C19.9 8 21 9.1 21 10.5v3c0 1.4-1.1 2.5-2.5 2.5H17v-2h1.5c.3 0 .5-.2.5-.5v-3c0-.3-.2-.5-.5-.5H17V8z',
+      wine: 'M6.5 3h11c0 4.2-1.7 7.3-4.5 8v6h3.5v2h-9v-2H11v-6C8.2 10.3 6.5 7.2 6.5 3z',
+      spirit: 'M10 3h4c.6 0 1 .4 1 1s-.4 1-1 1v2.7l4.7 8.3c.8 1.3-.2 3-1.7 3H7c-1.5 0-2.4-1.7-1.7-3L10 7.7V5c-.6 0-1-.4-1-1s.4-1 1-1z',
+      other: 'M4.5 5h11v5.5c0 2.5-2 4.5-4.5 4.5H9c-2.5 0-4.5-2-4.5-4.5V5zm12.5 2h.5c1.7 0 3 1.3 3 3s-1.3 3-3 3h-1.3c.2-.6.3-1.3.3-2V7zM4 17h13c-.6 1.3-3.2 2-6.5 2S4.6 18.3 4 17z'
+    };
+    const n = new Date();
+    this.today = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    this.hist = this.seed();
+    this._ss = props.startScreen;
+    this.state = {
+      screen: props.startScreen || 'today', obStep: 1, obRegion: null,
+      sheet: null, draft: null, dayKey: null, dayDate: null, dayCount: 0,
+      month: new Date(this.today.getFullYear(), this.today.getMonth(), 1),
+      year: this.today.getFullYear(), range: 'week', regionOverride: null,
+      detailedOpen: true, lastLogged: null, undo: null, rev: 0
+    };
+  }
+  rand(seed) { let t = seed; return () => { t |= 0; t = (t + 0x6D2B79F5) | 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r; return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+  key(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  seed() {
+    const rng = this.rand(47), hist = {};
+    for (let i = 1; i <= 270; i++) {
+      const d = new Date(this.today); d.setDate(d.getDate() - i);
+      const r = rng();
+      if (r < 0.30) continue;
+      if (r < 0.52) { hist[this.key(d)] = { drinks: [], af: true }; continue; }
+      const q = rng();
+      const nD = q < 0.55 ? 1 + Math.round(rng()) : q < 0.9 ? 3 + Math.floor(rng() * 3) : 6 + Math.floor(rng() * 3);
+      const drinks = [];
+      for (let j = 0; j < nD; j++) {
+        const tr = rng(); const tk = tr < 0.52 ? 'beer' : tr < 0.8 ? 'wine' : tr < 0.94 ? 'spirit' : 'other'; const t = this.T[tk];
+        const at = new Date(d); at.setHours(17 + Math.floor(rng() * 6), Math.floor(rng() * 60));
+        drinks.push({ id: 'h' + i + '_' + j, type: tk, oz: t.oz, abv: t.abv, at });
+      }
+      drinks.sort((a, b) => b.at - a.at);
+      hist[this.key(d)] = { drinks, af: false };
+    }
+    const tc = Math.max(0, Math.min(12, this.props.todayCount != null ? this.props.todayCount : 2));
+    if (tc > 0) {
+      const drinks = [];
+      for (let j = 0; j < tc; j++) { const at = new Date(this.today); at.setHours(Math.min(23, 13 + j), (j * 23) % 60); drinks.push({ id: 't' + j, type: 'beer', oz: 12, abv: 5, at }); }
+      drinks.sort((a, b) => b.at - a.at);
+      hist[this.key(this.today)] = { drinks, af: false };
+    }
+    return hist;
+  }
+  region() { return this.state.regionOverride || this.props.region || 'us'; }
+  div() { return { us: 0.6, uk: 8 / 0.789 / 29.5735295625, au: 10 / 0.789 / 29.5735295625 }[this.region()]; }
+  unit(c) { const uk = this.region() === 'uk'; const one = Math.round(c * 10) / 10 === 1; return uk ? (one ? 'unit' : 'units') : (one ? 'standard drink' : 'standard drinks'); }
+  std(d) { return d.oz * d.abv / 100 / this.div(); }
+  fmt(n) { const r = Math.round(n * 10) / 10; return r === Math.round(r) ? String(Math.round(r)) : r.toFixed(1); }
+  dOz(v) { return v === Math.round(v) ? String(Math.round(v)) : String(Math.round(v * 10) / 10); }
+  rec(k) { return this.hist[k] || { drinks: [], af: false }; }
+  dayTotal(r) { return r.drinks.reduce((a, d) => a + this.std(d), 0); }
+  bucket(r) { if (r.drinks.length) { const t = Math.round(this.dayTotal(r)); return t >= 6 ? 'high' : t >= 3 ? 'med' : 'low'; } return r.af ? 'af' : 'un'; }
+  touch(extra) { this.setState(s => Object.assign({ rev: s.rev + 1 }, extra)); }
+  seedQuick() {
+    const counts = {}; let arr = [];
+    Object.values(this.hist).forEach(r => r.drinks.forEach(d => { counts[d.type] = (counts[d.type] || 0) + 1; arr.push(d); }));
+    let best = null, bn = 0; Object.entries(counts).forEach(([k, v]) => { if (v > bn) { bn = v; best = k; } });
+    if (!best) return { type: 'beer', oz: 12, abv: 5 };
+    arr = arr.filter(d => d.type === best).sort((a, b) => b.at - a.at);
+    return { type: best, oz: arr[0].oz, abv: arr[0].abv };
+  }
+  save(dr) {
+    const day = new Date(dr.at.getFullYear(), dr.at.getMonth(), dr.at.getDate());
+    const k = this.key(day); const r = this.hist[k] || { drinks: [], af: false };
+    r.af = false;
+    r.drinks = r.drinks.filter(d => d.id !== dr.id).concat([dr]).sort((a, b) => b.at - a.at);
+    this.hist[k] = r;
+    this.touch({ lastLogged: dr });
+  }
+  removeById(id) { Object.values(this.hist).forEach(r => { r.drinks = r.drinks.filter(d => d.id !== id); }); }
+  addOne() { const s = this.seedQuick(); this.save({ id: 'n' + Date.now(), type: s.type, oz: s.oz, abv: s.abv, at: new Date() }); }
+  removeRecent() {
+    const r = this.rec(this.key(this.today)); if (!r.drinks.length) return;
+    const d = r.drinks[0]; r.drinks = r.drinks.slice(1);
+    clearTimeout(this._ut); this._ut = setTimeout(() => this.setState({ undo: null }), 10000);
+    this.touch({ undo: d, lastLogged: null });
+  }
+  undoRestore() { const d = this.state.undo; if (!d) return; clearTimeout(this._ut); this.save(d); this.setState({ undo: null }); }
+  markAF(day) { const k = this.key(day); if (this.rec(k).drinks.length) return; this.hist[k] = { drinks: [], af: true }; this.touch(); }
+  unmarkAF(day) { const k = this.key(day); if (this.hist[k]) this.hist[k].af = false; this.touch(); }
+  openQuick(tk) { const t = this.T[tk]; const sz = t.sizes.find(s => s.oz === t.oz); this.setState({ sheet: 'drink', draft: { tk, size: sz ? sz.label : 'Custom', customOz: String(t.oz), abv: t.abv, editingId: null, time: false, at: new Date() } }); }
+  openEdit(d) { const t = this.T[d.type]; const sz = t.sizes.find(s => s.oz === d.oz); this.setState({ sheet: 'drink', draft: { tk: d.type, size: sz ? sz.label : 'Custom', customOz: String(d.oz), abv: d.abv, editingId: d.id, time: true, at: new Date(d.at) } }); }
+  openAdd() { this.setState({ sheet: 'drink', draft: { tk: 'beer', size: '12 oz can', customOz: '12', abv: 5, editingId: null, time: true, at: new Date() } }); }
+  setDraft(p) { this.setState(s => ({ draft: Object.assign({}, s.draft, p) })); }
+  draftOz(d) { const t = this.T[d.tk]; const sz = t.sizes.find(s => s.label === d.size); return sz && sz.oz != null ? sz.oz : (parseFloat(d.customOz) || 0); }
+  logSheet() {
+    const d = this.state.draft; if (!d) return; const oz = this.draftOz(d); if (!(oz > 0)) return;
+    if (d.editingId) this.removeById(d.editingId);
+    this.save({ id: d.editingId || 'n' + Date.now(), type: d.tk, oz, abv: d.abv, at: d.at });
+    this.setState({ sheet: null, draft: null });
+  }
+  openDay(k, date) { const r = this.rec(k); this.setState({ sheet: 'day', dayKey: k, dayDate: date, dayCount: r.drinks.length ? 1 : 0 }); }
+  dayAction() {
+    const S = this.state; const c = S.dayCount;
+    if (c === 0) { this.markAF(S.dayDate); }
+    else { const s = this.seedQuick(); for (let j = 0; j < c; j++) { const at = new Date(S.dayDate); at.setHours(12, j); this.save({ id: 'b' + Date.now() + '_' + j, type: s.type, oz: s.oz, abv: s.abv, at }); } }
+    this.setState({ sheet: null });
+  }
+  monthCells(mDate, mini) {
+    const y = mDate.getFullYear(), m = mDate.getMonth();
+    const firstW = new Date(y, m, 1).getDay();
+    const nD = new Date(y, m + 1, 0).getDate();
+    const blanks = Array.from({ length: firstW }, (_, i) => ({ k: 'b' + i }));
+    const FILL = { low: '#86b6ef', med: '#2a78d6', high: '#0d366b' };
+    const INK = { low: '#000', med: '#fff', high: '#fff' };
+    const cs = !mini && this.state.calSel ? this.state.calSel : null;
+    const selLo = cs ? Math.min(cs.a, cs.b) : 0, selHi = cs ? Math.max(cs.a, cs.b) : -1;
+    const cells = [];
+    for (let d = 1; d <= nD; d++) {
+      const date = new Date(y, m, d); const k = this.key(date);
+      const b = this.bucket(this.rec(k));
+      const future = date > this.today;
+      const isT = k === this.key(this.today);
+      let bg = 'transparent', ink = 'rgba(60,60,67,0.6)', fw = 400;
+      if (b === 'af') { bg = 'rgba(0,0,0,0.10)'; ink = '#000'; fw = 600; }
+      else if (b !== 'un') { bg = FILL[b]; ink = INK[b]; fw = 600; }
+      const ring = [];
+      if (b === 'af') ring.push('inset 0 0 0 ' + (mini ? 1 : 1.8) + 'px rgba(0,0,0,0.35)');
+      if (isT && !mini) ring.push('inset 0 0 0 2.5px #256ABF');
+      const inSel = cs && d >= selLo && d <= selHi && !future;
+      if (inSel) { ring.push('inset 0 0 0 2.5px #256ABF'); if (bg === 'transparent') bg = 'rgba(37,106,191,0.15)'; }
+      cells.push({ k, n: d, bg, ink, fw, bs: ring.length ? ring.join(', ') : 'none', dim: future ? 0.3 : 1,
+        onTap: future ? () => {} : () => this.openDay(k, date),
+        onDown: (mini || future) ? () => {} : (e) => { try { e.target.releasePointerCapture(e.pointerId); } catch (_) {} this.setState({ calSel: { a: d, b: d, dragging: true, moved: false } }); },
+        onEnter: (mini || future) ? () => {} : () => this.setState(s => (s.calSel && s.calSel.dragging) ? { calSel: { a: s.calSel.a, b: d, dragging: true, moved: true } } : null) });
+    }
+    return { blanks, cells };
+  }
+  recent30() {
+    let dw = 0, daf = 0, tot = 0;
+    for (let i = 0; i < 30; i++) { const d = new Date(this.today); d.setDate(d.getDate() - i); const r = this.rec(this.key(d)); if (r.drinks.length) { dw++; tot += this.dayTotal(r); } else if (r.af) daf++; }
+    return { dw, daf, tot, un: 30 - dw - daf, avg: dw ? tot / dw : 0 };
+  }
+  rowVM(dr) {
+    const t = this.T[dr.type];
+    return {
+      k: dr.id, iconD: this.IC[dr.type], name: t.name,
+      detail: dr.at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) + ' \u00b7 ' + this.dOz(dr.oz) + 'oz \u00b7 ' + this.dOz(dr.abv) + '% ABV',
+      val: this.fmt(this.std(dr)), sep: '0.5px solid rgba(60,60,67,0.15)', onTap: () => this.openEdit(dr)
+    };
+  }
+  renderVals() {
+    if (this.props.startScreen !== this._ss) { this._ss = this.props.startScreen; this.state.screen = this.props.startScreen || 'today'; this.state.sheet = null; }
+    const S = this.state, T = this.T;
+    const go = sc => () => this.setState({ screen: sc, sheet: null, calSel: null });
+    const todayRec = this.rec(this.key(this.today));
+    const count = todayRec.drinks.length;
+    const total = this.dayTotal(todayRec);
+    const last = S.lastLogged;
+    const todayRows = todayRec.drinks.map(d => this.rowVM(d));
+    if (todayRows.length) todayRows[todayRows.length - 1].sep = 'none';
+    const recent = todayRec.drinks[0];
+    const mg = this.monthCells(S.month, false);
+    const curM = S.month.getFullYear() === this.today.getFullYear() && S.month.getMonth() === this.today.getMonth();
+    const legend = [
+      { k: 'af', label: 'No alcohol', bg: 'rgba(0,0,0,0.10)', bs: 'inset 0 0 0 1px rgba(0,0,0,0.35)' },
+      { k: 'lo', label: '1\u20132', bg: '#86b6ef', bs: 'none' },
+      { k: 'me', label: '3\u20135', bg: '#2a78d6', bs: 'none' },
+      { k: 'hi', label: '6+', bg: '#0d366b', bs: 'none' },
+      { k: 'un', label: 'Not logged', bg: 'transparent', bs: 'inset 0 0 0 1px rgba(0,0,0,0.35)' }
+    ];
+    const r30 = this.recent30();
+    const nDays = S.range === 'week' ? 7 : 30;
+    const tt = []; for (let i = nDays - 1; i >= 0; i--) { const d = new Date(this.today); d.setDate(d.getDate() - i); tt.push({ date: d, total: this.dayTotal(this.rec(this.key(d))) }); }
+    const maxT = Math.max(2, Math.ceil(Math.max.apply(null, tt.map(t => t.total))));
+    const avg = tt.reduce((a, t) => a + t.total, 0) / nDays;
+    const bars = tt.map((t, i) => ({
+      k: 'bar' + i,
+      hp: (t.total > 0 ? Math.max(t.total / maxT * 100, 2) : 0) + '%',
+      lbl: S.range === 'week' ? t.date.toLocaleDateString('en-US', { weekday: 'narrow' }) : (i % 7 === 0 ? t.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '')
+    }));
+    const rest = tt.filter(t => t.total === 0).length;
+    const groups = [];
+    for (let i = 0; i < 120 && groups.length < 14; i++) {
+      const d = new Date(this.today); d.setDate(d.getDate() - i); const r = this.rec(this.key(d));
+      if (!r.drinks.length) continue;
+      const rows = r.drinks.map(dr => this.rowVM(dr));
+      rows[rows.length - 1].sep = 'none';
+      groups.push({ k: 'g' + i, header: d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }), total: this.fmt(this.dayTotal(r)), drinks: rows });
+    }
+    const months = [];
+    for (let m = 0; m < 12; m++) { const md = new Date(S.year, m, 1); const g = this.monthCells(md, true); months.push({ k: 'm' + m, name: md.toLocaleDateString('en-US', { month: 'short' }), blanks: g.blanks, cells: g.cells }); }
+    let recDays = 0, totDays = 0;
+    for (let m = 0; m < 12; m++) { const nDm = new Date(S.year, m + 1, 0).getDate(); totDays += nDm; for (let d = 1; d <= nDm; d++) { const r = this.hist[this.key(new Date(S.year, m, d))]; if (r && (r.drinks.length || r.af)) recDays++; } }
+    const yearSummary = recDays > 0
+      ? recDays + ' of ' + totDays + ' days in ' + S.year + ' have something recorded. Blank days are days without a record, not days without alcohol.'
+      : 'Nothing recorded in ' + S.year + ' yet. Blank days are days without a record, not days without alcohol.';
+    const d = S.draft || { tk: 'beer', size: '12 oz can', customOz: '12', abv: 5, time: false, at: new Date(), editingId: null };
+    const dt = T[d.tk];
+    const pills = dt.sizes.map(s => ({
+      k: s.label, label: s.label, sel: s.label === d.size,
+      bg: s.label === d.size ? '#256ABF' : 'rgba(255,255,255,0.7)',
+      fg: s.label === d.size ? '#fff' : '#000',
+      bs: s.label === d.size ? 'none' : 'inset 1px 1px 1px rgba(255,255,255,0.7), 0 1px 3px rgba(0,0,0,0.06)',
+      onTap: () => this.setDraft({ size: s.label })
+    }));
+    const typeSegs = Object.keys(T).map(tk => ({
+      k: tk, name: T[tk].name,
+      bg: tk === d.tk ? '#fff' : 'transparent',
+      bs: tk === d.tk ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
+      onTap: () => this.setDraft({ tk, size: (T[tk].sizes.find(s => s.oz === T[tk].oz) || { label: 'Custom' }).label, customOz: String(T[tk].oz), abv: T[tk].abv })
+    }));
+    const oz = this.draftOz(d);
+    const est = oz > 0 ? this.std({ oz, abv: d.abv }) : 0;
+    const abvPct = Math.min(100, d.abv / dt.abvMax * 100);
+    const dayRec = S.dayKey ? this.rec(S.dayKey) : { drinks: [], af: false };
+    const dayExisting = dayRec.drinks.map(dr => this.rowVM(dr));
+    const dayMin = dayRec.drinks.length ? 1 : 0;
+    const sq = this.seedQuick();
+    const regionDefs = [
+      { id: 'us', name: 'United States', g: 14, unit: 'standard drink' },
+      { id: 'uk', name: 'United Kingdom', g: 8, unit: 'unit' },
+      { id: 'au', name: 'Australia', g: 10, unit: 'standard drink' }
+    ];
+    const divs = { us: 0.6, uk: 8 / 0.789 / 29.5735295625, au: 10 / 0.789 / 29.5735295625 };
+    const regionRows = regionDefs.map(r => ({
+      k: r.id, name: r.name, sel: this.region() === r.id, unsel: this.region() !== r.id,
+      sub: 'One ' + r.unit + ' = ' + r.g + 'g \u00b7 a 16oz 5% beer is ' + this.fmt(16 * 0.05 / divs[r.id]),
+      onTap: () => this.setState({ regionOverride: r.id })
+    }));
+    const obRows = regionDefs.map(r => ({
+      k: r.id, name: r.name, sel: S.obRegion === r.id, unsel: S.obRegion !== r.id,
+      sub: 'One ' + r.unit + ' = ' + r.g + 'g of alcohol',
+      onTap: () => this.setState({ obRegion: r.id })
+    }));
+    let calSelN = 0;
+    if (S.calSel) { const yy = S.month.getFullYear(), mm = S.month.getMonth(); for (let d = Math.min(S.calSel.a, S.calSel.b); d <= Math.max(S.calSel.a, S.calSel.b); d++) { if (new Date(yy, mm, d) <= this.today) calSelN++; } }
+    const chipDefs = [
+      ['Onboarding', () => this.setState({ screen: 'onboarding', obStep: 1, sheet: null })],
+      ['Today', go('today')], ['Calendar', go('calendar')], ['Year', go('year')],
+      ['Trends', go('trends')], ['History', go('history')],
+      ['Settings', () => this.setState({ screen: 'today', sheet: 'settings' })]
+    ];
+    const chips = chipDefs.map(([label, onTap]) => {
+      const active = (label === 'Settings' && S.sheet === 'settings') || label.toLowerCase() === S.screen;
+      return { k: label, label, onTap, bg: active ? '#1a1a1a' : 'rgba(0,0,0,0.07)', fg: active ? '#fff' : '#333' };
+    });
+    return {
+      chips,
+      isOnboarding: S.screen === 'onboarding', ob1: S.obStep === 1, ob2: S.obStep === 2, ob3: S.obStep === 3,
+      obDots: [1, 2, 3].map(i => ({ w: S.obStep === i ? '24px' : '8px', bg: S.obStep === i ? '#256ABF' : 'rgba(60,60,67,0.22)' })),
+      onOb1Next: () => this.setState({ obStep: 2 }), onOb2Next: () => this.setState({ obStep: 3 }),
+      obRows, onObFinish: go('today'), onObSkip: go('today'),
+      isToday: S.screen === 'today', isCalendar: S.screen === 'calendar', isYear: S.screen === 'year',
+      isTrends: S.screen === 'trends', isHistory: S.screen === 'history',
+      onGoToday: go('today'), onGoCalendar: go('calendar'), onGoYear: go('year'),
+      onGoTrends: go('trends'), onGoHistory: go('history'),
+      onOpenSettings: () => this.setState({ sheet: 'settings' }),
+      count,
+      drinkWord: count === 1 ? 'drink today' : 'drinks today',
+      showStd: total > 0, stdLine: '\u2248 ' + this.fmt(total) + ' ' + this.unit(total),
+      showLastLine: !!last, lastLine: last ? (T[last.type].name.toLowerCase() + ' \u00b7 ' + this.dOz(last.oz) + 'oz \u00b7 ' + this.dOz(last.abv) + '%') : '',
+      onEditLast: () => { if (last) this.openEdit(last); },
+      showRecordAF: count === 0 && !todayRec.af, showMarkedAF: count === 0 && todayRec.af,
+      onMarkAF: () => this.markAF(this.today), onUnmarkAF: () => this.unmarkAF(this.today),
+      minusOpacity: count > 0 ? 1 : 0.4, minusColor: count > 0 ? '#256ABF' : 'rgba(60,60,67,0.4)',
+      onMinus: () => this.removeRecent(), onPlus: () => this.addOne(),
+      detailedOpen: S.detailedOpen, chevRot: S.detailedOpen ? '180deg' : '0deg',
+      onToggleDetailed: () => this.setState(s => ({ detailedOpen: !s.detailedOpen })),
+      beerD: this.IC.beer, wineD: this.IC.wine, spiritD: this.IC.spirit, otherD: this.IC.other,
+      onQABeer: () => this.openQuick('beer'), onQAWine: () => this.openQuick('wine'),
+      onQASpirit: () => this.openQuick('spirit'), onQAOther: () => this.openQuick('other'),
+      showRepeat: !!recent,
+      repeatTitle: recent ? 'Another ' + T[recent.type].name.toLowerCase() : '',
+      repeatDetail: recent ? this.dOz(recent.oz) + 'oz \u00b7 ' + this.dOz(recent.abv) + '%' : '',
+      onRepeat: () => { if (recent) this.save({ id: 'n' + Date.now(), type: recent.type, oz: recent.oz, abv: recent.abv, at: new Date() }); },
+      todayRows, showTodayRows: todayRows.length > 0,
+      showUndo: !!S.undo && (S.screen === 'today' || S.screen === 'history'),
+      undoText: S.undo ? 'Removed ' + T[S.undo.type].name.toLowerCase() : '',
+      onUndo: () => this.undoRestore(),
+      monthTitle: S.month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      onPrevMonth: () => this.setState(s => ({ month: new Date(s.month.getFullYear(), s.month.getMonth() - 1, 1) })),
+      onNextMonth: () => { if (!curM) this.setState(s => ({ month: new Date(s.month.getFullYear(), s.month.getMonth() + 1, 1) })); },
+      nextMonthOpacity: curM ? 0.3 : 1,
+      blanks: mg.blanks, cells: mg.cells, legend,
+      showCalSelBar: !!(S.calSel && S.calSel.moved),
+      calSelTitle: calSelN + (calSelN === 1 ? ' day selected' : ' days selected'),
+      calSelSub: 'Prefill as no-drink days \u00b7 days with drinks are kept',
+      onCalGridUp: () => { const cs2 = S.calSel; if (!cs2 || !cs2.dragging) return; if (!cs2.moved) { const dt = new Date(S.month.getFullYear(), S.month.getMonth(), cs2.a); this.setState({ calSel: null }); this.openDay(this.key(dt), dt); } else this.setState({ calSel: { a: cs2.a, b: cs2.b, dragging: false, moved: true } }); },
+      onCalGridLeave: () => this.setState(s => { const c = s.calSel; if (!c || !c.dragging) return null; return { calSel: c.moved ? { a: c.a, b: c.b, dragging: false, moved: true } : null }; }),
+      onCalSelApply: () => { const cs2 = S.calSel; if (!cs2) return; const yy = S.month.getFullYear(), mm = S.month.getMonth(); for (let d = Math.min(cs2.a, cs2.b); d <= Math.max(cs2.a, cs2.b); d++) { const dt = new Date(yy, mm, d); if (dt > this.today) continue; this.markAF(dt); } this.setState({ calSel: null }); },
+      onCalSelCancel: () => this.setState({ calSel: null }),
+      r30dw: r30.dw, r30dwLabel: r30.dw === 1 ? 'day with drinks' : 'days with drinks',
+      r30af: r30.daf, r30afLabel: r30.daf === 1 ? 'day with none' : 'days with none',
+      r30tot: this.fmt(r30.tot), r30totLabel: (this.region() === 'uk' ? 'units' : 'standard drinks') + ' total',
+      r30avg: this.fmt(r30.avg),
+      showR30un: r30.un > 0,
+      r30unNote: r30.un + (r30.un === 1 ? ' day has' : ' days have') + ' nothing logged either way.',
+      yearTitle: String(S.year),
+      onPrevYear: () => this.setState(s => ({ year: s.year - 1 })),
+      onNextYear: () => { if (S.year < this.today.getFullYear()) this.setState(s => ({ year: s.year + 1 })); },
+      nextYearOpacity: S.year >= this.today.getFullYear() ? 0.3 : 1,
+      months, yearSummary,
+      weekBg: S.range === 'week' ? '#256ABF' : 'transparent', weekFg: S.range === 'week' ? '#fff' : '#000',
+      monthBg: S.range === 'month' ? '#256ABF' : 'transparent', monthFg: S.range === 'month' ? '#fff' : '#000',
+      onWeek: () => this.setState({ range: 'week' }), onMonth: () => this.setState({ range: 'month' }),
+      chartLabel: S.range === 'week' ? 'Last 7 days' : 'Last 30 days',
+      bars, barGap: S.range === 'week' ? '10px' : '3px',
+      yMax: this.fmt(maxT), yMid: this.fmt(maxT / 2),
+      showAvg: avg > 0, avgBottom: (avg / maxT * 100) + '%',
+      statSum: this.fmt(tt.reduce((a, t) => a + t.total, 0)),
+      statSumLabel: S.range === 'week' ? 'this week' : 'this month',
+      statAvg: this.fmt(avg),
+      restLine: rest + ' of ' + nDays,
+      groups, onAddHistory: () => this.openAdd(),
+      sheetDim: !!S.sheet, sheetDrink: S.sheet === 'drink', sheetDay: S.sheet === 'day', sheetSettings: S.sheet === 'settings',
+      onCloseSheet: () => this.setState({ sheet: null, draft: null }),
+      sheetTitle: dt.name, showTypePicker: !!d.time, typeSegs,
+      whenDate: d.at.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      whenTime: d.at.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+      pills, showCustom: d.size === 'Custom', customOz: d.customOz,
+      onCustomOz: e => this.setDraft({ customOz: e.target.value }),
+      abvVal: d.abv, abvMax: dt.abvMax, abvLabel: this.dOz(d.abv),
+      onAbv: e => this.setDraft({ abv: parseFloat(e.target.value) }),
+      sliderBg: 'linear-gradient(to right,#256ABF ' + abvPct + '%,rgba(120,120,128,0.2) ' + abvPct + '%)',
+      estimate: '\u2248 ' + this.fmt(est) + ' ' + this.unit(est),
+      logTitle: d.editingId ? 'Save changes' : 'Log drink',
+      logOpacity: oz > 0 ? 1 : 0.4,
+      onLogSheet: () => this.logSheet(),
+      dayTitle: S.dayDate ? S.dayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : '',
+      daySecLabel: dayRec.drinks.length ? 'How many more' : 'How many drinks',
+      dayCount: S.dayCount,
+      dayCaption: S.dayCount === 0
+        ? 'Records the day as having no alcohol.'
+        : 'Logged as ' + T[sq.type].name.toLowerCase() + ', ' + this.dOz(sq.oz) + 'oz at ' + this.dOz(sq.abv) + '% \u2014 edit any of them afterwards.',
+      dayActionTitle: S.dayCount === 0 ? 'Record no alcohol' : (dayRec.drinks.length ? 'Add ' + S.dayCount + ' more' : 'Log ' + S.dayCount + (S.dayCount === 1 ? ' drink' : ' drinks')),
+      onDayAction: () => this.dayAction(),
+      dayExisting, showDayExisting: dayExisting.length > 0,
+      showDayMarked: dayRec.af && !dayRec.drinks.length,
+      onClearDayAF: () => { this.unmarkAF(S.dayDate); this.setState({ sheet: null }); },
+      dayMinusOpacity: S.dayCount > dayMin ? 1 : 0.4,
+      dayMinusColor: S.dayCount > dayMin ? '#256ABF' : 'rgba(60,60,67,0.4)',
+      onDayMinus: () => this.setState(s => ({ dayCount: Math.max(dayMin, s.dayCount - 1) })),
+      onDayPlus: () => this.setState(s => ({ dayCount: Math.min(12, s.dayCount + 1) })),
+      regionRows
+    };
+  }
+}
+</script>
+</body>
+</html>
