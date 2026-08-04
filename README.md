@@ -22,6 +22,33 @@ command line:
 xcodebuild -project DrinkTracker.xcodeproj -scheme DrinkTracker -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
+## Naming
+
+Three names, currently not all the same:
+
+| Where | Value |
+|---|---|
+| App Store listing | **Tallyist** |
+| Home screen icon | **Drink Tracker** (`INFOPLIST_KEY_CFBundleDisplayName`) |
+| Bundle identifier | `com.shawnsemmes.DrinkTracker` |
+| Repository, targets, types | `DrinkTracker` |
+
+"DrinkTracker" was unavailable on App Store Connect, so the **listing** was renamed
+to Tallyist. That is deliberately the only thing that changed.
+
+**The bundle identifier was not touched, and shouldn't be casually.** `AppGroup.identifier`
+is computed from the running bundle (invariant 4), so changing it moves the App Group
+and the iCloud container — the app would open a new, empty store and the existing log
+would appear to vanish. It isn't deleted, it's just somewhere the app no longer looks.
+Any future bundle rename needs a migration, or an explicit decision to abandon what's
+there.
+
+**Open: the home screen label still says "Drink Tracker".** Someone who installs
+Tallyist gets an icon with a different name under it. Apple permits the mismatch, but
+it's worth resolving before submission — it's a one-line change per target
+(`INFOPLIST_KEY_CFBundleDisplayName`), affects no identifiers, and touches no data.
+Left alone here because renaming the whole codebase is a separate, larger question.
+
 ## Signing and provisioning
 
 Everything derives from two values in [`Config/Signing.xcconfig`](Config/Signing.xcconfig).
@@ -133,7 +160,7 @@ to exactly one target, so shared sources have to live outside them.
 
 ### App Group
 
-The app and widget share `group.com.example.DrinkTracker` — both the SwiftData store
+The app and widget share `group.com.shawnsemmes.DrinkTracker` — both the SwiftData store
 and `AppSettings`. **Both targets must open the store with identical configuration.**
 A CloudKit-mirrored store opened without CloudKit still *reads* fine but silently
 fails to *write*, which is why `SharedModelContainer.make()` takes no options.
@@ -155,6 +182,12 @@ xcodebuild test -project DrinkTracker.xcodeproj -scheme DrinkTracker \
 ```
 
 Both run on every pull request — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+**Xcode Cloud is deliberately not set up.** GitHub Actions already covers CI, and
+[`.github/workflows/testflight.yml`](.github/workflows/testflight.yml) handles archive
+and upload with an App Store Connect API key. Adding Xcode Cloud would duplicate both
+and spend build minutes for the same result. An attempt to connect it stalled at the
+source-control authorization step; that was parked rather than pursued.
 
 ## Known spec discrepancies
 
