@@ -244,15 +244,38 @@ struct SettingsView: View {
 
   private var aboutSection: some View {
     SettingsSection(title: "About", footnote: nil) {
-      VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-        Text("Drink Tracker keeps a record of what you drink so you can see your own pattern. It doesn't set goals, keep streaks, or offer advice.")
-          .font(GlassTokens.Typography.supporting)
-          .foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
+      VStack(spacing: GlassTokens.Spacing.tight) {
+        VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+          Text("Tallyist keeps a record of what you drink so you can see your own pattern. It doesn't set goals, keep streaks, or offer advice.")
+            .font(GlassTokens.Typography.supporting)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(GlassTokens.Spacing.cardPadding)
+        .glassSurface(cornerRadius: GlassTokens.Radius.control)
+
+        // Guideline 5.1.1: the policy has to be reachable inside the app, not
+        // only from the App Store listing. It's also simply owed to the user.
+        NavigationLink {
+          PrivacyPolicyView()
+        } label: {
+          HStack {
+            Label("Privacy Policy", systemImage: "hand.raised")
+              .font(.body)
+              .foregroundStyle(.primary)
+            Spacer()
+            Image(systemName: "chevron.right")
+              .font(.footnote.weight(.semibold))
+              .foregroundStyle(.secondary)
+          }
+          .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+          .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+          .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(GlassTokens.Spacing.cardPadding)
-      .glassSurface(cornerRadius: GlassTokens.Radius.control)
     }
   }
 }
