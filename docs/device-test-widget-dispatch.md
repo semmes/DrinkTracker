@@ -49,8 +49,9 @@ as exactly `group.com.shawnsemmes.DrinkTracker`, then rebuild.
 **Keep Xcode's console open while you test.** The extension's output is largely
 unreadable, but the app's isn't, and anything it prints is free evidence.
 
-TestFlight also works if you'd rather — `.github/workflows/testflight.yml` does the
-archive and upload — but it's more setup for a strictly worse debugging experience.
+TestFlight also works if you'd rather — Xcode Cloud builds and uploads it — but it's
+a slower loop for a strictly worse debugging experience: a Release build, no console,
+and a wait for processing between each attempt.
 
 ## Before you start
 

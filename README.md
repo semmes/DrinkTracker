@@ -211,11 +211,22 @@ xcodebuild test -project DrinkTracker.xcodeproj -scheme DrinkTracker \
 
 Both run on every pull request — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
-**Xcode Cloud is deliberately not set up.** GitHub Actions already covers CI, and
-[`.github/workflows/testflight.yml`](.github/workflows/testflight.yml) handles archive
-and upload with an App Store Connect API key. Adding Xcode Cloud would duplicate both
-and spend build minutes for the same result. An attempt to connect it stalled at the
-source-control authorization step; that was parked rather than pursued.
+### Two CI systems, one job each
+
+| | |
+|---|---|
+| **GitHub Actions** | Domain tests, simulator build, integration tests — every pull request |
+| **Xcode Cloud** | Archive, sign, and upload to TestFlight |
+
+Verification stays on Actions because it is fast and costs nothing; distribution
+moved to Xcode Cloud because it authenticates from the Apple ID already in Xcode, so
+**no signing secrets live in this repository.** See
+[ADR-0008](docs/decisions/0008-two-ci-systems-with-one-job-each.md).
+
+If Xcode Cloud's source-control step asks for access to the **componentskit**
+organisation, skip it. That is a third party nobody here can authorise, and it is not
+needed: both packages are public, and the Actions build resolves them on every run
+with no credentials. Only `semmes/DrinkTracker` has to show a checkmark.
 
 ## Known spec discrepancies
 
