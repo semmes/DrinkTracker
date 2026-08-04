@@ -22,6 +22,34 @@ command line:
 xcodebuild -project DrinkTracker.xcodeproj -scheme DrinkTracker -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
+## Keeping a clone in step with main
+
+Changes land on `main` continuously. To pick them up without watching for a
+notification:
+
+```bash
+./scripts/sync-main.sh            # check once, fast-forward if behind
+./scripts/sync-main.sh --watch    # keep checking, ctrl-C to stop
+./scripts/install-sync-agent.sh   # run it via launchd, no terminal needed
+```
+
+**It refuses more often than it acts, on purpose.** It will not touch anything if
+you have uncommitted work, if you are on a branch other than `main`, or if the
+update isn't a clean fast-forward — it says why and exits quietly. A watcher that
+can eat your changes is worse than no watcher, and one that shouts every minute
+gets turned off.
+
+macOS notifications say what landed. When the update touches `project.pbxproj`,
+`Package.resolved`, or a scheme, it says so explicitly:
+
+> **Xcode caches the project file.** If those change while the project is open,
+> Xcode can keep showing the old target list, and the next build is against stale
+> structure. Close and reopen the project when the notification mentions it.
+
+Pulling is not building. Every sync still needs ⌘R to reach the device, and a
+widget change needs the widget removed and re-added — iOS caches extensions
+aggressively enough to give a convincing false negative.
+
 ## Naming
 
 Three names, currently not all the same:
