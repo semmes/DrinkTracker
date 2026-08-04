@@ -229,6 +229,18 @@ organisation, skip it. That is a third party nobody here can authorise, and it i
 needed: both packages are public, and the Actions build resolves them on every run
 with no credentials. Only `semmes/DrinkTracker` has to show a checkmark.
 
+**Build numbers** are stamped by [`ci_scripts/ci_post_clone.sh`](ci_scripts/ci_post_clone.sh):
+the repo pins every target at build 1 for reproducible local builds, and Xcode Cloud
+overwrites that with its own always-increasing `CI_BUILD_NUMBER` before archiving —
+TestFlight refuses any build number it has already seen. Local and Actions builds
+never run the script and stay at 1.
+
+`ITSAppUsesNonExemptEncryption` is declared `NO` in the app target, so TestFlight
+builds skip the per-build export-compliance question. That answer is load-bearing:
+the app ships no encryption beyond Apple's own frameworks (HTTPS, CloudKit,
+HealthKit). If that ever changes, remove the key and answer honestly in App Store
+Connect.
+
 ## Known spec discrepancies
 
 Three places where the brief contradicts itself. Two are now settled decisions with
