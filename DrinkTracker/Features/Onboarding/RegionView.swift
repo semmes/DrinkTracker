@@ -12,9 +12,9 @@ struct RegionView: View {
 
   var body: some View {
     OnboardingScaffold {
-      OnboardingHeadline(text: "One quick setting")
+      OnboardingHeadline(text: "How big is a drink, anyway?")
       OnboardingSubtext(
-        text: "This helps size a standard drink correctly for you. Skip if you're not sure, you can set this later."
+        text: "A \u{201C}standard drink\u{201D} isn't standard everywhere. Pick your region so the math pours right. Not sure? Skip it, no quiz later."
       )
       VStack(spacing: GlassTokens.Spacing.tight) {
         ForEach(Region.allCases) { region in
@@ -28,8 +28,8 @@ struct RegionView: View {
       }
       .padding(.top, GlassTokens.Spacing.regular)
     } actions: {
-      SUButton(model: .primary("Continue")) { onFinish(selection) }
-      SUButton(model: .subtle("Skip")) { onFinish(nil) }
+      SUButton(model: .primary("Finish up")) { onFinish(selection) }
+      SUButton(model: .subtle("I'll decide later")) { onFinish(nil) }
     }
   }
 }

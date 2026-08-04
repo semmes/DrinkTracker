@@ -19,26 +19,48 @@ struct CalendarView: View {
   @State private var editingDraft: DrinkDraft?
 
   // Drag-to-select. The anchor is set once per gesture, where the long press
-  // landed; the current index follows the finger. Both clear on release.
+  // landed; the current index follows the finger. Both clear on release, at
+  // which point the run moves into `pendingDays` and stays highlighted while
+  // the action bar offers what to do with it (Tallyist prototype handoff).
   @State private var dragAnchorIndex: Int?
   @State private var dragCurrentIndex: Int?
+  @State private var pendingDays: [CalendarDay] = []
   @State private var bulkSelection: BulkSelection?
+
+  /// Measured width of the grid area, for reserving the grid's height.
+  @State private var gridWidth: CGFloat = 0
+
+  /// The grid bleeds this far past the screen margin on each side — cells grow
+  /// from ~45pt to ~49pt on a 402pt device while every other element keeps the
+  /// 20pt margin (prototype handoff, change 1).
+  private let gridBleed: CGFloat = 10
 
   private var calendar: Calendar { .current }
 
   var body: some View {
-    ScrollView {
-      VStack(spacing: GlassTokens.Spacing.section) {
-        monthHeader
-        weekdayHeader
-        monthGrid
-        selectionHint
-        IntensityLegend()
-        RecentSummaryCard(summary: summary, region: settings.effectiveRegion)
+    ZStack(alignment: .bottom) {
+      ScrollView {
+        VStack(spacing: GlassTokens.Spacing.section) {
+          monthHeader
+          weekdayHeader
+            .padding(.horizontal, -gridBleed)
+          monthGrid
+            .padding(.horizontal, -gridBleed)
+          IntensityLegend()
+          selectionHint
+          RecentSummaryCard(summary: summary, region: settings.effectiveRegion)
+        }
+        .screenMargin()
+        .padding(.vertical, GlassTokens.Spacing.section)
       }
-      .screenMargin()
-      .padding(.vertical, GlassTokens.Spacing.section)
+
+      if !barDays.isEmpty {
+        selectionBar
+          .transition(.move(edge: .bottom).combined(with: .opacity))
+      }
     }
+    .animation(.easeOut(duration: 0.3), value: barDays.isEmpty)
+    .onDisappear { pendingDays = [] }
     .navigationTitle("Calendar")
     .navigationBarTitleDisplayMode(.large)
     .toolbar {
@@ -77,7 +99,10 @@ struct CalendarView: View {
       BulkFillSheet(
         days: selection.days,
         seed: seedDrink,
-        onApply: { count, dates in bulkFill(count, on: dates) }
+        onApply: { count, dates in
+          bulkFill(count, on: dates)
+          pendingDays = []
+        }
       )
     }
   }
@@ -219,6 +244,9 @@ struct CalendarView: View {
     guard let shifted = calendar.date(byAdding: .month, value: months, to: visibleMonth) else {
       return
     }
+    // A selection is a run of days in the visible month; the bar acting on days
+    // that scrolled out of sight would be an invisible write.
+    pendingDays = []
     withAnimation(.snappy(duration: 0.2)) { visibleMonth = shifted }
   }
 
@@ -261,7 +289,7 @@ struct CalendarView: View {
             day: day,
             side: side,
             isToday: calendar.isDateInToday(day.date),
-            isSelected: selectedDates.contains(day.date)
+            isSelected: highlightedDates.contains(day.date)
           )
           .onTapGesture {
             guard day.date <= Date() else { return }
@@ -276,15 +304,20 @@ struct CalendarView: View {
       // the extent without the eye leaving the far end of the run.
       .sensoryFeedback(.selection, trigger: dragCurrentIndex)
     }
+    .onGeometryChange(for: CGFloat.self) { proxy in
+      proxy.size.width
+    } action: { width in
+      gridWidth = width
+    }
     .frame(height: gridHeight)
   }
 
   /// Discoverability for a gesture with no visible affordance. One quiet line —
   /// the tap path works without ever reading it.
   private var selectionHint: some View {
-    Text("Touch and hold a day, then drag to fill several at once.")
-      .font(.caption)
-      .foregroundStyle(.secondary)
+    Text("Tip: press and hold, then drag across days to fill a stretch at once")
+      .font(.caption2)
+      .foregroundStyle(.tertiary)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 
@@ -312,7 +345,9 @@ struct CalendarView: View {
         dragAnchorIndex = nil
         dragCurrentIndex = nil
         guard case .second = value, !selection.isEmpty else { return }
-        bulkSelection = BulkSelection(days: selection)
+        // The run stays highlighted and the bar stays up: releasing is not yet a
+        // decision, it's the end of pointing at things.
+        pendingDays = selection
       }
   }
 
@@ -325,8 +360,104 @@ struct CalendarView: View {
     return grid.days(between: anchor, and: current).filter { $0.date <= now }
   }
 
-  private var selectedDates: Set<Date> {
-    Set(selectedDays.map(\.date))
+  /// What the action bar operates on: the live run while the finger is down,
+  /// the parked run after release.
+  private var barDays: [CalendarDay] {
+    dragAnchorIndex != nil ? selectedDays : pendingDays
+  }
+
+  private var highlightedDates: Set<Date> {
+    Set(barDays.map(\.date))
+  }
+
+  /// Days in the selection a bulk action can actually write to (ADR-0011).
+  private var fillableCount: Int {
+    barDays.count { !$0.hasEntries && !$0.isMarkedAlcoholFree }
+  }
+
+  // MARK: - Selection action bar
+
+  /// Bottom-pinned bar from the prototype handoff, carrying PR #12's two-way
+  /// semantics: the common answer ("no drinks") is one tap, the counted answer
+  /// opens the existing bulk sheet. Appears as soon as a drag selects a day,
+  /// live count while the finger moves, and stays up after release until acted
+  /// on or dismissed.
+  private var selectionBar: some View {
+    VStack(spacing: GlassTokens.Spacing.regular) {
+      HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text(barDays.count == 1 ? "1 day selected" : "\(barDays.count) days selected")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+            .contentTransition(.numericText(value: Double(barDays.count)))
+            .animation(.snappy, value: barDays.count)
+          Text(
+            fillableCount == 0
+              ? "Every selected day already has a record"
+              : "Days that already have a record are kept"
+          )
+          .font(.caption)
+          .foregroundStyle(.secondary)
+        }
+        Spacer()
+        Button {
+          pendingDays = []
+        } label: {
+          Image(systemName: "xmark")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.secondary)
+            .frame(width: 32, height: 32)
+            .background(Circle().fill(Color.primary.opacity(0.06)))
+            .contentShape(.circle)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Clear selection")
+      }
+
+      HStack(spacing: GlassTokens.Spacing.tight) {
+        Button {
+          bulkSelection = BulkSelection(days: pendingDays)
+        } label: {
+          Text("Log drinks…")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, minHeight: 40)
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+
+        Button(action: markNoDrinks) {
+          Text("Mark no drinks")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, minHeight: 40)
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .background(
+          // AccentFill, not accentColor: white label on a fill — review R2.
+          RoundedRectangle(cornerRadius: GlassTokens.Radius.control, style: .continuous)
+            .fill(Color("AccentFill"))
+        )
+      }
+      .disabled(fillableCount == 0)
+      .opacity(fillableCount == 0 ? 0.4 : 1)
+    }
+    .padding(GlassTokens.Spacing.cardPadding)
+    .glassSurface(cornerRadius: GlassTokens.Radius.pill)
+    .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+    .padding(.bottom, GlassTokens.Spacing.section)
+  }
+
+  /// The bar's one-tap answer. Same rule as the sheet: only days with no record
+  /// in either direction are touched, and the repository's own guard backstops
+  /// even that (ADR-0011).
+  private func markNoDrinks() {
+    for day in pendingDays where !day.hasEntries && !day.isMarkedAlcoholFree {
+      store.markAlcoholFree(day.date)
+    }
+    pendingDays = []
   }
 
   /// Point → (row, column) → day index, using the same `side` and `spacing` the
@@ -341,9 +472,14 @@ struct CalendarView: View {
 
   private var gridHeight: CGFloat {
     let rows = ceil(Double(grid.leadingBlanks + grid.days.count) / 7.0)
+    let spacing: CGFloat = 6
     // Cells are square and sized off the width, so the height has to be reserved
-    // ahead of layout. 52 covers a 7-column grid at the widest current iPhone.
-    return CGFloat(rows) * 52 + CGFloat(max(0, rows - 1)) * 6
+    // ahead of layout. Computed from the measured width — the same formula the
+    // grid itself uses — because the old hardcoded 52pt bound stopped covering
+    // the widest iPhones once the grid gained its 10pt bleed. First layout pass
+    // (width not yet measured) falls back to the old bound.
+    let side = gridWidth > 0 ? (gridWidth - spacing * 6) / 7 : 52
+    return CGFloat(rows) * side + CGFloat(max(0, rows - 1)) * spacing
   }
 }
 

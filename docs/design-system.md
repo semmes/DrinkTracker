@@ -166,8 +166,10 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` | Value + noun. No deltas, no arrows, no progress bars (copy review F2) |
-| **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring + 22% wash, never a solid fill — the day's own colour stays legible |
+| **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring on every selected cell + 15% wash on blank cells only — the wash previews exactly which days a bulk action will touch |
+| **Selection action bar** | `Calendar/CalendarView.swift` (`selectionBar`) | Bottom-pinned glass bar (radius 22): live day count, one-tap "Mark no drinks" (AccentFill under white), "Log drinks…" to the bulk sheet, 32pt dismiss. From the prototype handoff, carrying ADR-0011 semantics |
 | **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | The day sheet's counter applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
+| **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom drawing beside the icon); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
@@ -232,6 +234,31 @@ rises or falls.
 
 **Verdict:** approved as v1.0 with R1–R5 applied. Open follow-ups: R2 device
 check; export the ramp as Figma variables if a Figma library is ever started.
+
+### Prototype handoff (2026-08) — what was adopted, and what was reconciled
+
+The claude.ai/design prototype *Tallyist iOS Prototype* delivered three changes
+(handoff record: the `design/tallyist-prototype` branch). Disposition:
+
+- **Calendar enlargement — adopted as specified.** The month grid and weekday
+  header bleed 10pt past the screen margin per side; cell side rises to ~49pt on
+  a 402pt device. The height reserve is now computed from measured width — the
+  old hardcoded 52pt bound would have clipped the widest iPhones post-bleed.
+- **Onboarding refresh — adopted, copy verbatim.** Tally hero, lock hero,
+  progress dots, all decorative motion behind Reduce Motion. One colour
+  substitution: the handoff's slash tint `#7FA9DD` is the accent at ~55% over
+  the light surface, so it ships as `accentColor.opacity(0.55)` — same pixels in
+  light mode, dark mode derived for free, and no new blue enters ADR-0010's
+  registry.
+- **Drag-to-prefill — UI adopted, semantics kept.** The prototype's action bar
+  and selection visuals (ring everywhere, wash only on writable days) replace
+  the release-straight-into-sheet flow, at the user's direction. What the bar
+  *does* is unchanged from ADR-0011: recorded days are never touched, and the
+  counted path ("Log drinks…") keeps the capability the prototype's no-drink-only
+  bar would have dropped. Two engineering divergences, both deliberate: the
+  gesture keeps its 0.25s hold (a bare drag fights the scroll view), and the bar
+  gains a second row for the two actions. The bar's "Mark no drinks" privileges
+  the most common bulk answer; zero-as-a-value survives in both sheets.
 
 ---
 

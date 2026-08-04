@@ -58,3 +58,17 @@ If real use shows people repeatedly selecting runs *because* they want to
 correct recorded days in bulk (rather than fill blanks), that is a different
 feature — bulk *edit* — and it needs its own confirmation design. Extending
 bulk *fill* to overwrite is not the answer; this record exists to say why.
+
+---
+
+## Amendment (2026-08): the action bar
+
+The *Tallyist iOS Prototype* handoff restyled the surface: releasing a drag now
+parks the selection under a bottom action bar (live count, one-tap **Mark no
+drinks**, **Log drinks…** into the bulk sheet, dismiss) instead of opening the
+sheet directly. The user directed keeping this record's semantics under the
+prototype's UI: nothing about *what gets written* changed — recorded days are
+still never touched, the sheet still says what it skips, and `markAlcoholFree`'s
+refusal still backstops both paths. The bar's cell highlight makes the rule
+visible before the action: the accent wash lands only on days a bulk action can
+write to; recorded days in the run get the ring alone.
