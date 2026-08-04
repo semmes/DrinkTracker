@@ -14,11 +14,14 @@ struct TodayView: View {
 
   /// Scoped to today only; the trend screens run their own wider query.
   @Query private var todaysEntries: [DrinkEntry]
+  @Query private var alcoholFreeDays: [AlcoholFreeDay]
 
   @State private var draft: DrinkDraft?
   @State private var lastLogged: LoggedDrink?
   @State private var isShowingSettings = false
   @State private var deletion = DeletionCoordinator()
+  /// The count-first counter. Zero means "record today as having no alcohol".
+  @State private var quickCount = 0
 
   @Environment(\.scenePhase) private var scenePhase
 
@@ -36,10 +39,8 @@ struct TodayView: View {
         Section {
           VStack(spacing: GlassTokens.Spacing.block) {
             metric
-            VStack(spacing: GlassTokens.Spacing.tight) {
-              quickAddRow
-              repeatControl
-            }
+            quickLogControls
+            detailedSection
           }
           .padding(.top, GlassTokens.Spacing.tight)
         }
@@ -137,6 +138,136 @@ struct TodayView: View {
 
   private func backfillHealthKit() async {
     await store.backfillHealthKit()
+  }
+
+  // MARK: - Count-first logging
+
+  /// The primary control: how many drinks, including none.
+  ///
+  /// A count is the question most people answer most days, so it comes first and
+  /// needs no type, size, or strength. Zero is a value on the same counter, not a
+  /// separate affordance — "I had none" and "I had three" are the same question
+  /// answered differently (see the calendar's day sheet, which set the pattern).
+  /// The typed path still exists one disclosure below for anyone who wants
+  /// granularity, and every entry the counter creates is a real, editable, typed
+  /// drink, so nothing recorded here is coarser than the rest of the log.
+  private var quickLogControls: some View {
+    VStack(spacing: GlassTokens.Spacing.regular) {
+      CountStepper(
+        value: $quickCount,
+        range: counterRange,
+        style: .prominent,
+        unitLabel: "Drinks"
+      )
+
+      if quickCount == 0 {
+        if isTodayMarkedAlcoholFree {
+          markedTodayState
+        } else {
+          SUButton(model: .primary("Record no alcohol today")) {
+            store.markAlcoholFree(Date())
+          }
+        }
+      } else {
+        SUButton(model: .primary(quickLogTitle)) {
+          logQuickCount()
+        }
+      }
+    }
+    // Once something is logged today, "record none" stops being an answer —
+    // mirror the day sheet: the counter floors at 1 and the button reads "Add".
+    .onChange(of: todaysEntries.isEmpty) { _, isEmpty in
+      if !isEmpty && quickCount == 0 { quickCount = 1 }
+    }
+    .onAppear {
+      if !todaysEntries.isEmpty && quickCount == 0 { quickCount = 1 }
+    }
+  }
+
+  private var counterRange: ClosedRange<Int> {
+    todaysEntries.isEmpty ? 0...12 : 1...12
+  }
+
+  private var quickLogTitle: String {
+    if todaysEntries.isEmpty {
+      return quickCount == 1 ? "Log 1 drink" : "Log \(quickCount) drinks"
+    }
+    return quickCount == 1 ? "Add 1 more" : "Add \(quickCount) more"
+  }
+
+  private var isTodayMarkedAlcoholFree: Bool {
+    let today = Calendar.current.startOfDay(for: Date())
+    return alcoholFreeDays.contains { $0.day == today }
+  }
+
+  /// Factual in both directions: states what was recorded, awards nothing.
+  private var markedTodayState: some View {
+    VStack(spacing: GlassTokens.Spacing.tight) {
+      Label("Recorded as no alcohol today", systemImage: "checkmark.circle")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+      Button("Remove that record") {
+        store.unmarkAlcoholFree(Date())
+      }
+      .font(.footnote)
+    }
+    .frame(maxWidth: .infinity)
+  }
+
+  /// Logs N drinks seeded from what's usually logged — the same rule as the
+  /// calendar's day sheet, so "3 drinks" means the same thing on both surfaces.
+  /// The full history is fetched at tap time rather than held as a third query;
+  /// this view otherwise only needs today.
+  private func logQuickCount() {
+    let history = ((try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+    let drinks = DrinkDraft
+      .quickCount(quickCount, from: history)
+      .makeLoggedDrinks(region: settings.effectiveRegion)
+    Task {
+      let saved = await store.save(drinks)
+      lastLogged = saved
+    }
+    quickCount = 1
+  }
+
+  // MARK: - Detailed logging
+
+  /// The typed path, one disclosure down: beer/wine/spirit/other with size and
+  /// strength, plus the repeat row. Persisted, so opening it once keeps it open —
+  /// a preference for granularity, not a mode to re-enter every day.
+  @ViewBuilder
+  private var detailedSection: some View {
+    VStack(spacing: GlassTokens.Spacing.tight) {
+      Button {
+        withAnimation(.snappy) {
+          settings.prefersDetailedLogging.toggle()
+        }
+      } label: {
+        HStack(spacing: GlassTokens.Spacing.tight) {
+          Text("Log by type — size and strength")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+          Image(systemName: "chevron.down")
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .rotationEffect(.degrees(settings.prefersDetailedLogging ? 180 : 0))
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 32)
+        .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Log by drink type")
+      .accessibilityValue(settings.prefersDetailedLogging ? "shown" : "hidden")
+
+      if settings.prefersDetailedLogging {
+        VStack(spacing: GlassTokens.Spacing.tight) {
+          quickAddRow
+          repeatControl
+        }
+        .transition(.opacity.combined(with: .move(edge: .top)))
+      }
+    }
   }
 
   // MARK: - Repeat

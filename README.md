@@ -57,7 +57,7 @@ Three names, currently not all the same:
 | Where | Value |
 |---|---|
 | App Store listing | **Tallyist** |
-| Home screen icon | **Drink Tracker** (`INFOPLIST_KEY_CFBundleDisplayName`) |
+| Home screen icon | **Tallyist** (`INFOPLIST_KEY_CFBundleDisplayName`) |
 | Bundle identifier | `com.shawnsemmes.DrinkTracker` |
 | Repository, targets, types | `DrinkTracker` |
 
@@ -71,11 +71,11 @@ would appear to vanish. It isn't deleted, it's just somewhere the app no longer 
 Any future bundle rename needs a migration, or an explicit decision to abandon what's
 there.
 
-**Open: the home screen label still says "Drink Tracker".** Someone who installs
-Tallyist gets an icon with a different name under it. Apple permits the mismatch, but
-it's worth resolving before submission — it's a one-line change per target
-(`INFOPLIST_KEY_CFBundleDisplayName`), affects no identifiers, and touches no data.
-Left alone here because renaming the whole codebase is a separate, larger question.
+The home screen label now matches the listing. The bundle identifier and codebase
+deliberately do not — see below — so the icon says Tallyist while the internals stay
+`DrinkTracker`. The app icon is a generated placeholder (white tally marks on the
+ramp's dark blue, `scripts/make-app-icon.py`); replace `AppIcon.png` when a real one
+exists.
 
 ## Signing and provisioning
 
@@ -267,57 +267,42 @@ pinning the behaviour so nothing is silently "corrected".
   The chart's average line is labelled "Your average", never a target, and the rest-day
   card counts days without framing them as wins.
 
-## Known issue: the widget's one-tap logging is unverified
+## The widget's one-tap logging — resolved
 
-The widget builds, installs, registers, appears in the gallery, and **reads** the
-shared store correctly — it shows the same live total as the app, in the same units,
-which proves the App Group and shared SwiftData store work.
+**Verified working on a device (2026-08).** The fault was never dispatch or
+registration: `LogDrinkIntent.drinkType` was a non-optional `@Parameter` with no
+default, and a parameter the system cannot resolve is one it wants to *ask* about —
+which Shortcuts can do and a home-screen widget cannot. The tap was abandoned during
+parameter resolution, before `perform()` was entered: no crash, no log, identical at
+every widget size. `default: .beer` made resolution infallible, and the button's own
+value still wins when it arrives.
 
-**Tapping its Beer button does not log a drink**, and I could not determine why.
-What is established:
+The diagnostic scaffolding that found it stays: **Settings → Diagnostics** (Debug and
+TestFlight builds) shows the App Group status, store mode, iCloud sync state, which
+process last built an intent, and what the last tap did. The full protocol lives in
+[`docs/device-test-widget-dispatch.md`](docs/device-test-widget-dispatch.md).
 
-- `LogDrinkIntent` is present in the extension's `Metadata.appintents`, so it is
-  registered.
-- `perform()` is never entered — `Diagnostics.lastWidgetLog` stays absent after a tap,
-  and the breadcrumb is the very first line of the method.
-- It is not a crash; no crash report is generated.
-- An earlier build did reach `appintents:Execution` and produced a runtime-issue
-  fault, which is what led to the CloudKit-configuration fix above. Since that fix,
-  dispatch stopped happening at all.
-- Ruled out: stale widget archive (the widget visibly re-rendered against each new
-  build), `.buttonStyle(.plain)` suppressing interaction (removed), and App Group
-  availability (defaults and store are both shared correctly).
+## Count-first logging
 
-This may be a limitation of synthetic touch injection against a widget's
-out-of-process view hierarchy in the Simulator rather than a defect in the app —
-**worth trying by hand on a real device before debugging further.**
+Today leads with a counter: how many drinks, zero included. Zero on a day with
+nothing logged records the day as **alcohol-free** — for today, right on Today, not
+just for past days via the calendar. Once entries exist the counter floors at one
+and the button reads "Add", because "add none" is not an answer.
 
-### How to diagnose it on a device
+A counted drink is seeded from the type you log most often, at the size and strength
+you last logged it (`DrinkDraft.quickCount` — the same rule the calendar's day sheet
+uses, shared code). With no history it's beer's defaults, which are exactly 1.0 US
+standard drinks, so a fresh install's count is a standard-drink count. Every entry
+is a real, typed drink — individually editable, own HealthKit sample, per ADR-0003.
 
-**Follow [`docs/device-test-widget-dispatch.md`](docs/device-test-widget-dispatch.md)** —
-a step-by-step protocol with a table saying what each combination of readings means.
-The short version follows.
+**The typed path didn't go anywhere.** "Log by type — size and strength" discloses
+the beer/wine/spirit/other row and the repeat control, and the preference persists,
+so granular users set their Today once. See
+[ADR-0009](docs/decisions/0009-count-first-logging.md).
 
-**Settings → Diagnostics** (Debug and TestFlight builds) shows the App Group status
-and what the widget's intent did last:
-
-| Reading | Meaning |
-|---|---|
-| `never ran` | The tap never reached the intent. The fault is dispatch, not the write. |
-| `entered` / `container-opened` | It started and died partway — the step name says where. |
-| `failed: …` | The intent ran and the write threw. The error is shown. |
-| `saved` | It worked. |
-
-**Isolate it first with Shortcuts.** The app registers "Log a beer in Drink Tracker"
-as an App Shortcut, which runs the *same* `perform()` body in the app's process
-rather than the extension's. Run it from the Shortcuts app or by asking Siri:
-
-- **It logs a drink** → the intent and the SwiftData write are fine, and the fault is
-  specifically the widget button's dispatch.
-- **It fails** → the intent itself is broken, and the widget is a red herring.
-
-This test can't be done in the Simulator: Shortcuts isn't installed there, which is
-why it's still outstanding.
+A drink saved onto a day marked alcohol-free clears the marker — evidence beats
+assertion, enforced in `DrinkRepository.saveOrThrow` so the app, calendar, and
+widget all agree.
 
 ## Logging several of the same drink
 

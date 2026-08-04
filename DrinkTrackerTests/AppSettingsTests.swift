@@ -78,6 +78,17 @@ struct AppSettingsTests {
     #expect(AppSettings.storedRegion(defaults: defaults) == .unitedStates)
   }
 
+  // MARK: - Detailed logging
+
+  @Test("The detailed-logging preference starts off and round-trips")
+  func detailedLoggingRoundTrips() {
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.prefersDetailedLogging == false)
+
+    settings.prefersDetailedLogging = true
+    #expect(AppSettings(defaults: defaults).prefersDetailedLogging)
+  }
+
   // MARK: - Onboarding
 
   @Test("The onboarding flag round-trips and starts false")

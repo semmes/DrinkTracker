@@ -53,7 +53,8 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
       [
         .init(label: "12 oz can", volumeOunces: 12),
         .init(label: "16 oz pint", volumeOunces: 16),
-        .init(label: "22 oz bottle", volumeOunces: 22),
+        // The 22 oz bottle was dropped to keep the row to the two common cases;
+        // anything larger is one tap away on Custom.
         .custom
       ]
     case .wine:

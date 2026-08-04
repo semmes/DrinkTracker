@@ -125,17 +125,11 @@ struct CalendarView: View {
     // Noon rather than the start of the day: a midnight timestamp sits on the
     // boundary, and any timezone shift afterwards moves it to the day before.
     let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
-    let type = seedDrink?.type ?? .beer
-
-    var draft = DrinkDraft(type: type, loggedAt: noon)
-    if let seed = seedDrink {
-      draft.selectedSize = type.sizeOptions.first { $0.volumeOunces == seed.volumeOunces } ?? .custom
-      draft.customVolumeOunces = seed.volumeOunces
-      draft.abvPercent = seed.abvPercent
-    }
-    draft.quantity = count
-
-    let drinks = draft.makeLoggedDrinks(region: settings.effectiveRegion)
+    // Same seeding rule as Today's counter — one definition of what "N drinks"
+    // records, wherever it's said. See DrinkDraft.quickCount.
+    let drinks = DrinkDraft
+      .quickCount(count, from: allEntries.loggedDrinks, at: noon)
+      .makeLoggedDrinks(region: settings.effectiveRegion)
     Task { await store.save(drinks) }
   }
 

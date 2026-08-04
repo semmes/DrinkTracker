@@ -46,8 +46,10 @@ The rules a change must not break. Each one's failure mode is stated because mos
 them fail *silently* — that is precisely why they are written down.
 
 **1. The fast path stays at two taps in the app, one from the widget.**
-`TodayView.quickAddRow` → `DrinkDetailSheet` → Log. `QuickLogWidget` logs the type's
-default outright.
+Count-first: `TodayView`'s counter → Log is two taps, zero included. The typed path
+(`quickAddRow` → `DrinkDetailSheet` → Log) sits one persisted disclosure deeper for
+those who want size and strength — see [ADR-0009](decisions/0009-count-first-logging.md).
+`QuickLogWidget` logs the type's default outright.
 *Failure mode:* every added step is paid in entries that never get logged, which
 defeats the north star.
 
@@ -237,14 +239,12 @@ what it set out to do, and the open risks are all about whether it does it *corr
 
 **Goal:** nothing important is both load-bearing and unverified.
 
-- **a. Resolve the widget's one-tap logging.** It has never been observed working.
-  `perform()` is never entered — the `Diagnostics.record("entered")` breadcrumb stays
-  absent after a tap. The protocol is written up in
-  [device-test-widget-dispatch.md](device-test-widget-dispatch.md): the Shortcuts
-  bisect runs the same `perform()` body in the app's process, which separates an
-  intent bug from a widget-dispatch bug. Then fix it, or document it as an OS
-  limitation with the evidence. Diagnostics is visible in TestFlight builds as well as
-  Debug for exactly this reason — a build that can't be diagnosed can't be tested.
+- **a. Resolve the widget's one-tap logging.** ✅ Done — verified working on a
+  device (2026-08). The fault was parameter resolution, not dispatch: a non-optional
+  `@Parameter` with no default is one the system may need to *prompt* for, which a
+  widget cannot do, so the tap was abandoned before `perform()`. Fixed with
+  `default: .beer`. The diagnostics that isolated it (including "Intent last built
+  by") remain in Settings for Debug and TestFlight builds.
 - **b. Integration tests.** ✅ Done — the `DrinkTrackerTests` target and the Tier-2
   tests listed in §4, run in CI on a simulator. Remaining: `DrinkStore` and
   `HealthKitService` need a host-based target, which is deliberately deferred.

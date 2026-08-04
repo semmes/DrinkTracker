@@ -109,6 +109,48 @@ struct AlcoholFreeDayTests {
     #expect(repository.markAlcoholFree(day, calendar: calendar))
   }
 
+  /// The rule lives in `saveOrThrow`, so every write path gets it — the app, the
+  /// calendar backfill, and the widget's intent alike.
+  @Test("Saving a drink on a marked day removes the marker")
+  func savingClearsTheMarker() throws {
+    let day = date(2026, 8, 3)
+    repository.markAlcoholFree(day, calendar: calendar)
+
+    let drink = LoggedDrink(
+      loggedAt: date(2026, 8, 3, hour: 21), type: .beer, volumeOunces: 12, abvPercent: 5
+    )
+    try repository.saveOrThrow(drink, calendar: calendar)
+
+    #expect(repository.isMarkedAlcoholFree(day, calendar: calendar) == false)
+  }
+
+  /// The dormant-marker problem this exists to prevent: delete the evidence and
+  /// the assertion must NOT come back, because the user never re-stated it.
+  @Test("A cleared marker does not resurrect when the drinks are deleted")
+  func clearedMarkerStaysCleared() throws {
+    let day = date(2026, 8, 3)
+    repository.markAlcoholFree(day, calendar: calendar)
+
+    let drink = LoggedDrink(
+      loggedAt: date(2026, 8, 3, hour: 21), type: .beer, volumeOunces: 12, abvPercent: 5
+    )
+    try repository.saveOrThrow(drink, calendar: calendar)
+    repository.delete(id: drink.id)
+
+    #expect(repository.isMarkedAlcoholFree(day, calendar: calendar) == false)
+    #expect(repository.drinks(on: day, calendar: calendar).isEmpty)
+  }
+
+  @Test("Saving on one day leaves another day's marker alone")
+  func otherMarkersSurvive() throws {
+    repository.markAlcoholFree(date(2026, 8, 2), calendar: calendar)
+    try repository.saveOrThrow(
+      LoggedDrink(loggedAt: date(2026, 8, 3, hour: 20), type: .beer, volumeOunces: 12, abvPercent: 5),
+      calendar: calendar
+    )
+    #expect(repository.isMarkedAlcoholFree(date(2026, 8, 2), calendar: calendar))
+  }
+
   // MARK: - Reading back
 
   @Test("allAlcoholFreeDays returns start-of-day dates the grid can match on")
