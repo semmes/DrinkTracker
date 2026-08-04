@@ -56,8 +56,7 @@ defeats the north star.
 
 **2. Edit-after, not gate-before.**
 The type picker and time control appear only when editing an existing entry or adding
-one retroactively — `DrinkDetailSheet.showsTimeControl` and the `editingEntryID == nil`
-guard on `quantitySection`.
+one retroactively — `DrinkDetailSheet.showsTimeControl`.
 *Failure mode:* a control added "just for completeness" to the quick-add path is a tax
 on the most common action in the app.
 
@@ -94,9 +93,9 @@ sample for several drinks, and makes history dishonest.
 See [ADR-0003](decisions/0003-quantity-saves-separate-entries.md).
 
 **8. Copy stays factual and countable.**
-"Another beer", "How many", "3 of these", "Log 3 drinks". No encouragement to reach a
-number, nothing that reads as a reward for volume. The strings that carry this live in
-`TodayView.repeatControl` and `DrinkDetailSheet.quantitySection`.
+"Another beer", "How many drinks", "Record no alcohol today". No encouragement to
+reach a number, nothing that reads as a reward for volume. The strings that carry this
+live in `TodayView`'s counter area, `TodayView.repeatControl`, and `DayLogSheet`.
 *Failure mode:* guideline 1.4.3, applied by a reviewer rather than by us.
 
 **9. The domain layer stays free of UI and persistence.**

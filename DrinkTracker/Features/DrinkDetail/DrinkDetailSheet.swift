@@ -50,10 +50,6 @@ struct DrinkDetailSheet: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.section) {
           typeSection
           sizeSection
-          // Quantity sits above ABV so it is visible and tappable at the medium
-          // detent when the sheet opens, rather than below the fold — the count
-          // is changed far more often than the strength.
-          quantitySection
           abvSection
           if showsTimeControl { timeSection }
         }
@@ -137,48 +133,6 @@ struct DrinkDetailSheet: View {
       }
     )
   }
-
-  // MARK: - Quantity
-
-  /// For catching up on several of the same drink at once.
-  ///
-  /// Sits at 1 unless touched, so the fast path is unaffected: the stepper is one
-  /// more thing you *can* use, never something to get past. Hidden when editing,
-  /// where fanning one entry into several would be a strange edit.
-  @ViewBuilder
-  private var quantitySection: some View {
-    if draft.editingEntryID == nil {
-      VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-        SectionLabel("How many")
-        HStack {
-          Text(draft.quantity == 1 ? "Just the one" : "\(draft.quantity) of these")
-            .font(.body)
-            .foregroundStyle(.primary)
-            .contentTransition(.numericText(value: Double(draft.quantity)))
-          Spacer()
-          // Inline rather than prominent: here the count is one field among
-          // several and sits at 1 unless touched, so it shouldn't outweigh the
-          // size and strength controls above it. The calendar's day sheet, where
-          // the count *is* the question, uses the large version.
-          CountStepper(
-            value: $draft.quantity,
-            range: Self.quantityRange,
-            style: .inline,
-            unitLabel: "How many"
-          )
-          .fixedSize()
-        }
-        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
-        .glassSurface(cornerRadius: GlassTokens.Radius.control)
-        .animation(.snappy, value: draft.quantity)
-      }
-    }
-  }
-
-  /// Capped at a dozen. High enough to cover catching up on an evening, low enough
-  /// that the control can't be used to enter an implausible figure by accident.
-  private static let quantityRange = 1...12
 
   // MARK: - Time
 
@@ -313,8 +267,8 @@ struct DrinkDetailSheet: View {
 
   // MARK: - Live estimate
 
-  /// Updates on any size, ABV, or quantity change. Approximate by design — the "≈"
-  /// is doing real work here, since ABV is almost always an estimate.
+  /// Updates on any size or ABV change. Approximate by design — the "≈" is doing
+  /// real work here, since ABV is almost always an estimate.
   private var liveEstimate: some View {
     Text(StandardDrink.liveEstimate(currentCount, region: settings.effectiveRegion))
       .font(GlassTokens.Typography.cardValue)
@@ -327,14 +281,8 @@ struct DrinkDetailSheet: View {
       )
   }
 
-  /// The whole draft's contribution — so raising the count shows the total going in,
-  /// not the value of one drink.
   private var currentCount: Double {
-    draft.standardDrinks(region: settings.effectiveRegion) * Double(effectiveQuantity)
-  }
-
-  private var effectiveQuantity: Int {
-    draft.editingEntryID == nil ? max(1, draft.quantity) : 1
+    draft.standardDrinks(region: settings.effectiveRegion)
   }
 
   // MARK: - Logging
@@ -342,8 +290,7 @@ struct DrinkDetailSheet: View {
   private var canLog: Bool { draft.volumeOunces > 0 }
 
   private var logButtonTitle: String {
-    guard draft.editingEntryID == nil else { return "Save changes" }
-    return effectiveQuantity == 1 ? "Log drink" : "Log \(effectiveQuantity) drinks"
+    draft.editingEntryID == nil ? "Log drink" : "Save changes"
   }
 
   private func logDrink() {
