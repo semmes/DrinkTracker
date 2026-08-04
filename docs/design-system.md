@@ -208,8 +208,10 @@ sharing one step between them was the error.*
 3.64:1. Resolution: fills use **500 in both modes** (white label 5.39:1
 everywhere); only accent *text and glyphs* switch to 400 in dark. The single
 `AccentColor` asset carries the text-accent pair (500/400); ComponentsKit's
-primary button is themed to the fill token in `AppTheme`. *Proposed follow-up:*
-verify the themed fill on device in dark mode.
+primary button is themed to the fill token in `AppTheme`, and native fills use
+the dedicated `AccentFill` asset (500, both modes) — after an audit found one
+site (`SizePill`) filling with the text accent. *Remaining follow-up:* eyeball
+the dark-mode fills on device.
 
 **R3 — The icon mark and the ramp told different blues.** The draft icon used
 650 while the accent moved to 500, risking a family of near-miss blues.

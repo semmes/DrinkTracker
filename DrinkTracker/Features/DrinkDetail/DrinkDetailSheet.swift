@@ -326,7 +326,10 @@ private struct SizePill: View {
     .buttonStyle(.plain)
     .background {
       if isSelected {
-        Capsule().fill(Color.accentColor)
+        // AccentFill, not accentColor: the asset accent is the TEXT pair
+        // (500 light / 400 dark), and white on the dark 400 is only 3.64:1.
+        // Fills are 500 in both modes — design review R2.
+        Capsule().fill(Color("AccentFill"))
       }
     }
     .glassSurface(cornerRadius: GlassTokens.Radius.pill, interactive: !isSelected)
