@@ -6,8 +6,9 @@ Native iOS/iPadOS drink tracking app.
 
 **Working on this?** Read [`docs/PRD.md`](docs/PRD.md) first — it holds the invariants
 any change has to respect, what counts as verified, and the roadmap. Settled decisions
-live in [`docs/decisions/`](docs/decisions/). This README covers building, running, and
-current status.
+live in [`docs/decisions/`](docs/decisions/), and the visual language in
+[`docs/design-system.md`](docs/design-system.md). This README covers building,
+running, and current status.
 
 ## Running it
 
