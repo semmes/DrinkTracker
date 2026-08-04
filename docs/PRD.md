@@ -196,6 +196,10 @@ is the model here: it says exactly what was established and exactly what was not
 
 `.github/pull_request_template.md` carries the short version of this checklist.
 
+**Distribution is not part of this loop.** Xcode Cloud archives and uploads to
+TestFlight; Actions never produces a shippable build. One upload path on purpose —
+see [ADR-0008](decisions/0008-two-ci-systems-with-one-job-each.md).
+
 **Commit messages** follow the convention the existing history already sets: what
 changed, *why the alternative was rejected*, and what was actually observed. That
 history is the reason this repository is legible eight commits in; it is worth keeping.
