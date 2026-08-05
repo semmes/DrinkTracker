@@ -57,25 +57,19 @@ final class TipJar {
   private static let allIDs = [oneDrinkID, monthlyID, yearlyID]
   private static let reminderIdentifier = "tallyist-support-renewal-reminder"
 
-  private var updatesTask: Task<Void, Never>?
-
-  deinit {
-    updatesTask?.cancel()
-  }
-
-  /// Called from the support screen's `.task`. Idempotent.
+  /// Called from the support screen's `.task`, and structured so the view owns
+  /// the whole lifetime: after loading products and status this keeps awaiting
+  /// `Transaction.updates` until the `.task` is cancelled on disappear. No
+  /// stored `Task`, so nothing to cancel in a `deinit` — which couldn't touch
+  /// MainActor state anyway.
   func start() async {
-    if updatesTask == nil {
-      updatesTask = Task { [weak self] in
-        for await update in Transaction.updates {
-          guard let self, case .verified(let transaction) = update else { continue }
-          await transaction.finish()
-          await self.refreshSupportStatus()
-        }
-      }
-    }
     await loadProducts()
     await refreshSupportStatus()
+    for await update in Transaction.updates {
+      guard case .verified(let transaction) = update else { continue }
+      await transaction.finish()
+      await refreshSupportStatus()
+    }
   }
 
   private func loadProducts() async {
