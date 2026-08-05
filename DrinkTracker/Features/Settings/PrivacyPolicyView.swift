@@ -60,10 +60,25 @@ struct PrivacyPolicyView: View {
           No analytics or crash-reporting SDKs. No advertising, and no tracking of \
           any kind. No third-party services — the app contains no networking code \
           of its own; the only network traffic is Apple's iCloud sync described \
-          above. No selling, sharing, or transfer of your data to anyone, because \
-          the developer never has it in the first place.
+          above and, if you choose to leave a tip, Apple's own App Store purchase \
+          processing. No selling, sharing, or transfer of your data to anyone, \
+          because the developer never has it in the first place.
 
           In App Store terms: Data Not Collected.
+          """
+        )
+
+        policySection(
+          "Tips",
+          """
+          The optional tip jar is processed entirely by Apple through your App \
+          Store account, exactly like any App Store purchase: Tallyist never sees \
+          your payment details, and Apple tells the app only that a purchase \
+          completed. Tips unlock nothing, and nothing about tipping — or not — \
+          appears in or affects your drink log. Recurring tips can be cancelled \
+          any time in your App Store subscription settings, and the app offers a \
+          local reminder a week before each renewal so you can cancel before \
+          being charged.
           """
         )
 
@@ -91,7 +106,7 @@ struct PrivacyPolicyView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Link("Read this policy online", destination: Self.hostedURL)
             .font(.body)
-          Text("Last updated August 4, 2026.")
+          Text("Last updated August 5, 2026.")
             .font(.caption)
             .foregroundStyle(.secondary)
         }

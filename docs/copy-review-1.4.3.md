@@ -136,3 +136,26 @@ selection bar. All new strings reviewed against the same standard on arrival.
 No new 1.4.3 exposure. The tone rules held: the personality lives in *how the
 mechanism is described*, never in encouragement or judgment of the behaviour
 being recorded.
+
+---
+
+## Addendum (2026-08): the tip jar
+
+"Buy me a drink" inside an alcohol tracker is the riskiest phrase the app has
+shipped, so every string got the full review (ADR-0012 has the design
+reasoning).
+
+| String | Note |
+|---|---|
+| "Buy me a drink" (Settings row, screen title) | Unambiguously about money the moment it's opened: the first body line prices it. The drink is the developer's, not the user's — no consumption is invited |
+| "Tallyist is free, private, and has nothing to sell you… Tips unlock nothing — everyone gets the whole app." | The anti-paywall statement, before any price appears |
+| "N × $4.99 · App Store limit is 10 per purchase" | The cap stated as a fact of the platform, not scarcity marketing |
+| "Received — thank you. That keeps Tallyist free." | Gratitude without celebration; no exclamation mark (voice rule) |
+| "That didn't go through. Nothing was charged." | The failure case leads with the fact the user cares about |
+| "A drink every month / every year" · "cancel any time" | Cadence of a payment, not of drinking |
+| "Tallyist will remind you a week before, so cancelling first is always realistic." | The pro-user promise, stated as the reason for the notification permission |
+| Renewal notification: "Your recurring tip renews on <date>. Cancel any time in the App Store — the app stays the same either way." | A reminder *to cancel*, delivered before money moves — the voice's "states of the system" rule applied to billing |
+| "…tips appear nowhere in your drink log." | The two ledgers never mix, said outright |
+
+No 1.4.3 exposure found: every "drink" in this feature is priced in dollars,
+and no string connects tipping to consuming.

@@ -1,0 +1,91 @@
+{
+  "identifier" : "E5C1A558-051A-460A-A32A-72640981B633",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "48FFDE4D-0D06-481F-A98E-275E69D23200",
+      "localizations" : [
+        {
+          "description" : "A one-time tip. Unlocks nothing; funds everything.",
+          "displayName" : "One drink",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.shawnsemmes.DrinkTracker.tip.onedrink",
+      "referenceName" : "One drink (tip)",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "A0E7B02B-C147-4E51-8F49-E36B7CCE8405",
+      "localizations" : [
+
+      ],
+      "name" : "Support",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "11C60A00-7175-4930-80C3-B70CDB3274BB",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A drink every month. Cancel any time.",
+              "displayName" : "A drink every month",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.shawnsemmes.DrinkTracker.support.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Support (monthly)",
+          "subscriptionGroupID" : "A0E7B02B-C147-4E51-8F49-E36B7CCE8405",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "5E7C1B39-B549-4E4B-9E20-43329DF5DFA4",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "A drink every year. Cancel any time.",
+              "displayName" : "A drink every year",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.shawnsemmes.DrinkTracker.support.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Support (yearly)",
+          "subscriptionGroupID" : "A0E7B02B-C147-4E51-8F49-E36B7CCE8405",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
