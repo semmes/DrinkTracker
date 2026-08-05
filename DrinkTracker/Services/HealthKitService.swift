@@ -61,8 +61,18 @@ final class HealthKitService {
     guard authorization == .authorized else { return nil }
 
     // The Health type counts beverages, not standard drinks, so a single logged
-    // drink is one beverage. The computed standard-drink figure and its gram
-    // equivalent ride along as metadata for anything reading the sample back.
+    // drink is one beverage. The gram equivalent rides along as metadata — and
+    // only the grams: it is the region-free fact, where a "standard drinks"
+    // figure would freeze whichever display region was active at write time
+    // into an immutable external record (invariant 3, ADR-0002). A reader can
+    // derive standard drinks for any region from grams; the reverse loses data.
+    //
+    // The typed binding is load-bearing. This dictionary is [String: Any], and
+    // an unapplied method reference (`drink.standardDrinks` — the region-lens
+    // *method*) once type-checked here as a value, crashing every authorized
+    // save at HealthKit's runtime validation with "(Function)". `Double` makes
+    // that mistake a compile error.
+    let grams: Double = drink.gramsOfAlcohol
     let sample = HKQuantitySample(
       type: beverageType,
       quantity: HKQuantity(unit: .count(), doubleValue: 1),
@@ -70,8 +80,7 @@ final class HealthKitService {
       end: drink.loggedAt,
       metadata: [
         HKMetadataKeyWasUserEntered: true,
-        Self.standardDrinksKey: drink.standardDrinks,
-        Self.gramsOfAlcoholKey: drink.gramsOfAlcohol
+        Self.gramsOfAlcoholKey: grams
       ]
     )
 
@@ -97,6 +106,9 @@ final class HealthKitService {
     try? await store.delete(samples)
   }
 
-  private static let standardDrinksKey = "DrinkTrackerStandardDrinks"
+  // "DrinkTrackerStandardDrinks" existed as a second key but never shipped a
+  // sample: the value passed for it was the crashing method reference above, so
+  // every save that would have written it threw instead. No compatibility to
+  // keep — and per the comment in save(), it was the wrong fact to freeze anyway.
   private static let gramsOfAlcoholKey = "DrinkTrackerGramsOfAlcohol"
 }
