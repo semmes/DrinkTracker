@@ -459,6 +459,25 @@ Privacy Policy) because guideline 5.1.1 wants the policy accessible *inside* the
 app too, and a native screen works offline and respects Dynamic Type. **The two
 copies change together** — a policy edit that touches only one of them is a bug.
 
+## The tip jar
+
+Settings → **Buy me a drink**: a $4.99 consumable at quantity 1–10 (Apple's
+per-transaction cap, stated in the UI) and two auto-renewing subscriptions
+(monthly / yearly), all through In-App Purchase — guideline 3.1.1 rules out
+Apple Pay for digital tips, and the StoreKit sheet is the same one-confirm
+experience anyway. Tips unlock nothing; a local notification reminds the user a
+week before each renewal so cancelling first is always realistic. Design
+reasoning and the 1.4.3 review of the metaphor: [ADR-0012](docs/decisions/0012-the-tip-jar.md),
+[copy review](docs/copy-review-1.4.3.md).
+
+**Simulator testing works today**: `DrinkTracker.storekit` is wired into the
+shared scheme, so purchases run against the local StoreKit test environment
+with no App Store Connect setup. **Real devices and TestFlight need App Store
+Connect**: sign the Paid Applications agreement (banking + tax under
+Agreements), then create the three products with exactly the IDs in ADR-0012's
+table. The code reads prices from StoreKit, so price changes in App Store
+Connect need no code change.
+
 ## Localization
 
 **The app is not localized yet.** `Localizable.xcstrings` exists in both targets but

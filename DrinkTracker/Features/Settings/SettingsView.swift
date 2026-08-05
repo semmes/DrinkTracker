@@ -257,26 +257,38 @@ struct SettingsView: View {
 
         // Guideline 5.1.1: the policy has to be reachable inside the app, not
         // only from the App Store listing. It's also simply owed to the user.
-        NavigationLink {
-          PrivacyPolicyView()
-        } label: {
-          HStack {
-            Label("Privacy Policy", systemImage: "hand.raised")
-              .font(.body)
-              .foregroundStyle(.primary)
-            Spacer()
-            Image(systemName: "chevron.right")
-              .font(.footnote.weight(.semibold))
-              .foregroundStyle(.secondary)
-          }
-          .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-          .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
-          .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
-        .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+        aboutLink("Privacy Policy", symbol: "hand.raised") { PrivacyPolicyView() }
+
+        // The tip jar. Lives quietly at the bottom of Settings — support is
+        // offered, never pushed (ADR-0012).
+        aboutLink("Buy me a drink", symbol: "gift") { SupportView() }
       }
     }
+  }
+
+  private func aboutLink<Destination: View>(
+    _ title: String,
+    symbol: String,
+    @ViewBuilder destination: @escaping () -> Destination
+  ) -> some View {
+    NavigationLink {
+      destination()
+    } label: {
+      HStack {
+        Label(title, systemImage: symbol)
+          .font(.body)
+          .foregroundStyle(.primary)
+        Spacer()
+        Image(systemName: "chevron.right")
+          .font(.footnote.weight(.semibold))
+          .foregroundStyle(.secondary)
+      }
+      .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+      .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+      .contentShape(.rect)
+    }
+    .buttonStyle(.plain)
+    .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
   }
 }
 
