@@ -197,8 +197,22 @@ struct SupportView: View {
         .font(.caption)
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
+
+      // Guideline 3.1.2(a): auto-renewing subscriptions must expose functional
+      // links to both documents, and next to the subscription UI is where a
+      // reviewer looks first.
+      HStack(spacing: GlassTokens.Spacing.regular) {
+        NavigationLink("Privacy Policy") { PrivacyPolicyView() }
+        Link("Terms of Use", destination: SupportView.termsOfUseURL)
+      }
+      .font(.footnote)
     }
   }
+
+  /// Apple's standard EULA — the terms that govern App Store purchases for apps
+  /// that don't ship a custom agreement. Also linked from Settings → About and
+  /// the App Store listing metadata.
+  static let termsOfUseURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 }
 
 #Preview {
