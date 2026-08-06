@@ -12,6 +12,7 @@ App Information / the version page. Everything here has been through the same
 | Subtitle (30 chars max) | `Your drinks, tallied.` |
 | Primary category | Health & Fitness |
 | Privacy Policy URL | `https://github.com/semmes/DrinkTracker/blob/main/docs/privacy-policy.md` |
+| Support URL | `https://github.com/semmes/DrinkTracker/blob/main/docs/support.md` |
 | License Agreement | Apple's standard EULA (leave the custom EULA field empty) |
 
 ## Description
