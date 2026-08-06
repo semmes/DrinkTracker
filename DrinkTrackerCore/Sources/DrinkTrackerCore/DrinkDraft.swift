@@ -140,3 +140,15 @@ public struct DrinkDraft: Equatable, Sendable {
     abvPercent = newType.defaultABVPercent
   }
 }
+
+/// Stable identity for `.sheet(item:)` presentation: the type plus the entry
+/// being edited is what actually distinguishes one presentation from another.
+///
+/// Lives here rather than in the app target because a conformance on a type this
+/// module owns belongs to this module — declared downstream it was a retroactive
+/// conformance, which breaks the moment the owner adds its own.
+extension DrinkDraft: Identifiable {
+  public var id: String {
+    "\(type.rawValue)-\(editingEntryID?.uuidString ?? "new")"
+  }
+}

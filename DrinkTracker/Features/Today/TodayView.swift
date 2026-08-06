@@ -443,13 +443,6 @@ private struct QuickAddButton: View {
   }
 }
 
-// MARK: - Sheet presentation
-
-/// `DrinkDraft` drives `.sheet(item:)`, so it needs a stable identity while the
-/// sheet is open. The identity is the type plus the entry being edited, which
-/// is what actually distinguishes one sheet presentation from another.
-extension DrinkDraft: Identifiable {
-  public var id: String {
-    "\(type.rawValue)-\(editingEntryID?.uuidString ?? "new")"
-  }
-}
+// `DrinkDraft`'s `Identifiable` conformance (which `.sheet(item:)` relies on)
+// lives in DrinkTrackerCore with the type — a conformance declared here on an
+// imported type was retroactive, and Xcode rightly warned about it.

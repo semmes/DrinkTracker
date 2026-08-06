@@ -262,6 +262,26 @@ struct SettingsView: View {
         // The tip jar. Lives quietly at the bottom of Settings — support is
         // offered, never pushed (ADR-0012).
         aboutLink("Buy me a drink", symbol: "gift") { SupportView() }
+
+        // Apple's standard EULA. Required to be reachable in-app once the app
+        // sells auto-renewing subscriptions (guideline 3.1.2(a)); it also
+        // appears beside the subscription controls themselves.
+        Link(destination: SupportView.termsOfUseURL) {
+          HStack {
+            Label("Terms of Use", systemImage: "doc.text")
+              .font(.body)
+              .foregroundStyle(.primary)
+            Spacer()
+            Image(systemName: "arrow.up.right")
+              .font(.footnote.weight(.semibold))
+              .foregroundStyle(.secondary)
+          }
+          .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+          .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+          .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
       }
     }
   }

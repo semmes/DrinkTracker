@@ -61,7 +61,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "../../../DrinkTracker.storekit">
+         identifier = "../../DrinkTracker.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
