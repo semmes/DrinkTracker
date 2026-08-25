@@ -69,10 +69,13 @@ directly** — the same contract as Today, one surface later:
 - The bulk-fill path is untouched: it still writes only to blank days
   (ADR-0011), and its sheet keeps the batch counter, where a batch is the point.
 - History's swipe actions are unchanged — this adds a path, it doesn't move one.
-- Today's counter still resolves its minus target at tap time and is exposed to
-  the same narrow race the serialization here closes; carrying the queued-ops
-  pattern back to `TodayView` is queued as a follow-up, not smuggled into this
-  change.
+- The queued-ops pattern has since been carried back to `TodayView`, the
+  follow-up this note originally recorded as queued: Today's ± now serializes
+  through the same chained task, minus resolves its victim from the repository
+  inside the op rather than from the tap-time query snapshot, and Today's
+  stepper keeps the same one-tap headroom (`max(12, count + 1)`) instead of
+  capping at the count — which had disabled plus for good once a day reached
+  twelve entries.
 
 ## How to reopen
 
