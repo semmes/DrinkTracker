@@ -435,4 +435,94 @@ struct QuickLogSeedTests {
     #expect(found?.volumeOunces == 16)
     #expect(TrendSummary.mostRecentDrink(ofType: .spirit, in: [older, wine]) == nil)
   }
+
+  /// The day sheet's minus removes the day's most recent entry — the top row of
+  /// its own newest-first list, never a drink from another day.
+  @Test("The day's most recent entry is what minus removes")
+  func mostRecentOnDay() {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+    let noon = calendar.date(
+      from: DateComponents(timeZone: calendar.timeZone, year: 2026, month: 8, day: 20, hour: 12)
+    )!
+    let evening = calendar.date(byAdding: .hour, value: 8, to: noon)!
+    let nextDay = calendar.date(byAdding: .day, value: 1, to: noon)!
+
+    let lunch = LoggedDrink(loggedAt: noon, type: .beer, volumeOunces: 12, abvPercent: 5)
+    let dinner = LoggedDrink(loggedAt: evening, type: .wine, volumeOunces: 5, abvPercent: 12)
+    let tomorrow = LoggedDrink(loggedAt: nextDay, type: .spirit, volumeOunces: 1.5, abvPercent: 40)
+
+    let found = TrendSummary.mostRecentDrink(
+      on: noon, in: [lunch, dinner, tomorrow], calendar: calendar
+    )
+    #expect(found?.id == dinner.id)
+    #expect(TrendSummary.mostRecentDrink(on: nextDay, in: [lunch, dinner], calendar: calendar) == nil)
+  }
+}
+
+/// The day sheet's plus must create the day's newest entry, so that a minus right
+/// after removes the drink the plus created — never a real one (ADR-0013).
+@Suite("Backfill timestamps")
+struct BackfillTimestampTests {
+
+  private var calendar: Calendar {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+    return calendar
+  }
+
+  private func date(_ day: Int, hour: Int, minute: Int = 0) -> Date {
+    calendar.date(
+      from: DateComponents(
+        timeZone: TimeZone(identifier: "UTC")!,
+        year: 2026, month: 8, day: day, hour: hour, minute: minute
+      )
+    )!
+  }
+
+  @Test("Today logs at now, same as Today's counter")
+  func todayLogsAtNow() {
+    let now = date(20, hour: 9, minute: 30)
+    let stamp = TrendSummary.backfillTimestamp(
+      on: date(20, hour: 0), existing: [], calendar: calendar, now: now
+    )
+    #expect(stamp == now)
+  }
+
+  @Test("An empty past day anchors at noon")
+  func emptyPastDayIsNoon() {
+    let stamp = TrendSummary.backfillTimestamp(
+      on: date(10, hour: 0), existing: [], calendar: calendar, now: date(20, hour: 9)
+    )
+    #expect(stamp == date(10, hour: 12))
+  }
+
+  @Test("A day with evening entries lands one second after the latest")
+  func landsAfterExistingEntries() {
+    let evening = LoggedDrink(loggedAt: date(10, hour: 23), type: .wine, volumeOunces: 5, abvPercent: 12)
+    let stamp = TrendSummary.backfillTimestamp(
+      on: date(10, hour: 0), existing: [evening], calendar: calendar, now: date(20, hour: 9)
+    )
+    #expect(stamp == date(10, hour: 23).addingTimeInterval(1))
+  }
+
+  @Test("Morning-only entries still anchor at noon, not before")
+  func morningEntriesKeepNoon() {
+    let morning = LoggedDrink(loggedAt: date(10, hour: 8), type: .beer, volumeOunces: 12, abvPercent: 5)
+    let stamp = TrendSummary.backfillTimestamp(
+      on: date(10, hour: 0), existing: [morning], calendar: calendar, now: date(20, hour: 9)
+    )
+    #expect(stamp == date(10, hour: 12))
+  }
+
+  @Test("The stamp never spills into the next day")
+  func clampedToTheDay() {
+    let lastSecond = date(11, hour: 0).addingTimeInterval(-1)
+    let late = LoggedDrink(loggedAt: lastSecond, type: .beer, volumeOunces: 12, abvPercent: 5)
+    let stamp = TrendSummary.backfillTimestamp(
+      on: date(10, hour: 0), existing: [late], calendar: calendar, now: date(20, hour: 9)
+    )
+    #expect(stamp == lastSecond)
+    #expect(calendar.isDate(stamp, inSameDayAs: date(10, hour: 0)))
+  }
 }

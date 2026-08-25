@@ -34,10 +34,13 @@ than assuming a Sunday-first week — tested both ways.
 universal, and neither is putting the number first. These need to become catalog keys
 with positional format specifiers before any translation is meaningful.
 
-**Ternary pluralization remains at the view layer.** `RecentSummaryCard` and
-`DayLogSheet` still choose between two hardcoded phrases on `== 1`. Correct for
-English, wrong for most target languages, and the right fix is catalog plural
-variations — which requires the catalog to be populated first.
+**Ternary pluralization remains at the view layer.** `RecentSummaryCard` still
+chooses between two hardcoded phrases on `== 1`. Correct for English, wrong for
+most target languages, and the right fix is catalog plural variations — which
+requires the catalog to be populated first. (`DayLogSheet` lost its ternaries in
+the ADR-0013 rewrite, but its new interpolated captions — "Plus logs a
+\(type), \(oz)oz at \(pct)% …" — are fresh instances of the word-order problem
+above.)
 
 **`DrinkType.displayName` and `Region.displayName` are English literals** in the
 domain package. `DrinkTrackerCore` has no bundle to localize against, so these either

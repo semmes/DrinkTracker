@@ -5,27 +5,36 @@ import SwiftUI
 
 /// Records a past day from the calendar: how many drinks, or none at all.
 ///
-/// This is a *backfill* surface, not the fast path. Today's logging stays two taps
-/// through `TodayView`; this exists for the evening you didn't log at the time, and
-/// for saying out loud that a day had nothing in it.
+/// This is a *backfill* surface, not the fast path. Today's logging stays one tap
+/// through `TodayView`'s counter; this exists for the evening you didn't log at the
+/// time, and for saying out loud that a day had nothing in it.
+///
+/// **The counter is the day's log, same as Today's (ADR-0013).** Plus logs a seeded
+/// drink dated this day the moment it is tapped; minus removes the day's most recent
+/// entry through the same path as a swipe-delete, undo bar included. The number can
+/// never disagree with the list above because they are the same data.
 ///
 /// Deliberately coarser than `DrinkDetailSheet`: a count, not a size and a strength.
 /// Reconstructing exact volumes days later is guesswork, and asking for precision
 /// the user doesn't have produces worse data than asking for the number they do
 /// remember. Anything logged here stays individually editable afterwards.
 ///
-/// **Zero is a value on the counter, not a separate button.** "I had none" and "I
-/// had three" are the same question answered differently, so they take the same
-/// control — which also means the answer "none" costs exactly as many taps as any
-/// other, rather than being tucked away as a special case.
+/// **Zero is a statement, not a resting value.** An empty day shows "Record no
+/// alcohol" below the counter — the marker stays an explicit claim, and minus-to-zero
+/// deliberately does not make it (deleting your last entry says nothing about
+/// abstinence, same rule as Today).
 struct DayLogSheet: View {
   let day: Date
   let existingDrinks: [LoggedDrink]
   let isMarkedAlcoholFree: Bool
   /// Type and defaults seeded from what's usually logged.
   let seed: LoggedDrink?
+  /// Owned by the calendar so an undo stays available after this sheet closes.
+  let deletion: DeletionCoordinator
 
-  var onLogDrinks: (Int) -> Void
+  var onAddDrink: () -> Void
+  var onRemoveMostRecent: () -> Void
+  var onUndoDelete: () -> Void
   var onMarkAlcoholFree: () -> Void
   var onClearAlcoholFree: () -> Void
   var onEditDrink: (LoggedDrink) -> Void
@@ -33,47 +42,17 @@ struct DayLogSheet: View {
   @Environment(AppSettings.self) private var settings
   @Environment(\.dismiss) private var dismiss
 
-  @State private var count: Int
-
-  init(
-    day: Date,
-    existingDrinks: [LoggedDrink],
-    isMarkedAlcoholFree: Bool,
-    seed: LoggedDrink?,
-    onLogDrinks: @escaping (Int) -> Void,
-    onMarkAlcoholFree: @escaping () -> Void,
-    onClearAlcoholFree: @escaping () -> Void,
-    onEditDrink: @escaping (LoggedDrink) -> Void
-  ) {
-    self.day = day
-    self.existingDrinks = existingDrinks
-    self.isMarkedAlcoholFree = isMarkedAlcoholFree
-    self.seed = seed
-    self.onLogDrinks = onLogDrinks
-    self.onMarkAlcoholFree = onMarkAlcoholFree
-    self.onClearAlcoholFree = onClearAlcoholFree
-    self.onEditDrink = onEditDrink
-    // Opens on nothing-yet-decided for an empty day, and on one for a day that
-    // already has drinks — where the question is how many to add, and adding none
-    // isn't an answer.
-    _count = State(initialValue: existingDrinks.isEmpty ? 0 : 1)
-  }
-
-  private var countRange: ClosedRange<Int> {
-    existingDrinks.isEmpty ? 0...12 : 1...12
-  }
-
   var body: some View {
     NavigationStack {
       ScrollView {
+        // Counter first, list second: the sheet opens to change the day, so the
+        // controls sit where the thumb already is and the record reads below.
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.section) {
-          if !existingDrinks.isEmpty {
-            loggedSection
-          }
           counterSection
-          primaryAction
-          if existingDrinks.isEmpty && isMarkedAlcoholFree {
-            markedState
+          if existingDrinks.isEmpty {
+            zeroState
+          } else {
+            loggedSection
           }
         }
         .screenMargin()
@@ -86,6 +65,16 @@ struct DayLogSheet: View {
           Button("Done") { dismiss() }
         }
       }
+      .safeAreaInset(edge: .bottom) {
+        // Gated to this sheet's own day: the coordinator is calendar-scoped, and
+        // a bar for another day's removal would read as a failed undo here.
+        if let drink = deletion.recentlyDeleted,
+           Calendar.current.isDate(drink.loggedAt, inSameDayAs: day) {
+          UndoDeleteBar(drink: drink, onUndo: onUndoDelete)
+            .padding(.bottom, GlassTokens.Spacing.tight)
+        }
+      }
+      .animation(.smooth(duration: 0.25), value: deletion.recentlyDeleted)
     }
     .presentationDetents([.medium, .large])
   }
@@ -94,15 +83,27 @@ struct DayLogSheet: View {
 
   private var counterSection: some View {
     VStack(spacing: GlassTokens.Spacing.regular) {
-      SectionLabel(existingDrinks.isEmpty ? "How many drinks" : "How many more")
+      // The stepper below carries the accessible name; reading the label too
+      // would announce it twice back-to-back.
+      SectionLabel("Drinks")
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityHidden(true)
 
+      // Upper bound keeps one tap of headroom past the count, so the thirteenth
+      // drink of a heavy night is still recordable (12 is a soft floor, not a cap).
       CountStepper(
-        value: $count,
-        range: countRange,
+        value: liveCount,
+        range: 0...max(12, existingDrinks.count + 1),
         style: .prominent,
-        unitLabel: "Drinks"
+        unitLabel: "Drinks on this day"
       )
+
+      // The precise figure, one line down — same demotion as Today's counter.
+      if total > 0 {
+        Text("≈ \(StandardDrink.formatted(total)) \(settings.effectiveRegion.unitName(for: total))")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
 
       Text(countCaption)
         .font(.caption)
@@ -110,51 +111,68 @@ struct DayLogSheet: View {
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
         .fixedSize(horizontal: false, vertical: true)
-        .animation(nil, value: count)
+        .animation(nil, value: existingDrinks.count)
     }
+  }
+
+  /// The counter's binding writes straight to the log, exactly as on Today: an
+  /// increment logs a seeded drink dated this day, a decrement removes the day's
+  /// most recent entry. The getter re-reads what the calendar's query passed in,
+  /// so there is no separate counter state to fall out of sync.
+  private var liveCount: Binding<Int> {
+    Binding(
+      get: { existingDrinks.count },
+      set: { newValue in
+        let current = existingDrinks.count
+        if newValue > current {
+          onAddDrink()
+        } else if newValue < current {
+          onRemoveMostRecent()
+        }
+      }
+    )
+  }
+
+  private var total: Double {
+    existingDrinks.reduce(0) { $0 + $1.standardDrinks(in: settings.effectiveRegion) }
   }
 
   private var countCaption: String {
-    if count == 0 {
-      return "Records the day as having no alcohol."
+    let adds: String
+    // "a other" is not a sentence; Other falls back to the generic noun.
+    if let seed, seed.type != .other {
+      adds = "Plus logs a \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards."
+    } else if let seed {
+      adds = "Plus logs a drink, \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards."
+    } else {
+      adds = "Plus logs a drink at the default size and strength — editable afterwards."
     }
-    guard let seed else {
-      return "Logged at the default size and strength — edit any of them afterwards."
-    }
-    return "Logged as \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — edit any of them afterwards."
+    guard !existingDrinks.isEmpty else { return adds }
+    return adds + " Minus removes the day's most recent drink."
   }
 
-  // MARK: - Action
-
-  private var primaryAction: some View {
-    SUButton(model: .primary(actionTitle)) {
-      if count == 0 {
-        onMarkAlcoholFree()
-      } else {
-        onLogDrinks(count)
-      }
-      dismiss()
-    }
-  }
+  // MARK: - The empty day
 
   /// Factual in both directions. "Record no alcohol" states what happened; it
   /// doesn't congratulate anyone for it.
-  private var actionTitle: String {
-    switch count {
-    case 0: "Record no alcohol"
-    case 1: existingDrinks.isEmpty ? "Log 1 drink" : "Add 1 more"
-    default: existingDrinks.isEmpty ? "Log \(count) drinks" : "Add \(count) more"
+  @ViewBuilder
+  private var zeroState: some View {
+    if isMarkedAlcoholFree {
+      markedState
+    } else {
+      SUButton(model: .primary("Record no alcohol")) {
+        onMarkAlcoholFree()
+      }
     }
   }
 
   private var markedState: some View {
     VStack(spacing: GlassTokens.Spacing.tight) {
-      Label("Already recorded as no alcohol", systemImage: "checkmark.circle")
+      Label("Recorded as no alcohol", systemImage: "checkmark.circle")
         .font(.subheadline)
         .foregroundStyle(.secondary)
       Button("Remove that record") {
         onClearAlcoholFree()
-        dismiss()
       }
       .font(.footnote)
     }

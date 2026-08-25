@@ -159,3 +159,20 @@ reasoning).
 
 No 1.4.3 exposure found: every "drink" in this feature is priced in dollars,
 and no string connects tipping to consuming.
+
+---
+
+## Addendum (2026-08): the day sheet's live counter
+
+ADR-0013 rewrote every string in `DayLogSheet`; all reviewed here. Note the
+Passed table above still cites "How many" and "Log 3 drinks" — those strings
+left the app with the batch model this addendum replaces.
+
+| String | Note |
+|---|---|
+| "Drinks" (section label) / "Drinks on this day" (VoiceOver) | A count named factually; no target implied. The label is hidden from VoiceOver so the stepper announces once |
+| "Plus logs a beer, 12oz at 5% — editable afterwards. Minus removes the day's most recent drink." | Mechanism described in both directions; no invitation, no warning. The Other type reads "a drink" so the article always scans |
+| "Record no alcohol" / "Recorded as no alcohol" / "Remove that record" | The zero as an explicit statement, same register as Today's "Record no alcohol today"; states a fact, carries no praise |
+
+No new 1.4.3 exposure: every string says what the control does to the record,
+never anything about the drinking.
