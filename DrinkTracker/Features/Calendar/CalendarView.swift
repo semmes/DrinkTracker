@@ -17,6 +17,14 @@ struct CalendarView: View {
   @State private var visibleMonth: Date = Calendar.current.startOfDay(for: Date())
   @State private var selectedDay: SelectedDay?
   @State private var editingDraft: DrinkDraft?
+  @State private var deletion = DeletionCoordinator()
+
+  /// The tail of the day sheet's ± operations. Each new one awaits the previous,
+  /// so mutations run strictly in order and each resolves its target from the
+  /// store at execution time — two minus taps remove two drinks even when the
+  /// first is still mid-write, and a minus queued behind a plus removes the drink
+  /// that plus created (ADR-0013).
+  @State private var counterOps: Task<Void, Never>?
 
   // Drag-to-select. The anchor is set once per gesture, where the long press
   // landed; the current index follows the finger. Both clear on release, at
@@ -54,12 +62,26 @@ struct CalendarView: View {
         .padding(.vertical, GlassTokens.Spacing.section)
       }
 
-      if !barDays.isEmpty {
-        selectionBar
-          .transition(.move(edge: .bottom).combined(with: .opacity))
+      VStack(spacing: GlassTokens.Spacing.tight) {
+        // The undo bar also renders inside the day sheet; here it covers the
+        // window after the sheet closes, so a removal stays recoverable.
+        if selectedDay == nil, let drink = deletion.recentlyDeleted {
+          UndoDeleteBar(drink: drink) {
+            Task { await deletion.undo(using: store) }
+          }
+          .padding(.bottom, GlassTokens.Spacing.tight)
+        }
+        if !barDays.isEmpty {
+          selectionBar
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
       }
     }
     .animation(.easeOut(duration: 0.3), value: barDays.isEmpty)
+    .animation(.smooth(duration: 0.25), value: deletion.recentlyDeleted)
+    // The bar's visibility also flips with sheet presentation; without this value
+    // the dismiss-then-appear pops in unanimated.
+    .animation(.smooth(duration: 0.25), value: selectedDay)
     .onDisappear { pendingDays = [] }
     .navigationTitle("Calendar")
     .navigationBarTitleDisplayMode(.large)
@@ -79,7 +101,10 @@ struct CalendarView: View {
         existingDrinks: drinks(on: selection.date),
         isMarkedAlcoholFree: markedDays.contains(calendar.startOfDay(for: selection.date)),
         seed: seedDrink,
-        onLogDrinks: { count in log(count, on: selection.date) },
+        deletion: deletion,
+        onAddDrink: { addOneDrink(on: selection.date) },
+        onRemoveMostRecent: { removeMostRecent(on: selection.date) },
+        onUndoDelete: { Task { await deletion.undo(using: store) } },
         onMarkAlcoholFree: { store.markAlcoholFree(selection.date) },
         onClearAlcoholFree: { store.unmarkAlcoholFree(selection.date) },
         onEditDrink: { drink in
@@ -160,16 +185,53 @@ struct CalendarView: View {
       .sorted { $0.loggedAt > $1.loggedAt }
   }
 
-  private func log(_ count: Int, on day: Date) {
-    // Noon rather than the start of the day: a midnight timestamp sits on the
-    // boundary, and any timezone shift afterwards moves it to the day before.
-    let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
-    // Same seeding rule as Today's counter — one definition of what "N drinks"
-    // records, wherever it's said. See DrinkDraft.quickCount.
-    let drinks = DrinkDraft
-      .quickCount(count, from: allEntries.loggedDrinks, at: noon)
-      .makeLoggedDrinks(region: settings.effectiveRegion)
-    Task { await store.save(drinks) }
+  /// Chains a ± operation behind whatever is already running (see `counterOps`).
+  private func enqueueCounterOp(_ op: @escaping @MainActor () async -> Void) {
+    let previous = counterOps
+    counterOps = Task { @MainActor in
+      await previous?.value
+      await op()
+    }
+  }
+
+  /// The day sheet's plus: one drink, seeded by the shared `quickCount` rule.
+  ///
+  /// The timestamp comes from `TrendSummary.backfillTimestamp`: `now` when the day
+  /// is today (Today's own contract), otherwise noon-or-later so the new drink is
+  /// always the day's most recent — which is what makes plus-then-minus lossless.
+  /// State is read inside the op, after any pending write has committed, never
+  /// from the tap-time query snapshot.
+  private func addOneDrink(on day: Date) {
+    let store = store
+    let calendar = calendar
+    let region = settings.effectiveRegion
+    enqueueCounterOp {
+      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
+        .loggedDrinks
+      let stamp = TrendSummary.backfillTimestamp(
+        on: day,
+        existing: store.repository.drinks(on: day, calendar: calendar),
+        calendar: calendar
+      )
+      let drink = DrinkDraft
+        .quickCount(1, from: history, at: stamp)
+        .makeLoggedDrink(region: region)
+      await store.save(drink)
+    }
+  }
+
+  /// The day sheet's minus: removes that day's most recent entry through the same
+  /// path as a swipe-delete, so the Health sample is retired and undo appears.
+  /// The victim is fetched fresh inside the op — after the previous ± has fully
+  /// committed — so rapid taps each remove a different drink.
+  private func removeMostRecent(on day: Date) {
+    let store = store
+    let calendar = calendar
+    let deletion = deletion
+    enqueueCounterOp {
+      guard let recent = store.repository.drinks(on: day, calendar: calendar).first else { return }
+      await deletion.delete(recent, using: store)
+    }
   }
 
   /// One answer, applied to every date the bulk sheet decided to write.

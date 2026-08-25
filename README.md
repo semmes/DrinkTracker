@@ -329,7 +329,9 @@ touching any of this copy.
   each tap is its own entry.
 - **One-tap repeat.** Under "Log by type", a row reading "Another beer · 12oz · 5%"
   logs an identical drink at the current time. A *new entry*, not an edit.
-- **Backfilling a count.** The calendar's day sheet takes "how many" for a past day.
+- **Backfilling a count.** The calendar's day sheet carries the same live counter
+  as Today: plus logs a drink dated that day, minus removes the day's most recent
+  (undoable) — see [ADR-0013](docs/decisions/0013-the-day-sheet-counter-is-the-days-log.md).
 
 The drink sheet itself no longer carries a "How many" stepper — the counter made it
 a second way to do the same thing, and removing it clears the sheet for size and
@@ -374,9 +376,11 @@ The chart on Trends answers *how much*. The calendar answers *which days*.
   have produces worse data than accepting the number they do remember. It seeds
   type, size, and ABV from what you usually log, and every entry it creates stays
   individually editable.
-- **Zero is a value on the counter**, not a separate button — "I had none" and "I
-  had three" are the same question answered differently, so answering *none* costs
-  the same two taps as any other answer.
+- **The day sheet's counter is the day's log** — the same live ± as Today: plus
+  records a seeded drink dated that day the moment it's tapped, minus removes the
+  day's most recent entry (undoable). An empty day's "Record no alcohol" button
+  makes the zero an explicit statement, same as Today
+  ([ADR-0013](docs/decisions/0013-the-day-sheet-counter-is-the-days-log.md)).
 - **Filling several days at once** — touch and hold a day, then drag across a run
   of days; an action bar offers one answer for all of them — **Mark no drinks** in
   one tap, or **Log drinks…** for a counted answer through the bulk sheet. Days

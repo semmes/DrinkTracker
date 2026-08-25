@@ -170,7 +170,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` | Value + noun. No deltas, no arrows, no progress bars (copy review F2) |
 | **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring on every selected cell + 15% wash on blank cells only — the wash previews exactly which days a bulk action will touch |
 | **Selection action bar** | `Calendar/CalendarView.swift` (`selectionBar`) | Bottom-pinned glass bar (radius 22): live day count, one-tap "Mark no drinks" (AccentFill under white), "Log drinks…" to the bulk sheet, 32pt dismiss. From the prototype handoff, carrying ADR-0011 semantics |
-| **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | The day sheet's counter applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
+| **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | A staged batch counter — the model the day sheet had before it became a live log (ADR-0013) — applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
 | **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom drawing beside the icon); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |

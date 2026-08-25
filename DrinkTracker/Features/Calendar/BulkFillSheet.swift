@@ -8,8 +8,10 @@ import SwiftUI
 /// mostly has the same thing to say about most days — usually "nothing". Selecting
 /// nine days and answering once beats nine round-trips through the day sheet.
 ///
-/// The counter carries the same semantics as `DayLogSheet`, applied per day: zero
-/// records each day as alcohol-free, N logs N drinks on each. **Days that already
+/// The counter here is a staged batch — the model `DayLogSheet` had before
+/// ADR-0013 made it a live log — because a batch is the point of this surface:
+/// zero records each day as alcohol-free, N logs N drinks on each, applied once
+/// on confirm. **Days that already
 /// have a record — entries or an alcohol-free marker — are never touched.** A bulk
 /// gesture is a coarse instrument, and overwriting an evening someone logged
 /// deliberately with a swept-over default would destroy their most precise data
