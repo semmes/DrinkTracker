@@ -21,6 +21,14 @@ struct TodayView: View {
   @State private var isShowingSettings = false
   @State private var deletion = DeletionCoordinator()
 
+  /// The tail of the counter's ± operations. Each new one awaits the previous,
+  /// so mutations run strictly in order and each resolves its target from the
+  /// store at execution time — two minus taps remove two drinks even when the
+  /// first is still mid-write, and a minus queued behind a plus removes the
+  /// drink that plus created. Same serialization as the calendar's day sheet
+  /// (ADR-0013).
+  @State private var counterOps: Task<Void, Never>?
+
   @Environment(\.scenePhase) private var scenePhase
 
   init() {
@@ -152,9 +160,11 @@ struct TodayView: View {
   /// the region-lensed figure stays one line away for when the two diverge.
   private var counterHero: some View {
     VStack(spacing: GlassTokens.Spacing.tight) {
+      // Upper bound keeps one tap of headroom past the count, so the thirteenth
+      // drink of a heavy night is still recordable (12 is a soft floor, not a cap).
       CountStepper(
         value: liveCount,
-        range: 0...max(12, todaysEntries.count),
+        range: 0...max(12, todaysEntries.count + 1),
         style: .prominent,
         unitLabel: "Drinks today"
       )
@@ -201,26 +211,49 @@ struct TodayView: View {
         let current = todaysEntries.count
         if newValue > current {
           addOneDrink()
-        } else if newValue < current, let recent = todaysEntries.first?.logged {
-          // Same path as swipe-to-remove, so the undo bar appears and the
-          // HealthKit sample is retired.
-          Task { await deletion.delete(recent, using: store) }
+        } else if newValue < current {
+          removeMostRecent()
         }
       }
     )
   }
 
+  /// Chains a ± operation behind whatever is already running (see `counterOps`).
+  private func enqueueCounterOp(_ op: @escaping @MainActor () async -> Void) {
+    let previous = counterOps
+    counterOps = Task { @MainActor in
+      await previous?.value
+      await op()
+    }
+  }
+
   /// One drink, logged now, seeded from what is usually logged — the same rule
   /// as the calendar's day sheet (see `DrinkDraft.quickCount`). History is
-  /// fetched at tap time; this view otherwise only queries today.
+  /// fetched inside the op, after any pending write has committed; this view
+  /// otherwise only queries today.
   private func addOneDrink() {
-    let history = ((try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
-    let drink = DrinkDraft
-      .quickCount(1, from: history)
-      .makeLoggedDrink(region: settings.effectiveRegion)
-    Task {
-      let saved = await store.save(drink)
-      lastLogged = saved
+    let store = store
+    let region = settings.effectiveRegion
+    enqueueCounterOp {
+      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
+        .loggedDrinks
+      let drink = DrinkDraft
+        .quickCount(1, from: history)
+        .makeLoggedDrink(region: region)
+      lastLogged = await store.save(drink)
+    }
+  }
+
+  /// Removes today's most recent entry through the same path as a swipe-delete,
+  /// so the Health sample is retired and the undo bar appears. The victim is
+  /// fetched fresh inside the op — after the previous ± has fully committed —
+  /// so rapid taps each remove a different drink.
+  private func removeMostRecent() {
+    let store = store
+    let deletion = deletion
+    enqueueCounterOp {
+      guard let recent = store.repository.drinks(on: Date()).first else { return }
+      await deletion.delete(recent, using: store)
     }
   }
 
