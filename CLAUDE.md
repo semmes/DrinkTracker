@@ -95,7 +95,9 @@ so keep them true.
 
 **As of 2026-08-26:** v1.0 live; **v1.1 submitted, in App Review** (Health
 import, authorization-refresh fix, drag-fill action bar, tip jar, onboarding
-refresh, bigger calendar). `main` green at `5a796aa`, 99 tests.
+refresh, bigger calendar). **Export shipped to main** (ADR-0015): Settings →
+Export log shares the whole record as one CSV — `LogExport` in the core
+package (tier-1 tested), `LogExportFile` + Settings section in the app.
 
 Open items for v1.2:
 
@@ -105,10 +107,10 @@ Open items for v1.2:
   cannot authorize against claude.ai/design; the working route is Claude
   Design → "Send to Claude Code" → have that session commit files to a
   branch for pickup.
-- PRD Iteration-3 backlog: **export** (highest value), longer trend ranges
-  (mind the region-lens invariant), `VersionedSchema` + migration test (due
-  before the next schema change), widget size/ABV choice (needs an ADR to
-  reopen), bulk *edit* (ADR-0011 and ADR-0014 both have reopen paths).
+- PRD Iteration-3 backlog: longer trend ranges (mind the region-lens
+  invariant), `VersionedSchema` + migration test (due before the next schema
+  change), widget size/ABV choice (needs an ADR to reopen), bulk *edit*
+  (ADR-0011 and ADR-0014 both have reopen paths). Export is done (ADR-0015).
 - Health-import follow-up: an "adoption" flow for imported drinks
   (ADR-0014's reopen section).
 - Localization: String Catalogs seeded, nothing translated

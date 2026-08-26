@@ -176,3 +176,18 @@ left the app with the batch model this addendum replaces.
 
 No new 1.4.3 exposure: every string says what the control does to the record,
 never anything about the drinking.
+
+---
+
+## Addendum (2026-08): the export row
+
+ADR-0015 added one section to Settings; every new string reviewed here.
+
+| String | Note |
+|---|---|
+| "Export" (section title) / "Export log" (row label) | Names the action on the record, nothing about the drinking |
+| "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days you recorded as no alcohol. Totals are in your current unit; each drink's size and strength are included so the numbers can be rechecked." | States what the file contains and in what unit; no suggested audience, no suggested conclusion. "Recorded as no alcohol" keeps the calendar's register — a fact the user stated, not praise |
+| CSV cell strings: "No alcohol recorded", "Imported drink", "Tallyist", "Apple Health", unit names ("US standard drink", "UK unit", "Australia standard drink") | The file is the record restated. No aggregate appears that a reader didn't compute themselves — the ADR-0006 boundary applies to the export by construction |
+
+No 1.4.3 exposure: the export contains counts and physical facts, and the copy
+around it describes the file, never the behaviour.

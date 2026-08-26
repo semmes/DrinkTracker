@@ -9,6 +9,7 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(HealthKitService.self) private var health
+  @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -18,6 +19,7 @@ struct SettingsView: View {
           regionSection
           iCloudSection
           healthSection
+          exportSection
           aboutSection
           if Diagnostics.isVisible {
             diagnosticsSection
@@ -183,6 +185,39 @@ struct SettingsView: View {
       "Your log is kept in the app either way. Turn access on in the Health app under Sharing to save to Health and to see drinks other apps have recorded there."
     case .unavailable:
       "Your log is kept in the app."
+    }
+  }
+
+  // MARK: - Export
+
+  /// The log as a file the user can hand to anyone — the natural answer to
+  /// "show this to my doctor" (ADR-0015). A share sheet, so where it goes is
+  /// entirely the user's choice; the app never sends anything anywhere.
+  private var exportSection: some View {
+    SettingsSection(
+      title: "Export",
+      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days you recorded as no alcohol. Totals are in your current unit; each drink's size and strength are included so the numbers can be rechecked."
+    ) {
+      ShareLink(
+        item: LogExportFile(
+          container: modelContext.container,
+          region: settings.effectiveRegion,
+          fileName: LogExportFile.defaultFileName()
+        ),
+        preview: SharePreview(LogExportFile.defaultFileName())
+      ) {
+        HStack {
+          Label("Export log", systemImage: "square.and.arrow.up")
+            .font(.body)
+            .foregroundStyle(.primary)
+          Spacer()
+        }
+        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+        .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
     }
   }
 
