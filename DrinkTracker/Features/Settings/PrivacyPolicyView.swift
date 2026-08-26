@@ -45,9 +45,11 @@ struct PrivacyPolicyView: View {
           no server other than Apple's is involved.
 
           Apple Health: with your permission, drinks you log are saved to Health as \
-          alcoholic beverages, and Tallyist reads that same category back to keep \
-          your totals accurate. You can grant, refuse, or revoke this at any time \
-          in the Health app under Sharing. Tallyist reads no other Health data.
+          alcoholic beverages, and Tallyist reads that same category back — \
+          including drinks that other apps recorded there, which then appear in \
+          your Tallyist log, clearly labeled. You can grant, refuse, or revoke \
+          this at any time in the Health app under Sharing. Tallyist reads no \
+          other Health data.
 
           The widget: the home-screen widget shares the app's on-device storage. \
           Nothing about that leaves the device.
@@ -106,7 +108,7 @@ struct PrivacyPolicyView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Link("Read this policy online", destination: Self.hostedURL)
             .font(.body)
-          Text("Last updated August 5, 2026.")
+          Text("Last updated August 26, 2026.")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
