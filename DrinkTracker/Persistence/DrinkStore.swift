@@ -95,7 +95,7 @@ struct DrinkStore {
 
   /// The other direction: mirrors alcohol data other apps put in Health into the
   /// log as count-based entries, and removes mirrors whose samples were deleted
-  /// at the source (ADR-0013).
+  /// at the source (ADR-0014).
   ///
   /// Incremental and idempotent — the anchored query returns only changes, and
   /// the repository dedups by sample UUID — so it rides the same foreground

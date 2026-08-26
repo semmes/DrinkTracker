@@ -235,7 +235,7 @@ struct DrinkRepositoryTests {
   }
 }
 
-/// Tier 2 — mirroring other apps' Health data into the log (ADR-0013).
+/// Tier 2 — mirroring other apps' Health data into the log (ADR-0014).
 @Suite("Health import")
 struct HealthImportTests {
 

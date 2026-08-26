@@ -30,7 +30,7 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
   /// imported drink cannot honestly join the gram math. Instead it *is* its
   /// count: `standardDrinks(in:)` returns this value in every region, because
   /// "a drink" from an unknown source is one drink under any lens, and any
-  /// conversion would be invented precision (ADR-0013).
+  /// conversion would be invented precision (ADR-0014).
   public var countedDrinks: Double?
 
   /// True for entries mirrored from another app's Health data.

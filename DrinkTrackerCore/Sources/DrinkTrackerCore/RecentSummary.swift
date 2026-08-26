@@ -121,4 +121,50 @@ extension TrendSummary {
       .filter { $0.type == type && !$0.isImportedFromHealth }
       .max { $0.loggedAt < $1.loggedAt }
   }
+
+  /// The most recently logged drink on `day`, for the day sheet's minus.
+  ///
+  /// The sheet lists that day newest-first, so removing the most recent means the
+  /// tap takes away the row the user sees on top — the same rule Today's counter
+  /// follows.
+  public static func mostRecentDrink(
+    on day: Date,
+    in drinks: [LoggedDrink],
+    calendar: Calendar = .current
+  ) -> LoggedDrink? {
+    drinks
+      .filter { calendar.isDate($0.loggedAt, inSameDayAs: day) }
+      .max { $0.loggedAt < $1.loggedAt }
+  }
+
+  /// When a single counted drink lands on `day` (the day sheet's plus, ADR-0013).
+  ///
+  /// Today logs at `now`, exactly as Today's own counter does. A past day anchors
+  /// at noon — a midnight stamp sits on the boundary, and a later timezone shift
+  /// would move it to the day before — but always lands *after* the day's existing
+  /// entries: the drink a plus creates must be the day's most recent, so a minus
+  /// right after removes that drink and never a real one. The strictly increasing
+  /// stamps this produces also keep tied-row ordering deterministic (ADR-0003).
+  /// Clamped to the day's last second so the stamp can never spill into the next
+  /// day.
+  public static func backfillTimestamp(
+    on day: Date,
+    existing drinks: [LoggedDrink],
+    calendar: Calendar = .current,
+    now: Date = Date()
+  ) -> Date {
+    if calendar.isDate(day, inSameDayAs: now) { return now }
+
+    let startOfDay = calendar.startOfDay(for: day)
+    let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
+    let latest = drinks
+      .filter { calendar.isDate($0.loggedAt, inSameDayAs: day) }
+      .map(\.loggedAt)
+      .max()
+    guard let latest else { return noon }
+
+    let lastSecond = calendar.date(byAdding: .day, value: 1, to: startOfDay)?
+      .addingTimeInterval(-1) ?? noon
+    return min(max(noon, latest.addingTimeInterval(1)), lastSecond)
+  }
 }

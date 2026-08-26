@@ -123,7 +123,7 @@ struct DrinkRepository {
     return Set(entries.map(\.day))
   }
 
-  // MARK: - Imported Health entries (ADR-0013)
+  // MARK: - Imported Health entries (ADR-0014)
 
   /// Mirrors one external Health sample as a count-based entry, exactly once.
   ///

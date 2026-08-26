@@ -17,7 +17,7 @@ final class DrinkEntry {
   var abvPercent: Double = 5
   var regionRawValue: String = Region.unitedStates.rawValue
   var healthKitSampleID: UUID?
-  /// Non-nil for entries mirrored from another app's Health data (ADR-0013).
+  /// Non-nil for entries mirrored from another app's Health data (ADR-0014).
   /// For those rows `healthKitSampleID` is the *external* sample's UUID.
   /// Optional with no default constraint change — an additive field, which is
   /// the only schema evolution CloudKit mirrors without a migration plan.

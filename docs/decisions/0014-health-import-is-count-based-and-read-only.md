@@ -1,4 +1,4 @@
-# 0013 — Health import: count-based, read-only, deduped by sample
+# 0014 — Health import: count-based, read-only, deduped by sample
 
 **Status:** accepted · **Date:** 2026-08 · **Relates to:** ADR-0002, ADR-0003,
 ADR-0011, PRD invariants 3 and 7

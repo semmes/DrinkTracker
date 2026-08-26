@@ -93,7 +93,7 @@ sample for several drinks, and makes history dishonest.
 See [ADR-0003](decisions/0003-quantity-saves-separate-entries.md).
 
 **8. Copy stays factual and countable.**
-"Another beer", "How many drinks", "Record no alcohol today". No encouragement to
+"Another beer", "drinks today", "Record no alcohol today". No encouragement to
 reach a number, nothing that reads as a reward for volume. The strings that carry this
 live in `TodayView`'s counter area, `TodayView.repeatControl`, and `DayLogSheet`.
 *Failure mode:* guideline 1.4.3, applied by a reviewer rather than by us.

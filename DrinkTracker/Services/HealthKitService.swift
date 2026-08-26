@@ -112,7 +112,7 @@ final class HealthKitService {
   // keep — and per the comment in save(), it was the wrong fact to freeze anyway.
   private static let gramsOfAlcoholKey = "DrinkTrackerGramsOfAlcohol"
 
-  // MARK: - Reading other apps' data (ADR-0013)
+  // MARK: - Reading other apps' data (ADR-0014)
 
   /// One external beverage sample, reduced to the facts Health actually has.
   struct ExternalBeverageSample: Sendable {

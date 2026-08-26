@@ -73,7 +73,7 @@ struct HistoryView: View {
           ForEach(group.drinks) { drink in
             // Imported Health entries are read-only mirrors: no edit (there is
             // no size or strength to correct) and no remove (delete it in the
-            // app that logged it, and the mirror follows) — ADR-0013.
+            // app that logged it, and the mirror follows) — ADR-0014.
             if drink.isImportedFromHealth {
               DrinkRow(drink: drink, region: settings.effectiveRegion)
             } else {
