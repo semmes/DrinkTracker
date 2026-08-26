@@ -1,6 +1,6 @@
 # Tallyist Privacy Policy
 
-**Last updated: August 5, 2026**
+**Last updated: August 26, 2026**
 
 Tallyist does not collect your data. Nothing you log leaves your control.
 
@@ -24,8 +24,9 @@ accounts and no sign-up.
   server other than Apple's is involved. Sync stops if you sign out, and the
   app keeps working locally.
 - **Apple Health.** With your permission, drinks you log are saved to Health as
-  "alcoholic beverages", and Tallyist reads that same category back to keep your
-  totals accurate. You can grant, refuse, or revoke this at any time in the
+  "alcoholic beverages", and Tallyist reads that same category back — including
+  drinks that other apps recorded there, which then appear in your Tallyist log,
+  clearly labeled. You can grant, refuse, or revoke this at any time in the
   Health app under Sharing. Tallyist reads no other Health data.
 - **The widget.** The home-screen widget shares the app's on-device storage.
   Nothing about that leaves the device.

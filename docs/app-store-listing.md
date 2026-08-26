@@ -80,6 +80,18 @@ First release: one-tap logging, the home-screen widget, calendar with
 drag-to-fill, trends, Apple Health, and iCloud sync.
 ```
 
+## What's New (1.1)
+
+```
+Your history from other apps, automatically: drinks recorded in Apple
+Health by any app now appear in Tallyist — counter, calendar, and
+trends — clearly labeled and counted as logged. Grant Health access
+and your past shows up on the next launch.
+
+Also: the calendar day sheet's counter now works exactly like Today's —
+plus logs, minus removes, undo included.
+```
+
 ## Reminders for the version page
 
 - Age rating: answer the alcohol question honestly — "Alcohol, Tobacco, or
