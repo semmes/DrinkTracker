@@ -317,7 +317,10 @@ struct CalendarView: View {
 
   private var weekdayHeader: some View {
     HStack(spacing: 0) {
-      ForEach(orderedWeekdaySymbols, id: \.self) { symbol in
+      // Identity is the column position, not the letter: very-short weekday
+      // symbols repeat ("S", "T"), and `id: \.self` over them made SwiftUI log
+      // duplicate-ID warnings with undefined-results semantics.
+      ForEach(Array(orderedWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
         Text(symbol)
           .font(.caption.weight(.medium))
           .foregroundStyle(.secondary)
