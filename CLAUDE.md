@@ -101,8 +101,6 @@ package (tier-1 tested), `LogExportFile` + Settings section in the app.
 
 Open items for v1.2:
 
-- Delete stray branch `claude/health-auth-refresh` (GitHub UI; duplicates a
-  merged commit — the remote proxy blocked deletion from a session).
 - DesignSync upload of the 12-card design-system bundle: remote sessions
   cannot authorize against claude.ai/design; the working route is Claude
   Design → "Send to Claude Code" → have that session commit files to a
