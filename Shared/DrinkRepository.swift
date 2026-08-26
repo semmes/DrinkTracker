@@ -123,9 +123,50 @@ struct DrinkRepository {
     return Set(entries.map(\.day))
   }
 
-  // MARK: - HealthKit
+  // MARK: - Imported Health entries (ADR-0014)
+
+  /// Mirrors one external Health sample as a count-based entry, exactly once.
+  ///
+  /// Dedup is by the external sample's UUID (stored in `healthKitSampleID`), so
+  /// re-running an import — a reset anchor, a second device — inserts nothing
+  /// new. Routed through `saveOrThrow` so an imported drink clears a same-day
+  /// alcohol-free marker exactly like a logged one: evidence beats assertion,
+  /// whichever app recorded the evidence.
+  func importExternalSample(id: UUID, count: Double, loggedAt: Date) {
+    guard entryForHealthSample(id) == nil else { return }
+    try? saveOrThrow(.importedFromHealth(sampleID: id, count: count, loggedAt: loggedAt))
+  }
+
+  /// Removes mirrored entries whose external samples were deleted from Health.
+  ///
+  /// Touches only count-based rows: a deleted sample that *this app* wrote means
+  /// someone pruned the mirror in the Health app, and the log — the source of
+  /// truth for the app's own entries — must not follow it.
+  func removeImportedEntries(sampleIDs: [UUID]) {
+    guard !sampleIDs.isEmpty else { return }
+    for id in sampleIDs {
+      if let entry = entryForHealthSample(id), entry.countedDrinks != nil {
+        context.delete(entry)
+      }
+    }
+    try? context.save()
+  }
+
+  private func entryForHealthSample(_ id: UUID) -> DrinkEntry? {
+    var descriptor = FetchDescriptor<DrinkEntry>(
+      predicate: #Predicate { $0.healthKitSampleID == id }
+    )
+    descriptor.fetchLimit = 1
+    return (try? context.fetch(descriptor))?.first
+  }
+
+  // MARK: - HealthKit backfill
 
   /// Entries that never made it into Health, oldest first.
+  ///
+  /// Imported entries can never appear here: their `healthKitSampleID` is the
+  /// external sample they mirror, so the nil-filter excludes them — which is
+  /// what keeps an import from echoing back into Health as a duplicate sample.
   func awaitingHealthKitSync() -> [DrinkEntry] {
     let descriptor = FetchDescriptor<DrinkEntry>(
       predicate: #Predicate { $0.healthKitSampleID == nil },

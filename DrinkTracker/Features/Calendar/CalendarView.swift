@@ -229,7 +229,10 @@ struct CalendarView: View {
     let calendar = calendar
     let deletion = deletion
     enqueueCounterOp {
-      guard let recent = store.repository.drinks(on: day, calendar: calendar).first else { return }
+      // Same skip as Today's minus: imported Health entries are read-only
+      // mirrors, so the victim is the day's newest drink the app owns (ADR-0014).
+      guard let recent = store.repository.drinks(on: day, calendar: calendar)
+        .first(where: { !$0.isImportedFromHealth }) else { return }
       await deletion.delete(recent, using: store)
     }
   }

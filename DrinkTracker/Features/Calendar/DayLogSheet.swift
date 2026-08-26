@@ -186,13 +186,19 @@ struct DayLogSheet: View {
       SectionLabel("Logged that day")
       VStack(spacing: GlassTokens.Spacing.tight) {
         ForEach(existingDrinks) { drink in
-          Button {
-            onEditDrink(drink)
-          } label: {
+          // Imported Health entries are read-only (ADR-0014); only the app's
+          // own entries open the editor.
+          if drink.isImportedFromHealth {
             DrinkRow(drink: drink, region: settings.effectiveRegion)
-              .contentShape(.rect)
+          } else {
+            Button {
+              onEditDrink(drink)
+            } label: {
+              DrinkRow(drink: drink, region: settings.effectiveRegion)
+                .contentShape(.rect)
+            }
+            .buttonStyle(.plain)
           }
-          .buttonStyle(.plain)
         }
       }
     }

@@ -234,3 +234,91 @@ struct DrinkRepositoryTests {
     #expect(repository.entry(with: UUID()) == nil)
   }
 }
+
+/// Tier 2 — mirroring other apps' Health data into the log (ADR-0014).
+@Suite("Health import")
+struct HealthImportTests {
+
+  let context: ModelContext
+  let repository: DrinkRepository
+
+  init() throws {
+    let container = try ModelContainer(
+      for: SharedModelContainer.schema,
+      configurations: ModelConfiguration(
+        schema: SharedModelContainer.schema,
+        isStoredInMemoryOnly: true
+      )
+    )
+    self.context = ModelContext(container)
+    self.repository = DrinkRepository(context: context)
+  }
+
+  private func allEntries() -> [DrinkEntry] {
+    (try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []
+  }
+
+  @Test("An external sample imports once, however often it is offered")
+  func importIsIdempotent() {
+    let sampleID = UUID()
+    repository.importExternalSample(id: sampleID, count: 2, loggedAt: Date())
+    repository.importExternalSample(id: sampleID, count: 2, loggedAt: Date())
+    repository.importExternalSample(id: sampleID, count: 2, loggedAt: Date())
+
+    let entries = allEntries()
+    #expect(entries.count == 1)
+    #expect(entries.first?.countedDrinks == 2)
+    #expect(entries.first?.healthKitSampleID == sampleID)
+  }
+
+  @Test("Imported entries never enter the HealthKit backfill queue")
+  func importedNeverBackfills() {
+    repository.importExternalSample(id: UUID(), count: 1, loggedAt: Date())
+    // A widget-logged drink (no sample yet) still queues; the import doesn't.
+    repository.save(LoggedDrink(type: .beer, volumeOunces: 12, abvPercent: 5))
+
+    let queued = repository.awaitingHealthKitSync()
+    #expect(queued.count == 1)
+    #expect(queued.first?.countedDrinks == nil)
+  }
+
+  @Test("Importing onto a day marked alcohol-free removes the marker")
+  func importClearsMarker() {
+    let day = Date()
+    #expect(repository.markAlcoholFree(day))
+    repository.importExternalSample(id: UUID(), count: 1, loggedAt: day)
+    #expect(!repository.isMarkedAlcoholFree(day))
+  }
+
+  @Test("Source deletions remove only the mirrored entry")
+  func deletionRemovesOnlyMirrors() {
+    let externalID = UUID()
+    let ownSampleID = UUID()
+    repository.importExternalSample(id: externalID, count: 1, loggedAt: Date())
+    let own = LoggedDrink(
+      loggedAt: Date(),
+      type: .beer,
+      volumeOunces: 12,
+      abvPercent: 5,
+      healthKitSampleID: ownSampleID
+    )
+    repository.save(own)
+
+    // The delta reports both UUIDs deleted — as Health does when the user
+    // prunes samples in the Health app. Only the mirror may follow.
+    repository.removeImportedEntries(sampleIDs: [externalID, ownSampleID])
+
+    let remaining = allEntries()
+    #expect(remaining.count == 1)
+    #expect(remaining.first?.entryID == own.id)
+  }
+
+  @Test("An imported entry round-trips its count through the store")
+  func importedRoundTrips() {
+    repository.importExternalSample(id: UUID(), count: 4, loggedAt: Date())
+    let logged = allEntries().first?.logged
+    #expect(logged?.isImportedFromHealth == true)
+    #expect(logged?.standardDrinks(in: .unitedKingdom) == 4)
+    #expect(logged?.standardDrinks(in: .unitedStates) == 4)
+  }
+}

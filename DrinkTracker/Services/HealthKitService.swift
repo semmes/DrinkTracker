@@ -111,4 +111,72 @@ final class HealthKitService {
   // every save that would have written it threw instead. No compatibility to
   // keep — and per the comment in save(), it was the wrong fact to freeze anyway.
   private static let gramsOfAlcoholKey = "DrinkTrackerGramsOfAlcohol"
+
+  // MARK: - Reading other apps' data (ADR-0014)
+
+  /// One external beverage sample, reduced to the facts Health actually has.
+  struct ExternalBeverageSample: Sendable {
+    let id: UUID
+    let count: Double
+    let loggedAt: Date
+  }
+
+  /// What changed in Health since the last look.
+  struct ExternalBeverageDelta: Sendable {
+    let added: [ExternalBeverageSample]
+    let deletedIDs: [UUID]
+  }
+
+  /// Everything alcohol-related other apps have put into (or removed from)
+  /// Health since the previous call. Incremental via a persisted anchor, so the
+  /// first call walks all history and later calls return only changes.
+  ///
+  /// Read authorization is deliberately invisible in HealthKit — a denied read
+  /// looks exactly like an empty store — so this is best-effort by design:
+  /// attempted whenever Health exists and the permission prompt has been shown,
+  /// returning nil only when there is nothing to report. The app's own samples
+  /// are filtered out by source; importing them back would double every drink.
+  func fetchExternalChanges() async -> ExternalBeverageDelta? {
+    guard authorization == .authorized || authorization == .denied else { return nil }
+
+    let descriptor = HKAnchoredObjectQueryDescriptor(
+      predicates: [.quantitySample(type: beverageType)],
+      anchor: Self.loadAnchor()
+    )
+    guard let result = try? await descriptor.result(for: store) else { return nil }
+    Self.storeAnchor(result.newAnchor)
+
+    let ownBundleID = Bundle.main.bundleIdentifier ?? ""
+    let added = result.addedSamples.compactMap { sample -> ExternalBeverageSample? in
+      guard sample.sourceRevision.source.bundleIdentifier != ownBundleID else { return nil }
+      let count = sample.quantity.doubleValue(for: .count())
+      guard count > 0 else { return nil }
+      return ExternalBeverageSample(id: sample.uuid, count: count, loggedAt: sample.startDate)
+    }
+    // Deletions are reported for every source; the repository only acts on ones
+    // that mirror external samples, so the app's own log never follows a pruned
+    // mirror sample.
+    let deleted = result.deletedObjects.map(\.uuid)
+
+    guard !added.isEmpty || !deleted.isEmpty else { return nil }
+    return ExternalBeverageDelta(added: added, deletedIDs: deleted)
+  }
+
+  /// The anchor lives in the App Group so a reinstall that keeps the group
+  /// container resumes instead of re-walking history (dedup makes a re-walk
+  /// harmless, just slow).
+  private static let anchorKey = "healthImportAnchor"
+
+  private static func loadAnchor() -> HKQueryAnchor? {
+    guard let data = AppGroup.defaults.data(forKey: anchorKey) else { return nil }
+    return try? NSKeyedUnarchiver.unarchivedObject(ofClass: HKQueryAnchor.self, from: data)
+  }
+
+  private static func storeAnchor(_ anchor: HKQueryAnchor) {
+    guard let data = try? NSKeyedArchiver.archivedData(
+      withRootObject: anchor,
+      requiringSecureCoding: true
+    ) else { return }
+    AppGroup.defaults.set(data, forKey: anchorKey)
+  }
 }

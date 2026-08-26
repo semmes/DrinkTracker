@@ -17,6 +17,11 @@ final class DrinkEntry {
   var abvPercent: Double = 5
   var regionRawValue: String = Region.unitedStates.rawValue
   var healthKitSampleID: UUID?
+  /// Non-nil for entries mirrored from another app's Health data (ADR-0014).
+  /// For those rows `healthKitSampleID` is the *external* sample's UUID.
+  /// Optional with no default constraint change — an additive field, which is
+  /// the only schema evolution CloudKit mirrors without a migration plan.
+  var countedDrinks: Double?
 
   init(_ drink: LoggedDrink) {
     self.entryID = drink.id
@@ -26,6 +31,7 @@ final class DrinkEntry {
     self.abvPercent = drink.abvPercent
     self.regionRawValue = drink.region.rawValue
     self.healthKitSampleID = drink.healthKitSampleID
+    self.countedDrinks = drink.countedDrinks
   }
 
   /// Projects the stored row back into the domain value the app computes over.
@@ -37,7 +43,8 @@ final class DrinkEntry {
       volumeOunces: volumeOunces,
       abvPercent: abvPercent,
       region: Region(rawValue: regionRawValue) ?? .unitedStates,
-      healthKitSampleID: healthKitSampleID
+      healthKitSampleID: healthKitSampleID,
+      countedDrinks: countedDrinks
     )
   }
 
@@ -50,6 +57,7 @@ final class DrinkEntry {
     abvPercent = drink.abvPercent
     regionRawValue = drink.region.rawValue
     healthKitSampleID = drink.healthKitSampleID
+    countedDrinks = drink.countedDrinks
   }
 }
 

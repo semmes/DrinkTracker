@@ -11,13 +11,13 @@ struct DrinkRow: View {
 
   var body: some View {
     HStack(spacing: GlassTokens.Spacing.regular) {
-      Image(systemName: drink.type.symbolName)
+      Image(systemName: symbolName)
         .font(.body)
         .foregroundStyle(Color.accentColor)
         .frame(width: 28)
 
       VStack(alignment: .leading, spacing: 2) {
-        Text(drink.type.displayName)
+        Text(title)
           .font(.body)
           .foregroundStyle(.primary)
         Text(detail)
@@ -36,15 +36,31 @@ struct DrinkRow: View {
     .accessibilityLabel(accessibilityDescription)
   }
 
+  private var symbolName: String {
+    drink.isImportedFromHealth ? "heart.text.square" : drink.type.symbolName
+  }
+
+  private var title: String {
+    drink.isImportedFromHealth ? "From Apple Health" : drink.type.displayName
+  }
+
   private var detail: String {
     let time = drink.loggedAt.formatted(date: .omitted, time: .shortened)
+    if let counted = drink.countedDrinks {
+      // Size and strength are unknown for another app's entry; saying so beats
+      // printing zeros that look like data.
+      let count = LoggedDrink.displayOunces(counted)
+      return counted == 1
+        ? "\(time) · counted as 1 drink"
+        : "\(time) · counted as \(count) drinks"
+    }
     return "\(time) · \(LoggedDrink.displayOunces(drink.volumeOunces))oz · \(LoggedDrink.displayPercent(drink.abvPercent))% ABV"
   }
 
   private var accessibilityDescription: String {
     let value = drink.standardDrinks(in: region)
     let count = StandardDrink.formatted(value)
-    return "\(drink.type.displayName), \(detail), \(count) \(region.unitName(for: value))"
+    return "\(title), \(detail), \(count) \(region.unitName(for: value))"
   }
 }
 

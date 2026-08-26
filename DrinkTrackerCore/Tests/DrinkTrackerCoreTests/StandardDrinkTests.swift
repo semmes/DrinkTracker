@@ -411,3 +411,54 @@ struct TrendSummaryTests {
     #expect(TrendSummary.sum([]) == 0)
   }
 }
+
+@Suite("Imported Health drinks")
+struct ImportedDrinkTests {
+
+  @Test("A count-based drink is the same number in every region")
+  func countIsRegionIndependent() {
+    let imported = LoggedDrink.importedFromHealth(
+      sampleID: UUID(),
+      count: 3,
+      loggedAt: Date()
+    )
+    for region in Region.allCases {
+      #expect(imported.standardDrinks(in: region) == 3)
+    }
+  }
+
+  @Test("A gram-based drink still re-expresses per region")
+  func gramBasedStillLensed() {
+    let beer = LoggedDrink(type: .beer, volumeOunces: 16, abvPercent: 5)
+    #expect(beer.standardDrinks(in: .unitedStates) != beer.standardDrinks(in: .unitedKingdom))
+  }
+
+  @Test("Imported drinks never seed the quick-log template")
+  func importedNeverSeeds() {
+    let importedOnly = [
+      LoggedDrink.importedFromHealth(sampleID: UUID(), count: 2, loggedAt: Date()),
+      LoggedDrink.importedFromHealth(sampleID: UUID(), count: 1, loggedAt: Date()),
+    ]
+    #expect(TrendSummary.mostLoggedType(in: importedOnly) == nil)
+
+    // One real wine among many imported "other" shells: the wine wins, and the
+    // most-recent lookup skips the shells too.
+    let mixed = importedOnly + [LoggedDrink(type: .wine, volumeOunces: 5, abvPercent: 12)]
+    #expect(TrendSummary.mostLoggedType(in: mixed) == .wine)
+    #expect(TrendSummary.mostRecentDrink(ofType: .other, in: mixed) == nil)
+  }
+
+  @Test("A negative external count clamps to zero rather than subtracting")
+  func negativeCountClamps() {
+    let imported = LoggedDrink.importedFromHealth(sampleID: UUID(), count: -2, loggedAt: Date())
+    #expect(imported.standardDrinks(in: .unitedStates) == 0)
+  }
+
+  @Test("The imported summary line says where the drink came from")
+  func importedSummaryLine() {
+    let one = LoggedDrink.importedFromHealth(sampleID: UUID(), count: 1, loggedAt: Date())
+    let three = LoggedDrink.importedFromHealth(sampleID: UUID(), count: 3, loggedAt: Date())
+    #expect(one.summaryLine == "From Apple Health, 1 drink")
+    #expect(three.summaryLine == "From Apple Health, 3 drinks")
+  }
+}

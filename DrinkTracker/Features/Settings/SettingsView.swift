@@ -178,9 +178,9 @@ struct SettingsView: View {
   private var healthFootnote: String {
     switch health.authorization {
     case .authorized:
-      "Your log is written to Health as alcoholic beverages. Change access in the Health app under Sharing."
+      "Your log is written to Health as alcoholic beverages, and drinks other apps record in Health appear here, counted as logged. Change access in the Health app under Sharing."
     case .denied, .notDetermined:
-      "Your log is kept in the app either way. Turn access on in the Health app under Sharing if you want it in Health too."
+      "Your log is kept in the app either way. Turn access on in the Health app under Sharing to save to Health and to see drinks other apps have recorded there."
     case .unavailable:
       "Your log is kept in the app."
     }

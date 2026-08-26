@@ -504,6 +504,20 @@ localization; it means a catalog has one place to replace instead of six.
 the order to do it in — interpolated sentences and `== 1` ternaries both need the
 catalog populated first.
 
+## Health works in both directions
+
+Tallyist writes its entries to Apple Health, and — since
+[ADR-0014](docs/decisions/0014-health-import-is-count-based-and-read-only.md) —
+reads back what *other* apps recorded there, so a switcher's history appears
+automatically. External samples carry only a count and a time, so imported
+entries are **count-based** (one beverage = one drink, in every region — no
+invented volume or strength) and **read-only** (HealthKit forbids deleting
+another app's samples, so a Tallyist-side edit could never propagate; change
+the drink where it was logged and the mirror follows, deletions included).
+The sync is an anchored query on the foreground sweep, deduped by sample UUID,
+with the app's own samples filtered out by source so backfill and import can
+never echo into each other.
+
 ## Not built
 
 - **The widget offers no size/ABV choice** — one tap logs the type's default. That is
