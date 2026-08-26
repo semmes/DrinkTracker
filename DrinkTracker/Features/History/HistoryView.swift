@@ -71,24 +71,31 @@ struct HistoryView: View {
       ForEach(groups) { group in
         Section {
           ForEach(group.drinks) { drink in
-            DrinkRow(drink: drink, region: settings.effectiveRegion)
-              .contentShape(.rect)
-              .onTapGesture { draft = DrinkDraft(editing: drink) }
-              .swipeActions(edge: .trailing) {
-                Button(role: .destructive) {
-                  Task { await deletion.delete(drink, using: store) }
-                } label: {
-                  Label("Remove", systemImage: "trash")
+            // Imported Health entries are read-only mirrors: no edit (there is
+            // no size or strength to correct) and no remove (delete it in the
+            // app that logged it, and the mirror follows) — ADR-0013.
+            if drink.isImportedFromHealth {
+              DrinkRow(drink: drink, region: settings.effectiveRegion)
+            } else {
+              DrinkRow(drink: drink, region: settings.effectiveRegion)
+                .contentShape(.rect)
+                .onTapGesture { draft = DrinkDraft(editing: drink) }
+                .swipeActions(edge: .trailing) {
+                  Button(role: .destructive) {
+                    Task { await deletion.delete(drink, using: store) }
+                  } label: {
+                    Label("Remove", systemImage: "trash")
+                  }
                 }
-              }
-              .swipeActions(edge: .leading) {
-                Button {
-                  draft = DrinkDraft(editing: drink)
-                } label: {
-                  Label("Edit", systemImage: "pencil")
+                .swipeActions(edge: .leading) {
+                  Button {
+                    draft = DrinkDraft(editing: drink)
+                  } label: {
+                    Label("Edit", systemImage: "pencil")
+                  }
+                  .tint(.accentColor)
                 }
-                .tint(.accentColor)
-              }
+            }
           }
         } header: {
           header(for: group)

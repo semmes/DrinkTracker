@@ -112,16 +112,19 @@ struct TodayView: View {
       }
       .task {
         await backfillHealthKit()
+        await store.syncFromHealth()
         await CloudKitStatusProbe.refresh()
       }
       .onChange(of: scenePhase) { _, phase in
         // Anything logged from the widget while the app was away lands without a
-        // Health sample; sweep those up on return. The iCloud check rides along,
+        // Health sample; sweep those up on return. Drinks other apps put into
+        // Health flow in on the same sweep, and the iCloud check rides along,
         // since the user can sign in while the app is backgrounded and nothing
         // else would notice.
         if phase == .active {
           Task {
             await backfillHealthKit()
+            await store.syncFromHealth()
             await CloudKitStatusProbe.refresh()
           }
         }
@@ -201,7 +204,11 @@ struct TodayView: View {
         let current = todaysEntries.count
         if newValue > current {
           addOneDrink()
-        } else if newValue < current, let recent = todaysEntries.first?.logged {
+        } else if newValue < current,
+                  // Most recent entry the app owns. Imported Health entries are
+                  // read-only mirrors of another app's data — minus skips past
+                  // them to the newest drink logged here (ADR-0013).
+                  let recent = todaysEntries.first(where: { $0.countedDrinks == nil })?.logged {
           // Same path as swipe-to-remove, so the undo bar appears and the
           // HealthKit sample is retired.
           Task { await deletion.delete(recent, using: store) }

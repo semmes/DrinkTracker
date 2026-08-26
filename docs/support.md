@@ -42,6 +42,14 @@ Health saving is optional and off until you allow it. Check the Health app →
 your profile → Apps → Tallyist, and Tallyist's own Settings screen, which shows
 the current Health status in plain words.
 
+**I used another app before — does my old data show up?**
+Yes. With Health access allowed, drinks that other apps recorded in Apple
+Health appear in Tallyist automatically, labeled "From Apple Health" and
+counted as logged — each recorded beverage counts as one drink. Health doesn't
+store their size or strength, so those rows can't be edited in Tallyist;
+change or delete them in the app that logged them (or in the Health app) and
+Tallyist follows.
+
 **Does my log sync between my devices?**
 Yes, through your own private iCloud, if the device is signed into iCloud.
 Tallyist's Settings shows the live sync state. No account with the developer

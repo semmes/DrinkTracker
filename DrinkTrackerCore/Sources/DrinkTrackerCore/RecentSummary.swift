@@ -95,9 +95,12 @@ extension TrendSummary {
   /// `nil` when nothing has been logged yet, so the caller picks its own starting
   /// point rather than inheriting an arbitrary one from here.
   public static func mostLoggedType(in drinks: [LoggedDrink]) -> DrinkType? {
-    let counts = drinks.reduce(into: [DrinkType: Int]()) { counts, drink in
-      counts[drink.type, default: 0] += 1
-    }
+    // Imported Health entries are count-only shells (type .other, zero volume);
+    // seeding from one would template future drinks on data nobody entered.
+    let counts = drinks.lazy.filter { !$0.isImportedFromHealth }
+      .reduce(into: [DrinkType: Int]()) { counts, drink in
+        counts[drink.type, default: 0] += 1
+      }
     // Ties break on DrinkType.allCases order rather than dictionary order, so the
     // same log always seeds the same type instead of shuffling between launches.
     return counts
@@ -114,6 +117,8 @@ extension TrendSummary {
     ofType type: DrinkType,
     in drinks: [LoggedDrink]
   ) -> LoggedDrink? {
-    drinks.filter { $0.type == type }.max { $0.loggedAt < $1.loggedAt }
+    drinks
+      .filter { $0.type == type && !$0.isImportedFromHealth }
+      .max { $0.loggedAt < $1.loggedAt }
   }
 }

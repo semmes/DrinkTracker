@@ -92,4 +92,23 @@ struct DrinkStore {
     }
     try? repository.context.save()
   }
+
+  /// The other direction: mirrors alcohol data other apps put in Health into the
+  /// log as count-based entries, and removes mirrors whose samples were deleted
+  /// at the source (ADR-0013).
+  ///
+  /// Incremental and idempotent — the anchored query returns only changes, and
+  /// the repository dedups by sample UUID — so it rides the same foreground
+  /// sweep as `backfillHealthKit`. The two never touch the same rows: backfill
+  /// writes entries with no sample id, imports arrive with one.
+  func syncFromHealth() async {
+    guard let delta = await health.fetchExternalChanges() else { return }
+    for sample in delta.added {
+      repository.importExternalSample(id: sample.id, count: sample.count, loggedAt: sample.loggedAt)
+    }
+    repository.removeImportedEntries(sampleIDs: delta.deletedIDs)
+    if !delta.added.isEmpty || !delta.deletedIDs.isEmpty {
+      WidgetCenter.shared.reloadAllTimelines()
+    }
+  }
 }
