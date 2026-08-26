@@ -119,6 +119,9 @@ struct TodayView: View {
         SettingsView()
       }
       .task {
+        // Refresh first: the guards below read the authorization state, and
+        // the system's remembered answer can change while the app is away.
+        health.refreshAuthorization()
         await backfillHealthKit()
         await store.syncFromHealth()
         await CloudKitStatusProbe.refresh()
@@ -130,6 +133,7 @@ struct TodayView: View {
         // since the user can sign in while the app is backgrounded and nothing
         // else would notice.
         if phase == .active {
+          health.refreshAuthorization()
           Task {
             await backfillHealthKit()
             await store.syncFromHealth()

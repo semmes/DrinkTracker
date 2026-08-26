@@ -28,8 +28,37 @@ final class HealthKitService {
   }
 
   init() {
-    if !HKHealthStore.isHealthDataAvailable() {
+    refreshAuthorization()
+  }
+
+  /// Re-derives the stored state from the system's remembered answer, without
+  /// prompting.
+  ///
+  /// HealthKit persists the user's choice across launches, but this service's
+  /// state used to be set only by the onboarding prompt — so on every later
+  /// launch of an existing install it sat at `.notDetermined`, and the guards
+  /// on save, backfill, and import all silently declined. Fresh installs always
+  /// looked fine (onboarding ran in the same session), which is exactly how it
+  /// escaped device testing. Called from init and on every foregrounding, since
+  /// the user can change access in the Health app at any time.
+  ///
+  /// `authorizationStatus` reports *share* permission; read remains invisible
+  /// by design, which is why the import path also accepts `.denied` — a user
+  /// can grant read while refusing write.
+  func refreshAuthorization() {
+    guard HKHealthStore.isHealthDataAvailable() else {
       authorization = .unavailable
+      return
+    }
+    switch store.authorizationStatus(for: beverageType) {
+    case .sharingAuthorized:
+      authorization = .authorized
+    case .sharingDenied:
+      authorization = .denied
+    case .notDetermined:
+      authorization = .notDetermined
+    @unknown default:
+      authorization = .notDetermined
     }
   }
 
