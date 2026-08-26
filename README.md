@@ -433,6 +433,21 @@ Alcohol-free is deliberately *not* a step in that ramp — palest blue would rea
 "a small amount of drinking" rather than "none". It gets a neutral fill plus an
 outline, so it stays separable from both neighbours with no colour at all.
 
+## Exporting the log
+
+Settings → Export log hands the whole record to the system share sheet as one
+CSV — the answer to "show this to my doctor"
+([ADR-0015](docs/decisions/0015-export-is-a-csv-of-the-log.md)). Chronological,
+three row shapes in one timeline: drinks logged here (with volume and ABV),
+drinks imported from Apple Health (count only — nothing invented, per
+[ADR-0014](docs/decisions/0014-health-import-is-count-based-and-read-only.md)),
+and days recorded as alcohol-free. Totals are expressed in the *current* region
+with a per-row `unit` column naming it; volume and ABV ride along so the math
+can be rechecked. The file is rendered by `LogExport` in `DrinkTrackerCore`, so
+its exact shape is pinned by tier-1 tests; generation happens at share time,
+off the main actor, and nothing leaves the device unless the user picks a
+destination.
+
 ## Privacy
 
 `PrivacyInfo.xcprivacy` ships in **both** targets — Apple evaluates each bundle
@@ -522,7 +537,8 @@ never echo into each other.
 
 - **The widget offers no size/ABV choice** — one tap logs the type's default. That is
   intentional (it mirrors the sheet's fast path), and corrections happen in the app.
-- **No bulk edit or export.** Entries are managed one at a time.
+- **No bulk edit.** Entries are managed one at a time. (Export shipped —
+  see "Exporting the log".)
 - **No score.** A single figure summarising 30 days is a target, and the cheapest way
   to protect a target is to stop logging. See
   [ADR-0006](docs/decisions/0006-a-summary-not-a-score.md).

@@ -324,8 +324,10 @@ Currently in the README's "Not built" list, plus what has come up since:
   iteration on request. Brought `AlcoholFreeDay`, the intensity ramp
   ([ADR-0007](decisions/0007-one-hue-intensity-ramp.md)), and the 30-day summary
   that stands in for a score ([ADR-0006](decisions/0006-a-summary-not-a-score.md)).
-- **Export.** Probably the highest-value item here: it is the natural answer to "show
-  this to my doctor", and it is a plain data question with no tone risk.
+- **Export.** ✅ Done (2026-08) — one CSV of the whole log from Settings, via the
+  share sheet; rendered in `DrinkTrackerCore` and pinned by tier-1 tests. See
+  [ADR-0015](decisions/0015-export-is-a-csv-of-the-log.md) for why CSV and not a
+  summarising PDF (ADR-0006's boundary).
 - **Longer trend ranges** (90-day, year). Watch invariant 3 — a year of history spans
   region changes.
 - **Widget size/ABV choice.** Explicitly rejected once, as the widget mirrors the
