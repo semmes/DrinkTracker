@@ -105,6 +105,15 @@ Colors / Type / Layout / Components over one `styles.css`), generated from
 via the DesignSync tool (remote sessions still cannot authorize); source of
 truth stays the repo — edit here first, re-sync incrementally.
 
+**The 1.2 feature spec is in the repo:** `docs/tallyist-1.2-spec.md` — read
+its "Project constraints" and "App Review consistency" sections before any
+1.2 feature work; they restate the App Review claims as hard rules. Build
+order A→B→C→D. **Feature A (appearance setting) is done** — the color audit
+found nothing to move: `IntensityPalette` and `AppTheme` are the documented
+dual-mode exceptions (invariant 10 / ADR-0007), and both `.white` uses are
+R2-measured labels on AccentFill. Feature C is gated on sourcing a citable
+population statistic (research first; cut if it doesn't source cleanly).
+
 Open items for v1.2:
 
 - PRD Iteration-3 backlog: **all engineering items done** — export

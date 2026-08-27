@@ -2,7 +2,7 @@ import ComponentsKit
 import DrinkTrackerCore
 import SwiftUI
 
-/// Settings. Currently one real setting — the region — plus Health status.
+/// Settings: appearance, the region, sync and Health status, and export.
 ///
 /// The region picked during onboarding persists here and can be changed at any
 /// time, which is what the onboarding copy ("you can set this later") promises.
@@ -12,10 +12,14 @@ struct SettingsView: View {
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
 
+  @AppStorage(AppearancePreference.storageKey)
+  private var appearanceRaw = AppearancePreference.system.rawValue
+
   var body: some View {
     NavigationStack {
       ScrollView {
         VStack(spacing: GlassTokens.Spacing.section) {
+          appearanceSection
           regionSection
           iCloudSection
           healthSection
@@ -35,6 +39,26 @@ struct SettingsView: View {
           Button("Done") { dismiss() }
         }
       }
+    }
+  }
+
+  // MARK: - Appearance
+
+  /// A display preference only (1.2 spec, Feature A). The widget deliberately
+  /// keeps following the device — see `AppearancePreference`.
+  private var appearanceSection: some View {
+    SettingsSection(
+      title: "Appearance",
+      footnote: "The widget follows the device's appearance either way."
+    ) {
+      Picker("Appearance", selection: $appearanceRaw) {
+        ForEach(AppearancePreference.allCases) { preference in
+          Text(preference.label).tag(preference.rawValue)
+        }
+      }
+      .pickerStyle(.segmented)
+      .padding(GlassTokens.Spacing.tight)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control)
     }
   }
 

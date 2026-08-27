@@ -224,3 +224,16 @@ ADR-0016's flow; every new string reviewed here.
 No 1.4.3 exposure: adoption collects size and strength for a drink already
 recorded; nothing invites drinking, and the count-to-facts change is shown as
 arithmetic, never celebrated.
+
+---
+
+## Addendum (2026-08): appearance setting
+
+1.2 Feature A; four strings.
+
+| String | Note |
+|---|---|
+| "Appearance" (section) / "System" / "Light" / "Dark" | Platform-standard display vocabulary, no invitation |
+| "The widget follows the device's appearance either way." | States the one boundary of the setting as a fact, so nobody hunts for a widget option that deliberately doesn't exist |
+
+No 1.4.3 exposure: a display preference with no relationship to drinking.
