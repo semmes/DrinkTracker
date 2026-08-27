@@ -191,3 +191,20 @@ ADR-0015 added one section to Settings; every new string reviewed here.
 
 No 1.4.3 exposure: the export contains counts and physical facts, and the copy
 around it describes the file, never the behaviour.
+
+---
+
+## Addendum (2026-08): quarter and year trend ranges
+
+Two picker items and the strings around them; all reviewed here.
+
+| String | Note |
+|---|---|
+| "Quarter" / "Year" (range picker) | Named periods, no invitation |
+| "Last 13 weeks" / "Last 12 months" (chart label) | Says exactly what the bars are — calendar buckets, current one partial — rather than a rounder "90 days" the chart doesn't literally show |
+| "Your weekly average" / "Your monthly average" | Same register as the existing "Your average": possessive and factual, never a target. The line averages completed periods only, so a fresh week can't read as a drop |
+| "last 13 weeks" / "last 12 months" (stat label) | Value + noun, matching "this week" / "this month" |
+
+No 1.4.3 exposure: longer ranges add no comparison, delta, or judgment — the
+same three counts over more days. The year view was checked against ADR-0006's
+boundary: no year-over-year framing exists anywhere in it.

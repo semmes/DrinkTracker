@@ -4,7 +4,8 @@ import DrinkTrackerCore
 import SwiftData
 import SwiftUI
 
-/// Weekly / monthly trends.
+/// Trends across four ranges: rolling 7- and 30-day windows with daily bars,
+/// and calendar-bucketed quarter (13 weeks) and year (12 months) views.
 ///
 /// The chart is real Swift Charts — `BarMark` plus a dashed `RuleMark` for the
 /// average — deliberately staying inside the mark set Swift Charts renders well
@@ -48,6 +49,19 @@ struct TrendsView: View {
   private var periodSum: Double { TrendSummary.sum(totals) }
   private var restDays: Int { TrendSummary.daysWithoutDrinks(totals) }
 
+  /// Chart bars for the bucketed ranges — weekly for quarter, monthly for year.
+  private var buckets: [PeriodTotal] {
+    TrendSummary.bucketed(totals, by: range.bucket)
+  }
+
+  /// The average line's value on bucketed charts: mean per completed bucket,
+  /// nil while no bucket is complete (no line beats a misleading one).
+  private var bucketAverage: Double? {
+    TrendSummary.bucketAverage(buckets, unit: range.bucket)
+  }
+
+  private var isBucketed: Bool { range.bucket != .day }
+
   // MARK: - Range picker
 
   private var rangePicker: some View {
@@ -69,26 +83,44 @@ struct TrendsView: View {
   private var chartCard: some View {
     SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-        Text(range == .week ? "Last 7 days" : "Last 30 days")
+        Text(chartTitle)
           .font(GlassTokens.Typography.cardLabel)
           .foregroundStyle(.secondary)
 
         Chart {
-          ForEach(totals) { day in
-            BarMark(
-              x: .value("Day", day.date, unit: .day),
-              y: .value(unitNounPlural, day.standardDrinks)
-            )
-            .foregroundStyle(Color.accentColor.gradient)
-            .cornerRadius(6)
+          if isBucketed {
+            // A bar per calendar week or month. Daily bars past ~30 days are
+            // noise; the trailing bucket is simply "so far", like the current
+            // month in the year calendar.
+            ForEach(buckets) { period in
+              BarMark(
+                x: .value("Period", period.start, unit: range.bucket),
+                y: .value(unitNounPlural, period.standardDrinks)
+              )
+              .foregroundStyle(Color.accentColor.gradient)
+              .cornerRadius(6)
+            }
+          } else {
+            ForEach(totals) { day in
+              BarMark(
+                x: .value("Day", day.date, unit: .day),
+                y: .value(unitNounPlural, day.standardDrinks)
+              )
+              .foregroundStyle(Color.accentColor.gradient)
+              .cornerRadius(6)
+            }
           }
 
-          if average > 0 {
-            RuleMark(y: .value("Average", average))
+          // The line matches the bars' scale: per day on daily charts, per
+          // completed week/month on bucketed ones — a daily line under weekly
+          // bars would hug the floor and read as meaningless.
+          if let lineValue = isBucketed ? bucketAverage : (average > 0 ? average : nil),
+            lineValue > 0 {
+            RuleMark(y: .value("Average", lineValue))
               .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
               .foregroundStyle(.secondary)
               .annotation(position: .top, alignment: .leading) {
-                Text("Your average")
+                Text(averageLineLabel)
                   .font(.caption2)
                   .foregroundStyle(.secondary)
               }
@@ -98,16 +130,57 @@ struct TrendsView: View {
           AxisMarks(position: .leading)
         }
         .chartXAxis {
-          AxisMarks(values: .stride(by: .day, count: range == .week ? 1 : 7)) { value in
-            AxisGridLine()
-            AxisValueLabel(format: range == .week
-              ? .dateTime.weekday(.narrow)
-              : .dateTime.month(.abbreviated).day())
+          switch range {
+          case .week:
+            AxisMarks(values: .stride(by: .day, count: 1)) { _ in
+              AxisGridLine()
+              AxisValueLabel(format: .dateTime.weekday(.narrow))
+            }
+          case .month:
+            AxisMarks(values: .stride(by: .day, count: 7)) { _ in
+              AxisGridLine()
+              AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+            }
+          case .quarter:
+            AxisMarks(values: .stride(by: .month, count: 1)) { _ in
+              AxisGridLine()
+              AxisValueLabel(format: .dateTime.month(.abbreviated))
+            }
+          case .year:
+            AxisMarks(values: .stride(by: .month, count: 2)) { _ in
+              AxisGridLine()
+              AxisValueLabel(format: .dateTime.month(.abbreviated))
+            }
           }
         }
         .frame(height: GlassTokens.Layout.chartHeight)
-        .accessibilityLabel("\(unitNounPlural) per day")
+        .accessibilityLabel(chartAccessibilityLabel)
       }
+    }
+  }
+
+  private var chartTitle: String {
+    switch range {
+    case .week: "Last 7 days"
+    case .month: "Last 30 days"
+    case .quarter: "Last 13 weeks"
+    case .year: "Last 12 months"
+    }
+  }
+
+  private var averageLineLabel: String {
+    switch range {
+    case .week, .month: "Your average"
+    case .quarter: "Your weekly average"
+    case .year: "Your monthly average"
+    }
+  }
+
+  private var chartAccessibilityLabel: String {
+    switch range {
+    case .week, .month: "\(unitNounPlural) per day"
+    case .quarter: "\(unitNounPlural) per week"
+    case .year: "\(unitNounPlural) per month"
     }
   }
 
@@ -118,7 +191,7 @@ struct TrendsView: View {
       HStack(spacing: GlassTokens.Spacing.regular) {
         StatCard(
           value: StandardDrink.formatted(periodSum),
-          label: range == .week ? "this week" : "this month"
+          label: sumLabel
         )
         StatCard(
           value: StandardDrink.formatted(average),
@@ -146,6 +219,15 @@ struct TrendsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
       }
+    }
+  }
+
+  private var sumLabel: String {
+    switch range {
+    case .week: "this week"
+    case .month: "this month"
+    case .quarter: "last 13 weeks"
+    case .year: "last 12 months"
     }
   }
 

@@ -364,6 +364,14 @@ entry or adding one retroactively — the cases where "now" is the wrong answer.
 ## Calendar and year view
 
 The chart on Trends answers *how much*. The calendar answers *which days*.
+Trends spans four ranges: rolling 7- and 30-day windows with daily bars, and
+calendar-bucketed **Quarter** (last 13 weeks, weekly bars) and **Year** (last
+12 months, monthly bars) — the trailing week/month is partial, "so far", like
+the current month in the year calendar. The dashed average line matches the
+bars' scale (per day, per week, per month) and, on bucketed charts, averages
+*completed* periods only, so it never sags just because a new week started.
+Totals are always expressed in the current region, a year of history included
+(invariant 3). Same three stats everywhere; still no deltas, no targets.
 
 - **Month view** — every day shaded by how much was logged. Tap any past day to
   record it. Future days are dimmed and inert; a calendar you can scroll forward
