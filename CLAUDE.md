@@ -125,9 +125,18 @@ history. **Feature D (share card) is done** — the build didn't run long, so
 the optional feature shipped: a ShareLink in the calendar toolbar renders
 the visible month via ImageRenderer at share time (DataRepresentation, no
 temp file, PNG metadata verified identifier-free). **All four 1.2 spec
-features are implemented.** Next: the 1.2 release prep itself (version
-bump, review notes from the spec's "App Review consistency" table) when
-the user says go — and note v1.1 is still in App Review.
+features are implemented, and release prep is done** (2026-08-27):
+MARKETING_VERSION is 1.2, the privacy policy gained an "Export and
+sharing" bullet (both copies, dated), and `docs/app-store-listing.md`
+carries the paste-ready What's New (1.2) and App Review notes. **The 1.2
+train stays open**: nothing freezes until the build is submitted, and 1.2
+can't be submitted while 1.1 sits in App Review anyway — new features can
+keep merging; each one just re-touches What's New / reviewer notes / the
+claims table. User-side when 1.1 clears: create the 1.2 version in ASC,
+paste the listing material, pick a green main build from Xcode Cloud,
+submit. Still pending separately: one Xcode GUI build that actually
+populates `Localizable.xcstrings` (the user's 2026-08-27 build didn't),
+then localization prep steps 2–4.
 
 Open items for v1.2:
 
