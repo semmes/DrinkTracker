@@ -10,6 +10,7 @@ struct CalendarView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(HealthKitService.self) private var health
   @Environment(\.modelContext) private var context
+  @Environment(\.colorScheme) private var colorScheme
 
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
@@ -86,6 +87,26 @@ struct CalendarView: View {
     .navigationTitle("Calendar")
     .navigationBarTitleDisplayMode(.large)
     .toolbar {
+      // The share card (1.2 spec, Feature D): user-initiated, every time —
+      // this button is the feature's only entrance. The image renders at
+      // share time from the visible month's data; nothing is persisted and
+      // nothing is recorded about whether or where it went.
+      ToolbarItem(placement: .topBarTrailing) {
+        ShareLink(
+          item: MonthShareImage(
+            grid: grid,
+            region: settings.effectiveRegion,
+            colorScheme: colorScheme,
+            calendar: calendar
+          ),
+          preview: SharePreview(
+            grid.month.formatted(.dateTime.month(.wide).year())
+          )
+        ) {
+          Image(systemName: "square.and.arrow.up")
+        }
+        .accessibilityLabel("Share this month as an image")
+      }
       ToolbarItem(placement: .topBarTrailing) {
         NavigationLink {
           YearView()

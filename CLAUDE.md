@@ -121,8 +121,13 @@ Feature C: `onTapGesture` on an SUCard never fires — use a real Button).
 ARG 2020 National Alcohol Survey norms table, renormalized to
 adults-who-drink with the derivation disclosed (user-approved route);
 bundled in the core package, compared in grams, gated on 4 weeks of
-history. Remaining: **Feature D (share card), optional — cut first** if
-the build runs long.
+history. **Feature D (share card) is done** — the build didn't run long, so
+the optional feature shipped: a ShareLink in the calendar toolbar renders
+the visible month via ImageRenderer at share time (DataRepresentation, no
+temp file, PNG metadata verified identifier-free). **All four 1.2 spec
+features are implemented.** Next: the 1.2 release prep itself (version
+bump, review notes from the spec's "App Review consistency" table) when
+the user says go — and note v1.1 is still in App Review.
 
 Open items for v1.2:
 

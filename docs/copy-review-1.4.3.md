@@ -275,3 +275,19 @@ or styling.
 No 1.4.3 exposure: a descriptive comparison with no threshold, no guideline,
 and no direction the number "should" move. Checked against constraint 5's
 line — the card states where the user sits, never where to sit.
+
+---
+
+## Addendum (2026-08): the month share card
+
+1.2 Feature D; the card's contents and its one entrance.
+
+| String | Note |
+|---|---|
+| "August 2026" / "15.4 standard drinks" / "3.5 standard drinks a week" | The month restated: name, total, average. No comparison to anyone, no trend arrow, no caption editorializing the numbers |
+| Legend ("No alcohol · 1–2 · 3–5 · 6+") | Same factual buckets as the in-app calendar |
+| "Tallyist" (wordmark) | Text alone — the mark never locks up with text (design-system.md) |
+| "Share this month as an image" (toolbar accessibility label) | Names the action; the button is the feature's only entrance — no prompts, no nudges |
+
+No 1.4.3 exposure: the image is the user's own record, exported at their own
+initiative, containing nothing evaluative and nothing about anyone else.

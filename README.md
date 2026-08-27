@@ -424,6 +424,16 @@ Totals are always expressed in the current region, a year of history included
   to change a recorded day and the VoiceOver path
   ([ADR-0011](docs/decisions/0011-bulk-fill-never-touches-a-recorded-day.md)).
 
+### Sharing a month
+
+The calendar's share button renders the visible month as an image — name,
+total, average per week, the grid, a small wordmark — through the system
+share sheet. One-way and user-initiated every time: the PNG is built at
+share time from raw data (no temp file, nothing persisted, nothing recorded
+about whether or where it went), renders in the app's current appearance,
+and carries no identifying metadata (orientation, resolution, and pixel
+dimensions only — verified by chunk inspection). No comparison to anyone.
+
 ### Alcohol-free days are recorded, not inferred
 
 `AlcoholFreeDay` is a separate model because **"no entries" and "no alcohol" are
