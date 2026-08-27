@@ -26,6 +26,7 @@ struct TrendsView: View {
         rangePicker
         chartCard
         summaryCards
+        PopulationReferenceCard()
       }
       .screenMargin()
       .padding(.vertical, GlassTokens.Spacing.section)

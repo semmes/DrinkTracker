@@ -257,3 +257,21 @@ instruct — restated as this review's bar.
 No 1.4.3 exposure: every string is a measurement of the record. The card
 never congratulates a slow pace or warns about a fast one, in either copy
 or styling.
+
+---
+
+## Addendum (2026-08): population reference
+
+1.2 Feature C (ADR-0018). The spec's copy rules applied verbatim.
+
+| String | Note |
+|---|---|
+| "Your average is about 4.1 standard drinks a week." | The user's own number, "about" carrying the estimate honestly |
+| "That's lower than roughly 30% of US adults who drink." / "That's more than roughly 95%…" | "Lower than" / "more than", never "better than" or "worse than"; no praise or alarm in either direction. "Roughly" absorbs the source's rounding |
+| "No drinks in the last 4 weeks." | The zero case as a fact, with no comparison attached — there is nothing honest to compare |
+| "Source: Alcohol Research Group, 2020 National Alcohol Survey" | Always visible, never buried (spec acceptance criterion) |
+| Expanded note ("A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. …recalculated to cover only the 72% who reported drinking… Your average covers your last 4 weeks.") | Says what it is, what it is not, how it was derived, and the privacy fact, in that order |
+
+No 1.4.3 exposure: a descriptive comparison with no threshold, no guideline,
+and no direction the number "should" move. Checked against constraint 5's
+line — the card states where the user sits, never where to sit.

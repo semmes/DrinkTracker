@@ -376,6 +376,18 @@ Sessions are runs of absolute timestamps (`SessionPace` in the core package,
 clock injected, tier-1 tested), so midnight and DST can't split them, and a
 backdated entry can't resurrect one.
 
+## The population reference
+
+Trends carries one comparison line once four weeks of history exist: the
+user's 4-week average against the Alcohol Research Group's **2020 National
+Alcohol Survey** distribution of weekly drinks — "That's lower than roughly
+30% of US adults who drink." A bundled JSON in the core package, no network
+call ever; the comparison runs in grams so the regional unit setting can't
+skew it; the renormalization to adults-who-drink is stated in the file, the
+UI note, and pinned row-by-row in tier-1 tests. Source and year are always
+visible. No thresholds, no guidelines, no other users — see
+[ADR-0018](docs/decisions/0018-population-reference-is-a-bundled-statistic.md).
+
 ## Calendar and year view
 
 The chart on Trends answers *how much*. The calendar answers *which days*.
