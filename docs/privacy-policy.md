@@ -1,6 +1,6 @@
 # Tallyist Privacy Policy
 
-**Last updated: August 26, 2026**
+**Last updated: August 27, 2026**
 
 Tallyist does not collect your data. Nothing you log leaves your control.
 
@@ -30,6 +30,11 @@ accounts and no sign-up.
   Health app under Sharing. Tallyist reads no other Health data.
 - **The widget.** The home-screen widget shares the app's on-device storage.
   Nothing about that leaves the device.
+- **Export and sharing.** Settings → Export log turns your whole record into a
+  CSV file, and the calendar can render a month as an image. Both are created
+  on your device, only when you ask, and go only where you send them through
+  the system share sheet. The app keeps no copy, adds no identifier, and does
+  not record whether or where you shared anything.
 
 ## What Tallyist does not do
 

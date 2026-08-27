@@ -291,3 +291,21 @@ line — the card states where the user sits, never where to sit.
 
 No 1.4.3 exposure: the image is the user's own record, exported at their own
 initiative, containing nothing evaluative and nothing about anyone else.
+
+---
+
+## Addendum (2026-08): 1.2 release copy
+
+The What's New (1.2) block, the reviewer notes, the description's two changed
+lines, and the privacy policy's new bullet; all reviewed here.
+
+| String | Note |
+|---|---|
+| What's New (1.2), whole block | Feature statements only: what exists, where the switch is, what stays on-device. "Off by default" said plainly twice; no invitation to use any of it, no exclamation marks |
+| "…a published population reference: your weekly average beside a 2020 national survey…" | Names the mechanism and the boundary ("computed on your device… nothing about your log leaves your phone") without promising insight |
+| "Export your whole log as a CSV any time; it's your record" (description) | The ownership fact carries the pitch; no "share with your doctor" framing that would imply a health workflow |
+| "Weekly, monthly, quarterly, and yearly totals with your own average — never a target" | Existing bullet extended; the "never a target" clause kept |
+| Privacy policy, "Export and sharing" bullet (both copies) | States creation-on-request, destination-by-user, no copy, no identifier, no record of sharing — each claim checkable against the code |
+
+No 1.4.3 exposure found. Reviewer notes are addressed to App Review, not
+users, but were held to the same register anyway.
