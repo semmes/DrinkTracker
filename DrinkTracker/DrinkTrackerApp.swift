@@ -7,6 +7,12 @@ struct DrinkTrackerApp: App {
   @State private var settings = AppSettings()
   @State private var health = HealthKitService()
 
+  /// Standard defaults on purpose — the widget is excluded (see
+  /// `AppearancePreference`). Applied once at the root; sheets and covers
+  /// presented inside this hierarchy inherit it.
+  @AppStorage(AppearancePreference.storageKey)
+  private var appearanceRaw = AppearancePreference.system.rawValue
+
   private let container: ModelContainer
 
   init() {
@@ -57,6 +63,9 @@ struct DrinkTrackerApp: App {
       RootView()
         .environment(settings)
         .environment(health)
+        .preferredColorScheme(
+          AppearancePreference(rawValue: appearanceRaw)?.colorScheme
+        )
     }
     .modelContainer(container)
   }
