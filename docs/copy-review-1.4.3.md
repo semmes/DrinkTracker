@@ -208,3 +208,19 @@ Two picker items and the strings around them; all reviewed here.
 No 1.4.3 exposure: longer ranges add no comparison, delta, or judgment — the
 same three counts over more days. The year view was checked against ADR-0006's
 boundary: no year-over-year framing exists anywhere in it.
+
+---
+
+## Addendum (2026-08): import adoption
+
+ADR-0016's flow; every new string reviewed here.
+
+| String | Note |
+|---|---|
+| "Add details" (leading swipe on an adoptable import) | Names what the action collects, parallel to "Edit" on logged rows. No suggestion the import is wrong or lesser |
+| "From Apple Health, <date> at <time>" (sheet subtitle) | Provenance and the one fact the import carries, stated once where the user is about to add the rest |
+| "Save details" (primary action) | A verb phrase about the record, same register as "Save changes"; not "Claim" or "Upgrade", which would editorialise |
+
+No 1.4.3 exposure: adoption collects size and strength for a drink already
+recorded; nothing invites drinking, and the count-to-facts change is shown as
+arithmetic, never celebrated.

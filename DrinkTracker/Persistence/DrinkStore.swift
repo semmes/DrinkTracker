@@ -51,6 +51,20 @@ struct DrinkStore {
     return saved
   }
 
+  /// Persists an adopted import — deliberately NOT `save(_:)` (ADR-0016).
+  ///
+  /// `save` retires the entry's old Health sample and writes a fresh one, and
+  /// both halves are wrong here: the old sample belongs to *another app* (we
+  /// couldn't delete it, and mustn't want to — it is the Health record), and
+  /// writing our own would double-count the drink in Health. Adoption changes
+  /// what the *log* knows, and Health already knows everything it should.
+  @discardableResult
+  func adopt(_ adopted: LoggedDrink) -> LoggedDrink {
+    repository.save(adopted)
+    WidgetCenter.shared.reloadAllTimelines()
+    return adopted
+  }
+
   /// Records that a day had no alcohol.
   ///
   /// Returns Void rather than the repository's Bool: the calendar only offers this

@@ -113,10 +113,10 @@ Open items for v1.2:
   calendar-bucketed). **User declined (2026-08-26)** reopening widget
   size/ABV choice and bulk edit — both stay as designed; their reopen paths
   remain in ADR-0011/0014 if real use argues otherwise.
-- Health-import adoption flow (ADR-0014's reopen section): **approved by the
-  user (2026-08-26), next up.** Shape: typed-in size/strength converts the
-  mirror to a full entry; keep the external sample id so re-import can't
-  duplicate; no schema change needed; don't write to Health.
+- Health-import adoption flow: **done** (ADR-0016) — tap/swipe "Add details"
+  on a single-count import, typed facts rewrite it in place, Health untouched.
+  Known wrinkle recorded in the ADR: adopting then *editing* can leave the
+  foreign sample plus ours in Health; fix waits for a real report.
 - Localization: **prep only for now (user decision 2026-08-26)** — do steps
   2–4 of `docs/localization-status.md` (catalog keys, plural variations,
   `displayName` ownership); language choice and translation wait until the
