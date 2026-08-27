@@ -75,6 +75,45 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
     )
   }
 
+  /// Whether this imported drink can be adopted — turned into a full typed
+  /// entry (ADR-0016).
+  ///
+  /// Exactly the single-count imports. A multi-count sample ("3 drinks") can't
+  /// become one typed entry without breaking invariant 7 (quantity is N
+  /// separate entries, never a count on one), and splitting it into N entries
+  /// has no honest Health story yet: only one entry can carry the external
+  /// sample's id, and the rest would backfill fresh Tallyist samples on top of
+  /// the external one — double-counting in Health. So the boundary sits here.
+  public var isAdoptable: Bool { countedDrinks == 1 }
+
+  /// The adopted form of an imported drink: same identity, same time, same
+  /// external sample id — with the physical facts the user just typed in.
+  ///
+  /// Clearing `countedDrinks` is what flips every downstream behaviour at
+  /// once: `standardDrinks(in:)` starts doing real math under the region
+  /// lens, the row renders size and strength, and deletion sync stops
+  /// treating it as a mirror. Keeping `healthKitSampleID` is load-bearing
+  /// twice over — it is the dedup key that stops a re-import from
+  /// resurrecting the count, and its presence keeps the entry out of the
+  /// HealthKit backfill so no second sample is ever written (ADR-0016).
+  public func adopting(
+    type: DrinkType,
+    volumeOunces: Double,
+    abvPercent: Double,
+    region: Region
+  ) -> LoggedDrink {
+    LoggedDrink(
+      id: id,
+      loggedAt: loggedAt,
+      type: type,
+      volumeOunces: volumeOunces,
+      abvPercent: abvPercent,
+      region: region,
+      healthKitSampleID: healthKitSampleID,
+      countedDrinks: nil
+    )
+  }
+
   /// This drink's contribution to a daily total, expressed in `region`'s units.
   ///
   /// Callers pass the user's *current* region, not `self.region`, so changing the

@@ -541,6 +541,18 @@ The sync is an anchored query on the foreground sweep, deduped by sample UUID,
 with the app's own samples filtered out by source so backfill and import can
 never echo into each other.
 
+The one door out of read-only is **adoption**
+([ADR-0016](docs/decisions/0016-adoption-turns-an-import-into-a-typed-entry.md)):
+tap or swipe a single-count import in History ("Add details") and type in the
+real type, size, and strength. The entry is rewritten in place — same
+identity, same timestamp, same external sample id — and joins the standard-
+drink math under the region lens. Health is never touched: the external
+sample stays the Health record, the kept sample id blocks both re-import
+duplication and a backfill echo, and source-deletion sync stops applying
+because the entry now carries facts the user stated. Multi-count imports
+("3 drinks") stay read-only — splitting them has no honest Health story yet
+(the ADR says why, and how to reopen).
+
 ## Not built
 
 - **The widget offers no size/ABV choice** — one tap logs the type's default. That is

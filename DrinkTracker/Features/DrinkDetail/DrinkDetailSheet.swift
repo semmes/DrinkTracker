@@ -26,6 +26,9 @@ struct DrinkDetailSheet: View {
   /// "now". On when editing an entry or adding one you forgot, where the whole
   /// point is that it didn't happen just now.
   private let showsTimeControl: Bool
+  /// Set when this presentation adopts an imported Health drink (ADR-0016):
+  /// the entry whose typed-in facts the sheet is collecting.
+  private let adopting: LoggedDrink?
 
   init(
     draft: DrinkDraft,
@@ -39,6 +42,29 @@ struct DrinkDetailSheet: View {
     )
     // Editing an existing entry always exposes the time, however it was opened.
     self.showsTimeControl = showsTimeControl || draft.editingEntryID != nil
+    self.adopting = nil
+    self.onLogged = onLogged
+    self.onCancel = onCancel
+  }
+
+  /// Adoption: collect a type, size, and strength for an imported drink.
+  ///
+  /// The draft seeds from beer's defaults — the import's zeros are the absence
+  /// of facts, not facts to edit. No time control: the sample's timestamp is
+  /// the one thing the import already knows, and adoption adds facts rather
+  /// than revising them (change the time in the app that recorded it).
+  init(
+    adopting imported: LoggedDrink,
+    onLogged: @escaping (LoggedDrink) -> Void,
+    onCancel: @escaping () -> Void
+  ) {
+    let draft = DrinkDraft(type: .beer, loggedAt: imported.loggedAt)
+    _draft = State(initialValue: draft)
+    _customVolumeText = State(
+      initialValue: LoggedDrink.displayOunces(draft.customVolumeOunces)
+    )
+    self.showsTimeControl = false
+    self.adopting = imported
     self.onLogged = onLogged
     self.onCancel = onCancel
   }
@@ -81,9 +107,17 @@ struct DrinkDetailSheet: View {
 
   private var header: some View {
     HStack {
-      Text(draft.type.displayName)
-        .font(GlassTokens.Typography.sheetTitle)
-        .foregroundStyle(.primary)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(draft.type.displayName)
+          .font(GlassTokens.Typography.sheetTitle)
+          .foregroundStyle(.primary)
+        if let adopting {
+          // Where this entry came from, and the one fact it already carries.
+          Text("From Apple Health, \(adopting.loggedAt.formatted(date: .abbreviated, time: .shortened))")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
       Spacer()
       Button(action: onCancel) {
         Image(systemName: "xmark")
@@ -107,7 +141,8 @@ struct DrinkDetailSheet: View {
   /// way to do something already done.
   @ViewBuilder
   private var typeSection: some View {
-    if showsTimeControl {
+    // Adoption must ask the type — the import doesn't know it.
+    if showsTimeControl || adopting != nil {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Drink")
         Picker("Drink", selection: typeBinding) {
@@ -277,13 +312,30 @@ struct DrinkDetailSheet: View {
   private var canLog: Bool { draft.volumeOunces > 0 }
 
   private var logButtonTitle: String {
-    draft.editingEntryID == nil ? "Log drink" : "Save changes"
+    if adopting != nil { return "Save details" }
+    return draft.editingEntryID == nil ? "Log drink" : "Save changes"
   }
 
   private func logDrink() {
     isSaving = true
-    let drinks = draft.makeLoggedDrinks(region: settings.effectiveRegion)
     let store = DrinkStore(context: context, health: health)
+
+    // Adoption bypasses store.save on purpose: the entry's Health sample is
+    // another app's, and must be neither retired nor duplicated (ADR-0016).
+    if let adopting {
+      let adopted = adopting.adopting(
+        type: draft.type,
+        volumeOunces: draft.volumeOunces,
+        abvPercent: draft.abvPercent,
+        region: settings.effectiveRegion
+      )
+      store.adopt(adopted)
+      isSaving = false
+      onLogged(adopted)
+      return
+    }
+
+    let drinks = draft.makeLoggedDrinks(region: settings.effectiveRegion)
     Task {
       let saved = await store.save(drinks)
       isSaving = false

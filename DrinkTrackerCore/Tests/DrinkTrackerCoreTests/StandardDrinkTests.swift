@@ -608,3 +608,53 @@ struct LongTrendRangeTests {
     }
   }
 }
+
+@Suite("Import adoption")
+struct ImportAdoptionTests {
+
+  @Test("Only single-count imports are adoptable")
+  func adoptabilityBoundary() {
+    let one = LoggedDrink.importedFromHealth(sampleID: UUID(), count: 1, loggedAt: Date())
+    let three = LoggedDrink.importedFromHealth(sampleID: UUID(), count: 3, loggedAt: Date())
+    let typed = LoggedDrink(type: .beer, volumeOunces: 12, abvPercent: 5)
+    #expect(one.isAdoptable)
+    #expect(!three.isAdoptable)
+    #expect(!typed.isAdoptable)
+  }
+
+  @Test("Adoption keeps identity, time, and the external sample id")
+  func adoptionPreservesTheRecord() {
+    let sampleID = UUID()
+    let loggedAt = Date(timeIntervalSince1970: 1_700_000_000)
+    let imported = LoggedDrink.importedFromHealth(sampleID: sampleID, count: 1, loggedAt: loggedAt)
+
+    let adopted = imported.adopting(
+      type: .wine, volumeOunces: 5, abvPercent: 12, region: .unitedStates
+    )
+
+    #expect(adopted.id == imported.id)
+    #expect(adopted.loggedAt == loggedAt)
+    // The sample id survives on purpose: it is the dedup key that stops a
+    // re-import from resurrecting the count, and it keeps the entry out of
+    // the HealthKit backfill (ADR-0016).
+    #expect(adopted.healthKitSampleID == sampleID)
+    #expect(adopted.countedDrinks == nil)
+    #expect(!adopted.isImportedFromHealth)
+  }
+
+  @Test("An adopted drink counts by its physical facts, under any lens")
+  func adoptionJoinsTheMath() {
+    let imported = LoggedDrink.importedFromHealth(sampleID: UUID(), count: 1, loggedAt: Date())
+    // As an import it is 1 in every region.
+    #expect(imported.standardDrinks(in: .unitedKingdom) == 1)
+
+    let adopted = imported.adopting(
+      type: .beer, volumeOunces: 12, abvPercent: 5, region: .unitedStates
+    )
+    // Adopted, it is a 12oz 5% beer: 1.0 US standard drinks but ~1.75 UK
+    // units — the region lens applies because the facts now exist.
+    #expect(abs(adopted.standardDrinks(in: .unitedStates) - 1.0) < 0.0001)
+    #expect(abs(adopted.standardDrinks(in: .unitedKingdom) - 1.75) < 0.01)
+    #expect(adopted.summaryLine == "Beer, 12oz, 5% ABV")
+  }
+}

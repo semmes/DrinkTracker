@@ -322,3 +322,105 @@ struct HealthImportTests {
     #expect(logged?.standardDrinks(in: .unitedStates) == 4)
   }
 }
+
+/// Tier 2 (docs/PRD.md §4) — adoption's persistence guarantees (ADR-0016).
+///
+/// The pure transformation is tier 1's job; what belongs here is what the
+/// *rows* do afterwards: the overwrite lands in place, a re-import can't
+/// resurrect the count, deletion sync no longer treats the entry as a mirror,
+/// and the backfill never queues it for a second Health sample.
+@Suite("Import adoption rows")
+struct ImportAdoptionRepositoryTests {
+
+  let context: ModelContext
+  let repository: DrinkRepository
+
+  init() throws {
+    let container = try ModelContainer(
+      for: SharedModelContainer.schema,
+      configurations: ModelConfiguration(
+        schema: SharedModelContainer.schema,
+        isStoredInMemoryOnly: true
+      )
+    )
+    self.context = ModelContext(container)
+    self.repository = DrinkRepository(context: context)
+  }
+
+  private func importAndAdopt() -> (sampleID: UUID, adopted: LoggedDrink) {
+    let sampleID = UUID()
+    let loggedAt = Date(timeIntervalSince1970: 1_700_000_000)
+    repository.importExternalSample(id: sampleID, count: 1, loggedAt: loggedAt)
+    let imported = repository.entry(with: repositoryImportedID(sampleID))!.logged
+    let adopted = imported.adopting(
+      type: .wine, volumeOunces: 5, abvPercent: 12, region: .unitedStates
+    )
+    repository.save(adopted)
+    return (sampleID, adopted)
+  }
+
+  private func repositoryImportedID(_ sampleID: UUID) -> UUID {
+    let all = (try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []
+    return all.first { $0.healthKitSampleID == sampleID }!.entryID
+  }
+
+  @Test("Adoption overwrites the mirror in place — one entry, typed facts")
+  func adoptionOverwritesInPlace() throws {
+    let (sampleID, adopted) = importAndAdopt()
+
+    let entries = try context.fetch(FetchDescriptor<DrinkEntry>())
+    #expect(entries.count == 1)
+    let row = try #require(entries.first)
+    #expect(row.entryID == adopted.id)
+    #expect(row.countedDrinks == nil)
+    #expect(row.typeRawValue == DrinkType.wine.rawValue)
+    #expect(row.volumeOunces == 5)
+    #expect(row.abvPercent == 12)
+    #expect(row.healthKitSampleID == sampleID)
+  }
+
+  @Test("A re-import of the same sample cannot resurrect the count")
+  func reimportStaysDeduped() throws {
+    let (sampleID, adopted) = importAndAdopt()
+
+    // The anchored query re-delivering the sample — a reset anchor, a second
+    // device — must find the adopted entry by sample id and insert nothing.
+    repository.importExternalSample(
+      id: sampleID, count: 1, loggedAt: adopted.loggedAt
+    )
+
+    let entries = try context.fetch(FetchDescriptor<DrinkEntry>())
+    #expect(entries.count == 1)
+    #expect(entries.first?.countedDrinks == nil)
+    #expect(entries.first?.typeRawValue == DrinkType.wine.rawValue)
+  }
+
+  @Test("Deleting the source sample no longer deletes the adopted entry")
+  func deletionSyncSparesAdopted() throws {
+    let (sampleID, _) = importAndAdopt()
+
+    // The user typed these facts in; the entry is now Tallyist's own record,
+    // and the mirror direction never inverts (ADR-0014's rule, inherited).
+    repository.removeImportedEntries(sampleIDs: [sampleID])
+
+    let entries = try context.fetch(FetchDescriptor<DrinkEntry>())
+    #expect(entries.count == 1)
+  }
+
+  @Test("Adopted entries never enter the HealthKit backfill queue")
+  func adoptedNeverBackfills() {
+    _ = importAndAdopt()
+    // The external sample id fills the slot the backfill keys on, so no
+    // second sample can ever be written for this drink.
+    #expect(repository.awaitingHealthKitSync().isEmpty)
+  }
+
+  @Test("An unadopted multi-count mirror still follows source deletion")
+  func multiCountMirrorStillFollows() throws {
+    let sampleID = UUID()
+    repository.importExternalSample(id: sampleID, count: 3, loggedAt: Date())
+    repository.removeImportedEntries(sampleIDs: [sampleID])
+    let entries = try context.fetch(FetchDescriptor<DrinkEntry>())
+    #expect(entries.isEmpty)
+  }
+}

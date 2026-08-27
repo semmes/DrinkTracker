@@ -15,6 +15,7 @@ struct HistoryView: View {
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var entries: [DrinkEntry]
 
   @State private var draft: DrinkDraft?
+  @State private var adopting: LoggedDrink?
   @State private var deletion = DeletionCoordinator()
 
   private var groups: [DayGroup] {
@@ -58,6 +59,13 @@ struct HistoryView: View {
         draft = nil
       }
     }
+    .sheet(item: $adopting) { imported in
+      DrinkDetailSheet(adopting: imported) { _ in
+        adopting = nil
+      } onCancel: {
+        adopting = nil
+      }
+    }
   }
 
   private var store: DrinkStore {
@@ -73,9 +81,26 @@ struct HistoryView: View {
           ForEach(group.drinks) { drink in
             // Imported Health entries are read-only mirrors: no edit (there is
             // no size or strength to correct) and no remove (delete it in the
-            // app that logged it, and the mirror follows) — ADR-0014.
+            // app that logged it, and the mirror follows) — ADR-0014. The one
+            // door out is adoption (ADR-0016): a single-count import can take
+            // typed-in details and become a full entry, through the same tap
+            // and leading-swipe conventions editing uses.
             if drink.isImportedFromHealth {
-              DrinkRow(drink: drink, region: settings.effectiveRegion)
+              if drink.isAdoptable {
+                DrinkRow(drink: drink, region: settings.effectiveRegion)
+                  .contentShape(.rect)
+                  .onTapGesture { adopting = drink }
+                  .swipeActions(edge: .leading) {
+                    Button {
+                      adopting = drink
+                    } label: {
+                      Label("Add details", systemImage: "square.and.pencil")
+                    }
+                    .tint(.accentColor)
+                  }
+              } else {
+                DrinkRow(drink: drink, region: settings.effectiveRegion)
+              }
             } else {
               DrinkRow(drink: drink, region: settings.effectiveRegion)
                 .contentShape(.rect)
