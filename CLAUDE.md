@@ -108,9 +108,10 @@ truth stays the repo — edit here first, re-sync incrementally.
 Open items for v1.2:
 
 - PRD Iteration-3 backlog: longer trend ranges (mind the region-lens
-  invariant), `VersionedSchema` + migration test (due before the next schema
-  change), widget size/ABV choice (needs an ADR to reopen), bulk *edit*
-  (ADR-0011 and ADR-0014 both have reopen paths). Export is done (ADR-0015).
+  invariant), widget size/ABV choice (needs an ADR to reopen), bulk *edit*
+  (ADR-0011 and ADR-0014 both have reopen paths). Export is done (ADR-0015);
+  `VersionedSchema` + migration test are done — the next schema change starts
+  from the recipe in `Shared/SchemaVersions.swift`, not from scratch.
 - Health-import follow-up: an "adoption" flow for imported drinks
   (ADR-0014's reopen section).
 - Localization: String Catalogs seeded, nothing translated

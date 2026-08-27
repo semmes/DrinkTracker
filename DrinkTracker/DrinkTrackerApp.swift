@@ -43,6 +43,7 @@ struct DrinkTrackerApp: App {
       Diagnostics.recordStoreMode("IN MEMORY — nothing will be saved — \(error)")
       container = try! ModelContainer(
         for: SharedModelContainer.schema,
+        migrationPlan: DrinkTrackerMigrationPlan.self,
         configurations: ModelConfiguration(
           schema: SharedModelContainer.schema,
           isStoredInMemoryOnly: true

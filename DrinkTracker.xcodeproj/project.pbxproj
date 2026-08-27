@@ -26,6 +26,9 @@
 		1A000000000000000000004E /* DrinkEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000000000000000000032 /* DrinkEntry.swift */; };
 		1A000000000000000000004F /* DrinkRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000000000000000000033 /* DrinkRepository.swift */; };
 		1A0000000000000000000050 /* DrinkTrackerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 1A000000000000000000004B /* DrinkTrackerCore */; };
+		1A0000000000000000000061 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000000000000000000060 /* SchemaVersions.swift */; };
+		1A0000000000000000000062 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000000000000000000060 /* SchemaVersions.swift */; };
+		1A0000000000000000000063 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000000000000000000060 /* SchemaVersions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +64,7 @@
 		1A0000000000000000000032 /* DrinkEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkEntry.swift; sourceTree = "<group>"; };
 		1A0000000000000000000033 /* DrinkRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkRepository.swift; sourceTree = "<group>"; };
 		1A0000000000000000000034 /* LogDrinkIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogDrinkIntent.swift; sourceTree = "<group>"; };
+		1A0000000000000000000060 /* SchemaVersions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaVersions.swift; sourceTree = "<group>"; };
 		1A0000000000000000000042 /* DrinkTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DrinkTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -162,6 +166,7 @@
 				1A0000000000000000000032 /* DrinkEntry.swift */,
 				1A0000000000000000000033 /* DrinkRepository.swift */,
 				1A0000000000000000000034 /* LogDrinkIntent.swift */,
+				1A0000000000000000000060 /* SchemaVersions.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -321,6 +326,7 @@
 				1A0000000000000000000037 /* DrinkEntry.swift in Sources */,
 				1A0000000000000000000038 /* DrinkRepository.swift in Sources */,
 				1A0000000000000000000039 /* LogDrinkIntent.swift in Sources */,
+				1A0000000000000000000061 /* SchemaVersions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +339,7 @@
 				1A000000000000000000003C /* DrinkEntry.swift in Sources */,
 				1A000000000000000000003D /* DrinkRepository.swift in Sources */,
 				1A000000000000000000003E /* LogDrinkIntent.swift in Sources */,
+				1A0000000000000000000062 /* SchemaVersions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,6 +351,7 @@
 				1A000000000000000000004D /* AppSettings.swift in Sources */,
 				1A000000000000000000004E /* DrinkEntry.swift in Sources */,
 				1A000000000000000000004F /* DrinkRepository.swift in Sources */,
+				1A0000000000000000000063 /* SchemaVersions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -183,7 +183,9 @@ enum Diagnostics {
 // MARK: - Shared store
 
 enum SharedModelContainer {
-  static let schema = Schema([DrinkEntry.self, AlcoholFreeDay.self])
+  /// Built from the versioned schema so this and `CurrentSchema` cannot name
+  /// different model sets — see `SchemaVersions.swift` for the version story.
+  static let schema = Schema(versionedSchema: CurrentSchema.self)
 
   /// Where the store lives.
   ///
@@ -226,6 +228,7 @@ enum SharedModelContainer {
     do {
       let container = try ModelContainer(
         for: schema,
+        migrationPlan: DrinkTrackerMigrationPlan.self,
         configurations: configuration(cloudKit: .automatic)
       )
       Diagnostics.recordStoreMode("shared, CloudKit requested")
@@ -233,6 +236,7 @@ enum SharedModelContainer {
     } catch {
       let container = try ModelContainer(
         for: schema,
+        migrationPlan: DrinkTrackerMigrationPlan.self,
         configurations: configuration(cloudKit: .none)
       )
       Diagnostics.recordStoreMode("shared, no CloudKit — \(error)")

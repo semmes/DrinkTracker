@@ -310,10 +310,15 @@ Found by actually launching it, which is the point of Tiers 3 and 4.
   the amendment on [ADR-0004](decisions/0004-a-failed-store-degrades-to-memory.md).
 - **Sync-state UI for release builds.** ✅ Done — `SettingsView.iCloudSection`,
   always visible, mapped from a machine-readable status code the probe records.
-- **Open — no schema migration plan.** `AlcoholFreeDay` was added to the schema after
-  the store already existed. Additive changes are handled by SwiftData's lightweight
-  migration, but nothing pins that, and the next change may not be additive. A
-  `VersionedSchema` and a migration test belong in Iteration 3 at the latest.
+- **Schema migration plan.** ✅ Done (2026-08) — `AlcoholFreeDay` was added to the
+  schema after the store already existed, absorbed by lightweight migration with
+  nothing pinning that. Now pinned: `DrinkTrackerSchemaV1` + an empty
+  `DrinkTrackerMigrationPlan` (`Shared/SchemaVersions.swift`) go through every
+  store-opening site, and `SchemaMigrationTests` (tier 2) proves an unversioned
+  store reopens intact under the plan and pins the schema shape attribute by
+  attribute — an unversioned model change now fails a test. The V2 recipe
+  (additive vs shape change, and why CloudKit stops the latter) is written in
+  the same file.
 
 ### Iteration 3 — Depth
 
