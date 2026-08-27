@@ -45,6 +45,7 @@ struct TodayView: View {
         Section {
           VStack(spacing: GlassTokens.Spacing.block) {
             counterHero
+            SessionPaceCard()
             detailedSection
           }
           .padding(.top, GlassTokens.Spacing.tight)

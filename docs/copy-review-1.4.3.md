@@ -237,3 +237,23 @@ arithmetic, never celebrated.
 | "The widget follows the device's appearance either way." | States the one boundary of the setting as a fact, so nobody hunts for a widget option that deliberately doesn't exist |
 
 No 1.4.3 exposure: a display preference with no relationship to drinking.
+
+---
+
+## Addendum (2026-08): session pace
+
+1.2 Feature B (ADR-0017); the spec's own copy rule — report, never
+instruct — restated as this review's bar.
+
+| String | Note |
+|---|---|
+| "3 drinks this session" / "1 drink this session" | A count and a noun. "Session" names the sitting without praising or warning about it |
+| "Started 8:56 AM" | A timestamp |
+| "Last drink just now" / "Last drink 47 min. ago" | Elapsed time as context, shown only during an active session — outside one it would be a streak (ADR-0017 rule 1) |
+| "3 in the last 2 hours" | The pace fact, weight-styled only: no color, no icon, no exclamation. States a window and a count; sets no threshold and passes no judgment |
+| "Session pace" / "Show session pace" (Settings) | Named factually; off by default |
+| "Shows how many drinks you've logged in the current sitting." | A description, not an invitation — the footnote is the entire pitch |
+
+No 1.4.3 exposure: every string is a measurement of the record. The card
+never congratulates a slow pace or warns about a fast one, in either copy
+or styling.
