@@ -98,13 +98,15 @@ import, authorization-refresh fix, drag-fill action bar, tip jar, onboarding
 refresh, bigger calendar). **Export shipped to main** (ADR-0015): Settings →
 Export log shares the whole record as one CSV — `LogExport` in the core
 package (tier-1 tested), `LogExportFile` + Settings section in the app.
+**Design system synced** (2026-08-26): the claude.ai/design project
+*Tallyist Design System* now exists and holds the 12-card bundle (Brand /
+Colors / Type / Layout / Components over one `styles.css`), generated from
+`docs/design-system.md` + the shipping Swift. Sync from a **local** session
+via the DesignSync tool (remote sessions still cannot authorize); source of
+truth stays the repo — edit here first, re-sync incrementally.
 
 Open items for v1.2:
 
-- DesignSync upload of the 12-card design-system bundle: remote sessions
-  cannot authorize against claude.ai/design; the working route is Claude
-  Design → "Send to Claude Code" → have that session commit files to a
-  branch for pickup.
 - PRD Iteration-3 backlog: longer trend ranges (mind the region-lens
   invariant), `VersionedSchema` + migration test (due before the next schema
   change), widget size/ABV choice (needs an ADR to reopen), bulk *edit*
