@@ -462,3 +462,149 @@ struct ImportedDrinkTests {
     #expect(three.summaryLine == "From Apple Health, 3 drinks")
   }
 }
+
+@Suite("Long trend ranges")
+struct LongTrendRangeTests {
+
+  /// UTC and Gregorian so expected dates don't depend on the machine.
+  private var calendar: Calendar {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(secondsFromGMT: 0)!
+    return cal
+  }
+
+  private func date(_ y: Int, _ mo: Int, _ d: Int, _ h: Int = 12) -> Date {
+    calendar.date(from: DateComponents(year: y, month: mo, day: d, hour: h))!
+  }
+
+  @Test("A quarter is 12 complete calendar weeks plus the current partial one")
+  func quarterSpan() {
+    // 2026-08-26 is a Wednesday; with a Sunday-first calendar the current week
+    // began Sunday the 23rd, so the range starts 12 weeks before that.
+    let today = date(2026, 8, 26)
+    let start = TrendRange.quarter.startDate(endingOn: today, calendar: calendar)
+    #expect(start == calendar.startOfDay(for: date(2026, 5, 31)))
+
+    let totals = TrendSummary.dailyTotals(
+      range: .quarter, endingOn: today, drinks: [], region: .unitedStates, calendar: calendar
+    )
+    // 12 full weeks + Sunday..Wednesday of the current week.
+    #expect(totals.count == 12 * 7 + 4)
+
+    let buckets = TrendSummary.bucketed(totals, by: .weekOfYear, calendar: calendar)
+    #expect(buckets.count == 13)
+    #expect(buckets.allSatisfy { calendar.dateInterval(of: .weekOfYear, for: $0.start)?.start == $0.start })
+    #expect(buckets.dropLast().allSatisfy { $0.dayCount == 7 })
+    #expect(buckets.last?.dayCount == 4)
+  }
+
+  @Test("Week starts follow the calendar's first weekday, Monday-first included")
+  func quarterRespectsFirstWeekday() {
+    var monday = calendar
+    monday.firstWeekday = 2
+    let today = date(2026, 8, 26)
+    let start = TrendRange.quarter.startDate(endingOn: today, calendar: monday)
+    // Monday-first: the current week began Monday the 24th; 12 weeks earlier
+    // is Monday June 1st.
+    #expect(start == monday.startOfDay(for: date(2026, 6, 1)))
+  }
+
+  @Test("A year is 11 complete calendar months plus the current partial one")
+  func yearSpan() {
+    let today = date(2026, 8, 26)
+    let start = TrendRange.year.startDate(endingOn: today, calendar: calendar)
+    #expect(start == calendar.startOfDay(for: date(2025, 9, 1)))
+
+    let totals = TrendSummary.dailyTotals(
+      range: .year, endingOn: today, drinks: [], region: .unitedStates, calendar: calendar
+    )
+    let buckets = TrendSummary.bucketed(totals, by: .month, calendar: calendar)
+    #expect(buckets.count == 12)
+    #expect(buckets.first?.start == calendar.startOfDay(for: date(2025, 9, 1)))
+    #expect(buckets.first?.dayCount == 30)
+    #expect(buckets.last?.start == calendar.startOfDay(for: date(2026, 8, 1)))
+    #expect(buckets.last?.dayCount == 26)
+  }
+
+  @Test("Buckets sum their days, and empty weeks stay in the series as zero")
+  func bucketSums() {
+    let today = date(2026, 8, 26)
+    let drinks = [
+      // Two beers in the current partial week.
+      LoggedDrink(loggedAt: date(2026, 8, 24), type: .beer, volumeOunces: 12, abvPercent: 5),
+      LoggedDrink(loggedAt: date(2026, 8, 25), type: .beer, volumeOunces: 12, abvPercent: 5),
+      // One in the first week of the range.
+      LoggedDrink(loggedAt: date(2026, 6, 2), type: .beer, volumeOunces: 12, abvPercent: 5),
+    ]
+    let totals = TrendSummary.dailyTotals(
+      range: .quarter, endingOn: today, drinks: drinks, region: .unitedStates, calendar: calendar
+    )
+    let buckets = TrendSummary.bucketed(totals, by: .weekOfYear, calendar: calendar)
+    #expect(buckets.count == 13)
+    #expect(abs(buckets.first!.standardDrinks - 1.0) < 0.0001)
+    #expect(abs(buckets.last!.standardDrinks - 2.0) < 0.0001)
+    #expect(buckets.dropFirst().dropLast().allSatisfy { $0.standardDrinks == 0 })
+    #expect(abs(TrendSummary.sum(totals) - 3.0) < 0.0001)
+  }
+
+  @Test("The bucket average uses completed buckets only")
+  func bucketAverageExcludesPartial() {
+    let today = date(2026, 8, 26)
+    let drinks = [
+      // Heavy partial week that must NOT drag the completed-week mean.
+      LoggedDrink(loggedAt: date(2026, 8, 24), type: .beer, volumeOunces: 12, abvPercent: 5),
+      LoggedDrink(loggedAt: date(2026, 8, 24), type: .beer, volumeOunces: 12, abvPercent: 5),
+      // One drink in each of two completed weeks.
+      LoggedDrink(loggedAt: date(2026, 8, 18), type: .beer, volumeOunces: 12, abvPercent: 5),
+      LoggedDrink(loggedAt: date(2026, 8, 11), type: .beer, volumeOunces: 12, abvPercent: 5),
+    ]
+    let totals = TrendSummary.dailyTotals(
+      range: .quarter, endingOn: today, drinks: drinks, region: .unitedStates, calendar: calendar
+    )
+    let buckets = TrendSummary.bucketed(totals, by: .weekOfYear, calendar: calendar)
+    let average = TrendSummary.bucketAverage(buckets, unit: .weekOfYear, calendar: calendar)
+    // 2 drinks over 12 completed weeks — the partial week's 2.0 is excluded.
+    #expect(average != nil)
+    #expect(abs(average! - 2.0 / 12.0) < 0.0001)
+  }
+
+  @Test("No completed bucket means no average line")
+  func bucketAverageNilWhenAllPartial() {
+    let today = date(2026, 8, 26)
+    let partialWeek = [
+      PeriodTotal(start: calendar.dateInterval(of: .weekOfYear, for: today)!.start,
+                  standardDrinks: 2, dayCount: 4)
+    ]
+    #expect(TrendSummary.bucketAverage(partialWeek, unit: .weekOfYear, calendar: calendar) == nil)
+  }
+
+  @Test("A year of mixed-region history sums under the current lens only")
+  func regionLensOverAYear() {
+    // Invariant 3: entries carry their logged region as provenance, but a
+    // year-long total is always one region's number, never a mixed sum.
+    let today = date(2026, 8, 26)
+    let drinks = [
+      LoggedDrink(loggedAt: date(2025, 10, 10), type: .beer, volumeOunces: 12, abvPercent: 5, region: .unitedKingdom),
+      LoggedDrink(loggedAt: date(2026, 3, 3), type: .beer, volumeOunces: 12, abvPercent: 5, region: .australia),
+      LoggedDrink(loggedAt: date(2026, 8, 20), type: .beer, volumeOunces: 12, abvPercent: 5, region: .unitedStates),
+    ]
+    let totals = TrendSummary.dailyTotals(
+      range: .year, endingOn: today, drinks: drinks, region: .unitedStates, calendar: calendar
+    )
+    // Three identical beers = exactly 3.0 US standard drinks, regardless of
+    // the regions they were logged under.
+    #expect(abs(TrendSummary.sum(totals) - 3.0) < 0.0001)
+  }
+
+  @Test("Rolling ranges are unchanged: week is 7 days, month 30")
+  func rollingRangesUnchanged() {
+    let today = date(2026, 8, 26)
+    for (range, count) in [(TrendRange.week, 7), (.month, 30)] {
+      let totals = TrendSummary.dailyTotals(
+        range: range, endingOn: today, drinks: [], region: .unitedStates, calendar: calendar
+      )
+      #expect(totals.count == count)
+      #expect(totals.last?.date == calendar.startOfDay(for: today))
+    }
+  }
+}

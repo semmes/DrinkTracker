@@ -107,13 +107,18 @@ truth stays the repo — edit here first, re-sync incrementally.
 
 Open items for v1.2:
 
-- PRD Iteration-3 backlog: longer trend ranges (mind the region-lens
-  invariant), widget size/ABV choice (needs an ADR to reopen), bulk *edit*
-  (ADR-0011 and ADR-0014 both have reopen paths). Export is done (ADR-0015);
-  `VersionedSchema` + migration test are done — the next schema change starts
-  from the recipe in `Shared/SchemaVersions.swift`, not from scratch.
-- Health-import follow-up: an "adoption" flow for imported drinks
-  (ADR-0014's reopen section).
-- Localization: String Catalogs seeded, nothing translated
-  (`docs/localization-status.md` has the order).
+- PRD Iteration-3 backlog: **all engineering items done** — export
+  (ADR-0015), `VersionedSchema` + migration test (recipe in
+  `Shared/SchemaVersions.swift`), longer trend ranges (Quarter/Year,
+  calendar-bucketed). **User declined (2026-08-26)** reopening widget
+  size/ABV choice and bulk edit — both stay as designed; their reopen paths
+  remain in ADR-0011/0014 if real use argues otherwise.
+- Health-import adoption flow (ADR-0014's reopen section): **approved by the
+  user (2026-08-26), next up.** Shape: typed-in size/strength converts the
+  mirror to a full entry; keep the external sample id so re-import can't
+  duplicate; no schema change needed; don't write to Health.
+- Localization: **prep only for now (user decision 2026-08-26)** — do steps
+  2–4 of `docs/localization-status.md` (catalog keys, plural variations,
+  `displayName` ownership); language choice and translation wait until the
+  v1.2 features land so strings are translated once.
 - Watch the 1.1 review outcome; a rejection comes back here with its text.
