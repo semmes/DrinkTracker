@@ -115,9 +115,14 @@ R2-measured labels on AccentFill. **Feature B (session pace) is done**
 (ADR-0017) — gap threshold fixed at 4h (the 3/4/6 setting deliberately not
 built; reopen path in the ADR). Gotcha discovered: a Toggle on
 non-interactive `glassSurface` loses taps (drags still land) — every
-tappable control goes on `interactive: true` glass. Feature C is gated on
-sourcing a citable population statistic (research first; cut if it doesn't
-source cleanly).
+tappable control goes on `interactive: true` glass (same lesson again on
+Feature C: `onTapGesture` on an SUCard never fires — use a real Button).
+**Feature C (population reference) is done** (ADR-0018) — sourced to the
+ARG 2020 National Alcohol Survey norms table, renormalized to
+adults-who-drink with the derivation disclosed (user-approved route);
+bundled in the core package, compared in grams, gated on 4 weeks of
+history. Remaining: **Feature D (share card), optional — cut first** if
+the build runs long.
 
 Open items for v1.2:
 

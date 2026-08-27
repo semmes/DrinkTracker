@@ -1,0 +1,202 @@
+{
+  "source": "Alcohol Research Group, 2020 National Alcohol Survey \u2014 Alcohol Consumption Norms for U.S. Adults",
+  "source_url": "https://arg.org/wp-content/uploads/2021/07/AlcoholConsumptionNorms2021.pdf",
+  "year": 2020,
+  "region": "US",
+  "population": "US adults who reported drinking",
+  "unit": "grams_ethanol_per_week",
+  "grams_per_survey_drink": 14.0,
+  "abstainers_percent_all_adults": 28,
+  "derivation": "The published table gives cumulative percentages of ALL US adults at or below each drinks-per-week level, with abstainers stated as 28%. percent_drinkers renormalizes each value to adults who drink: (percent_all_adults - 28) / 72 x 100. Exact arithmetic on published numbers; no values are estimated. Survey drinks are US standard drinks (14 g ethanol).",
+  "rows": [
+    {
+      "drinks_min": 1,
+      "drinks_max": 1,
+      "grams_max": 14.0,
+      "percent_all_adults": 58,
+      "percent_drinkers": 41.7
+    },
+    {
+      "drinks_min": 2,
+      "drinks_max": 2,
+      "grams_max": 28.0,
+      "percent_all_adults": 67,
+      "percent_drinkers": 54.2
+    },
+    {
+      "drinks_min": 3,
+      "drinks_max": 3,
+      "grams_max": 42.0,
+      "percent_all_adults": 72,
+      "percent_drinkers": 61.1
+    },
+    {
+      "drinks_min": 4,
+      "drinks_max": 4,
+      "grams_max": 56.0,
+      "percent_all_adults": 75,
+      "percent_drinkers": 65.3
+    },
+    {
+      "drinks_min": 5,
+      "drinks_max": 5,
+      "grams_max": 70.0,
+      "percent_all_adults": 78,
+      "percent_drinkers": 69.4
+    },
+    {
+      "drinks_min": 6,
+      "drinks_max": 6,
+      "grams_max": 84.0,
+      "percent_all_adults": 80,
+      "percent_drinkers": 72.2
+    },
+    {
+      "drinks_min": 7,
+      "drinks_max": 7,
+      "grams_max": 98.0,
+      "percent_all_adults": 82,
+      "percent_drinkers": 75.0
+    },
+    {
+      "drinks_min": 8,
+      "drinks_max": 8,
+      "grams_max": 112.0,
+      "percent_all_adults": 84,
+      "percent_drinkers": 77.8
+    },
+    {
+      "drinks_min": 9,
+      "drinks_max": 9,
+      "grams_max": 126.0,
+      "percent_all_adults": 86,
+      "percent_drinkers": 80.6
+    },
+    {
+      "drinks_min": 10,
+      "drinks_max": 10,
+      "grams_max": 140.0,
+      "percent_all_adults": 87,
+      "percent_drinkers": 81.9
+    },
+    {
+      "drinks_min": 11,
+      "drinks_max": 11,
+      "grams_max": 154.0,
+      "percent_all_adults": 88,
+      "percent_drinkers": 83.3
+    },
+    {
+      "drinks_min": 12,
+      "drinks_max": 12,
+      "grams_max": 168.0,
+      "percent_all_adults": 89,
+      "percent_drinkers": 84.7
+    },
+    {
+      "drinks_min": 13,
+      "drinks_max": 13,
+      "grams_max": 182.0,
+      "percent_all_adults": 89,
+      "percent_drinkers": 84.7
+    },
+    {
+      "drinks_min": 14,
+      "drinks_max": 14,
+      "grams_max": 196.0,
+      "percent_all_adults": 90,
+      "percent_drinkers": 86.1
+    },
+    {
+      "drinks_min": 15,
+      "drinks_max": 15,
+      "grams_max": 210.0,
+      "percent_all_adults": 91,
+      "percent_drinkers": 87.5
+    },
+    {
+      "drinks_min": 16,
+      "drinks_max": 17,
+      "grams_max": 238.0,
+      "percent_all_adults": 92,
+      "percent_drinkers": 88.9
+    },
+    {
+      "drinks_min": 18,
+      "drinks_max": 19,
+      "grams_max": 266.0,
+      "percent_all_adults": 93,
+      "percent_drinkers": 90.3
+    },
+    {
+      "drinks_min": 20,
+      "drinks_max": 21,
+      "grams_max": 294.0,
+      "percent_all_adults": 94,
+      "percent_drinkers": 91.7
+    },
+    {
+      "drinks_min": 22,
+      "drinks_max": 23,
+      "grams_max": 322.0,
+      "percent_all_adults": 94,
+      "percent_drinkers": 91.7
+    },
+    {
+      "drinks_min": 24,
+      "drinks_max": 26,
+      "grams_max": 364.0,
+      "percent_all_adults": 95,
+      "percent_drinkers": 93.1
+    },
+    {
+      "drinks_min": 27,
+      "drinks_max": 30,
+      "grams_max": 420.0,
+      "percent_all_adults": 96,
+      "percent_drinkers": 94.4
+    },
+    {
+      "drinks_min": 31,
+      "drinks_max": 36,
+      "grams_max": 504.0,
+      "percent_all_adults": 96,
+      "percent_drinkers": 94.4
+    },
+    {
+      "drinks_min": 37,
+      "drinks_max": 42,
+      "grams_max": 588.0,
+      "percent_all_adults": 97,
+      "percent_drinkers": 95.8
+    },
+    {
+      "drinks_min": 43,
+      "drinks_max": 49,
+      "grams_max": 686.0,
+      "percent_all_adults": 98,
+      "percent_drinkers": 97.2
+    },
+    {
+      "drinks_min": 50,
+      "drinks_max": 59,
+      "grams_max": 826.0,
+      "percent_all_adults": 98,
+      "percent_drinkers": 97.2
+    },
+    {
+      "drinks_min": 60,
+      "drinks_max": 69,
+      "grams_max": 966.0,
+      "percent_all_adults": 99,
+      "percent_drinkers": 98.6
+    },
+    {
+      "drinks_min": 70,
+      "drinks_max": null,
+      "grams_max": null,
+      "percent_all_adults": 99,
+      "percent_drinkers": 98.6
+    }
+  ]
+}
