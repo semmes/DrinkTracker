@@ -20,6 +20,7 @@ struct SettingsView: View {
       ScrollView {
         VStack(spacing: GlassTokens.Spacing.section) {
           appearanceSection
+          sessionPaceSection
           regionSection
           iCloudSection
           healthSection
@@ -59,6 +60,29 @@ struct SettingsView: View {
       .pickerStyle(.segmented)
       .padding(GlassTokens.Spacing.tight)
       .glassSurface(cornerRadius: GlassTokens.Radius.control)
+    }
+  }
+
+  // MARK: - Session pace
+
+  /// Off by default (1.2 spec: every new behavioral surface ships optional
+  /// and off). The footnote is the whole sales pitch — a description, not an
+  /// invitation (ADR-0017).
+  private var sessionPaceSection: some View {
+    SettingsSection(
+      title: "Session pace",
+      footnote: "Shows how many drinks you've logged in the current sitting."
+    ) {
+      @Bindable var settings = settings
+      Toggle("Show session pace", isOn: $settings.showsSessionPace)
+        .font(.body)
+        .tint(Color("AccentFill"))
+        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+        // interactive: a control on non-interactive glass loses taps (the
+        // switch only answered drags in testing); every tappable control in
+        // the app sits on interactive glass for this reason.
+        .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
     }
   }
 

@@ -111,8 +111,13 @@ its "Project constraints" and "App Review consistency" sections before any
 order A→B→C→D. **Feature A (appearance setting) is done** — the color audit
 found nothing to move: `IntensityPalette` and `AppTheme` are the documented
 dual-mode exceptions (invariant 10 / ADR-0007), and both `.white` uses are
-R2-measured labels on AccentFill. Feature C is gated on sourcing a citable
-population statistic (research first; cut if it doesn't source cleanly).
+R2-measured labels on AccentFill. **Feature B (session pace) is done**
+(ADR-0017) — gap threshold fixed at 4h (the 3/4/6 setting deliberately not
+built; reopen path in the ADR). Gotcha discovered: a Toggle on
+non-interactive `glassSurface` loses taps (drags still land) — every
+tappable control goes on `interactive: true` glass. Feature C is gated on
+sourcing a citable population statistic (research first; cut if it doesn't
+source cleanly).
 
 Open items for v1.2:
 

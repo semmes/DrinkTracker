@@ -361,6 +361,21 @@ The quick-add path is deliberately untouched by this: no type picker, no time
 control, still two taps. The extra controls appear only when editing an existing
 entry or adding one retroactively — the cases where "now" is the wrong answer.
 
+## Session pace
+
+Off by default, in Settings. While a sitting is active — a drink logged
+within the last 4 hours — Today shows a card with three flat facts: drinks
+this session, when it started, time since the last. A fourth line, the
+rolling two-hour count, appears at 3 or more, styled with weight only. The
+card reports pace because pace, not time-since-last, is the variable that
+matters: a since-last stopwatch reads calmest exactly when a run is fastest.
+It never runs outside a session (that would be a streak), persists nothing
+about gaps, and sends no notifications — settled law in
+[ADR-0017](docs/decisions/0017-session-pace-reports-a-window-not-a-streak.md).
+Sessions are runs of absolute timestamps (`SessionPace` in the core package,
+clock injected, tier-1 tested), so midnight and DST can't split them, and a
+backdated entry can't resurrect one.
+
 ## Calendar and year view
 
 The chart on Trends answers *how much*. The calendar answers *which days*.

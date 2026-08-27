@@ -47,6 +47,15 @@ final class AppSettings {
   /// explicit choice. Settings uses this to show the value is only a default.
   var isUsingFallbackRegion: Bool { region == nil }
 
+  /// Whether Today shows the session pace card during an active sitting.
+  ///
+  /// Off by default — the 1.2 spec's rule for every new behavioral surface.
+  /// The card itself has further conditions (a drink within the gap
+  /// threshold); this is only the standing opt-in.
+  var showsSessionPace: Bool {
+    didSet { defaults.set(showsSessionPace, forKey: Keys.sessionPace) }
+  }
+
   private let defaults: UserDefaults
 
   init(defaults: UserDefaults = AppGroup.defaults) {
@@ -54,6 +63,7 @@ final class AppSettings {
     self.hasCompletedOnboarding = defaults.bool(forKey: Keys.onboarding)
     self.region = defaults.string(forKey: Keys.region).flatMap(Region.init(rawValue:))
     self.prefersDetailedLogging = defaults.bool(forKey: Keys.detailedLogging)
+    self.showsSessionPace = defaults.bool(forKey: Keys.sessionPace)
   }
 
   /// Region lookup for contexts without a live `AppSettings` — notably the widget's
@@ -68,5 +78,6 @@ final class AppSettings {
     static let onboarding = "hasCompletedOnboarding"
     static let region = "region"
     static let detailedLogging = "prefersDetailedLogging"
+    static let sessionPace = "showsSessionPace"
   }
 }
