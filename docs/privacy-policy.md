@@ -1,11 +1,13 @@
 # Tallyist Privacy Policy
 
-**Last updated: August 27, 2026**
+**Last updated: August 28, 2026**
 
 Tallyist does not collect your data. Nothing you log leaves your control.
 
-This page is the policy for the Tallyist iOS app. The same text ships inside the
-app, under Settings → About → Privacy Policy.
+This page is the authoritative version of the policy for the Tallyist iOS app.
+The same policy ships inside the app, under Settings → About → Privacy Policy. It
+stays in English even where the app's interface is translated, so that what it
+claims can be checked against the app's privacy manifest and entitlements.
 
 ## What Tallyist stores
 

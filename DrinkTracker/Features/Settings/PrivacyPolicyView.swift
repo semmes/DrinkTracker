@@ -115,7 +115,7 @@ struct PrivacyPolicyView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Link("Read this policy online", destination: Self.hostedURL)
             .font(.body)
-          Text("Last updated August 27, 2026.")
+          Text("Last updated August 28, 2026.")
             .font(.caption)
             .foregroundStyle(.secondary)
         }

@@ -178,13 +178,19 @@ simply never been made to follow.
 **A few strings are still unreachable**, held behind ComponentsKit model
 properties that demand `String`; `ButtonVM.title` is the main one.
 
-**The privacy policy is now extractable, which is a decision to make before
-translating.** Typing `SectionLabel` as a key required `policySection` to follow,
-so the policy's headings and body paragraphs are now catalog keys. Nothing forces
-them to be translated — a catalog can mark a string as not for translation — but
-the claims in that text are written to be checkable against the entitlements and
-the App Store privacy labels, and a mistranslation would misstate them. Decide
-deliberately, and keep `docs/privacy-policy.md` in step.
+**The privacy policy stays in English — settled, not pending**
+([ADR-0021](decisions/0021-the-privacy-policy-stays-in-english.md)). Its fourteen
+strings carry `"shouldTranslate": false`, so they never reach a translator and
+cannot drift from the hosted copy. `Privacy Policy` and `Read this policy online`
+stay translatable — navigation and an affordance rather than claims, and the
+former is shared with the Settings row and the Support link.
+
+The reasoning in one line: the claims are written to be checkable against the
+privacy manifest and entitlements, and that check only works in the language it
+was written for. The hosted copy now says so itself instead of implying it.
+
+`shouldTranslate` survives `xcstringstool sync` — verified, because a marking a
+routine re-sync silently dropped would be worse than none.
 
 **Auto-generated comments are missing on the new keys, and a build will not add
 them.** Xcode writes translator comments when *it* is the thing adding a key to a
