@@ -361,6 +361,30 @@ The quick-add path is deliberately untouched by this: no type picker, no time
 control, still two taps. The extra controls appear only when editing an existing
 entry or adding one retroactively — the cases where "now" is the wrong answer.
 
+## Siri, Shortcuts, and hands-free logging
+
+Four App Shortcuts, so the log is reachable without touching the screen —
+which is also the accessibility path for anyone who can't
+([ADR-0019](docs/decisions/0019-siri-logging-splits-instant-from-conversational.md)):
+
+- **"Log a beer in Tallyist"** — instant, at the type's defaults. Same entry a
+  widget tap makes.
+- **"Log a drink in Tallyist"** — typeless, seeded like Today's counter.
+- **"Log drinks in Tallyist"** — conversational: Siri asks which drink and how
+  many; size and strength can ride along from a configured shortcut.
+- **"Record no alcohol in Tallyist"** — marks today, and says so.
+
+The split between the first and third is load-bearing. `LogDrinkIntent` (the
+widget's) must never have a parameter the system could prompt for — a widget
+can't answer, and the tap is abandoned before `perform()` ever runs, which is
+exactly the failure that once broke one-tap logging. Its new size/ABV/quantity
+parameters are optional or defaulted for that reason. `LogDrinksIntent` is the
+opposite by design: no defaults, so Siri asks. Voice-supplied values get the
+app's own bounds (`DrinkDraft.forIntent`, tier-1 tested) — ABV clamps to the
+type's range, quantity to the counter's 12, and N drinks are N separate
+entries, never a count on one. Every reply states what was written; Siri never
+speaks unprompted, and no notification exists on any of these paths.
+
 ## Session pace
 
 Off by default, in Settings. While a sitting is active — a drink logged

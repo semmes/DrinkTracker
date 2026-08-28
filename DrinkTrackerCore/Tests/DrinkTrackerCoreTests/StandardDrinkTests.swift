@@ -658,3 +658,47 @@ struct ImportAdoptionTests {
     #expect(adopted.summaryLine == "Beer, 12oz, 5% ABV")
   }
 }
+
+@Suite("Intent drafts")
+struct IntentDraftTests {
+
+  @Test("Nothing specified means the type's own defaults — identical to a widget tap")
+  func defaultsMatchFastPath() {
+    let intent = DrinkDraft.forIntent(type: .beer)
+    let tap = DrinkDraft(type: .beer)
+    #expect(intent.volumeOunces == tap.volumeOunces)
+    #expect(intent.abvPercent == tap.abvPercent)
+    #expect(intent.quantity == 1)
+  }
+
+  @Test("Specified size and strength are honored, including custom volumes")
+  func specifiedValuesHonored() {
+    let known = DrinkDraft.forIntent(type: .beer, volumeOunces: 16)
+    #expect(known.volumeOunces == 16)
+
+    let custom = DrinkDraft.forIntent(type: .wine, volumeOunces: 6.5, abvPercent: 13)
+    #expect(custom.selectedSize == .custom)
+    #expect(custom.volumeOunces == 6.5)
+    #expect(custom.abvPercent == 13)
+  }
+
+  @Test("ABV clamps to the type's slider range, volume must be positive")
+  func boundsMatchTheApp() {
+    let strong = DrinkDraft.forIntent(type: .beer, abvPercent: 90)
+    #expect(strong.abvPercent == DrinkType.beer.abvRange.upperBound)
+
+    let zero = DrinkDraft.forIntent(type: .beer, volumeOunces: 0)
+    #expect(zero.volumeOunces == DrinkType.beer.defaultVolumeOunces)
+
+    let negative = DrinkDraft.forIntent(type: .beer, volumeOunces: -4)
+    #expect(negative.volumeOunces == DrinkType.beer.defaultVolumeOunces)
+  }
+
+  @Test("Quantity clamps to the counter's ceiling and never below one")
+  func quantityClamps() {
+    #expect(DrinkDraft.forIntent(type: .beer, quantity: 0).quantity == 1)
+    #expect(DrinkDraft.forIntent(type: .beer, quantity: -3).quantity == 1)
+    #expect(DrinkDraft.forIntent(type: .beer, quantity: 500).quantity == DrinkDraft.intentQuantityLimit)
+    #expect(DrinkDraft.forIntent(type: .beer, quantity: 3).makeLoggedDrinks(region: .unitedStates).count == 3)
+  }
+}

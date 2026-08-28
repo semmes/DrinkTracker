@@ -132,7 +132,14 @@ carries the paste-ready What's New (1.2) and App Review notes. **The 1.2
 train stays open**: nothing freezes until the build is submitted, and 1.2
 can't be submitted while 1.1 sits in App Review anyway — new features can
 keep merging; each one just re-touches What's New / reviewer notes / the
-claims table. User-side when 1.1 clears: create the 1.2 version in ASC,
+claims table. **Siri/App Intents landed on the open train** (ADR-0019):
+four App Shortcuts (instant typed, habit-seeded, conversational, no
+alcohol). The rule that governs any future intent work: `LogDrinkIntent`
+is the *widget's* and must never gain a promptable parameter (optional or
+defaulted only) — `LogDrinksIntent` is the Siri one where prompting is the
+point. Simulator gotcha: App Shortcut **tiles** can't run in the simulator
+(linkd "Couldn't find AppShortcutsProvider"); add the action to a manual
+shortcut to test, and treat real phrase invocation as tier 4. User-side when 1.1 clears: create the 1.2 version in ASC,
 paste the listing material, pick a green main build from Xcode Cloud,
 submit. Still pending separately: one Xcode GUI build that actually
 populates `Localizable.xcstrings` (the user's 2026-08-27 build didn't),

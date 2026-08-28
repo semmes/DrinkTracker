@@ -87,9 +87,28 @@ struct LogDrinkIntent: AppIntent {
   @Parameter(title: "Drink", default: .beer)
   var drinkType: QuickLogDrinkType
 
+  /// Optional refinements for Shortcuts and Siri (ADR-0019). **Optional is
+  /// load-bearing for the same reason the default above is**: an optional
+  /// parameter resolves to nil without prompting, so the widget's tap still
+  /// cannot be abandoned. Unspecified means the type's defaults — the same
+  /// entry a widget tap produces.
+  @Parameter(title: "Size (ounces)")
+  var volumeOunces: Double?
+
+  @Parameter(title: "Strength (% ABV)")
+  var abvPercent: Double?
+
+  /// Each drink is saved as its own entry (never a count on one — the log's
+  /// standing rule), capped at the counter's ceiling of 12.
+  @Parameter(title: "How many", default: 1)
+  var quantity: Int
+
   /// Shown when the intent is configured in Shortcuts.
   static var parameterSummary: some ParameterSummary {
-    Summary("Log a \(\.$drinkType)")
+    Summary("Log \(\.$quantity) \(\.$drinkType)") {
+      \.$volumeOunces
+      \.$abvPercent
+    }
   }
 
   init() {}
@@ -105,7 +124,7 @@ struct LogDrinkIntent: AppIntent {
   }
 
   @MainActor
-  func perform() async throws -> some IntentResult {
+  func perform() async throws -> some IntentResult & ProvidesDialog {
     // Breadcrumb: a widget button that does nothing is indistinguishable from a
     // missed tap, and the extension's own logs are largely unreadable from the
     // simulator. If `Diagnostics.lastWidgetLog` is absent after a tap, the intent
@@ -116,19 +135,37 @@ struct LogDrinkIntent: AppIntent {
       Diagnostics.record("container-opened")
       let repository = DrinkRepository(context: container.mainContext)
 
-      // Same defaults the sheet opens with, so a widget tap and a two-tap in-app
-      // log produce identical entries.
-      let draft = DrinkDraft(type: drinkType.drinkType)
-      let drink = draft.makeLoggedDrink(region: AppSettings.storedRegion())
-      try repository.saveOrThrow(drink)
+      // Same defaults the sheet opens with, so a widget tap, a Siri phrase,
+      // and a two-tap in-app log all produce identical entries; specified
+      // values get the app's own bounds (DrinkDraft.forIntent).
+      let draft = DrinkDraft.forIntent(
+        type: drinkType.drinkType,
+        volumeOunces: volumeOunces,
+        abvPercent: abvPercent,
+        quantity: quantity
+      )
+      let drinks = draft.makeLoggedDrinks(region: AppSettings.storedRegion())
+      for drink in drinks {
+        try repository.saveOrThrow(drink)
+      }
       Diagnostics.record("saved")
 
       WidgetCenter.shared.reloadAllTimelines()
-      return .result()
+      // The widget ignores dialogs; Siri speaks them. Factual, like all copy.
+      return .result(dialog: IntentDialog(stringLiteral: Self.loggedLine(drinks)))
     } catch {
       Diagnostics.record("failed: \(error)")
       throw error
     }
+  }
+
+  /// "Logged: Beer, 12oz, 5% ABV." — built on `summaryLine` so every surface
+  /// renders a drink identically. Never celebratory, never a total.
+  static func loggedLine(_ drinks: [LoggedDrink]) -> String {
+    guard let first = drinks.first else { return "Nothing was logged." }
+    return drinks.count == 1
+      ? "Logged: \(first.summaryLine)."
+      : "Logged \(drinks.count): \(first.summaryLine) each."
   }
 }
 
@@ -158,7 +195,7 @@ struct LogOneDrinkIntent: AppIntent {
   init() {}
 
   @MainActor
-  func perform() async throws -> some IntentResult {
+  func perform() async throws -> some IntentResult & ProvidesDialog {
     Diagnostics.record("entered (one-drink)")
     do {
       let container = try SharedModelContainer.make()
@@ -173,10 +210,107 @@ struct LogOneDrinkIntent: AppIntent {
       Diagnostics.record("saved (one-drink)")
 
       WidgetCenter.shared.reloadAllTimelines()
-      return .result()
+      return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.loggedLine([drink])))
     } catch {
       Diagnostics.record("failed (one-drink): \(error)")
       throw error
     }
+  }
+}
+
+// MARK: - Conversational logging (Siri)
+
+/// The Siri-facing "log drinks" — where prompting is the point (ADR-0019).
+///
+/// `LogDrinkIntent`'s parameters must never prompt, because a widget tap
+/// cannot answer a question. This intent inverts that on purpose: type and
+/// count have **no defaults**, so Siri collects them by voice — "Which
+/// drink?", "How many?" — which is what makes hands-free logging with
+/// specifics possible. Size and strength stay optional (defaults per type);
+/// requiring them would turn a two-answer exchange into a form read aloud.
+///
+/// Never placed on a widget. The no-default parameters that make it
+/// conversational are exactly what would silently break a widget button.
+struct LogDrinksIntent: AppIntent {
+  static var title: LocalizedStringResource { "Log Drinks" }
+  static var description: IntentDescription {
+    IntentDescription("Logs one or more drinks, asking for the type and how many.")
+  }
+
+  static var openAppWhenRun: Bool { false }
+
+  @Parameter(title: "Drink", requestValueDialog: "Which drink?")
+  var drinkType: QuickLogDrinkType
+
+  @Parameter(title: "How many", requestValueDialog: "How many?")
+  var quantity: Int
+
+  @Parameter(title: "Size (ounces)")
+  var volumeOunces: Double?
+
+  @Parameter(title: "Strength (% ABV)")
+  var abvPercent: Double?
+
+  static var parameterSummary: some ParameterSummary {
+    Summary("Log \(\.$quantity) \(\.$drinkType)") {
+      \.$volumeOunces
+      \.$abvPercent
+    }
+  }
+
+  init() {}
+
+  @MainActor
+  func perform() async throws -> some IntentResult & ProvidesDialog {
+    let container = try SharedModelContainer.make()
+    let repository = DrinkRepository(context: container.mainContext)
+
+    let draft = DrinkDraft.forIntent(
+      type: drinkType.drinkType,
+      volumeOunces: volumeOunces,
+      abvPercent: abvPercent,
+      quantity: quantity
+    )
+    let drinks = draft.makeLoggedDrinks(region: AppSettings.storedRegion())
+    for drink in drinks {
+      try repository.saveOrThrow(drink)
+    }
+
+    WidgetCenter.shared.reloadAllTimelines()
+    return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.loggedLine(drinks)))
+  }
+}
+
+// MARK: - No alcohol today
+
+/// Records today as alcohol-free, by voice or Shortcuts (ADR-0019).
+///
+/// The repository's standing rule holds here exactly as in the app: a day
+/// with entries refuses the marker (evidence beats assertion), and the
+/// refusal is spoken as a fact, not an error — nothing failed, the record
+/// simply already says something else.
+struct RecordNoAlcoholIntent: AppIntent {
+  static var title: LocalizedStringResource { "Record No Alcohol Today" }
+  static var description: IntentDescription {
+    IntentDescription("Records today as a day with no alcohol.")
+  }
+
+  static var openAppWhenRun: Bool { false }
+
+  init() {}
+
+  @MainActor
+  func perform() async throws -> some IntentResult & ProvidesDialog {
+    let container = try SharedModelContainer.make()
+    let repository = DrinkRepository(context: container.mainContext)
+
+    let recorded = repository.markAlcoholFree(Date())
+    // No widget reload on purpose, matching DrinkStore.markAlcoholFree: the
+    // widget shows today's count, and a no-alcohol day totals what an
+    // unlogged day totals.
+    let dialog = recorded
+      ? "Recorded today as no alcohol."
+      : "Today already has drinks logged, so it wasn't recorded as no alcohol."
+    return .result(dialog: IntentDialog(stringLiteral: dialog))
   }
 }

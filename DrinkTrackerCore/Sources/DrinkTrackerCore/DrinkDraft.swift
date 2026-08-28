@@ -84,6 +84,37 @@ public struct DrinkDraft: Equatable, Sendable {
     }
   }
 
+  /// The most drinks one intent invocation can log — the same ceiling as
+  /// Today's counter, and a guard against a misheard "log 500 drinks".
+  public static let intentQuantityLimit = 12
+
+  /// A draft built from voice or Shortcuts parameters (ADR-0019).
+  ///
+  /// Unspecified values fall to the type's defaults — the same values a
+  /// widget tap or the sheet's fast path produce, so "log a beer" means the
+  /// identical entry everywhere. Specified values are honored with the same
+  /// bounds the app itself enforces: ABV clamps to the type's slider range,
+  /// volume must be positive to count as specified, and quantity clamps to
+  /// `intentQuantityLimit`.
+  public static func forIntent(
+    type: DrinkType,
+    volumeOunces: Double? = nil,
+    abvPercent: Double? = nil,
+    quantity: Int = 1
+  ) -> DrinkDraft {
+    var draft = DrinkDraft(type: type)
+    if let volumeOunces, volumeOunces > 0 {
+      let match = type.sizeOptions.first { $0.volumeOunces == volumeOunces }
+      draft.selectedSize = match ?? .custom
+      draft.customVolumeOunces = volumeOunces
+    }
+    if let abvPercent {
+      draft.abvPercent = min(max(abvPercent, type.abvRange.lowerBound), type.abvRange.upperBound)
+    }
+    draft.quantity = min(max(1, quantity), intentQuantityLimit)
+    return draft
+  }
+
   /// A draft that repeats an already-logged drink exactly, at a new time.
   ///
   /// Used by the one-tap repeat control: same type, size, and strength, but a new
