@@ -309,3 +309,26 @@ lines, and the privacy policy's new bullet; all reviewed here.
 
 No 1.4.3 exposure found. Reviewer notes are addressed to App Review, not
 users, but were held to the same register anyway.
+
+---
+
+## Addendum (2026-08): Siri and Shortcuts
+
+ADR-0019. Everything here is **spoken as well as read**, so the voice register
+was reviewed too: a phrase that scans as neutral text can still land as
+encouragement when Siri says it aloud.
+
+| String | Note |
+|---|---|
+| "Log a beer in Tallyist" / "Add a beer in Tallyist" (phrases) | Imperative the *user* speaks, not the app — the app never initiates. Names the action on the record |
+| "Log drinks in Tallyist" / "Record no alcohol in Tallyist" | Same register as the in-app controls they mirror |
+| "Which drink?" / "How many?" (request dialogs) | Questions about the record, asked only because the user started the exchange. No suggestion, no default nudged aloud |
+| "Logged: Beer, 12oz, 5% ABV." / "Logged 2: Wine, 5oz, 12% ABV each." | A statement of what was written, built on `summaryLine` so voice and screen render a drink identically. Deliberately not "Got it" or "Nice" — confirmation, never approval |
+| "Recorded today as no alcohol." | The fact, matching Today's "Record no alcohol today" — and now only spoken when the write actually persisted (ADR-0019) |
+| "Nothing was logged." | The honest answer to a request for zero drinks. It was written as an unreachable branch and the review made it reachable: the alternative was inventing a drink and announcing it |
+| "Today already has drinks logged, so it wasn't recorded as no alcohol." | The refusal as a **state of the record**, not an error and not a correction of the person. Evidence beats assertion, said out loud |
+| Intent titles/descriptions ("Log a Drink", "Logs a drink using its default size and strength.") | Shortcuts-facing chrome; factual |
+
+No 1.4.3 exposure: nothing spoken invites a drink, praises one, or comments on
+quantity. Checked against the 1.2 spec's App Review table — no notifications
+exist on any of these paths, and Siri never speaks unprompted.

@@ -179,4 +179,29 @@ struct AlcoholFreeDayTests {
     #expect(grid.days.first { $0.date == day }?.intensity == .alcoholFree)
     #expect(grid.days.first { $0.date == date(2026, 8, 5) }?.intensity == .unlogged)
   }
+
+  /// ADR-0019: an intent speaks a claim about the record and then leaves, so
+  /// the write it reports has to be the write that happened. The Bool still
+  /// answers "was it refused?"; a save failure now throws instead of being
+  /// swallowed into a spoken "Recorded today as no alcohol."
+  @Test("The throwing marker reports refusal and persists what it claims")
+  func throwingMarkerMatchesTheSpokenClaim() throws {
+    let day = Date()
+
+    let recorded = try repository.markAlcoholFreeOrThrow(day)
+    #expect(recorded)
+    #expect(repository.isMarkedAlcoholFree(day))
+
+    // Idempotent: marking again is still "not refused", still one marker.
+    #expect(try repository.markAlcoholFreeOrThrow(day))
+    #expect(repository.allAlcoholFreeDays().count == 1)
+
+    // A day with drinks refuses, and says so without throwing — nothing
+    // failed, the record simply already says something else.
+    repository.save(
+      LoggedDrink(loggedAt: day, type: .beer, volumeOunces: 12, abvPercent: 5)
+    )
+    #expect(try repository.markAlcoholFreeOrThrow(day) == false)
+    #expect(!repository.isMarkedAlcoholFree(day))
+  }
 }

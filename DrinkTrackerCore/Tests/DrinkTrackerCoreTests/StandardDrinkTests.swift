@@ -658,3 +658,67 @@ struct ImportAdoptionTests {
     #expect(adopted.summaryLine == "Beer, 12oz, 5% ABV")
   }
 }
+
+@Suite("Intent drafts")
+struct IntentDraftTests {
+
+  @Test("Nothing specified means the type's own defaults — identical to a widget tap")
+  func defaultsMatchFastPath() throws {
+    let intent = try #require(DrinkDraft.forIntent(type: .beer))
+    let tap = DrinkDraft(type: .beer)
+    #expect(intent.volumeOunces == tap.volumeOunces)
+    #expect(intent.abvPercent == tap.abvPercent)
+    #expect(intent.quantity == 1)
+  }
+
+  @Test("Specified size and strength are honored, including custom volumes")
+  func specifiedValuesHonored() throws {
+    let known = try #require(DrinkDraft.forIntent(type: .beer, volumeOunces: 16))
+    #expect(known.volumeOunces == 16)
+
+    let custom = try #require(DrinkDraft.forIntent(type: .wine, volumeOunces: 6.5, abvPercent: 13))
+    #expect(custom.selectedSize == .custom)
+    #expect(custom.volumeOunces == 6.5)
+    #expect(custom.abvPercent == 13)
+  }
+
+  @Test("ABV clamps to the type's slider range, volume must be positive")
+  func boundsMatchTheApp() throws {
+    let strong = try #require(DrinkDraft.forIntent(type: .beer, abvPercent: 90))
+    #expect(strong.abvPercent == DrinkType.beer.abvRange.upperBound)
+
+    let zero = try #require(DrinkDraft.forIntent(type: .beer, volumeOunces: 0))
+    #expect(zero.volumeOunces == DrinkType.beer.defaultVolumeOunces)
+
+    let negative = try #require(DrinkDraft.forIntent(type: .beer, volumeOunces: -4))
+    #expect(negative.volumeOunces == DrinkType.beer.defaultVolumeOunces)
+  }
+
+  /// The log may under-record; it must never over-record. A Shortcuts
+  /// automation whose count evaluates to zero — or a spoken "none" — has to
+  /// write nothing, not round up to one drink the user never had.
+  @Test("A request for no drinks produces no draft, never one drink")
+  func zeroQuantityRefusesToInvent() {
+    #expect(DrinkDraft.forIntent(type: .beer, quantity: 0) == nil)
+    #expect(DrinkDraft.forIntent(type: .beer, quantity: -3) == nil)
+  }
+
+  @Test("Quantity clamps down to the ceiling and produces that many entries")
+  func quantityClampsDown() throws {
+    let capped = try #require(DrinkDraft.forIntent(type: .beer, quantity: 500))
+    #expect(capped.quantity == DrinkDraft.intentQuantityLimit)
+
+    let three = try #require(DrinkDraft.forIntent(type: .beer, quantity: 3))
+    #expect(three.makeLoggedDrinks(region: .unitedStates).count == 3)
+  }
+
+  /// A non-finite ABV would otherwise survive min/max and reach the draft.
+  @Test("A non-finite strength falls back to the type's default")
+  func nonFiniteABVIgnored() throws {
+    let nan = try #require(DrinkDraft.forIntent(type: .beer, abvPercent: .nan))
+    #expect(nan.abvPercent == DrinkType.beer.defaultABVPercent)
+
+    let infinite = try #require(DrinkDraft.forIntent(type: .beer, abvPercent: .infinity))
+    #expect(infinite.abvPercent == DrinkType.beer.defaultABVPercent)
+  }
+}

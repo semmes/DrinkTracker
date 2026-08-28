@@ -33,6 +33,7 @@ grades.
 — Weekly, monthly, quarterly, and yearly totals with your own average — never
   a target
 — Export your whole log as a CSV any time; it's your record
+— Log by voice with Siri, or from Shortcuts and the Action button
 — Standard-drink math for the US, UK, and Australia, switchable any time
 — Saves to Apple Health if you allow it, so a doctor can see the full picture
   if you choose to share it
@@ -111,6 +112,10 @@ Turn it on in Settings.
 Export your whole log as a CSV from Settings, and share any month as an
 image from the calendar.
 
+Siri and Shortcuts: "Log a beer in Tallyist", "Log drinks in Tallyist"
+(Siri asks which and how many), or "Record no alcohol in Tallyist" —
+logging without touching the screen.
+
 Also: a drink imported from Apple Health can take details — tap it and
 add the type, size, and strength.
 ```
@@ -135,6 +140,10 @@ Notes on what's new in 1.2:
 - The CSV export and the month share image are user-initiated, one-way
   exports of the user's own data through the system share sheet, with no
   identifiers in the files.
+- Siri/Shortcuts support uses App Intents only. Every phrase is
+  user-initiated; the app never speaks first, sends no notifications, and
+  makes no suggestions. Spoken replies state only what was written to the
+  user's own log.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```
