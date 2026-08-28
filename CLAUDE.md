@@ -157,8 +157,16 @@ Open items for v1.2:
   on a single-count import, typed facts rewrite it in place, Health untouched.
   Known wrinkle recorded in the ADR: adopting then *editing* can leave the
   foreign sample plus ours in Health; fix waits for a real report.
-- Localization: **prep only for now (user decision 2026-08-26)** — do steps
-  2–4 of `docs/localization-status.md` (catalog keys, plural variations,
-  `displayName` ownership); language choice and translation wait until the
-  v1.2 features land so strings are translated once.
+- Localization: **prep only (user decision 2026-08-26)**; language choice and
+  translation still deferred. Step 1 done (catalogs extracted, 2026-08-28) and
+  **step 4 done** (ADR-0020: the core package owns its display names via
+  `Bundle.module`; the CSV localizes values but never headers). **Steps 2–3
+  remain** — ~30 String-returning helpers across the app assemble sentences by
+  interpolation, so they are invisible to the extractor and freeze English word
+  order; each becomes a whole-phrase key, count-bearing ones with plural
+  variations.
+- **Two checkouts exist on this Mac** and they drift: this one, and
+  `/Users/shawnsemmes/DrinkTracker`, which is where the user's Xcode builds
+  from (that is where a build's `Localizable.xcstrings` changes land). Check
+  both before concluding a build "did nothing".
 - Watch the 1.1 review outcome; a rejection comes back here with its text.

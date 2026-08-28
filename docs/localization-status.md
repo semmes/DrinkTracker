@@ -46,6 +46,26 @@ above.)
 domain package. `DrinkTrackerCore` has no bundle to localize against, so these either
 move to the app layer or the package gains its own resources.
 
+## Progress (2026-08-28)
+
+**Step 1 is done.** An Xcode build extracted the 1.2-era strings: the app
+catalog went 82 → 109 keys, the widget's 16 → 25. What did *not* extract is
+the map for steps 2 and 3 — anything assembled by a String-returning helper,
+because `Text(String)` is the verbatim initializer rather than the
+localizable one.
+
+**Step 4 is decided and done** — the package owns its display names and
+localizes them against `Bundle.module`
+([ADR-0020](decisions/0020-the-core-package-owns-its-display-names.md)),
+which also settles how the CSV export behaves: headers stay English, row
+values localize.
+
+**Steps 2 and 3 remain**, and they are the same job seen twice: roughly
+thirty String-returning helpers across the app assemble sentences by
+interpolation, which freezes English word order and hides the strings from
+the catalog. Converting each to a whole-phrase key is step 2; giving the
+count-bearing ones real plural variations is step 3.
+
 ## The order to do it in
 
 1. Build in Xcode once. Both catalogs populate from the existing literals.

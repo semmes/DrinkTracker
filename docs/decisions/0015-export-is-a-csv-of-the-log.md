@@ -1,7 +1,8 @@
 # 0015 — Export is a CSV of the log, shared from Settings
 
-**Status:** accepted · **Date:** 2026-08-26 · **Relates to:** ADR-0002,
-ADR-0006, ADR-0014, PRD invariants 3, 8, 9
+**Status:** accepted · **Date:** 2026-08-26 · **Amended by:** ADR-0020
+(localization: headers stay English, row values localize) · **Relates to:**
+ADR-0002, ADR-0006, ADR-0014, PRD invariants 3, 8, 9
 
 ## Context
 

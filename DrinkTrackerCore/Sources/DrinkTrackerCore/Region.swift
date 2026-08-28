@@ -32,26 +32,26 @@ public enum Region: String, CaseIterable, Codable, Sendable, Identifiable {
 
   public var displayName: String {
     switch self {
-    case .unitedStates: "United States"
-    case .unitedKingdom: "United Kingdom"
-    case .australia: "Australia"
+    case .unitedStates: localized("United States", comment: "Country whose standard-drink definition is in use")
+    case .unitedKingdom: localized("United Kingdom", comment: "Country whose standard-drink definition is in use")
+    case .australia: localized("Australia", comment: "Country whose standard-drink definition is in use")
     }
   }
 
   /// Short label used in compact controls such as segmented pickers.
   public var shortName: String {
     switch self {
-    case .unitedStates: "US"
-    case .unitedKingdom: "UK"
-    case .australia: "Australia"
+    case .unitedStates: localized("US", comment: "Abbreviated country name, compact controls and the export's unit column")
+    case .unitedKingdom: localized("UK", comment: "Abbreviated country name, compact controls and the export's unit column")
+    case .australia: localized("Australia", comment: "Abbreviated country name, compact controls and the export's unit column")
     }
   }
 
   /// What one standard drink is called in this region.
   public var unitName: String {
     switch self {
-    case .unitedStates, .australia: "standard drink"
-    case .unitedKingdom: "unit"
+    case .unitedStates, .australia: localized("standard drink", comment: "Singular unit of alcohol, lowercase for mid-sentence use")
+    case .unitedKingdom: localized("unit", comment: "Singular UK unit of alcohol, lowercase for mid-sentence use")
     }
   }
 
@@ -67,12 +67,19 @@ public enum Region: String, CaseIterable, Codable, Sendable, Identifiable {
   /// Catalog has **one** place to replace instead of six.
   public var unitNamePlural: String {
     switch self {
-    case .unitedStates, .australia: "standard drinks"
-    case .unitedKingdom: "units"
+    case .unitedStates, .australia: localized("standard drinks", comment: "Plural unit of alcohol, lowercase for mid-sentence use")
+    case .unitedKingdom: localized("units", comment: "Plural UK unit of alcohol, lowercase for mid-sentence use")
     }
   }
 
   /// The form that agrees with `count`.
+  ///
+  /// Both forms now come from the catalog, so a translator can replace them —
+  /// but the *choice between them* is still English's two-category rule, and
+  /// languages with more categories need the count and the noun in one key.
+  /// That is why count-bearing sentences are catalog keys at their call sites
+  /// rather than assembled from this (ADR-0020): a phrase key can carry real
+  /// plural variations, a noun handed back to string interpolation cannot.
   public func unitName(for count: Double) -> String {
     count == 1 ? unitName : unitNamePlural
   }

@@ -30,10 +30,10 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
 
   public var displayName: String {
     switch self {
-    case .beer: "Beer"
-    case .wine: "Wine"
-    case .spirit: "Spirit"
-    case .other: "Other"
+    case .beer: localized("Beer", comment: "Drink type")
+    case .wine: localized("Wine", comment: "Drink type")
+    case .spirit: localized("Spirit", comment: "Drink type: distilled spirits")
+    case .other: localized("Other", comment: "Drink type: anything not beer, wine, or spirits")
     }
   }
 
