@@ -14,6 +14,9 @@ struct IntensityCell: View {
   var isToday: Bool = false
   /// Part of an in-progress drag selection on the month grid.
   var isSelected: Bool = false
+  /// Passed in rather than read from the environment, matching `DrinkRow`: the
+  /// year view renders 365 of these.
+  var region: Region = .unitedStates
 
   @Environment(\.colorScheme) private var scheme
 
@@ -76,20 +79,18 @@ struct IntensityCell: View {
 
   /// Colour carries nothing here — the label says the date and the amount outright,
   /// which is the only version of this cell a VoiceOver user gets.
-  private var accessibilityLabel: LocalizedStringKey {
+  private var accessibilityLabel: Text {
     let date = day.date.formatted(.dateTime.month(.wide).day())
-    // The counted branches are whole sentences a translator can reorder. The
-    // fall-through pair is thinner — its amount is already a phrase, so one of
-    // its keys is just "%@, %@" — but "Today, %@, %@" is worth having, and
-    // splitting the two apart would cost more than the empty key saves.
-    if intensity.isRecorded && intensity != .alcoholFree {
-      let drinks = StandardDrink.formatted(day.standardDrinks)
-      return isToday
-        ? "Today, \(date), \(drinks) standard drinks"
-        : "\(date), \(drinks) standard drinks"
-    }
-    let amount = intensity.accessibilityDescription
-    return isToday ? "Today, \(date), \(amount)" : "\(date), \(amount)"
+    let amount = intensity.isRecorded && intensity != .alcoholFree
+      ? StandardDrink.amountPhrase(day.standardDrinks, region: region)
+      : intensity.accessibilityDescription
+    // Both halves arrive translated already — the date from a locale format, the
+    // amount from the package — so "Today" is the only word left to translate.
+    // The other branch written as a key would be "%@, %@": two placeholders and
+    // a comma, which asks a translator to localize punctuation.
+    return isToday
+      ? Text("Today, \(date), \(amount)")
+      : Text(verbatim: "\(date), \(amount)")
   }
 }
 

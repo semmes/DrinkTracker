@@ -185,7 +185,7 @@ struct TodayView: View {
       // The precise figure, one line down. Reads "≈ 2.6 standard drinks" — or
       // "≈ 4.5 units" under the UK lens, where count and measure diverge most.
       if total > 0 {
-        Text("≈ \(StandardDrink.formatted(total)) \(settings.effectiveRegion.unitName(for: total))")
+        Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
           .foregroundStyle(.secondary)
       }

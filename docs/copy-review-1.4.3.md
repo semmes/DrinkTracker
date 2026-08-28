@@ -365,3 +365,44 @@ The tip-jar title "Buy me a drink" is flagged for the eventual translator, not
 changed: it is an English idiom that puns on the app's subject, and a literal
 translation could read as asking for alcohol rather than a tip. It wants a
 translator note in the catalog when languages are chosen.
+
+---
+
+## Addendum (2026-08-28): localization defects, and a plural that was wrong
+
+Copy changed here, which is why this entry is longer than the last one. Every
+change is a grammatical agreement fix — no sentence was reworded, no word added
+or removed, and nothing gained a tone it did not have.
+
+**The pattern.** Several labels chose between "drink" and "drinks" by testing the
+*unrounded* value while displaying a *rounded* one. `StandardDrink.formatted`
+rounds to one decimal, so a day of 1.02 standard drinks displays "1" and then read
+"1 standard drinks". This is not an edge case: the fast-path default logs exactly
+one US standard drink, so the most common day there is was the ungrammatical one.
+The noun now agrees with the digits actually on screen.
+
+| Surface | Was | Now |
+|---|---|---|
+| Today's precise figure | "≈ 1 standard drinks" | "≈ 1 standard drink" |
+| Day sheet's precise figure | "≈ 1 standard drinks" | "≈ 1 standard drink" |
+| Widget caption | "≈ 1 standard drinks" | "≈ 1 standard drink" |
+| Session pace | "1 drinks this session" | "1 drink this session" |
+| Weekly average (population card) | "about 1 standard drinks a week" | "about 1 standard drink a week" |
+| Drink sheet, VoiceOver | "Approximately 1 standard drinks" | "Approximately 1 standard drink" |
+| Drink sheet, VoiceOver, UK | "Approximately 1 units" | "Approximately 1 unit" |
+
+The UK row was wrong at *every* count, not just at one: that label appended a
+literal "s" to the singular noun, so it always said "units" — including when the
+count was one.
+
+**One wording change, in a VoiceOver label only.** The calendar cell spoke a
+hardcoded "standard drinks" regardless of region, so a UK user heard "standard
+drinks" while the screen beside it said "units". The cell now names the region's
+own unit. Nothing sighted users read changed; this is the spoken label agreeing
+with the visible one.
+
+**Reviewed against 1.4.3.** Nothing here celebrates, judges, or congratulates. No
+exclamation marks were introduced. The words are the same words — "1 standard
+drink" is the same register as "1 standard drinks", only correct. No new claim is
+made about the user's drinking, and no number changed: only the noun agreeing
+with it.

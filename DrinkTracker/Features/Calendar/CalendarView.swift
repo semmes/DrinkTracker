@@ -378,7 +378,8 @@ struct CalendarView: View {
             day: day,
             side: side,
             isToday: calendar.isDateInToday(day.date),
-            isSelected: highlightedDates.contains(day.date)
+            isSelected: highlightedDates.contains(day.date),
+            region: settings.effectiveRegion
           )
           .onTapGesture {
             guard day.date <= Date() else { return }

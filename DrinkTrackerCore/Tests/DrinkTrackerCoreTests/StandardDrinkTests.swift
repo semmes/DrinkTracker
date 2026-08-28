@@ -73,6 +73,42 @@ struct StandardDrinkTests {
     #expect(StandardDrink.liveEstimate(2.5) == "≈ 2.5 standard drinks")
     #expect(StandardDrink.liveEstimate(1.0, region: .unitedKingdom) == "≈ 1 unit")
   }
+
+  /// The noun agrees with the digits on screen, not with the value behind them.
+  ///
+  /// `formatted` rounds to one decimal, so 1.02 displays as "1" and has to take
+  /// the singular. Call sites that decided on the raw value produced "1 standard
+  /// drinks" for the most common logged day there is — one drink at the default
+  /// size.
+  @Test("A count that displays as 1 takes the singular, however it rounded")
+  func singularFollowsTheDisplayedDigits() {
+    #expect(StandardDrink.readsAsOne(1.0))
+    #expect(StandardDrink.readsAsOne(1.02))
+    #expect(StandardDrink.readsAsOne(0.96))
+    #expect(!StandardDrink.readsAsOne(1.06))
+    #expect(!StandardDrink.readsAsOne(0.9))
+
+    #expect(StandardDrink.amountPhrase(1.02) == "1 standard drink")
+    #expect(StandardDrink.liveEstimate(1.02) == "≈ 1 standard drink")
+  }
+
+  @Test("The amount phrase names the region's unit and agrees with the count")
+  func amountPhraseIsRegionalAndPlural() {
+    #expect(StandardDrink.amountPhrase(1.0) == "1 standard drink")
+    #expect(StandardDrink.amountPhrase(2.6) == "2.6 standard drinks")
+    #expect(StandardDrink.amountPhrase(0) == "0 standard drinks")
+    #expect(StandardDrink.amountPhrase(1.0, region: .unitedKingdom) == "1 unit")
+    #expect(StandardDrink.amountPhrase(4.5, region: .unitedKingdom) == "4.5 units")
+    #expect(StandardDrink.amountPhrase(2.0, region: .australia) == "2 standard drinks")
+  }
+
+  /// Spoken, so the symbol becomes a word. VoiceOver has no reading for "≈".
+  @Test("The spoken estimate says the word instead of the symbol")
+  func accessibleEstimateSpellsItOut() {
+    #expect(StandardDrink.accessibleEstimate(1.0) == "Approximately 1 standard drink")
+    #expect(StandardDrink.accessibleEstimate(2.6) == "Approximately 2.6 standard drinks")
+    #expect(StandardDrink.accessibleEstimate(1.0, region: .unitedKingdom) == "Approximately 1 unit")
+  }
 }
 
 @Suite("Per-type defaults")
@@ -770,8 +806,10 @@ struct PackageLocalizationTests {
     // rendered example. That form is what `String.LocalizationValue` builds:
     // plain `%@` in source order, never positional.
     for key in ["%@, %@oz, %@%% ABV", "From Apple Health, 1 drink",
-                "From Apple Health, %@ drinks", "≈ %@ standard drink",
-                "≈ %@ standard drinks", "≈ %@ unit", "≈ %@ units",
+                "From Apple Health, %@ drinks", "%@ standard drink",
+                "%@ standard drinks", "%@ unit", "%@ units",
+                "Approximately %@ standard drink", "Approximately %@ standard drinks",
+                "Approximately %@ unit", "Approximately %@ units",
                 "No alcohol recorded", "Imported drink"] {
       #expect(keys.contains(key), "missing key: \(key)")
     }

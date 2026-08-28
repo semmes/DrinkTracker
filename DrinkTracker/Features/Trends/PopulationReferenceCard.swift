@@ -111,8 +111,22 @@ struct PopulationReferenceCard: View {
   // translated sentence also needs to be free to reorder the interpolations.
   private func averageLine(_ units: Double) -> LocalizedStringKey {
     guard units > 0 else { return "No drinks in the last 4 weeks." }
-    let region = settings.effectiveRegion
-    return "Your average is about \(StandardDrink.formatted(units)) \(region.unitName(for: units)) a week."
+    let value = StandardDrink.formatted(units)
+    // One key per region and number. Handed in as a placeholder the noun's form
+    // was already frozen by English's count == 1 rule before the catalog was
+    // consulted — and frozen from the unrounded value, so an average of 1.02
+    // read "about 1 standard drinks a week".
+    let isSingular = StandardDrink.readsAsOne(units)
+    switch settings.effectiveRegion {
+    case .unitedStates, .australia:
+      return isSingular
+        ? "Your average is about \(value) standard drink a week."
+        : "Your average is about \(value) standard drinks a week."
+    case .unitedKingdom:
+      return isSingular
+        ? "Your average is about \(value) unit a week."
+        : "Your average is about \(value) units a week."
+    }
   }
 
   private func comparisonLine(_ comparison: PopulationReference.Comparison) -> LocalizedStringKey {

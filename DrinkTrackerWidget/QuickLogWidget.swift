@@ -93,12 +93,21 @@ struct QuickLogWidgetView: View {
 
   @Environment(\.widgetFamily) private var family
 
-  private var countLabel: String {
+  private var countLabel: LocalizedStringKey {
     entry.drinkCount == 1 ? "drink today" : "drinks today"
   }
 
   private var standardDrinksCaption: String {
-    "≈ \(StandardDrink.formatted(entry.total)) \(entry.region.unitName(for: entry.total))"
+    StandardDrink.liveEstimate(entry.total, region: entry.region)
+  }
+
+  /// A whole key per branch, carrying the count itself, so a catalog can hold
+  /// real plural variations. Glued together from `countLabel` this extracted as
+  /// "%lld %@" — a key with nothing in it for a translator to act on.
+  private var accessibilityCountLabel: LocalizedStringKey {
+    entry.drinkCount == 1
+      ? "\(entry.drinkCount) drink today"
+      : "\(entry.drinkCount) drinks today"
   }
 
   var body: some View {
@@ -114,7 +123,7 @@ struct QuickLogWidgetView: View {
           .lineLimit(1)
           .minimumScaleFactor(0.8)
         if entry.total > 0 && family != .systemSmall {
-          Text(standardDrinksCaption)
+          Text(verbatim: standardDrinksCaption)
             .font(.caption2)
             .foregroundStyle(.tertiary)
             .lineLimit(1)
@@ -122,7 +131,7 @@ struct QuickLogWidgetView: View {
         }
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel("\(entry.drinkCount) \(countLabel)")
+      .accessibilityLabel(accessibilityCountLabel)
 
       Spacer(minLength: 0)
 

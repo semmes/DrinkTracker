@@ -100,7 +100,7 @@ struct DayLogSheet: View {
 
       // The precise figure, one line down — same demotion as Today's counter.
       if total > 0 {
-        Text("≈ \(StandardDrink.formatted(total)) \(settings.effectiveRegion.unitName(for: total))")
+        Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
           .foregroundStyle(.secondary)
       }

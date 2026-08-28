@@ -141,9 +141,9 @@ point. Simulator gotcha: App Shortcut **tiles** can't run in the simulator
 (linkd "Couldn't find AppShortcutsProvider"); add the action to a manual
 shortcut to test, and treat real phrase invocation as tier 4. User-side when 1.1 clears: create the 1.2 version in ASC,
 paste the listing material, pick a green main build from Xcode Cloud,
-submit. Still pending separately: one Xcode GUI build that actually
-populates `Localizable.xcstrings` (the user's 2026-08-27 build didn't),
-then localization prep steps 2–4.
+submit. The long-pending catalog population is **done** — and did not need
+a GUI build after all (see the localization bullet). The only thing a GUI
+build still adds is Xcode's auto-generated translator comments on new keys.
 
 Open items for v1.2:
 
@@ -158,17 +158,31 @@ Open items for v1.2:
   Known wrinkle recorded in the ADR: adopting then *editing* can leave the
   foreign sample plus ours in Health; fix waits for a real report.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
-  translation still deferred, but **all four prep steps are done** (2026-08-28):
-  catalogs extracted, ~30 display helpers moved to `LocalizedStringKey` (Siri
-  dialogs to `LocalizedStringResource`), and ADR-0020 — the core package owns
-  its display names via `Bundle.module`, and the CSV localizes values but never
-  headers. Extraction sees 206 keys, up from 109. Two rules worth keeping:
-  `Text(String)` is the *verbatim* initializer, so a String-returning helper is
-  invisible to the extractor; and don't create a key made only of `%@` and
-  punctuation — compose already-translated parts verbatim instead. Remaining
-  before a second language: plural variations filled in per language (Xcode
-  catalog editor, at translation time), and a few strings still blocked by
-  ComponentsKit properties that demand `String` (`ButtonVM.title`).
+  translation still deferred, but **prep is finished and the catalogs are
+  populated** (2026-08-28): **284 keys** across four catalogs — 221 app, 33
+  widget, 26 core, 4 in a new `AppShortcuts.xcstrings`. Extraction and the
+  committed catalogs agree exactly. See `docs/localization-status.md`.
+  **How to populate them, because this repeatedly looked like "my build did
+  nothing":** a command-line build does *not* write back into `.xcstrings` —
+  it emits `.stringsdata` and stops; write-back is Xcode-GUI behaviour. Use
+  `xcrun xcstringstool sync <Catalog>.xcstrings --stringsdata …` instead. Two
+  traps: the **filename picks the string table** (syncing `app.xcstrings` looks
+  for an `app` table, finds none, and empties the file), and an incremental
+  build re-extracts only what recompiled, so force a full rebuild first or sync
+  prunes everything that did not.
+  Four rules worth keeping: `Text(String)` is the *verbatim* initializer, so a
+  String-returning helper is invisible to the extractor; don't create a key made
+  only of `%@` and punctuation; **positional specifiers belong in a
+  localization's value, never in a key** (a positional key is never looked up —
+  it fails silently because the fallback is the English key itself); and pick
+  singular/plural from the **displayed** digits, not the raw value
+  (`StandardDrink.readsAsOne`) — several labels read "1 standard drinks".
+  Remaining before a second language: plural variations per language (Xcode
+  catalog editor, at translation time); counts that are fractional reach the
+  catalog as `%@` and cannot take variations at all; `RecentSummaryCard` splits
+  counts from nouns; a few strings blocked by ComponentsKit properties that
+  demand `String` (`ButtonVM.title`); and **a decision on the privacy policy**,
+  which is now extractable and whose claims must stay checkable.
 - **Two checkouts exist on this Mac** and they drift: this one, and
   `/Users/shawnsemmes/DrinkTracker`, which is where the user's Xcode builds
   from (that is where a build's `Localizable.xcstrings` changes land). Check

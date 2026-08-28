@@ -127,7 +127,7 @@ struct PrivacyPolicyView: View {
     .navigationBarTitleDisplayMode(.inline)
   }
 
-  private func policySection(_ title: String, _ text: String) -> some View {
+  private func policySection(_ title: LocalizedStringKey, _ text: LocalizedStringKey) -> some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
       SectionLabel(title)
       Text(text)

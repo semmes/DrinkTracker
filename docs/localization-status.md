@@ -15,6 +15,12 @@ done from a machine without it, which is why the files are committed empty.
 appending `"s"` to `Region.unitName`. `Region` now declares `unitNamePlural` and
 `unitName(for:)`, and everything routes through those.
 
+That claim was false until 2026-08-28: a seventh site, the VoiceOver label on the
+drink sheet's live estimate, still appended a literal `"s"` outside the
+interpolation — welding English morphology onto a noun the package had already
+translated. It is fixed, and the lesson is that "everything routes through those"
+is a claim worth re-checking mechanically rather than asserting.
+
 That is not localization. Appending `"s"` is an English rule applied by string
 surgery, and it fails on an irregular noun and fails completely in languages with
 more than the two plural categories English has. Centralising it means a catalog has
@@ -48,37 +54,97 @@ move to the app layer or the package gains its own resources.
 
 ## Progress (2026-08-28)
 
-**Step 1 is done.** An Xcode build extracted the 1.2-era strings: the app
-catalog went 82 → 109 keys, the widget's 16 → 25. What did *not* extract is
-the map for steps 2 and 3 — anything assembled by a String-returning helper,
-because `Text(String)` is the verbatim initializer rather than the
-localizable one.
+**Steps 1–4 are done, and the catalogs are populated.** Four catalogs now carry
+**284 keys**: 221 in the app, 33 in the widget, 26 in the core package, and 4 in a
+new `AppShortcuts.xcstrings`. Extraction and the committed catalogs agree exactly
+— zero missing, zero stale, verified key-set against key-set.
 
-**Step 4 is decided and done** — the package owns its display names and
-localizes them against `Bundle.module`
-([ADR-0020](decisions/0020-the-core-package-owns-its-display-names.md)),
-which also settles how the CSV export behaves: headers stay English, row
-values localize.
+**How the catalogs get populated, since this cost a lot of confusion.** A build
+from the command line does *not* write extracted strings back into `.xcstrings`.
+It emits `.stringsdata` and stops; the write-back is an Xcode GUI behaviour. That
+is why several "I built and nothing happened" sessions were not doing anything
+wrong. The step is reproducible without the GUI:
 
-**Steps 2 and 3 are done.** Roughly thirty display helpers moved from
-`String` to `LocalizedStringKey` (and the Siri dialogs to
-`LocalizedStringResource`), so their sentences reach the catalog with
-positional placeholders instead of frozen English word order. Extraction now
-sees **206 keys app-wide**, up from 109. Count-bearing sentences are whole
-keys per branch, which is what lets a catalog carry real plural variations
-per language; the `count == 1` ternaries that remain choose between two
-*source* phrases and are documented once, on `Region.unitName(for:)`.
+```
+xcrun xcstringstool sync <Catalog>.xcstrings --stringsdata <every .stringsdata for that target>
+```
 
-A few keys are deliberately *not* created: values already localized by the
-package, formatted dates, and accessibility labels assembled entirely from
-translated parts. A key made only of `%@` and commas gives a translator
-nothing to translate, so those compose verbatim instead.
+Two traps in that command. The **filename picks the string table** — syncing a
+file named `app.xcstrings` looks for a table called `app`, finds none, and empties
+the catalog. And an incremental build re-extracts only what it recompiled, so
+force a full rebuild first or the sync will prune every key whose file did not
+compile.
 
-**What remains before a second language is added:** the catalog entries for
-count-bearing keys need plural variations filled in per language (an Xcode
-catalog-editor task, done at translation time), and a handful of strings are
-still unreachable because they pass through ComponentsKit model properties
-that demand `String` — `ButtonVM.title` is the main one.
+**Step 4 is decided and done** — the package owns its display names and localizes
+them against `Bundle.module`
+([ADR-0020](decisions/0020-the-core-package-owns-its-display-names.md)), which
+also settles the CSV export: headers stay English, row values localize.
+
+**Steps 2 and 3 are done.** Roughly thirty display helpers moved from `String` to
+`LocalizedStringKey` (and the Siri dialogs to `LocalizedStringResource`).
+
+**A silent lookup failure was found and fixed.** The core catalog filed the drink
+summary line under `%1$@, %2$@oz, %3$@%% ABV`. `String.LocalizationValue` builds
+its key with plain `%@` in source order, so the lookup was for a different string,
+missed, and fell back to the key itself — which *is* the interpolated English, so
+nothing looked wrong and a translation would simply never have appeared.
+**Positional specifiers belong in a localization's value, never in a key.** A test
+now rejects any key containing one.
+
+**Eight further defects were found by audit and fixed**, all of the same family —
+a sentence assembled at the call site instead of being one key:
+
+| Site | Was | Now |
+|---|---|---|
+| `SectionLabel` | `let text: String` → `Text(text)`, the verbatim initializer | takes `LocalizedStringKey`; recovers ten headings and a singular/plural pair |
+| `QuickLogWidget` | `countLabel: String`, so the widget's own caption reached no catalog | `LocalizedStringKey`; accessibility label is a whole key per branch |
+| `TodayView`, `DayLogSheet` | hand-rolled `"≈ %@ %@"`, a placeholder-only key | `StandardDrink.liveEstimate` |
+| `IntensityCell` | `"%@, %@"`; no singular branch; hardcoded English unit | region-aware `amountPhrase`; non-today branch composes verbatim |
+| `DrinkDetailSheet` | `unitName` + literal `"s"` | `StandardDrink.accessibleEstimate` |
+| `PopulationReferenceCard` | noun injected as a bare placeholder | one whole key per region and number |
+| `SessionPaceCard` | singular chosen on `count == 1` exactly | chosen on the digits actually displayed |
+
+**The rounding rule that kept recurring.** Several of those picked the noun's form
+from the raw value while showing a rounded one, so 1.02 drinks read "1 standard
+drinks" — and one standard drink at the default size is the most common logged day
+there is. `StandardDrink.readsAsOne` is now the single definition of that rule.
+
+## What is still not done
+
+**No translations.** Source language is English and there is exactly one language.
+
+**Plural variations are not filled in.** Count-bearing sentences are whole keys per
+branch, which is what lets a catalog carry real variations — but the variations
+themselves are a per-language job in Xcode's catalog editor, done at translation
+time.
+
+**Some counts cannot take plural variations at all.** Where the count is
+fractional it reaches the catalog as `%@`, and a plural rule cannot select a
+category from a string — a `stringsdict` rule fed a string renders `(null)`.
+`SessionPaceCard` documents this at the call site. It is a real limit, not an
+oversight: `StandardDrink.formatted` renders a variable number of decimals and no
+numeric specifier reproduces that.
+
+**`RecentSummaryCard` splits counts from their nouns.** "3" and "days with drinks"
+are separate views, so the four labels carry no count and can take no variation.
+Fixing it means restructuring the card, which changes visible copy — a decision,
+not an edit.
+
+**A few strings are still unreachable**, held behind ComponentsKit model
+properties that demand `String`; `ButtonVM.title` is the main one.
+
+**The privacy policy is now extractable, which is a decision to make before
+translating.** Typing `SectionLabel` as a key required `policySection` to follow,
+so the policy's headings and body paragraphs are now catalog keys. Nothing forces
+them to be translated — a catalog can mark a string as not for translation — but
+the claims in that text are written to be checkable against the entitlements and
+the App Store privacy labels, and a mistranslation would misstate them. Decide
+deliberately, and keep `docs/privacy-policy.md` in step.
+
+**Auto-generated comments are missing on new keys.** Xcode writes translator
+comments using an on-device model when *it* populates a catalog; `xcstringstool
+sync` does not. The 81 existing comments were preserved. A GUI build will fill in
+the rest, and that is the one thing the GUI still adds.
 
 ## The order to do it in
 
