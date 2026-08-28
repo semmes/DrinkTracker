@@ -435,3 +435,26 @@ untouched and still read as before.
 **Reviewed against 1.4.3.** No word was added or removed anywhere here, nothing
 celebrates or grades, and no exclamation marks were introduced. A caption naming
 what a number counts is as factual after the change as before it.
+
+---
+
+## Addendum (2026-08-28): the privacy policy stays in English
+
+**One word of copy changed: a date.** "Last updated August 27, 2026." became
+"Last updated August 28, 2026." in both copies, per the rule that the two move
+together.
+
+The substantive change is to the hosted copy only, and it makes a sentence true
+rather than changing what the policy claims. It used to read "The same text ships
+inside the app." It now names the hosted page the authoritative version and says
+the in-app copy stays English even where the interface is translated, and why —
+so that what it claims can be checked against the privacy manifest and
+entitlements.
+
+That is a factual statement about how the document is maintained, in the same
+register as the rest of it: no reassurance, no promise beyond what can be
+verified. See [ADR-0021](decisions/0021-the-privacy-policy-stays-in-english.md).
+
+**Nothing was added telling the reader the policy is in English.** There is no
+second language yet, so the line would currently describe nothing. It belongs with
+the first translation, and the ADR says so.
