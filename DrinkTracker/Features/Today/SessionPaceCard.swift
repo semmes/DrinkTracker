@@ -83,11 +83,15 @@ struct SessionPaceCard: View {
   }
 
   /// Both branches are whole keys carrying the count, so a translation can
-  /// reorder them. The count still arrives as a string, because the session
-  /// total is fractional when Apple Health contributed to it and no numeric
-  /// specifier preserves `formatted`'s variable decimals — so a catalog can hold
-  /// these two source phrases but not per-language plural variations on top of
-  /// them. Same limit `Region.unitName(for:)` documents, for the same reason.
+  /// reorder them. The count arrives as a string, so a catalog can hold these two
+  /// source phrases but not per-language plural variations on top of them — a
+  /// plural rule cannot select a category from a `%@`.
+  ///
+  /// That is deferred, not permanent: `\(value, specifier: "%g")` emits a numeric
+  /// specifier and renders the same digits, given the same pre-rounding
+  /// `StandardDrink.formatted` does. Worth doing when a language is actually
+  /// chosen, since it cannot be verified before then; the recipe is in
+  /// docs/localization-status.md.
   private func sessionLine(_ count: Double) -> LocalizedStringKey {
     let value = StandardDrink.formatted(count)
     return StandardDrink.readsAsOne(count)

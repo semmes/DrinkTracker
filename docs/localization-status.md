@@ -118,12 +118,38 @@ branch, which is what lets a catalog carry real variations — but the variation
 themselves are a per-language job in Xcode's catalog editor, done at translation
 time.
 
-**Some counts cannot take plural variations at all.** Where the count is
-fractional it reaches the catalog as `%@`, and a plural rule cannot select a
-category from a string — a `stringsdict` rule fed a string renders `(null)`.
-`SessionPaceCard` documents this at the call site. It is a real limit, not an
-oversight: `StandardDrink.formatted` renders a variable number of decimals and no
-numeric specifier reproduces that.
+**Fractional counts do not take plural variations yet — but they can.** Where the
+count is fractional it currently reaches the catalog as `%@`, and a plural rule
+cannot select a category from a string: a `stringsdict` rule fed one renders
+`(null)`. That much is real.
+
+The last clause of this paragraph used to say no numeric specifier could
+reproduce `StandardDrink.formatted`'s variable decimals. That was wrong, and the
+recipe is written down here so translation-time work starts from the answer
+rather than re-deriving it. Asking the compiler what each shape emits:
+
+| Interpolation | Specifier | Drives a plural rule? |
+|---|---|---|
+| `\(StandardDrink.formatted(c))` — a `String`, today's shape | `%@` | no |
+| `\(c)` — the raw `Double` | `%lf` | yes, but renders `2.500000` |
+| `\(c, format: .number.precision(.fractionLength(0...1)))` | `%@` | **no** — the intuitive fix does not work |
+| `\(c, specifier: "%g")` | `%g` | **yes** |
+
+`%g` drops trailing zeros, so on a value pre-rounded the way `formatted` rounds it
+— `(c * 10).rounded() / 10` — it renders exactly what `formatted` renders: 1, 2.5,
+2.4 from 2.44, 1.3 from 1.3333. Verified against the current output across that
+range. `specifier:` compiles on `String.LocalizationValue` as well as
+`LocalizedStringKey`, so the package helpers are not shut out of it.
+
+Two things to check when doing it, neither of which blocks: `%g` resolved through
+`String(format:locale:)` follows the locale's decimal separator, so a German build
+would read "2,5" where today it always reads "2.5" — a fix, but a visible one; and
+the pre-rounding must stay, since raw `%g` on 1.3333 renders "1.3333".
+
+**Do this at translation time, not before.** The change only pays off once a
+language with more than two plural categories exists, it cannot be verified
+without one, and it moves display formatting — which is where this project's last
+run of bugs lived.
 
 **`RecentSummaryCard` splits counts from their nouns.** "3" and "days with drinks"
 are separate views, so the four labels carry no count and can take no variation.
