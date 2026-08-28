@@ -151,10 +151,29 @@ language with more than two plural categories exists, it cannot be verified
 without one, and it moves display formatting — which is where this project's last
 run of bugs lived.
 
-**`RecentSummaryCard` splits counts from their nouns.** "3" and "days with drinks"
-are separate views, so the four labels carry no count and can take no variation.
-Fixing it means restructuring the card, which changes visible copy — a decision,
-not an edit.
+**`RecentSummaryCard`'s captions carry no count, and that is now a decision
+rather than an oversight** (2026-08-28). "3" and "days with drinks" are separate
+views, so a caption cannot hold plural variations — a key can only take them if
+the count is inside it. Putting it there would print the number twice, directly
+under the 40-point one; taking it out of the caption would dismantle the
+four-figure layout ADR-0006 exists to protect. A caption under a number is doing
+different work from a sentence: the number carries the meaning and the caption
+names it, so a translator into a language with more than two forms picks the one
+that reads best. Documented at the call site, the way `Region.unitName(for:)`
+documents its own limit.
+
+Where that trade is *not* accepted is spoken. VoiceOver fuses each number into its
+caption, leaving no adjacency to carry the meaning, so the two whole-number
+figures now pass a single key holding the count — fully pluralisable. The two
+fractional figures deliberately do not: their value reaches the catalog as `%@`,
+so a separate key would be no more pluralisable than the caption and would add a
+string to translate for nothing.
+
+The same pass fixed a live English bug the card had carried: the totals caption
+was `"\(region.unitNamePlural) total"`, always plural, so a total of exactly one
+read "1 standard drinks total". It is four whole phrases per region and number
+now. The two day figures had always agreed with their numbers; this one had
+simply never been made to follow.
 
 **A few strings are still unreachable**, held behind ComponentsKit model
 properties that demand `String`; `ButtonVM.title` is the main one.

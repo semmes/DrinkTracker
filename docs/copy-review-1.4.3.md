@@ -406,3 +406,32 @@ exclamation marks were introduced. The words are the same words — "1 standard
 drink" is the same register as "1 standard drinks", only correct. No new claim is
 made about the user's drinking, and no number changed: only the noun agreeing
 with it.
+
+---
+
+## Addendum (2026-08-28): the last-30-days card
+
+**One agreement fix.** The card's totals caption was built as
+`"\(region.unitNamePlural) total"` — always plural — so a total of exactly one
+standard drink read "1 standard drinks total". It now agrees with its number, the
+way the two day-count captions beside it always have. Observed on screen at a
+total of 1: "1 / standard drink total".
+
+| Surface | Was | Now |
+|---|---|---|
+| Last 30 days, totals caption | "1 standard drinks total" | "1 standard drink total" |
+| Same, UK units | "1 units total" | "1 unit total" |
+
+No wording changed. The caption is the same phrase with the noun in the form the
+number calls for.
+
+**One spoken change, no visible one.** VoiceOver reads each figure as a single
+phrase, and it used to assemble that phrase from the two views — number, pause,
+caption. The two whole-number figures now supply the sentence directly, so the
+pause between the number and its caption goes away: "1 day with drinks" rather
+than "1, day with drinks". The words are identical. The two fractional figures are
+untouched and still read as before.
+
+**Reviewed against 1.4.3.** No word was added or removed anywhere here, nothing
+celebrates or grades, and no exclamation marks were introduced. A caption naming
+what a number counts is as factual after the change as before it.
