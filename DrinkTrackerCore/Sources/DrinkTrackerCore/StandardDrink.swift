@@ -49,8 +49,23 @@ extension StandardDrink {
   }
 
   /// The live "≈ N standard drink(s)" line in the drink-detail sheet.
+  ///
+  /// One key per region and number, rather than a number glued to a noun: the
+  /// unit's name varies by region, its form varies by count, and word order
+  /// varies by language — only a whole-phrase key can carry all three.
   public static func liveEstimate(_ count: Double, region: Region = .unitedStates) -> String {
     let rounded = (count * 10).rounded() / 10
-    return "≈ \(formatted(count)) \(region.unitName(for: rounded))"
+    let value = formatted(count)
+    let isSingular = rounded == 1
+    switch region {
+    case .unitedStates, .australia:
+      return isSingular
+        ? localized("≈ \(value) standard drink", comment: "Live estimate, exactly one standard drink")
+        : localized("≈ \(value) standard drinks", comment: "Live estimate; argument may be fractional")
+    case .unitedKingdom:
+      return isSingular
+        ? localized("≈ \(value) unit", comment: "Live estimate, exactly one UK unit")
+        : localized("≈ \(value) units", comment: "Live estimate; argument may be fractional")
+    }
   }
 }

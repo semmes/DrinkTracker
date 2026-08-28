@@ -133,14 +133,22 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
   }
 
   /// The "last logged" line under the Today metric, e.g. "Beer, 12oz, 5% ABV".
+  /// Whole sentences, not assembled fragments: each is one catalog key with
+  /// its arguments in place, so a translation can reorder them (ADR-0020).
+  /// Building this by interpolation would have frozen English word order into
+  /// every surface that shows a drink — the row, the export, and the line
+  /// Siri speaks.
   public var summaryLine: String {
     if let countedDrinks {
       let count = Self.format(countedDrinks)
       return countedDrinks == 1
-        ? "From Apple Health, 1 drink"
-        : "From Apple Health, \(count) drinks"
+        ? localized("From Apple Health, 1 drink", comment: "A drink imported from Apple Health, singular")
+        : localized("From Apple Health, \(count) drinks", comment: "A drink imported from Apple Health; argument is a count, which may be fractional")
     }
-    return "\(type.displayName), \(Self.format(volumeOunces))oz, \(Self.format(abvPercent))% ABV"
+    return localized(
+      "\(type.displayName), \(Self.format(volumeOunces))oz, \(Self.format(abvPercent))% ABV",
+      comment: "One logged drink: type, size in fluid ounces, strength as a percentage"
+    )
   }
 
   static func format(_ value: Double) -> String {

@@ -1,0 +1,94 @@
+{
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "Beer": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Wine": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Spirit": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Other": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "United States": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "United Kingdom": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Australia": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "US": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "UK": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "standard drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "unit": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "standard drinks": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "units": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "From Apple Health, 1 drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "From Apple Health, %@ drinks": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "%1$@, %2$@oz, %3$@%% ABV": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "≈ %@ standard drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "≈ %@ standard drinks": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "≈ %@ unit": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "≈ %@ units": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "No alcohol recorded": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Imported drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    }
+  }
+}

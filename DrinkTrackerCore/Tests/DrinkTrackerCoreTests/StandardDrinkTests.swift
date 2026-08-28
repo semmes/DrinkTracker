@@ -722,3 +722,66 @@ struct IntentDraftTests {
     #expect(infinite.abvPercent == DrinkType.beer.defaultABVPercent)
   }
 }
+
+/// ADR-0020: the package owns the names the user reads, resolved through
+/// `Bundle.module`. These pin the parts a silent regression would break.
+@Suite("Package localization")
+struct PackageLocalizationTests {
+
+  @Test("The resource bundle exists and carries the string catalog")
+  func bundleCarriesTheCatalog() throws {
+    // Bundle.module traps if the bundle is missing, so reaching this line is
+    // itself the assertion that resource processing is still wired up.
+    let bundle = Bundle.module
+    #expect(bundle.bundleURL.lastPathComponent.contains("DrinkTrackerCore"))
+
+    // SwiftPM copies the catalog verbatim (Xcode compiles it to .lproj, which
+    // is what ships). Either way the file has to be in the bundle: if this
+    // resource vanishes, every display name silently becomes its own key.
+    let catalog = bundle.url(forResource: "Localizable", withExtension: "xcstrings")
+    let compiled = bundle.url(forResource: "Localizable", withExtension: "strings")
+    #expect(catalog != nil || compiled != nil, "the package's string catalog is not in the bundle")
+  }
+
+  /// Every key the code asks for must exist in the catalog. A lookup with no
+  /// entry still *works* — it falls back to the key — so nothing fails until
+  /// a translator finds half the app missing from their file.
+  @Test("Every display string the code produces is a key in the catalog")
+  func catalogCoversTheDisplayStrings() throws {
+    let url = try #require(
+      Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
+      "no catalog to check (Xcode-compiled bundles are covered by the test above)"
+    )
+    let data = try Data(contentsOf: url)
+    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let keys = Set((json["strings"] as? [String: Any] ?? [:]).keys)
+
+    // Plain names, exactly as written.
+    for type in DrinkType.allCases {
+      #expect(keys.contains(type.displayName), "missing drink type: \(type.displayName)")
+    }
+    for region in Region.allCases {
+      #expect(keys.contains(region.displayName), "missing region: \(region.displayName)")
+      #expect(keys.contains(region.shortName), "missing short name: \(region.shortName)")
+      #expect(keys.contains(region.unitName), "missing unit: \(region.unitName)")
+      #expect(keys.contains(region.unitNamePlural), "missing plural unit: \(region.unitNamePlural)")
+    }
+    // Argument-bearing keys carry positional specifiers, so they are checked
+    // by their catalog form rather than by a rendered example.
+    for key in ["%1$@, %2$@oz, %3$@%% ABV", "From Apple Health, 1 drink",
+                "From Apple Health, %@ drinks", "≈ %@ standard drink",
+                "≈ %@ standard drinks", "≈ %@ unit", "≈ %@ units",
+                "No alcohol recorded", "Imported drink"] {
+      #expect(keys.contains(key), "missing key: \(key)")
+    }
+  }
+
+  @Test("The export's header never localizes, whatever the values do")
+  func exportHeaderStaysMachineReadable() {
+    // ADR-0015 pinned the column layout as a contract; ADR-0020 localizes the
+    // values only. This is that split, asserted.
+    #expect(LogExport.header == "date,time,entry,volume_oz,abv_percent,standard_drinks,unit,source")
+    #expect(LogExport.appName == "Tallyist")
+    #expect(LogExport.healthName == "Apple Health")
+  }
+}

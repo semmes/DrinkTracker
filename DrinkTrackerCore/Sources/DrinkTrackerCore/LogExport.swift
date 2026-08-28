@@ -20,6 +20,11 @@ import Foundation
 /// and ABV ride along so the math can be rechecked from the physical facts.
 public enum LogExport {
 
+  /// **Never localized.** The header is the machine-readable half of the file
+  /// — the contract ADR-0015 pinned — so a spreadsheet or script keyed on
+  /// `standard_drinks` keeps working whatever language the app is in. The row
+  /// *values* do localize, because the file's audience is people (ADR-0020
+  /// amends ADR-0015 with exactly this split).
   public static let header = "date,time,entry,volume_oz,abv_percent,standard_drinks,unit,source"
 
   /// The whole log, oldest first, as a CSV string.
@@ -44,8 +49,9 @@ public enum LogExport {
     }
     rows += alcoholFreeDays.map { day in
       let line = fields([
-        dayString(day, calendar: calendar), "", "No alcohol recorded",
-        "", "", "0", unit, "Tallyist",
+        dayString(day, calendar: calendar), "",
+        localized("No alcohol recorded", comment: "CSV entry column: a day the user recorded as having no alcohol"),
+        "", "", "0", unit, appName,
       ])
       return (day, line)
     }
@@ -70,14 +76,23 @@ public enum LogExport {
     return fields([
       dayString(drink.loggedAt, calendar: calendar),
       timeString(drink.loggedAt, calendar: calendar),
-      imported ? "Imported drink" : drink.type.displayName,
+      imported
+        ? localized("Imported drink", comment: "CSV entry column: a drink mirrored from another app's Health data")
+        : drink.type.displayName,
       imported ? "" : number(drink.volumeOunces),
       imported ? "" : number(drink.abvPercent),
       number(drink.standardDrinks(in: region)),
       unit,
-      imported ? "Apple Health" : "Tallyist",
+      imported ? healthName : appName,
     ])
   }
+
+  /// Product names, deliberately outside the localized set: "Tallyist" and
+  /// "Apple Health" are the same words in every language, and translating a
+  /// source column would make the file's provenance harder to read, not
+  /// easier.
+  static let appName = "Tallyist"
+  static let healthName = "Apple Health"
 
   // MARK: - Formatting
 
