@@ -766,13 +766,27 @@ struct PackageLocalizationTests {
       #expect(keys.contains(region.unitName), "missing unit: \(region.unitName)")
       #expect(keys.contains(region.unitNamePlural), "missing plural unit: \(region.unitNamePlural)")
     }
-    // Argument-bearing keys carry positional specifiers, so they are checked
-    // by their catalog form rather than by a rendered example.
-    for key in ["%1$@, %2$@oz, %3$@%% ABV", "From Apple Health, 1 drink",
+    // Argument-bearing keys are checked by their catalog form rather than by a
+    // rendered example. That form is what `String.LocalizationValue` builds:
+    // plain `%@` in source order, never positional.
+    for key in ["%@, %@oz, %@%% ABV", "From Apple Health, 1 drink",
                 "From Apple Health, %@ drinks", "≈ %@ standard drink",
                 "≈ %@ standard drinks", "≈ %@ unit", "≈ %@ units",
                 "No alcohol recorded", "Imported drink"] {
       #expect(keys.contains(key), "missing key: \(key)")
+    }
+
+    // A positional specifier in a *key* is a silent localization failure, and
+    // the reason this assertion exists: the ABV line was once filed under
+    // "%1$@, %2$@oz, %3$@%% ABV", which no lookup ever asks for. English still
+    // rendered — the fallback is the key itself, interpolated — so nothing
+    // looked wrong until a translation simply failed to appear. Positional
+    // specifiers belong in a localization's value, never in the key.
+    for key in keys {
+      #expect(
+        key.range(of: "%[0-9]+\\$", options: .regularExpression) == nil,
+        "key carries a positional specifier and can never be looked up: \(key)"
+      )
     }
   }
 

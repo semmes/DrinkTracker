@@ -62,9 +62,16 @@
       "extractionState": "manual",
       "localizations": {}
     },
-    "%1$@, %2$@oz, %3$@%% ABV": {
+    "%@, %@oz, %@%% ABV": {
       "extractionState": "manual",
-      "localizations": {}
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@, %2$@oz, %3$@%% ABV"
+          }
+        }
+      }
     },
     "≈ %@ standard drink": {
       "extractionState": "manual",
