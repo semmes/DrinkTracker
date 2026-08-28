@@ -298,8 +298,12 @@ struct DrinkDetailSheet: View {
       .contentTransition(.numericText(value: currentCount))
       .animation(.snappy, value: currentCount)
       .frame(maxWidth: .infinity, alignment: .leading)
+      // Composed verbatim because the package already translated it. Built by
+      // hand this label appended a literal "s" to a localized noun, so a French
+      // build would have spoken the translated singular with an English plural
+      // welded on.
       .accessibilityLabel(
-        "Approximately \(StandardDrink.formatted(currentCount)) \(settings.effectiveRegion.unitName)s"
+        Text(verbatim: StandardDrink.accessibleEstimate(currentCount, region: settings.effectiveRegion))
       )
   }
 
@@ -349,9 +353,12 @@ struct DrinkDetailSheet: View {
 /// Shared by the drink sheet and the calendar's day sheet, so the two read as the
 /// same surface rather than two takes on one.
 struct SectionLabel: View {
-  let text: String
+  /// A key rather than a `String`: `Text(String)` is the verbatim initializer,
+  /// so typing this as `String` silenced every section heading in the app at
+  /// once — including a singular/plural pair in the bulk-fill sheet.
+  let text: LocalizedStringKey
 
-  init(_ text: String) { self.text = text }
+  init(_ text: LocalizedStringKey) { self.text = text }
 
   var body: some View {
     Text(text)

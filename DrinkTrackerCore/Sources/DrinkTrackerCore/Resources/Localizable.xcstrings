@@ -73,19 +73,35 @@
         }
       }
     },
-    "≈ %@ standard drink": {
+    "%@ standard drink": {
       "extractionState": "manual",
       "localizations": {}
     },
-    "≈ %@ standard drinks": {
+    "%@ standard drinks": {
       "extractionState": "manual",
       "localizations": {}
     },
-    "≈ %@ unit": {
+    "%@ unit": {
       "extractionState": "manual",
       "localizations": {}
     },
-    "≈ %@ units": {
+    "%@ units": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Approximately %@ standard drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Approximately %@ standard drinks": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Approximately %@ unit": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "Approximately %@ units": {
       "extractionState": "manual",
       "localizations": {}
     },

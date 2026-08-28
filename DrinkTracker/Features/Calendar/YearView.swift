@@ -135,6 +135,8 @@ private struct MiniMonth: View {
   let grid: MonthGrid
   let calendar: Calendar
 
+  @Environment(AppSettings.self) private var settings
+
   private let side: CGFloat = 11
   private let spacing: CGFloat = 2
 
@@ -152,7 +154,7 @@ private struct MiniMonth: View {
           Color.clear.frame(width: side, height: side)
         }
         ForEach(grid.days) { day in
-          IntensityCell(day: day, showsDayNumber: false, side: side)
+          IntensityCell(day: day, showsDayNumber: false, side: side, region: settings.effectiveRegion)
         }
       }
     }

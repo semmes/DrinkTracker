@@ -1,0 +1,63 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Log a ${drinkType} in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Log a ${drinkType} in ${applicationName}",
+              "Add a ${drinkType} in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Log a drink in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Log a drink in ${applicationName}",
+              "Log one drink in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Log drinks in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Log drinks in ${applicationName}",
+              "Log some drinks in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Record no alcohol in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Record no alcohol in ${applicationName}",
+              "Log no alcohol in ${applicationName}",
+              "Record no alcohol today in ${applicationName}"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

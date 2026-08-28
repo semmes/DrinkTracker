@@ -82,10 +82,17 @@ struct SessionPaceCard: View {
     return "Last drink \(formatter.localizedString(for: date, relativeTo: now))"
   }
 
+  /// Both branches are whole keys carrying the count, so a translation can
+  /// reorder them. The count still arrives as a string, because the session
+  /// total is fractional when Apple Health contributed to it and no numeric
+  /// specifier preserves `formatted`'s variable decimals — so a catalog can hold
+  /// these two source phrases but not per-language plural variations on top of
+  /// them. Same limit `Region.unitName(for:)` documents, for the same reason.
   private func sessionLine(_ count: Double) -> LocalizedStringKey {
-    count == 1
-      ? "1 drink this session"
-      : "\(StandardDrink.formatted(count)) drinks this session"
+    let value = StandardDrink.formatted(count)
+    return StandardDrink.readsAsOne(count)
+      ? "\(value) drink this session"
+      : "\(value) drinks this session"
   }
 
   private func rollingLine(_ count: Double) -> LocalizedStringKey {
