@@ -106,13 +106,16 @@ struct PopulationReferenceCard: View {
     }
   }
 
-  private func averageLine(_ units: Double) -> String {
+  // These return LocalizedStringKey rather than String so the sentences reach
+  // the string catalog: Text(someString) uses the verbatim initializer, and a
+  // translated sentence also needs to be free to reorder the interpolations.
+  private func averageLine(_ units: Double) -> LocalizedStringKey {
     guard units > 0 else { return "No drinks in the last 4 weeks." }
     let region = settings.effectiveRegion
     return "Your average is about \(StandardDrink.formatted(units)) \(region.unitName(for: units)) a week."
   }
 
-  private func comparisonLine(_ comparison: PopulationReference.Comparison) -> String {
+  private func comparisonLine(_ comparison: PopulationReference.Comparison) -> LocalizedStringKey {
     switch comparison {
     case .lowerThan(let percent):
       "That's lower than roughly \(percent)% of US adults who drink."

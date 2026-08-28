@@ -60,11 +60,25 @@ localizes them against `Bundle.module`
 which also settles how the CSV export behaves: headers stay English, row
 values localize.
 
-**Steps 2 and 3 remain**, and they are the same job seen twice: roughly
-thirty String-returning helpers across the app assemble sentences by
-interpolation, which freezes English word order and hides the strings from
-the catalog. Converting each to a whole-phrase key is step 2; giving the
-count-bearing ones real plural variations is step 3.
+**Steps 2 and 3 are done.** Roughly thirty display helpers moved from
+`String` to `LocalizedStringKey` (and the Siri dialogs to
+`LocalizedStringResource`), so their sentences reach the catalog with
+positional placeholders instead of frozen English word order. Extraction now
+sees **206 keys app-wide**, up from 109. Count-bearing sentences are whole
+keys per branch, which is what lets a catalog carry real plural variations
+per language; the `count == 1` ternaries that remain choose between two
+*source* phrases and are documented once, on `Region.unitName(for:)`.
+
+A few keys are deliberately *not* created: values already localized by the
+package, formatted dates, and accessibility labels assembled entirely from
+translated parts. A key made only of `%@` and commas gives a translator
+nothing to translate, so those compose verbatim instead.
+
+**What remains before a second language is added:** the catalog entries for
+count-bearing keys need plural variations filled in per language (an Xcode
+catalog-editor task, done at translation time), and a handful of strings are
+still unreachable because they pass through ComponentsKit model properties
+that demand `String` — `ButtonVM.title` is the main one.
 
 ## The order to do it in
 

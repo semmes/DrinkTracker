@@ -74,7 +74,7 @@ struct SessionPaceCard: View {
     .accessibilityElement(children: .combine)
   }
 
-  private func lastDrinkLine(_ date: Date, now: Date) -> String {
+  private func lastDrinkLine(_ date: Date, now: Date) -> LocalizedStringKey {
     let elapsed = now.timeIntervalSince(date)
     guard elapsed >= 60 else { return "Last drink just now" }
     let formatter = RelativeDateTimeFormatter()
@@ -82,13 +82,13 @@ struct SessionPaceCard: View {
     return "Last drink \(formatter.localizedString(for: date, relativeTo: now))"
   }
 
-  private func sessionLine(_ count: Double) -> String {
+  private func sessionLine(_ count: Double) -> LocalizedStringKey {
     count == 1
       ? "1 drink this session"
       : "\(StandardDrink.formatted(count)) drinks this session"
   }
 
-  private func rollingLine(_ count: Double) -> String {
+  private func rollingLine(_ count: Double) -> LocalizedStringKey {
     "\(StandardDrink.formatted(count)) in the last 2 hours"
   }
 }

@@ -76,14 +76,19 @@ struct IntensityCell: View {
 
   /// Colour carries nothing here — the label says the date and the amount outright,
   /// which is the only version of this cell a VoiceOver user gets.
-  private var accessibilityLabel: String {
+  private var accessibilityLabel: LocalizedStringKey {
     let date = day.date.formatted(.dateTime.month(.wide).day())
-    let amount: String
+    // The counted branches are whole sentences a translator can reorder. The
+    // fall-through pair is thinner — its amount is already a phrase, so one of
+    // its keys is just "%@, %@" — but "Today, %@, %@" is worth having, and
+    // splitting the two apart would cost more than the empty key saves.
     if intensity.isRecorded && intensity != .alcoholFree {
-      amount = "\(StandardDrink.formatted(day.standardDrinks)) standard drinks"
-    } else {
-      amount = intensity.accessibilityDescription
+      let drinks = StandardDrink.formatted(day.standardDrinks)
+      return isToday
+        ? "Today, \(date), \(drinks) standard drinks"
+        : "\(date), \(drinks) standard drinks"
     }
+    let amount = intensity.accessibilityDescription
     return isToday ? "Today, \(date), \(amount)" : "\(date), \(amount)"
   }
 }

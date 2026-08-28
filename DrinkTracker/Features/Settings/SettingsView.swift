@@ -106,7 +106,7 @@ struct SettingsView: View {
     }
   }
 
-  private var regionFootnote: String {
+  private var regionFootnote: LocalizedStringKey {
     if settings.isUsingFallbackRegion {
       return "You skipped this during setup, so totals currently use the US definition. Pick one to change it."
     }
@@ -143,7 +143,7 @@ struct SettingsView: View {
     !Diagnostics.isStoreInMemory && Diagnostics.cloudKitStatusCode == "available"
   }
 
-  private var iCloudStatusText: String {
+  private var iCloudStatusText: LocalizedStringKey {
     if Diagnostics.isStoreInMemory {
       return "Not saving — storage unavailable"
     }
@@ -165,7 +165,7 @@ struct SettingsView: View {
     }
   }
 
-  private var iCloudFootnote: String {
+  private var iCloudFootnote: LocalizedStringKey {
     if Diagnostics.isStoreInMemory {
       return "The app couldn't open its storage, so drinks logged in this session won't be kept. Restarting the app usually resolves this."
     }
@@ -204,7 +204,7 @@ struct SettingsView: View {
     }
   }
 
-  private var healthStatusText: String {
+  private var healthStatusText: LocalizedStringKey {
     switch health.authorization {
     case .authorized: "Saving to Health"
     case .denied: "Not saving to Health"
@@ -225,7 +225,7 @@ struct SettingsView: View {
     health.authorization == .authorized ? .accentColor : .secondary
   }
 
-  private var healthFootnote: String {
+  private var healthFootnote: LocalizedStringKey {
     switch health.authorization {
     case .authorized:
       "Your log is written to Health as alcoholic beverages, and drinks other apps record in Health appear here, counted as logged. Change access in the Health app under Sharing."
@@ -310,6 +310,10 @@ struct SettingsView: View {
     }
   }
 
+  /// Plain `String` on purpose: the breadcrumb *values* are diagnostics, not
+  /// product copy. The section's own title and footnote do go through the
+  /// shared `SettingsSection`, so those two land in the catalog — a couple of
+  /// keys a translator can skip, which beat a second verbatim code path.
   private func diagnosticRow(_ label: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: 1) {
       Text(label)
@@ -370,7 +374,7 @@ struct SettingsView: View {
   }
 
   private func aboutLink<Destination: View>(
-    _ title: String,
+    _ title: LocalizedStringKey,
     symbol: String,
     @ViewBuilder destination: @escaping () -> Destination
   ) -> some View {
@@ -398,8 +402,10 @@ struct SettingsView: View {
 // MARK: - Pieces
 
 private struct SettingsSection<Content: View>: View {
-  let title: String
-  let footnote: String?
+  // Keys, not Strings: a `String` here would reach `Text` through its verbatim
+  // initializer and never appear in the catalog.
+  let title: LocalizedStringKey
+  let footnote: LocalizedStringKey?
   @ViewBuilder var content: Content
 
   var body: some View {
@@ -454,7 +460,7 @@ private struct RegionRow: View {
 
   /// Naming the actual size keeps the choice concrete, and shows the swap is real:
   /// a 16 oz 5% beer is 1.3 US standard drinks but 2.3 UK units.
-  private var subtitle: String {
+  private var subtitle: LocalizedStringKey {
     let grams = region.gramsPureAlcoholPerStandardDrink
     let examplePint = StandardDrink.count(volumeOunces: 16, abvPercent: 5, region: region)
     return "One \(region.unitName) = \(String(format: "%.0f", grams))g · a 16oz 5% beer is \(StandardDrink.formatted(examplePint))"

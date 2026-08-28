@@ -75,13 +75,17 @@ struct YearView: View {
   ///
   /// A year grid that is mostly blank looks like a year of not drinking. Saying how
   /// many days were recorded keeps the picture honest about what it doesn't know.
-  private var recordedSummary: String {
+  private var recordedSummary: LocalizedStringKey {
     let recorded = grids.reduce(0) { $0 + $1.recordedDayCount }
     let total = grids.reduce(0) { $0 + $1.days.count }
+    // The year goes in as text, not as a number. A numeric placeholder is
+    // resolved through String(format:locale:), which would group the digits
+    // and print "2,026" under a navigation title still reading "2026".
+    let yearText = String(year)
     guard recorded > 0 else {
-      return "Nothing recorded in \(year) yet. Blank days are days without a record, not days without alcohol."
+      return "Nothing recorded in \(yearText) yet. Blank days are days without a record, not days without alcohol."
     }
-    return "\(recorded) of \(total) days in \(year) have something recorded. Blank days are days without a record, not days without alcohol."
+    return "\(recorded) of \(total) days in \(yearText) have something recorded. Blank days are days without a record, not days without alcohol."
   }
 
   // MARK: - Header
@@ -164,11 +168,16 @@ private struct MiniMonth: View {
     let recorded = grid.recordedDayCount
     guard recorded > 0 else { return "\(name), nothing recorded" }
 
+    // The tallies are joined into one list, and `joined` needs String, so these
+    // Deliberately a String, not a key: the fragments are joined into a list,
+    // so the only key it could produce is "%@: %@" — punctuation with nothing
+    // to translate. Making this properly translatable means building the list
+    // differently, which is a copy change rather than a type change.
     var parts: [String] = []
     if let free = counts[.alcoholFree], free > 0 { parts.append("\(free) with no alcohol") }
     if let low = counts[.low], low > 0 { parts.append("\(low) with 1 to 2 drinks") }
     if let medium = counts[.medium], medium > 0 { parts.append("\(medium) with 3 to 5") }
     if let high = counts[.high], high > 0 { parts.append("\(high) with 6 or more") }
-    return "\(name): " + parts.joined(separator: ", ")
+    return "\(name): \(parts.joined(separator: ", "))"
   }
 }

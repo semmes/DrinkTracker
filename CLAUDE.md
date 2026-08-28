@@ -158,13 +158,17 @@ Open items for v1.2:
   Known wrinkle recorded in the ADR: adopting then *editing* can leave the
   foreign sample plus ours in Health; fix waits for a real report.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
-  translation still deferred. Step 1 done (catalogs extracted, 2026-08-28) and
-  **step 4 done** (ADR-0020: the core package owns its display names via
-  `Bundle.module`; the CSV localizes values but never headers). **Steps 2–3
-  remain** — ~30 String-returning helpers across the app assemble sentences by
-  interpolation, so they are invisible to the extractor and freeze English word
-  order; each becomes a whole-phrase key, count-bearing ones with plural
-  variations.
+  translation still deferred, but **all four prep steps are done** (2026-08-28):
+  catalogs extracted, ~30 display helpers moved to `LocalizedStringKey` (Siri
+  dialogs to `LocalizedStringResource`), and ADR-0020 — the core package owns
+  its display names via `Bundle.module`, and the CSV localizes values but never
+  headers. Extraction sees 206 keys, up from 109. Two rules worth keeping:
+  `Text(String)` is the *verbatim* initializer, so a String-returning helper is
+  invisible to the extractor; and don't create a key made only of `%@` and
+  punctuation — compose already-translated parts verbatim instead. Remaining
+  before a second language: plural variations filled in per language (Xcode
+  catalog editor, at translation time), and a few strings still blocked by
+  ComponentsKit properties that demand `String` (`ButtonVM.title`).
 - **Two checkouts exist on this Mac** and they drift: this one, and
   `/Users/shawnsemmes/DrinkTracker`, which is where the user's Xcode builds
   from (that is where a build's `Localizable.xcstrings` changes land). Check

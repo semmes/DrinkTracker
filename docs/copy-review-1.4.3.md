@@ -332,3 +332,36 @@ encouragement when Siri says it aloud.
 No 1.4.3 exposure: nothing spoken invites a drink, praises one, or comments on
 quantity. Checked against the 1.2 spec's App Review table — no notifications
 exist on any of these paths, and Siri never speaks unprompted.
+
+---
+
+## Addendum (2026-08-28): localization steps 2–3
+
+No copy changed. This is recorded because the change *touched* almost every
+user-visible string in the app, and "we didn't reword anything" is the claim
+that most needs evidence.
+
+Roughly thirty display helpers moved from `String` to `LocalizedStringKey`, so
+their literals reach the string catalog instead of passing through `Text`'s
+verbatim initializer. A mechanical comparison of every string literal in the
+thirteen changed files, before and after, found no word, punctuation mark, or
+capital letter altered. Four sentences were *restructured* without changing
+what they render:
+
+| Site | Restructure | Rendered result |
+|---|---|---|
+| `RecentSummaryCard` | `"\(n) \(n == 1 ? "day has" : "days have") nothing logged either way."` split into two whole sentences | identical — and now a translator gets sentences rather than a verb fragment |
+| `IntensityCell` | the amount phrase hoisted into each branch | identical |
+| `DayLogSheet` | two `Text` values interpolated instead of concatenated | identical; drops a fragment key that began with a space |
+| `YearView` | `"\(name): " + parts.joined(…)` folded into one interpolation | identical |
+
+One rendering bug was found and fixed before it shipped: as a `String`,
+`"Nothing recorded in \(year)"` interpolated the year plainly; as a key it
+became `%lld` and resolved through `String(format:locale:)`, which groups
+digits — the caption would have read "2,026" beneath a title reading "2026".
+The year now goes in as text.
+
+The tip-jar title "Buy me a drink" is flagged for the eventual translator, not
+changed: it is an English idiom that puns on the app's subject, and a literal
+translation could read as asking for alcohol rather than a tip. It wants a
+translator note in the catalog when languages are chosen.
