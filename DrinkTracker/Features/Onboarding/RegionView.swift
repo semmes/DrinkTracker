@@ -65,7 +65,7 @@ private struct RegionOptionRow: View {
   }
 
   /// Naming the actual size keeps the choice concrete rather than abstract.
-  private var subtitle: String {
+  private var subtitle: LocalizedStringKey {
     let grams = region.gramsPureAlcoholPerStandardDrink
     return "One \(region.unitName) = \(String(format: "%.0f", grams))g of alcohol"
   }

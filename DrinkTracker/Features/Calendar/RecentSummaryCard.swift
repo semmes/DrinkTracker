@@ -50,7 +50,11 @@ struct RecentSummaryCard: View {
           // Named rather than hidden. Without it the two day-counts look like they
           // should add to 30, and a reader would reasonably assume the difference
           // was alcohol-free rather than unrecorded.
-          Text("\(summary.daysUnlogged) \(summary.daysUnlogged == 1 ? "day has" : "days have") nothing logged either way.")
+          Text(
+            summary.daysUnlogged == 1
+              ? "\(summary.daysUnlogged) day has nothing logged either way."
+              : "\(summary.daysUnlogged) days have nothing logged either way."
+          )
             .font(.caption)
             .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -64,7 +68,7 @@ struct RecentSummaryCard: View {
     region.unitNamePlural
   }
 
-  private func figure(value: String, label: String) -> some View {
+  private func figure(value: String, label: LocalizedStringKey) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(value)
         .font(GlassTokens.Typography.cardValue)

@@ -160,7 +160,11 @@ struct TrendsView: View {
     }
   }
 
-  private var chartTitle: String {
+  // LocalizedStringKey, not String: `Text(String)` is the *verbatim*
+  // initializer, so a String-returning helper is invisible to the extractor
+  // and never reaches the catalog. Returning the key type puts these literals
+  // back in front of the translator (ADR-0020's step 2).
+  private var chartTitle: LocalizedStringKey {
     switch range {
     case .week: "Last 7 days"
     case .month: "Last 30 days"
@@ -169,7 +173,7 @@ struct TrendsView: View {
     }
   }
 
-  private var averageLineLabel: String {
+  private var averageLineLabel: LocalizedStringKey {
     switch range {
     case .week, .month: "Your average"
     case .quarter: "Your weekly average"
@@ -177,7 +181,9 @@ struct TrendsView: View {
     }
   }
 
-  private var chartAccessibilityLabel: String {
+  /// Whole phrases with the unit interpolated, so a translation controls
+  /// word order rather than inheriting English's.
+  private var chartAccessibilityLabel: LocalizedStringKey {
     switch range {
     case .week, .month: "\(unitNounPlural) per day"
     case .quarter: "\(unitNounPlural) per week"
@@ -223,7 +229,7 @@ struct TrendsView: View {
     }
   }
 
-  private var sumLabel: String {
+  private var sumLabel: LocalizedStringKey {
     switch range {
     case .week: "this week"
     case .month: "this month"
@@ -240,7 +246,7 @@ struct TrendsView: View {
 /// A single KPI figure. Neutral by construction: a number and a noun, no verdict.
 private struct StatCard: View {
   let value: String
-  let label: String
+  let label: LocalizedStringKey
 
   var body: some View {
     SUCard(model: .glass) {

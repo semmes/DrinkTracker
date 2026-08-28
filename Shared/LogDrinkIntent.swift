@@ -146,7 +146,7 @@ struct LogDrinkIntent: AppIntent {
         quantity: quantity
       ) else {
         Diagnostics.record("nothing to log")
-        return .result(dialog: IntentDialog(stringLiteral: Self.nothingLoggedLine))
+        return .result(dialog: IntentDialog(Self.nothingLoggedLine))
       }
 
       let saved = try Self.write(
@@ -157,7 +157,7 @@ struct LogDrinkIntent: AppIntent {
 
       WidgetCenter.shared.reloadAllTimelines()
       // The widget ignores dialogs; Siri speaks them. Factual, like all copy.
-      return .result(dialog: IntentDialog(stringLiteral: Self.loggedLine(saved)))
+      return .result(dialog: IntentDialog(Self.loggedLine(saved)))
     } catch {
       Diagnostics.record("failed: \(error)")
       throw error
@@ -192,14 +192,21 @@ struct LogDrinkIntent: AppIntent {
 
   /// "Logged: Beer, 12oz, 5% ABV." — built on `summaryLine` so every surface
   /// renders a drink identically. Never celebratory, never a total.
-  static func loggedLine(_ drinks: [LoggedDrink]) -> String {
+  ///
+  /// `LocalizedStringResource`, not `String`: these are spoken, and a reply
+  /// Siri reads aloud is as user-visible as anything on screen. The drink
+  /// itself arrives already localized from the package (ADR-0020) and is
+  /// interpolated through. The count picks between two forms by English's
+  /// rule; the catalog carries the real plural variations.
+  static func loggedLine(_ drinks: [LoggedDrink]) -> LocalizedStringResource {
     guard let first = drinks.first else { return nothingLoggedLine }
+    let summary = first.summaryLine
     return drinks.count == 1
-      ? "Logged: \(first.summaryLine)."
-      : "Logged \(drinks.count): \(first.summaryLine) each."
+      ? "Logged: \(summary)."
+      : "Logged \(drinks.count): \(summary) each."
   }
 
-  static let nothingLoggedLine = "Nothing was logged."
+  static let nothingLoggedLine: LocalizedStringResource = "Nothing was logged."
 }
 
 // MARK: - Count-first intent
@@ -243,7 +250,7 @@ struct LogOneDrinkIntent: AppIntent {
       Diagnostics.record("saved (one-drink)")
 
       WidgetCenter.shared.reloadAllTimelines()
-      return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.loggedLine([drink])))
+      return .result(dialog: IntentDialog(LogDrinkIntent.loggedLine([drink])))
     } catch {
       Diagnostics.record("failed (one-drink): \(error)")
       throw error
@@ -305,7 +312,7 @@ struct LogDrinksIntent: AppIntent {
       abvPercent: abvPercent,
       quantity: quantity
     ) else {
-      return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.nothingLoggedLine))
+      return .result(dialog: IntentDialog(LogDrinkIntent.nothingLoggedLine))
     }
 
     let saved = try LogDrinkIntent.write(
@@ -314,7 +321,7 @@ struct LogDrinksIntent: AppIntent {
     )
 
     WidgetCenter.shared.reloadAllTimelines()
-    return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.loggedLine(saved)))
+    return .result(dialog: IntentDialog(LogDrinkIntent.loggedLine(saved)))
   }
 }
 
@@ -350,9 +357,9 @@ struct RecordNoAlcoholIntent: AppIntent {
     // No widget reload on purpose, matching DrinkStore.markAlcoholFree: the
     // widget shows today's count, and a no-alcohol day totals what an
     // unlogged day totals.
-    let dialog = recorded
+    let dialog: LocalizedStringResource = recorded
       ? "Recorded today as no alcohol."
       : "Today already has drinks logged, so it wasn't recorded as no alcohol."
-    return .result(dialog: IntentDialog(stringLiteral: dialog))
+    return .result(dialog: IntentDialog(dialog))
   }
 }

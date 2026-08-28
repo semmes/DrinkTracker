@@ -12,7 +12,7 @@ struct SupportView: View {
 
   @State private var drinkCount = 1
   @State private var isPurchasing = false
-  @State private var outcomeMessage: String?
+  @State private var outcomeMessage: LocalizedStringKey?
   @State private var isManagingSubscription = false
 
   var body: some View {
@@ -89,6 +89,8 @@ struct SupportView: View {
     }
   }
 
+  // Stays String: ButtonVM.title is a plain String, so this title reaches the
+  // catalog only if ComponentsKit's model gains a localized title type.
   private func buyTitle(for product: Product) -> String {
     let total = product.price * Decimal(drinkCount)
     let formatted = total.formatted(product.priceFormatStyle)

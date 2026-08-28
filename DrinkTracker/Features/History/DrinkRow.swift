@@ -17,7 +17,7 @@ struct DrinkRow: View {
         .frame(width: 28)
 
       VStack(alignment: .leading, spacing: 2) {
-        Text(title)
+        title
           .font(.body)
           .foregroundStyle(.primary)
         Text(detail)
@@ -33,18 +33,23 @@ struct DrinkRow: View {
     }
     .padding(.vertical, 4)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(accessibilityDescription)
+    .accessibilityLabel(accessibilityLabel)
   }
 
   private var symbolName: String {
     drink.isImportedFromHealth ? "heart.text.square" : drink.type.symbolName
   }
 
-  private var title: String {
-    drink.isImportedFromHealth ? "From Apple Health" : drink.type.displayName
+  /// `Text`, not a key: one branch is a real sentence to translate, the other
+  /// is a name the package already localized. Wrapping the latter in a key
+  /// would add a catalog entry that is nothing but "%@".
+  private var title: Text {
+    drink.isImportedFromHealth
+      ? Text("From Apple Health")
+      : Text(verbatim: drink.type.displayName)
   }
 
-  private var detail: String {
+  private var detail: LocalizedStringKey {
     let time = drink.loggedAt.formatted(date: .omitted, time: .shortened)
     if let counted = drink.countedDrinks {
       // Size and strength are unknown for another app's entry; saying so beats
@@ -57,10 +62,32 @@ struct DrinkRow: View {
     return "\(time) · \(LoggedDrink.displayOunces(drink.volumeOunces))oz · \(LoggedDrink.displayPercent(drink.abvPercent))% ABV"
   }
 
-  private var accessibilityDescription: String {
+  /// Every part is already translated by the time it gets here, so this is
+  /// composed verbatim: written as a key it would extract as "%@, %@, %@ %@",
+  /// separators with nothing in them, and a translator would be asked to
+  /// localize three commas.
+  private var accessibilityLabel: Text {
     let value = drink.standardDrinks(in: region)
     let count = StandardDrink.formatted(value)
-    return "\(title), \(detail), \(count) \(region.unitName(for: value))"
+    let name = drink.isImportedFromHealth
+      ? String(localized: "From Apple Health")
+      : drink.type.displayName
+    return Text(verbatim: "\(name), \(detailText), \(count) \(region.unitName(for: value))")
+  }
+
+  /// The same sentence `detail` renders, resolved to a string for the
+  /// accessibility label above.
+  private var detailText: String {
+    let time = drink.loggedAt.formatted(date: .omitted, time: .shortened)
+    if let counted = drink.countedDrinks {
+      let count = LoggedDrink.displayOunces(counted)
+      return counted == 1
+        ? String(localized: "\(time) · counted as 1 drink")
+        : String(localized: "\(time) · counted as \(count) drinks")
+    }
+    return String(
+      localized: "\(time) · \(LoggedDrink.displayOunces(drink.volumeOunces))oz · \(LoggedDrink.displayPercent(drink.abvPercent))% ABV"
+    )
   }
 }
 

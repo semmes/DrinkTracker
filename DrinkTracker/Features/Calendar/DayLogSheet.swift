@@ -105,7 +105,7 @@ struct DayLogSheet: View {
           .foregroundStyle(.secondary)
       }
 
-      Text(countCaption)
+      countCaption
         .font(.caption)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
@@ -137,18 +137,24 @@ struct DayLogSheet: View {
     existingDrinks.reduce(0) { $0 + $1.standardDrinks(in: settings.effectiveRegion) }
   }
 
-  private var countCaption: String {
-    let adds: String
+  /// `Text`, not `String`: a `String` would reach `Text` through the verbatim
+  /// initializer and never enter the string catalog. Each sentence is its own
+  /// literal, so translators get whole sentences rather than glued fragments.
+  private var countCaption: Text {
+    let adds: Text
     // "a other" is not a sentence; Other falls back to the generic noun.
     if let seed, seed.type != .other {
-      adds = "Plus logs a \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards."
+      adds = Text("Plus logs a \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")
     } else if let seed {
-      adds = "Plus logs a drink, \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards."
+      adds = Text("Plus logs a drink, \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")
     } else {
-      adds = "Plus logs a drink at the default size and strength — editable afterwards."
+      adds = Text("Plus logs a drink at the default size and strength — editable afterwards.")
     }
     guard !existingDrinks.isEmpty else { return adds }
-    return adds + " Minus removes the day's most recent drink."
+    // Interpolation rather than `+`: concatenating would leave the second
+    // sentence in the catalog with a leading space, which a translator will
+    // silently drop. (`+` is also deprecated in iOS 26.)
+    return Text("\(adds) Minus removes the day's most recent drink.")
   }
 
   // MARK: - The empty day

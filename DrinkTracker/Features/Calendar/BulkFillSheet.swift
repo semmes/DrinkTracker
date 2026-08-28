@@ -58,6 +58,8 @@ struct BulkFillSheet: View {
     .presentationDetents([.medium, .large])
   }
 
+  /// Formatted dates and a dash — the locale already handles both, and a key
+  /// here would extract as an empty string or a bare "%@".
   private var rangeTitle: String {
     guard let first = days.first?.date, let last = days.last?.date else { return "" }
     guard days.count > 1 else {
@@ -90,7 +92,7 @@ struct BulkFillSheet: View {
     }
   }
 
-  private var countCaption: String {
+  private var countCaption: LocalizedStringKey {
     if count == 0 {
       return "Records each day as having no alcohol."
     }
@@ -111,6 +113,9 @@ struct BulkFillSheet: View {
 
   /// Factual in both directions, and always says how many days it touches — the
   /// number on the button is the write about to happen, not the selection size.
+  ///
+  /// Still `String`, unlike the rest of the sheet's copy: `ButtonVM.title` takes
+  /// one, so these literals cannot reach the string catalog until it doesn't.
   private var actionTitle: String {
     let dayCount = fillableDays.count
     guard dayCount > 0 else { return "Nothing to record" }
@@ -132,7 +137,7 @@ struct BulkFillSheet: View {
   }
 
   /// Factual about the gap between what was selected and what will be written.
-  private var skippedText: String {
+  private var skippedText: LocalizedStringKey {
     if fillableDays.isEmpty {
       return "Every selected day already has a record. Tap a day to change it."
     }
