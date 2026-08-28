@@ -88,30 +88,41 @@ public struct DrinkDraft: Equatable, Sendable {
   /// Today's counter, and a guard against a misheard "log 500 drinks".
   public static let intentQuantityLimit = 12
 
-  /// A draft built from voice or Shortcuts parameters (ADR-0019).
+  /// A draft built from voice or Shortcuts parameters (ADR-0019), or nil when
+  /// the request asks for no drinks at all.
   ///
   /// Unspecified values fall to the type's defaults — the same values a
   /// widget tap or the sheet's fast path produce, so "log a beer" means the
-  /// identical entry everywhere. Specified values are honored with the same
-  /// bounds the app itself enforces: ABV clamps to the type's slider range,
-  /// volume must be positive to count as specified, and quantity clamps to
+  /// identical entry everywhere. Specified values are honored with the app's
+  /// own bounds: ABV clamps to the type's slider range, volume must be
+  /// positive to count as specified, and quantity clamps *down* to
   /// `intentQuantityLimit`.
+  ///
+  /// **Nothing clamps up.** A quantity of zero or less returns nil rather
+  /// than one drink, and callers must say so instead of writing. Every
+  /// in-app counter treats zero as a real answer — the day sheet's minus
+  /// reaches it, and bulk fill reads it as "no alcohol" — so an intent that
+  /// quietly rounded a Shortcuts-computed 0 up to 1 would be the only path
+  /// in the app that invents a drink the user never had. It would also
+  /// clear that day's alcohol-free marker and mirror the fabrication into
+  /// Health. The log may under-record; it must never over-record.
   public static func forIntent(
     type: DrinkType,
     volumeOunces: Double? = nil,
     abvPercent: Double? = nil,
     quantity: Int = 1
-  ) -> DrinkDraft {
+  ) -> DrinkDraft? {
+    guard quantity > 0 else { return nil }
     var draft = DrinkDraft(type: type)
     if let volumeOunces, volumeOunces > 0 {
       let match = type.sizeOptions.first { $0.volumeOunces == volumeOunces }
       draft.selectedSize = match ?? .custom
       draft.customVolumeOunces = volumeOunces
     }
-    if let abvPercent {
+    if let abvPercent, abvPercent.isFinite {
       draft.abvPercent = min(max(abvPercent, type.abvRange.lowerBound), type.abvRange.upperBound)
     }
-    draft.quantity = min(max(1, quantity), intentQuantityLimit)
+    draft.quantity = min(quantity, intentQuantityLimit)
     return draft
   }
 

@@ -324,7 +324,8 @@ encouragement when Siri says it aloud.
 | "Log drinks in Tallyist" / "Record no alcohol in Tallyist" | Same register as the in-app controls they mirror |
 | "Which drink?" / "How many?" (request dialogs) | Questions about the record, asked only because the user started the exchange. No suggestion, no default nudged aloud |
 | "Logged: Beer, 12oz, 5% ABV." / "Logged 2: Wine, 5oz, 12% ABV each." | A statement of what was written, built on `summaryLine` so voice and screen render a drink identically. Deliberately not "Got it" or "Nice" — confirmation, never approval |
-| "Recorded today as no alcohol." | The fact, matching Today's "Record no alcohol today" |
+| "Recorded today as no alcohol." | The fact, matching Today's "Record no alcohol today" — and now only spoken when the write actually persisted (ADR-0019) |
+| "Nothing was logged." | The honest answer to a request for zero drinks. It was written as an unreachable branch and the review made it reachable: the alternative was inventing a drink and announcing it |
 | "Today already has drinks logged, so it wasn't recorded as no alcohol." | The refusal as a **state of the record**, not an error and not a correction of the person. Evidence beats assertion, said out loud |
 | Intent titles/descriptions ("Log a Drink", "Logs a drink using its default size and strength.") | Shortcuts-facing chrome; factual |
 

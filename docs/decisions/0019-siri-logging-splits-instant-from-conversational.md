@@ -54,6 +54,33 @@ foreground. One Health story for every out-of-app write path.
 identically. No congratulation, no totals, no "great job" (invariant 8 does
 not relax for audio).
 
+That sentence turned out to be a *requirement*, not a description, and an
+adversarial review of this change found three places the code could break it.
+All three are fixed here, and they are the reason the rule is worth stating:
+
+1. **Zero writes nothing.** `forIntent` used to clamp quantity up to 1, so a
+   Shortcuts automation whose count evaluated to 0 — or a spoken "none" —
+   wrote a real drink, cleared that day's alcohol-free marker, and mirrored
+   the fabrication into Health. It now returns nil for a non-positive
+   quantity and the intents say "Nothing was logged." Every in-app counter
+   already treats 0 as a real answer (the day sheet reaches it; bulk fill
+   reads it as *no alcohol*), so the intent path was the only one in the app
+   that could invent a drink. **The log may under-record; it must never
+   over-record.**
+2. **The no-alcohol reply can't outrun its write.** `markAlcoholFree`
+   returns "was it refused?", not "did it persist" — it swallows a save
+   failure — so the intent could speak "Recorded today as no alcohol." with
+   nothing written. In the app that self-corrects, because the marker is
+   re-read from a live query; a spoken claim doesn't get that chance. The
+   intent now uses `markAlcoholFreeOrThrow`, the exact pattern `saveOrThrow`
+   already established for out-of-app writes.
+3. **A partial write reports the true count.** Each drink is its own
+   transaction (invariant 7), so a failure partway through leaves the earlier
+   drinks durable. Throwing there would tell the user everything failed while
+   some of it hadn't — and saying the phrase again would write those drinks
+   twice. `LogDrinkIntent.write` returns what actually landed and reports
+   that; only a total failure throws, because only then is "it failed" true.
+
 ## Consequences
 
 - Four App Shortcuts (instant-typed, habit-seeded one-drink, conversational,

@@ -137,36 +137,69 @@ struct LogDrinkIntent: AppIntent {
 
       // Same defaults the sheet opens with, so a widget tap, a Siri phrase,
       // and a two-tap in-app log all produce identical entries; specified
-      // values get the app's own bounds (DrinkDraft.forIntent).
-      let draft = DrinkDraft.forIntent(
+      // values get the app's own bounds (DrinkDraft.forIntent). A request for
+      // zero drinks writes nothing and says so — see forIntent.
+      guard let draft = DrinkDraft.forIntent(
         type: drinkType.drinkType,
         volumeOunces: volumeOunces,
         abvPercent: abvPercent,
         quantity: quantity
-      )
-      let drinks = draft.makeLoggedDrinks(region: AppSettings.storedRegion())
-      for drink in drinks {
-        try repository.saveOrThrow(drink)
+      ) else {
+        Diagnostics.record("nothing to log")
+        return .result(dialog: IntentDialog(stringLiteral: Self.nothingLoggedLine))
       }
+
+      let saved = try Self.write(
+        draft.makeLoggedDrinks(region: AppSettings.storedRegion()),
+        to: repository
+      )
       Diagnostics.record("saved")
 
       WidgetCenter.shared.reloadAllTimelines()
       // The widget ignores dialogs; Siri speaks them. Factual, like all copy.
-      return .result(dialog: IntentDialog(stringLiteral: Self.loggedLine(drinks)))
+      return .result(dialog: IntentDialog(stringLiteral: Self.loggedLine(saved)))
     } catch {
       Diagnostics.record("failed: \(error)")
       throw error
     }
   }
 
+  /// Writes each drink as its own entry (invariant 7) and returns exactly
+  /// what landed.
+  ///
+  /// Every `saveOrThrow` is its own transaction, so a failure partway through
+  /// leaves the earlier drinks durably written. Rethrowing there would tell
+  /// the user the whole thing failed while some of it did not — and the
+  /// natural response, saying the phrase again, would write those drinks a
+  /// second time. So a partial write reports the true count instead; only a
+  /// total failure throws, because then "it failed" is accurate. The error is
+  /// still recorded as a breadcrumb either way.
+  @MainActor
+  static func write(_ drinks: [LoggedDrink], to repository: DrinkRepository) throws -> [LoggedDrink] {
+    var saved: [LoggedDrink] = []
+    for drink in drinks {
+      do {
+        try repository.saveOrThrow(drink)
+        saved.append(drink)
+      } catch {
+        Diagnostics.record("partial: \(saved.count) of \(drinks.count) — \(error)")
+        if saved.isEmpty { throw error }
+        return saved
+      }
+    }
+    return saved
+  }
+
   /// "Logged: Beer, 12oz, 5% ABV." — built on `summaryLine` so every surface
   /// renders a drink identically. Never celebratory, never a total.
   static func loggedLine(_ drinks: [LoggedDrink]) -> String {
-    guard let first = drinks.first else { return "Nothing was logged." }
+    guard let first = drinks.first else { return nothingLoggedLine }
     return drinks.count == 1
       ? "Logged: \(first.summaryLine)."
       : "Logged \(drinks.count): \(first.summaryLine) each."
   }
+
+  static let nothingLoggedLine = "Nothing was logged."
 }
 
 // MARK: - Count-first intent
@@ -265,19 +298,23 @@ struct LogDrinksIntent: AppIntent {
     let container = try SharedModelContainer.make()
     let repository = DrinkRepository(context: container.mainContext)
 
-    let draft = DrinkDraft.forIntent(
+    // "None" is an answer, not a miscount: it writes nothing (see forIntent).
+    guard let draft = DrinkDraft.forIntent(
       type: drinkType.drinkType,
       volumeOunces: volumeOunces,
       abvPercent: abvPercent,
       quantity: quantity
-    )
-    let drinks = draft.makeLoggedDrinks(region: AppSettings.storedRegion())
-    for drink in drinks {
-      try repository.saveOrThrow(drink)
+    ) else {
+      return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.nothingLoggedLine))
     }
 
+    let saved = try LogDrinkIntent.write(
+      draft.makeLoggedDrinks(region: AppSettings.storedRegion()),
+      to: repository
+    )
+
     WidgetCenter.shared.reloadAllTimelines()
-    return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.loggedLine(drinks)))
+    return .result(dialog: IntentDialog(stringLiteral: LogDrinkIntent.loggedLine(saved)))
   }
 }
 
@@ -304,7 +341,12 @@ struct RecordNoAlcoholIntent: AppIntent {
     let container = try SharedModelContainer.make()
     let repository = DrinkRepository(context: container.mainContext)
 
-    let recorded = repository.markAlcoholFree(Date())
+    // markAlcoholFreeOrThrow, not markAlcoholFree: the plain call swallows a
+    // save failure and its Bool means "not refused", never "written". In the
+    // app that self-corrects — the marker is re-read from a live query — but
+    // a spoken "Recorded today as no alcohol." would be a claim about the
+    // record that nothing backs. A throw here surfaces honestly instead.
+    let recorded = try repository.markAlcoholFreeOrThrow(Date())
     // No widget reload on purpose, matching DrinkStore.markAlcoholFree: the
     // widget shows today's count, and a no-alcohol day totals what an
     // unlogged day totals.

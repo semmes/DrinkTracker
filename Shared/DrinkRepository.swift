@@ -87,11 +87,25 @@ struct DrinkRepository {
   /// never said that about. Remove the entries first; the caller checks.
   @discardableResult
   func markAlcoholFree(_ day: Date, calendar: Calendar = .current) -> Bool {
+    (try? markAlcoholFreeOrThrow(day, calendar: calendar)) ?? false
+  }
+
+  /// Same as `markAlcoholFree`, but surfaces the failure.
+  ///
+  /// The returned Bool answers "was it refused?", never "did it persist" —
+  /// so a swallowed save error would let a caller claim a day was recorded
+  /// when nothing was written. In the app that self-corrects (the calendar
+  /// and Today both re-read the marker from a live query, so the button
+  /// simply stays unmarked). Out of the app it does not: an intent speaks a
+  /// claim about the record and then leaves, which is the same reason
+  /// `saveOrThrow` exists for drinks.
+  @discardableResult
+  func markAlcoholFreeOrThrow(_ day: Date, calendar: Calendar = .current) throws -> Bool {
     let startOfDay = calendar.startOfDay(for: day)
     guard drinks(on: startOfDay, calendar: calendar).isEmpty else { return false }
     guard alcoholFreeDay(on: startOfDay) == nil else { return true }
     context.insert(AlcoholFreeDay(day: startOfDay))
-    try? context.save()
+    try context.save()
     return true
   }
 
