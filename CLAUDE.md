@@ -142,8 +142,11 @@ point. Simulator gotcha: App Shortcut **tiles** can't run in the simulator
 shortcut to test, and treat real phrase invocation as tier 4. User-side when 1.1 clears: create the 1.2 version in ASC,
 paste the listing material, pick a green main build from Xcode Cloud,
 submit. The long-pending catalog population is **done** — and did not need
-a GUI build after all (see the localization bullet). The only thing a GUI
-build still adds is Xcode's auto-generated translator comments on new keys.
+a GUI build after all (see the localization bullet). A real GUI build over
+the pulled tree afterwards produced **no catalog change at all**, which
+confirms the sync route writes what Xcode would. It also does not add
+auto-generated translator comments to keys sync already created: Xcode
+writes those only when it is the thing adding the key.
 
 Open items for v1.2:
 

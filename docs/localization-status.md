@@ -141,10 +141,18 @@ the claims in that text are written to be checkable against the entitlements and
 the App Store privacy labels, and a mistranslation would misstate them. Decide
 deliberately, and keep `docs/privacy-policy.md` in step.
 
-**Auto-generated comments are missing on new keys.** Xcode writes translator
-comments using an on-device model when *it* populates a catalog; `xcstringstool
-sync` does not. The 81 existing comments were preserved. A GUI build will fill in
-the rest, and that is the one thing the GUI still adds.
+**Auto-generated comments are missing on the new keys, and a build will not add
+them.** Xcode writes translator comments when *it* is the thing adding a key to a
+catalog. `xcstringstool sync` added them first, so a subsequent GUI build found
+nothing new and generated nothing — confirmed by building the pulled tree in
+Xcode on 2026-08-28, which produced no catalog change at all. The 81 pre-existing
+comments were preserved by the sync; the ~140 new keys have none and will not
+acquire any from building.
+
+That is the one real cost of the sync route, and it is a mild one: comments are
+translator hints, not content, and Xcode's catalog editor can add them by hand.
+The same build produced no catalog change of any other kind, which is the
+confirmation that sync writes what the GUI would.
 
 ## The order to do it in
 
