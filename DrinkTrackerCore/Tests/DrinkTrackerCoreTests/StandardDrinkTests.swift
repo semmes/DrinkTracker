@@ -149,9 +149,13 @@ struct DrinkTypeDefaultsTests {
   /// The pre-selected pill and the default volume have to agree, because the
   /// pill's volume is what `DrinkDraft.volumeOunces` actually uses. Before these
   /// were derived from each other, changing one silently did nothing.
+  ///
+  /// Iterates `selectableCases`, not `allCases`: pills exist only for types the
+  /// sheet offers, and `.unspecified` deliberately has none (ADR-0023) — it is
+  /// covered by its own assertion in `sizeOptions` below.
   @Test("The default pill matches the default volume for every type")
   func defaultPillMatchesDefaultVolume() {
-    for type in DrinkType.allCases {
+    for type in DrinkType.selectableCases {
       let selected = type.defaultSizeOption.volumeOunces ?? type.defaultVolumeOunces
       #expect(selected == type.defaultVolumeOunces, "\(type.displayName) pill disagrees")
     }
@@ -174,9 +178,15 @@ struct DrinkTypeDefaultsTests {
     #expect(DrinkType.wine.sizeOptions.count == 3)
     #expect(DrinkType.spirit.sizeOptions.count == 4)
     #expect(DrinkType.other.sizeOptions == [.custom])
-    for type in DrinkType.allCases {
+    // Every type the sheet offers can reach Custom, so no size is unreachable.
+    for type in DrinkType.selectableCases {
       #expect(type.sizeOptions.contains(.custom))
     }
+    // The untyped drink is the one type with no sizes at all, which is the
+    // point of it: the sheet hides the size section until a type is chosen,
+    // and a Custom pill there would invite editing the standard-drink
+    // definition (ADR-0023).
+    #expect(DrinkType.unspecified.sizeOptions.isEmpty)
   }
 }
 
