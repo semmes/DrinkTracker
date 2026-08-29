@@ -219,10 +219,9 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
     // 0.6oz at 100% into the line below would print the definition back at
     // the user as though they had typed it (ADR-0023).
     if isTypeUnspecified {
-      return localized(
-        "One standard drink",
-        comment: "A drink logged as one standard drink, with no type or size recorded"
-      )
+      // The type's own name is already the whole sentence, so this is the one
+      // place it comes from rather than a second key saying the same thing.
+      return type.displayName
     }
     return localized(
       "\(type.displayName), \(Self.format(volumeOunces))oz, \(Self.format(abvPercent))% ABV",

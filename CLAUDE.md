@@ -229,7 +229,13 @@ Open items for v1.2:
   for an `app` table, finds none, and empties the file), and an incremental
   build re-extracts only what recompiled, so force a full rebuild first or sync
   prunes everything that did not.
-  Four rules worth keeping: `Text(String)` is the *verbatim* initializer, so a
+  Five rules worth keeping: **two keys that differ only in case are a build
+  error in the core package** — `xcstringstool generate-symbols` folds case, so
+  ADR-0023's "Standard drink" collided with the unit name "standard drink" and
+  failed CI (the same family as the "≈" collision; a tier-1 test now pins the
+  whole axis, and note the *app* catalog does not generate symbols, so it
+  tolerates pairs like "Last 12 months"/"last 12 months");
+  `Text(String)` is the *verbatim* initializer, so a
   String-returning helper is invisible to the extractor; don't create a key made
   only of `%@` and punctuation; **positional specifiers belong in a
   localization's value, never in a key** (a positional key is never looked up —

@@ -55,9 +55,14 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .wine: localized("Wine", comment: "Drink type")
     case .spirit: localized("Spirit", comment: "Drink type: distilled spirits")
     case .other: localized("Other", comment: "Drink type: anything not beer, wine, or spirits")
+    // Not "Standard drink": `xcstringstool` derives a Swift symbol per key and
+    // folds case, so that key collides with the region unit name "standard
+    // drink" and fails the build. The same class of trap as the "≈" keys —
+    // see `StandardDrink.liveEstimate`. This phrase is also the whole summary
+    // line for such a drink, so one key serves both.
     case .unspecified:
       localized(
-        "Standard drink",
+        "One standard drink",
         comment: "Drink type: one standard drink, logged without saying what kind"
       )
     }

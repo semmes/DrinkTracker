@@ -90,8 +90,11 @@ a type replaces the definition with that type's own defaults. Skipping costs
 nothing — the drink already counted.
 
 **No surface prints the definition back as though it were a serving.** The
-row reads "Standard drink · no size or strength recorded", the summary line is
-"One standard drink", and the CSV blanks the size and strength columns while
+row reads "One standard drink · no size or strength recorded" — one key, which
+is both the type's display name and the whole summary line, because a
+"Standard drink" key case-collides with the region unit name under
+`xcstringstool`'s symbol generation and fails the build. The CSV blanks the
+size and strength columns while
 the standard-drinks column still carries the amount. `recordsSizeAndStrength`
 is the single predicate for this, covering imports and untyped drinks
 together, since both recorded a count rather than a measurement.

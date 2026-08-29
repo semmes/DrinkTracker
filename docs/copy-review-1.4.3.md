@@ -500,8 +500,7 @@ recording behaviours without recommending either.
 | Picker options | "Standard drink" / "My usual drink" |
 | Footnote, standard-drink setting | "One tap records one standard drink, with no type. You can add the type, size, and strength later by tapping the entry, or skip it — the drink counts either way." |
 | Footnote, usual-drink setting | "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it." |
-| Drink type name | "Standard drink" |
-| Summary line (row, Siri reply, "last logged") | "One standard drink" |
+| Drink type name, and the summary line (row title, CSV entry, Siri reply, "last logged") | "One standard drink" |
 | Row detail | "8:15 PM · no size or strength recorded" |
 | Sheet button, adding a type to an untyped drink | "Save details" |
 | Shortcuts intent description | "Logs one drink, the same way the app's counter does." |
@@ -530,3 +529,13 @@ reading order.
 
 **No exclamation marks.** No celebration on adding details, and adding them
 produces no confirmation beyond the row changing.
+
+**One phrase was changed by the build, not by review.** The drink type was
+going to be called "Standard drink", matching the Settings option. In the core
+package that key is a build error: `xcstringstool` derives a Swift symbol per
+key and folds case, so it collides with the region unit name "standard drink" —
+the same family as the "≈" collision already recorded in
+`StandardDrink.liveEstimate`. The type is "One standard drink" instead, which
+also turns out to be the better line, since it is the whole summary a row needs
+and one key now serves both. The Settings picker keeps "Standard drink": it is
+an app-target string, naming an option rather than an entry.

@@ -894,6 +894,38 @@ struct PackageLocalizationTests {
     }
   }
 
+  /// The build failure this test exists to prevent: `xcstringstool
+  /// generate-symbols` derives a Swift symbol from every key and folds case, so
+  /// two keys differing only in capitalisation are a hard error — not a warning,
+  /// and not visible until a CI build compiles the catalog. ADR-0023 hit it by
+  /// adding "Standard drink" beside the region unit name "standard drink".
+  ///
+  /// Same family as the "≈" collision recorded in `StandardDrink.liveEstimate`:
+  /// what the symbol generator ignores is what makes two distinct keys the same
+  /// key. This checks the axis that is mechanical; the app and widget catalogs
+  /// are not covered because only the package generates symbols.
+  @Test("No two keys in the package catalog differ only by case")
+  func catalogKeysCannotCollideAsSymbols() throws {
+    let url = try #require(
+      Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
+      "no catalog to check (Xcode-compiled bundles are covered by the test above)"
+    )
+    let data = try Data(contentsOf: url)
+    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let keys = Array((json["strings"] as? [String: Any] ?? [:]).keys)
+
+    var byFoldedCase: [String: [String]] = [:]
+    for key in keys {
+      byFoldedCase[key.lowercased(), default: []].append(key)
+    }
+    for (folded, colliding) in byFoldedCase {
+      #expect(
+        colliding.count == 1,
+        "these keys generate one symbol and fail the build: \(colliding.sorted()) (as \(folded))"
+      )
+    }
+  }
+
   @Test("The export's header never localizes, whatever the values do")
   func exportHeaderStaysMachineReadable() {
     // ADR-0015 pinned the column layout as a contract; ADR-0020 localizes the
