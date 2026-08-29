@@ -17,6 +17,8 @@ struct TodayView: View {
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
 
   @State private var draft: DrinkDraft?
+  /// The imported entry being given typed details, if any (ADR-0016).
+  @State private var adopting: LoggedDrink?
   @State private var lastLogged: LoggedDrink?
   @State private var isShowingSettings = false
   @State private var deletion = DeletionCoordinator()
@@ -114,6 +116,16 @@ struct TodayView: View {
           draft = nil
         } onCancel: {
           draft = nil
+        }
+      }
+      .sheet(item: $adopting) { imported in
+        // The adopted row updates in place a few points below, so this does not
+        // also claim the "last logged" line — adoption fills in a drink that was
+        // already in the log, it does not add one.
+        DrinkDetailSheet(adopting: imported) { _ in
+          adopting = nil
+        } onCancel: {
+          adopting = nil
         }
       }
       .sheet(isPresented: $isShowingSettings) {
@@ -336,9 +348,14 @@ struct TodayView: View {
   /// through type → size → confirm to say "the same again" is friction that shows
   /// up as under-logging. Only appears once something has been logged today, so it
   /// never occupies space it hasn't earned.
+  ///
+  /// Skips past anything with no size to repeat, the same rule `quickCount` and
+  /// `removeMostRecent` follow — an imported Health entry is a count and a time,
+  /// so "another one of those" has no answer (ADR-0014, ADR-0022). Without this
+  /// the row read "Another other · 0oz · 0%" and one tap wrote exactly that.
   @ViewBuilder
   private var repeatControl: some View {
-    if let recent = todaysEntries.first?.logged {
+    if let recent = todaysEntries.lazy.map(\.logged).first(where: { $0.isRepeatable }) {
       Button {
         repeatDrink(recent)
       } label: {
@@ -389,24 +406,47 @@ struct TodayView: View {
     if !drinks.isEmpty {
       Section {
         ForEach(drinks) { drink in
-          DrinkRow(drink: drink, region: settings.effectiveRegion)
-            .contentShape(.rect)
-            .onTapGesture { draft = DrinkDraft(editing: drink) }
-            .swipeActions(edge: .trailing) {
-              Button(role: .destructive) {
-                Task { await deletion.delete(drink, using: store) }
-              } label: {
-                Label("Remove", systemImage: "trash")
-              }
+          // Imported Health entries are read-only mirrors, exactly as they are
+          // in History (ADR-0014): no edit, because there is no size or strength
+          // to correct, and no remove, because the delete path retracts the
+          // sample from Health — and that sample belongs to the app that wrote
+          // it. Adoption is the one door out (ADR-0016).
+          if drink.isImportedFromHealth {
+            if drink.isAdoptable {
+              DrinkRow(drink: drink, region: settings.effectiveRegion)
+                .contentShape(.rect)
+                .onTapGesture { adopting = drink }
+                .swipeActions(edge: .leading) {
+                  Button {
+                    adopting = drink
+                  } label: {
+                    Label("Add details", systemImage: "square.and.pencil")
+                  }
+                  .tint(.accentColor)
+                }
+            } else {
+              DrinkRow(drink: drink, region: settings.effectiveRegion)
             }
-            .swipeActions(edge: .leading) {
-              Button {
-                draft = DrinkDraft(editing: drink)
-              } label: {
-                Label("Edit", systemImage: "pencil")
+          } else {
+            DrinkRow(drink: drink, region: settings.effectiveRegion)
+              .contentShape(.rect)
+              .onTapGesture { draft = DrinkDraft(editing: drink) }
+              .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                  Task { await deletion.delete(drink, using: store) }
+                } label: {
+                  Label("Remove", systemImage: "trash")
+                }
               }
-              .tint(.accentColor)
-            }
+              .swipeActions(edge: .leading) {
+                Button {
+                  draft = DrinkDraft(editing: drink)
+                } label: {
+                  Label("Edit", systemImage: "pencil")
+                }
+                .tint(.accentColor)
+              }
+          }
         }
       } header: {
         Text("Logged today")

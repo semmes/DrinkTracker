@@ -139,7 +139,29 @@ is the *widget's* and must never gain a promptable parameter (optional or
 defaulted only) — `LogDrinksIntent` is the Siri one where prompting is the
 point. Simulator gotcha: App Shortcut **tiles** can't run in the simulator
 (linkd "Couldn't find AppShortcutsProvider"); add the action to a manual
-shortcut to test, and treat real phrase invocation as tier 4. User-side when 1.1 clears: create the 1.2 version in ASC,
+shortcut to test, and treat real phrase invocation as tier 4.
+
+**First field bug, fixed on the open train** (ADR-0022): a 1.0 user reported
+the counter's + auto-logging "Other, 0oz, 0% ABV" instead of their usual
+drink. That shape has exactly one producer — `LoggedDrink.importedFromHealth`
+— and the seed helpers have filtered it since the import shipped, so the
+mechanism is *cross-version*: `countedDrinks` is an additive attribute, so a
+1.0 binary sharing the account's CloudKit store materialises 1.1's imported
+rows as ordinary `.other` drinks, `.other` takes the plurality, and every
+count-first surface repeats it — absorbing, never self-correcting. **The
+lesson, and the rule now:** a provenance marker cannot be the only guard on
+anything a *shipped* build also reads; test the physical facts. So
+`LoggedDrink.isRepeatable` is `volumeOunces > 0` (never strength — a real
+size at 0% is a drink someone chose to record), `quickCount` requires it and
+otherwise falls to *that type's* defaults, and two ADR-0014 leaks on Today
+closed with it (the repeat control read the newest row unfiltered; Today's
+rows offered edit/remove on imports, and Remove reached
+`health.deleteSample` on another app's UUID). Not repairable by shipping:
+rows already written on a 1.0 device are ordinary entries and keep their
+votes in `mostLoggedType` — they go by hand from History, and the CSV export
+finds them (empty size and strength, source Tallyist).
+
+User-side when 1.1 clears: create the 1.2 version in ASC,
 paste the listing material, pick a green main build from Xcode Cloud,
 submit. The long-pending catalog population is **done** — and did not need
 a GUI build after all (see the localization bullet). A real GUI build over

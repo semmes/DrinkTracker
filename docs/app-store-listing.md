@@ -118,6 +118,10 @@ logging without touching the screen.
 
 Also: a drink imported from Apple Health can take details — tap it and
 add the type, size, and strength.
+
+Fixed: with drinks imported from Apple Health in the log, one-tap logging
+could copy one of them — an entry that records a count and a time, but no
+size or strength — and add it as an empty drink.
 ```
 
 ## Reviewer notes (1.2) — paste into App Review notes
@@ -144,6 +148,10 @@ Notes on what's new in 1.2:
   user-initiated; the app never speaks first, sends no notifications, and
   makes no suggestions. Spoken replies state only what was written to the
   user's own log.
+- A fix tightens the HealthKit contract rather than loosening it: drinks
+  imported from Health are read-only mirrors, and the Today screen no
+  longer offers to edit or delete one. Deleting a logged drink still
+  retracts only samples this app wrote.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```

@@ -323,6 +323,61 @@ struct DrinkDraftTests {
     #expect(DrinkDraft.quickCount(-3, from: []).quantity == 1)
   }
 
+  @Test("A zero-volume row never becomes the template, marker or no marker")
+  func quickCountRefusesAZeroTemplate() {
+    // The shape a Health import has, built through the *plain* initializer so
+    // `countedDrinks` is nil — a store shared with a build that predates the
+    // attribute mirrors those rows back stripped of it, and the provenance
+    // filter cannot see them (ADR-0022). Three of them outnumber the beer, so
+    // `.other` legitimately wins the type; only the template is refused.
+    let stripped = (1...3).map { index in
+      LoggedDrink(
+        loggedAt: Date(timeIntervalSince1970: Double(1_000 * index)),
+        type: .other,
+        volumeOunces: 0,
+        abvPercent: 0
+      )
+    }
+    let history = stripped + [
+      LoggedDrink(loggedAt: Date(timeIntervalSince1970: 500), type: .beer, volumeOunces: 12, abvPercent: 5)
+    ]
+
+    let draft = DrinkDraft.quickCount(1, from: history)
+    #expect(draft.type == .other)
+    #expect(draft.volumeOunces == DrinkType.other.defaultVolumeOunces)
+    #expect(draft.abvPercent == DrinkType.other.defaultABVPercent)
+    #expect(draft.standardDrinks(region: .unitedStates) > 0)
+  }
+
+  @Test("The refusal does not reach a real drink the user logged at 0%")
+  func quickCountRepeatsADeliberateZeroStrength() {
+    // A real size at 0% is a drink someone chose to record that way. Rewriting
+    // it to the type's default strength would log alcohol they did not have,
+    // so it stays repeatable — volume alone separates the two cases.
+    let history = [
+      LoggedDrink(loggedAt: Date(timeIntervalSince1970: 1_000), type: .other, volumeOunces: 12, abvPercent: 0)
+    ]
+    let draft = DrinkDraft.quickCount(1, from: history)
+    #expect(draft.type == .other)
+    #expect(draft.volumeOunces == 12)
+    #expect(draft.abvPercent == 0)
+  }
+
+  @Test("No count-first seed ever writes a drink with no size")
+  func quickCountAlwaysHasVolume() {
+    let histories: [[LoggedDrink]] = [
+      [],
+      [LoggedDrink.importedFromHealth(sampleID: UUID(), count: 1, loggedAt: Date())],
+      [LoggedDrink(type: .other, volumeOunces: 0, abvPercent: 0)],
+      [LoggedDrink(type: .spirit, volumeOunces: 1.5, abvPercent: 40)]
+    ]
+    for history in histories {
+      let drink = DrinkDraft.quickCount(1, from: history).makeLoggedDrink(region: .unitedStates)
+      #expect(drink.volumeOunces > 0)
+      #expect(drink.isRepeatable)
+    }
+  }
+
     @Test("Repeating a drink copies it but makes a new entry")
   func repeatingADrink() {
     let original = LoggedDrink(
@@ -482,6 +537,16 @@ struct ImportedDrinkTests {
     let mixed = importedOnly + [LoggedDrink(type: .wine, volumeOunces: 5, abvPercent: 12)]
     #expect(TrendSummary.mostLoggedType(in: mixed) == .wine)
     #expect(TrendSummary.mostRecentDrink(ofType: .other, in: mixed) == nil)
+  }
+
+  @Test("An import is not repeatable; a real drink is")
+  func importsAreNotRepeatable() {
+    let imported = LoggedDrink.importedFromHealth(sampleID: UUID(), count: 1, loggedAt: Date())
+    #expect(!imported.isRepeatable)
+    // Same shape with the marker stripped, which is what an older build's store
+    // mirrors back — still refused, because volume is the test.
+    #expect(!LoggedDrink(type: .other, volumeOunces: 0, abvPercent: 0).isRepeatable)
+    #expect(LoggedDrink(type: .beer, volumeOunces: 12, abvPercent: 5).isRepeatable)
   }
 
   @Test("A negative external count clamps to zero rather than subtracting")
