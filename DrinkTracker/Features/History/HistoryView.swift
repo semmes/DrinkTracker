@@ -116,7 +116,11 @@ struct HistoryView: View {
                   Button {
                     draft = DrinkDraft(editing: drink)
                   } label: {
-                    Label("Edit", systemImage: "pencil")
+                    // Adding a type to an untyped drink is adoption's act, so
+                    // it borrows adoption's word (ADR-0023).
+                    drink.isTypeUnspecified
+                      ? Label("Add details", systemImage: "square.and.pencil")
+                      : Label("Edit", systemImage: "pencil")
                   }
                   .tint(.accentColor)
                 }

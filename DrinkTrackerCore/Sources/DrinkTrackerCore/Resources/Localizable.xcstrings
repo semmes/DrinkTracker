@@ -18,6 +18,10 @@
       "extractionState": "manual",
       "localizations": {}
     },
+    "Standard drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
     "United States": {
       "extractionState": "manual",
       "localizations": {}
@@ -110,6 +114,10 @@
       "localizations": {}
     },
     "Imported drink": {
+      "extractionState": "manual",
+      "localizations": {}
+    },
+    "One standard drink": {
       "extractionState": "manual",
       "localizations": {}
     }

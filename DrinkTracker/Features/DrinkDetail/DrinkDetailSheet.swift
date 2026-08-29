@@ -75,8 +75,15 @@ struct DrinkDetailSheet: View {
       ScrollView {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.section) {
           typeSection
-          sizeSection
-          abvSection
+          // Size and strength stay out of the way until there is a type to
+          // hang them on. An untyped drink stores the standard-drink
+          // definition (0.6oz at 100%), and rendering that as a pill and a
+          // slider would invite the user to edit a number they never entered.
+          // Picking a type replaces both with that type's defaults.
+          if !draft.needsType {
+            sizeSection
+            abvSection
+          }
           if showsTimeControl { timeSection }
         }
         .screenMargin()
@@ -141,12 +148,14 @@ struct DrinkDetailSheet: View {
   /// way to do something already done.
   @ViewBuilder
   private var typeSection: some View {
-    // Adoption must ask the type — the import doesn't know it.
-    if showsTimeControl || adopting != nil {
+    // Adoption must ask the type — the import doesn't know it. So must an
+    // untyped standard drink, which is the same situation reached from the
+    // other side: an amount on the record, no kind (ADR-0023).
+    if showsTimeControl || adopting != nil || draft.needsType {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Drink")
         Picker("Drink", selection: typeBinding) {
-          ForEach(DrinkType.allCases) { type in
+          ForEach(DrinkType.selectableCases) { type in
             Text(type.displayName).tag(type)
           }
         }
@@ -317,6 +326,9 @@ struct DrinkDetailSheet: View {
 
   private var logButtonTitle: String {
     if adopting != nil { return "Save details" }
+    // Adding a type to an untyped drink is the same act as adoption, and says
+    // so — "Save changes" would imply something was there to change.
+    if draft.needsType { return "Save details" }
     return draft.editingEntryID == nil ? "Log drink" : "Save changes"
   }
 

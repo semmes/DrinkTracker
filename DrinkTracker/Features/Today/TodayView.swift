@@ -247,18 +247,23 @@ struct TodayView: View {
     }
   }
 
-  /// One drink, logged now, seeded from what is usually logged — the same rule
-  /// as the calendar's day sheet (see `DrinkDraft.quickCount`). History is
-  /// fetched inside the op, after any pending write has committed; this view
-  /// otherwise only queries today.
+  /// One drink, logged now, by whichever seed the user chose — one standard
+  /// drink with no type, or what they usually log (ADR-0023). The same rule as
+  /// the calendar's day sheet and the widget's ＋ (see `DrinkDraft.quickCount`).
+  ///
+  /// History is fetched inside the op, after any pending write has committed;
+  /// this view otherwise only queries today. On the standard-drink seed there
+  /// is nothing to seed *from*, so the whole-log fetch is skipped.
   private func addOneDrink() {
     let store = store
     let region = settings.effectiveRegion
+    let seed = settings.counterSeed
     enqueueCounterOp {
-      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
-        .loggedDrinks
+      let history: [LoggedDrink] = seed == .standardDrink
+        ? []
+        : ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
       let drink = DrinkDraft
-        .quickCount(1, from: history)
+        .quickCount(1, from: history, seed: seed, region: region)
         .makeLoggedDrink(region: region)
       lastLogged = await store.save(drink)
     }
@@ -442,7 +447,13 @@ struct TodayView: View {
                 Button {
                   draft = DrinkDraft(editing: drink)
                 } label: {
-                  Label("Edit", systemImage: "pencil")
+                  // An untyped drink borrows adoption's vocabulary (ADR-0016):
+                  // there is nothing recorded to correct, only facts to add.
+                  // Same destination either way — the sheet asks for a type
+                  // when the entry has none (ADR-0023).
+                  drink.isTypeUnspecified
+                    ? Label("Add details", systemImage: "square.and.pencil")
+                    : Label("Edit", systemImage: "pencil")
                 }
                 .tint(.accentColor)
               }
@@ -492,7 +503,7 @@ struct TodayView: View {
   private var quickAddRow: some View {
     GlassEffectContainer(spacing: GlassTokens.Spacing.tight) {
       HStack(spacing: GlassTokens.Spacing.tight) {
-        ForEach(DrinkType.allCases) { type in
+        ForEach(DrinkType.selectableCases) { type in
           QuickAddButton(type: type) {
             draft = DrinkDraft(type: type)
           }

@@ -47,6 +47,25 @@ final class AppSettings {
   /// explicit choice. Settings uses this to show the value is only a default.
   var isUsingFallbackRegion: Bool { region == nil }
 
+  /// What the counter's ＋ logs — one standard drink, or the user's usual
+  /// drink (ADR-0023).
+  ///
+  /// **Defaults to `.standardDrink`**, which is a change of behaviour for
+  /// existing installs and is meant to be. ADR-0009 seeded a count from the
+  /// log's own habits on the argument that a wine drinker's "3" should weigh
+  /// what their wine weighs; the first field report on it said the opposite —
+  /// that a varied drinker gets a type they did not choose and ends up in the
+  /// type picker anyway, which is the friction the counter exists to remove.
+  /// Face value is also the reading that cannot be wrong about a drink nobody
+  /// described. Anyone who wants the old rule keeps it in Settings.
+  ///
+  /// Stored as a raw string rather than a Bool so "never set" is `nil` and the
+  /// default lives in one place, instead of relying on `bool(forKey:)`
+  /// returning false.
+  var counterSeed: DrinkDraft.CountSeed {
+    didSet { defaults.set(counterSeed.rawValue, forKey: Keys.counterSeed) }
+  }
+
   /// Whether Today shows the session pace card during an active sitting.
   ///
   /// Off by default — the 1.2 spec's rule for every new behavioral surface.
@@ -64,6 +83,7 @@ final class AppSettings {
     self.region = defaults.string(forKey: Keys.region).flatMap(Region.init(rawValue:))
     self.prefersDetailedLogging = defaults.bool(forKey: Keys.detailedLogging)
     self.showsSessionPace = defaults.bool(forKey: Keys.sessionPace)
+    self.counterSeed = Self.storedCounterSeed(defaults: defaults)
   }
 
   /// Region lookup for contexts without a live `AppSettings` — notably the widget's
@@ -74,10 +94,21 @@ final class AppSettings {
     defaults.string(forKey: Keys.region).flatMap(Region.init(rawValue:)) ?? .unitedStates
   }
 
+  /// Counter-seed lookup for contexts without a live `AppSettings` — the
+  /// widget's ＋ runs in the extension process and logs through the same rule
+  /// as Today's, so it has to read the same preference.
+  nonisolated static func storedCounterSeed(
+    defaults: UserDefaults = AppGroup.defaults
+  ) -> DrinkDraft.CountSeed {
+    defaults.string(forKey: Keys.counterSeed)
+      .flatMap(DrinkDraft.CountSeed.init(rawValue:)) ?? .standardDrink
+  }
+
   private enum Keys {
     static let onboarding = "hasCompletedOnboarding"
     static let region = "region"
     static let detailedLogging = "prefersDetailedLogging"
     static let sessionPace = "showsSessionPace"
+    static let counterSeed = "counterSeed"
   }
 }

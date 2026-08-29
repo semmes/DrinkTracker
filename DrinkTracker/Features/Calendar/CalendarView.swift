@@ -226,16 +226,18 @@ struct CalendarView: View {
     let store = store
     let calendar = calendar
     let region = settings.effectiveRegion
+    let seed = settings.counterSeed
     enqueueCounterOp {
-      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
-        .loggedDrinks
+      let history: [LoggedDrink] = seed == .standardDrink
+        ? []
+        : ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
       let stamp = TrendSummary.backfillTimestamp(
         on: day,
         existing: store.repository.drinks(on: day, calendar: calendar),
         calendar: calendar
       )
       let drink = DrinkDraft
-        .quickCount(1, from: history, at: stamp)
+        .quickCount(1, from: history, seed: seed, region: region, at: stamp)
         .makeLoggedDrink(region: region)
       await store.save(drink)
     }
@@ -272,12 +274,13 @@ struct CalendarView: View {
     }
     let history = allEntries.loggedDrinks
     let region = settings.effectiveRegion
+    let seed = settings.counterSeed
     let store = store
     Task {
       for date in dates {
         let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
         let drinks = DrinkDraft
-          .quickCount(count, from: history, at: noon)
+          .quickCount(count, from: history, seed: seed, region: region, at: noon)
           .makeLoggedDrinks(region: region)
         await store.save(drinks)
       }

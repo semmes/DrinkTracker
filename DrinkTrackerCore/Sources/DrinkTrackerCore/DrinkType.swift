@@ -19,14 +19,35 @@ public struct DrinkSizeOption: Hashable, Sendable, Identifiable {
   public static let custom = DrinkSizeOption(label: "Custom", volumeOunces: nil)
 }
 
-/// The four quick-add categories on the Today screen.
+/// The four quick-add categories on the Today screen, plus the untyped drink.
 public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
   case beer
   case wine
   case spirit
   case other
+  /// One standard drink with no type stated (ADR-0023).
+  ///
+  /// Not a fifth category — the *absence* of the category question. It exists
+  /// because "what kind?" is a question the app asks and the user may have no
+  /// answer for, and answering it wrongly to get past it is worse than not
+  /// answering it at all.
+  ///
+  /// Deliberately outside `selectableCases`: nothing offers it as a choice
+  /// alongside beer and wine, because picking "unspecified" from a list of
+  /// types is not how it is meant to be reached. It comes from the counter,
+  /// and it leaves by the user adding details.
+  case unspecified
 
   public var id: String { rawValue }
+
+  /// The types a picker offers. `.unspecified` is excluded on purpose — see
+  /// the case's own note.
+  ///
+  /// Every type picker in the app iterates this rather than `allCases`.
+  /// `allCases` keeps all five, because the tie-break in
+  /// `RecentSummary.mostLoggedType` and any future persistence-order code
+  /// wants the complete, stable list.
+  public static let selectableCases: [DrinkType] = [.beer, .wine, .spirit, .other]
 
   public var displayName: String {
     switch self {
@@ -34,6 +55,11 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .wine: localized("Wine", comment: "Drink type")
     case .spirit: localized("Spirit", comment: "Drink type: distilled spirits")
     case .other: localized("Other", comment: "Drink type: anything not beer, wine, or spirits")
+    case .unspecified:
+      localized(
+        "Standard drink",
+        comment: "Drink type: one standard drink, logged without saying what kind"
+      )
     }
   }
 
@@ -44,6 +70,9 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .wine: "wineglass.fill"
     case .spirit: "flask.fill"
     case .other: "cup.and.saucer.fill"
+    // A measure, not a vessel: every other symbol here is a thing you drink
+    // from, and this case is precisely the one where that is unknown.
+    case .unspecified: "drop.fill"
     }
   }
 
@@ -72,6 +101,10 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
       ]
     case .other:
       [.custom]
+    // No sizes, because no size was stated. The sheet never renders pills for
+    // an untyped drink; picking a type is what brings them into being.
+    case .unspecified:
+      []
     }
   }
 
@@ -105,6 +138,11 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     // has no presets and no typical serving to anchor to, so its default is a
     // starting point for the Custom field rather than a claim about a real drink.
     case .other: 8
+    // The US definition, and only ever a fallback: an untyped drink's real
+    // facts are the *current region's* standard drink, which this enum cannot
+    // see. `LoggedDrink.standardDrink(in:)` is the constructor that knows,
+    // and every path that writes one goes through it (ADR-0023).
+    case .unspecified: Region.unitedStates.flOzPureAlcoholPerStandardDrink
     }
   }
 
@@ -114,6 +152,11 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .wine: 12
     case .spirit: 40
     case .other: 10
+    // Pure alcohol. An untyped drink is stored as the ethanol a standard drink
+    // is *defined* as, rather than as a plausible-looking beverage — 12 oz at
+    // 5% would claim a beer nobody mentioned, and the whole point is to claim
+    // nothing (ADR-0023).
+    case .unspecified: 100
     }
   }
 
@@ -122,6 +165,9 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .beer: 0...15
     case .wine: 0...20
     case .spirit, .other: 0...60
+    // Never reached by the slider — the sheet hides strength until a type is
+    // chosen — but the stored 100 must lie inside its own range.
+    case .unspecified: 0...100
     }
   }
 }

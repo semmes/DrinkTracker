@@ -20,6 +20,7 @@ struct SettingsView: View {
       ScrollView {
         VStack(spacing: GlassTokens.Spacing.section) {
           appearanceSection
+          counterSeedSection
           sessionPaceSection
           regionSection
           iCloudSection
@@ -60,6 +61,40 @@ struct SettingsView: View {
       .pickerStyle(.segmented)
       .padding(GlassTokens.Spacing.tight)
       .glassSurface(cornerRadius: GlassTokens.Radius.control)
+    }
+  }
+
+  // MARK: - What the counter logs
+
+  /// The seed rule, as a setting rather than a decision taken for the user
+  /// (ADR-0023). Defaults to the standard drink.
+  ///
+  /// A segmented picker rather than a toggle: neither answer is the "on"
+  /// state, and a switch labelled "log a standard drink" would imply the
+  /// other option is the absence of something. The footnote states what each
+  /// one records, without recommending either.
+  private var counterSeedSection: some View {
+    SettingsSection(
+      title: "What the counter logs",
+      footnote: counterSeedFootnote
+    ) {
+      @Bindable var settings = settings
+      Picker("What the counter logs", selection: $settings.counterSeed) {
+        Text("Standard drink").tag(DrinkDraft.CountSeed.standardDrink)
+        Text("My usual drink").tag(DrinkDraft.CountSeed.usualDrink)
+      }
+      .pickerStyle(.segmented)
+      .padding(GlassTokens.Spacing.tight)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control)
+    }
+  }
+
+  private var counterSeedFootnote: LocalizedStringKey {
+    switch settings.counterSeed {
+    case .standardDrink:
+      return "One tap records one standard drink, with no type. You can add the type, size, and strength later by tapping the entry, or skip it — the drink counts either way."
+    case .usualDrink:
+      return "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it."
     }
   }
 

@@ -485,3 +485,48 @@ marks.
 
 **Nothing here grades the user's drinking,** which is the axis 1.4.3 actually
 polices for this app. The paragraph is about the app's own bookkeeping.
+
+---
+
+## Addendum (2026-08-29): logging a standard drink with no type
+
+New user-visible copy for ADR-0023. The feature exists because a user said the
+type question was the friction, so the copy's whole job is to describe two
+recording behaviours without recommending either.
+
+| Where | Reads |
+|---|---|
+| Settings section title | "What the counter logs" |
+| Picker options | "Standard drink" / "My usual drink" |
+| Footnote, standard-drink setting | "One tap records one standard drink, with no type. You can add the type, size, and strength later by tapping the entry, or skip it — the drink counts either way." |
+| Footnote, usual-drink setting | "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it." |
+| Drink type name | "Standard drink" |
+| Summary line (row, Siri reply, "last logged") | "One standard drink" |
+| Row detail | "8:15 PM · no size or strength recorded" |
+| Sheet button, adding a type to an untyped drink | "Save details" |
+| Shortcuts intent description | "Logs one drink, the same way the app's counter does." |
+
+**Reviewed against 1.4.3.** Nothing here sets a target, grades a drink, or
+implies one setting is the responsible choice. The two footnotes are the risk
+and were written against it: both describe what gets recorded and stop. The
+standard-drink footnote could easily have read "for when you don't want to
+fuss with details" — an editorial about the user — and instead states the
+mechanism and the fact that skipping costs nothing, which is the reassurance
+the user actually asked for and is verifiable rather than soothing.
+
+**"or skip it — the drink counts either way"** is the one clause doing
+persuasive work, and it earns its place: the report's worry was that a drink
+logged without details might not be tracked properly. That sentence answers a
+factual question about the app's behaviour. It is not encouragement.
+
+**"no size or strength recorded"** describes an absence without calling it
+incomplete. "Missing size" or "details needed" would turn a row the user chose
+into a chore the app is nagging about — a small version of exactly the goal
+framing this app refuses.
+
+**Neither option is named as the default in the interface.** The picker shows
+two options with no badge, no "recommended", and no ordering claim beyond
+reading order.
+
+**No exclamation marks.** No celebration on adding details, and adding them
+produces no confirmation beyond the row changing.

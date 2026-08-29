@@ -110,9 +110,21 @@ public struct DrinkDraft: Equatable, Sendable {
     type: DrinkType,
     volumeOunces: Double? = nil,
     abvPercent: Double? = nil,
-    quantity: Int = 1
+    quantity: Int = 1,
+    region: Region = .unitedStates
   ) -> DrinkDraft? {
     guard quantity > 0 else { return nil }
+    // The untyped standard drink is the region's definition, so it is built
+    // from the region rather than from the enum's US fallback (ADR-0023).
+    // Size and strength are ignored here on purpose: a caller who knows the
+    // ounces and the ABV is describing a drink they can name, and naming it
+    // is what the other four cases are for. Honouring both at once would
+    // write a row that says "no type stated" over facts that state one.
+    if type == .unspecified {
+      var draft = DrinkDraft.standardDrink(region: region)
+      draft.quantity = min(quantity, intentQuantityLimit)
+      return draft
+    }
     var draft = DrinkDraft(type: type)
     if let volumeOunces, volumeOunces > 0 {
       let match = type.sizeOptions.first { $0.volumeOunces == volumeOunces }
@@ -136,6 +148,36 @@ public struct DrinkDraft: Equatable, Sendable {
     draft.loggedAt = date
     return draft
   }
+
+  /// What the counter's ＋ writes when the user states a number and nothing else
+  /// (ADR-0023).
+  ///
+  /// The two answers the app has ever had to "one more drink, but which one?",
+  /// now a setting rather than a decision taken on the user's behalf.
+  public enum CountSeed: String, CaseIterable, Sendable {
+    /// One standard drink, no type — the count taken at face value.
+    case standardDrink
+    /// The type logged most often, at the size and strength last logged for
+    /// it. ADR-0009's original rule.
+    case usualDrink
+  }
+
+  /// A draft for one standard drink with no type stated (ADR-0023).
+  ///
+  /// Region-aware because the drink it materialises is (see
+  /// `LoggedDrink.standardDrink(in:)`); `DrinkType.unspecified`'s own defaults
+  /// are the US fallback and are deliberately not used here.
+  public static func standardDrink(region: Region, at date: Date = Date()) -> DrinkDraft {
+    var draft = DrinkDraft(type: .unspecified, loggedAt: date)
+    draft.selectedSize = .custom
+    draft.customVolumeOunces = region.flOzPureAlcoholPerStandardDrink
+    draft.abvPercent = 100
+    return draft
+  }
+
+  /// True while this draft records an amount but not a kind — the state the
+  /// detail sheet turns into a type question rather than a size form.
+  public var needsType: Bool { type == .unspecified }
 
   /// A draft for count-first logging: "N drinks", no type chosen by the user.
   ///
@@ -161,12 +203,25 @@ public struct DrinkDraft: Equatable, Sendable {
   /// to repeat, and that type's own defaults stand in. The type still comes from
   /// the log, so a habitual Other drinker gets Other, not a silent switch to
   /// beer.
+  /// **The seed is now the user's choice** (ADR-0023). `.standardDrink` ignores
+  /// the history entirely and writes one standard drink with no type — the
+  /// answer for someone who drinks varied things and was being asked to pick
+  /// a type they did not have. `.usualDrink` is the rule described above,
+  /// unchanged. `region` is only read by `.standardDrink`, whose facts are
+  /// the region's own definition.
   public static func quickCount(
     _ count: Int,
     from history: [LoggedDrink],
+    seed: CountSeed = .usualDrink,
+    region: Region = .unitedStates,
     at date: Date = Date()
   ) -> DrinkDraft {
     var draft: DrinkDraft
+    if seed == .standardDrink {
+      draft = .standardDrink(region: region, at: date)
+      draft.quantity = max(1, count)
+      return draft
+    }
     if let type = TrendSummary.mostLoggedType(in: history) {
       if let recent = TrendSummary.mostRecentDrink(ofType: type, in: history),
          recent.isRepeatable {

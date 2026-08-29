@@ -97,7 +97,14 @@ extension TrendSummary {
   public static func mostLoggedType(in drinks: [LoggedDrink]) -> DrinkType? {
     // Imported Health entries are count-only shells (type .other, zero volume);
     // seeding from one would template future drinks on data nobody entered.
-    let counts = drinks.lazy.filter { !$0.isImportedFromHealth }
+    //
+    // Untyped standard drinks are excluded for the mirror-image reason
+    // (ADR-0023): the user declined to state a type, so counting that as a
+    // vote would let "no answer" win the plurality and then hand itself back
+    // as the seed. A log of nothing but untyped drinks returns nil here, and
+    // the caller falls to its own starting point — which for the counter is
+    // another untyped drink, and for the typed path is beer.
+    let counts = drinks.lazy.filter { !$0.isImportedFromHealth && !$0.isTypeUnspecified }
       .reduce(into: [DrinkType: Int]()) { counts, drink in
         counts[drink.type, default: 0] += 1
       }
