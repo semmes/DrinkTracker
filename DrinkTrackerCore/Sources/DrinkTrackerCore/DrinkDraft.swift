@@ -149,15 +149,31 @@ public struct DrinkDraft: Equatable, Sendable {
   /// With no history at all it falls back to beer's defaults, which resolve to
   /// exactly 1.0 US standard drinks (ADR-0005) — a fresh install's "N drinks"
   /// therefore means N standard drinks until the log says otherwise.
+  ///
+  /// **A drink with no size is never the template** (ADR-0022). The seed helpers
+  /// already skip entries marked as Health imports, but that guard reads
+  /// `countedDrinks`, and a row can carry the shape without the marker: a store
+  /// shared with a build that predates the attribute mirrors those rows back
+  /// stripped of it. Repeating one writes a zero-alcohol drink under the user's
+  /// usual type, which then becomes the newest entry of that type and seeds the
+  /// next tap — the fault is absorbing, not transient. So the test here is the
+  /// physical facts rather than the provenance: no volume means there is no size
+  /// to repeat, and that type's own defaults stand in. The type still comes from
+  /// the log, so a habitual Other drinker gets Other, not a silent switch to
+  /// beer.
   public static func quickCount(
     _ count: Int,
     from history: [LoggedDrink],
     at date: Date = Date()
   ) -> DrinkDraft {
     var draft: DrinkDraft
-    if let type = TrendSummary.mostLoggedType(in: history),
-       let recent = TrendSummary.mostRecentDrink(ofType: type, in: history) {
-      draft = .repeating(recent, at: date)
+    if let type = TrendSummary.mostLoggedType(in: history) {
+      if let recent = TrendSummary.mostRecentDrink(ofType: type, in: history),
+         recent.isRepeatable {
+        draft = .repeating(recent, at: date)
+      } else {
+        draft = DrinkDraft(type: type, loggedAt: date)
+      }
     } else {
       draft = DrinkDraft(type: .beer, loggedAt: date)
     }

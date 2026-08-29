@@ -458,3 +458,30 @@ verified. See [ADR-0021](decisions/0021-the-privacy-policy-stays-in-english.md).
 **Nothing was added telling the reader the policy is in English.** There is no
 second language yet, so the line would currently describe nothing. It belongs with
 the first translation, and the ADR says so.
+
+---
+
+## Addendum (2026-08-29): the count-first seed refuses an empty template
+
+**No in-app copy changed.** The fix is behavioural (ADR-0022). Today's rows and
+its repeat control gained an imported-entry branch, but every string in it —
+"Add details", "Edit", "Remove" — already existed on the History screen and is
+already in the catalog; the change is which rows they attach to. No key was
+added, removed, or reworded.
+
+**One listing paragraph added,** to What's New (1.2):
+
+| Line | Reads |
+|---|---|
+| What's New (1.2), new final paragraph | "Fixed: with drinks imported from Apple Health in the log, one-tap logging could copy one of them — an entry that records a count and a time, but no size or strength — and add it as an empty drink." |
+
+**Reviewed against 1.4.3.** It states what went wrong and what it produced, in
+the same register as the feature statements above it: no apology, no
+reassurance, no claim about how rare it was or how much better things now are.
+"Fixed:" labels the paragraph rather than congratulating anyone, and the
+description of an import — a count and a time, no size or strength — is the
+same factual line ADR-0014 and the reviewer notes already use. No exclamation
+marks.
+
+**Nothing here grades the user's drinking,** which is the axis 1.4.3 actually
+polices for this app. The paragraph is about the app's own bookkeeping.

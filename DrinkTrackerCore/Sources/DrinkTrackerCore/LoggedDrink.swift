@@ -36,6 +36,21 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
   /// True for entries mirrored from another app's Health data.
   public var isImportedFromHealth: Bool { countedDrinks != nil }
 
+  /// Whether this drink can serve as the template for another one.
+  ///
+  /// Volume is the test, not `isImportedFromHealth`, because provenance is not
+  /// reliably recoverable (ADR-0022). Every import is a zero-volume shell by
+  /// construction, but `countedDrinks` is an additive attribute: a store shared
+  /// with a build that predates it mirrors those rows back with the marker
+  /// stripped, and they then read as ordinary drinks. Volume survives that,
+  /// and it separates the two cases exactly — the detail sheet refuses to save
+  /// a drink without one, so a zero volume is never something the user typed.
+  ///
+  /// Strength is deliberately *not* part of the test. A real size at 0% is a
+  /// drink someone chose to record that way, and rewriting it to the type's
+  /// default strength would record alcohol they did not have.
+  public var isRepeatable: Bool { volumeOunces > 0 }
+
   public init(
     id: UUID = UUID(),
     loggedAt: Date = Date(),
