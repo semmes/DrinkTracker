@@ -99,6 +99,9 @@ struct BulkFillSheet: View {
     guard let seed else {
       return "Logged at the default size and strength — edit any of them afterwards."
     }
+    if seed.isTypeUnspecified {
+      return "Each logged as one standard drink, with no type — edit any of them afterwards."
+    }
     return "Each logged as \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — edit any of them afterwards."
   }
 

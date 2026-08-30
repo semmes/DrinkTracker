@@ -368,12 +368,22 @@ struct TodayView: View {
           Image(systemName: "arrow.trianglehead.clockwise")
             .font(.footnote.weight(.semibold))
             .foregroundStyle(Color.accentColor)
-          Text("Another \(recent.type.displayName.lowercased())")
-            .font(.subheadline)
-            .foregroundStyle(.primary)
-          Text("\(LoggedDrink.displayOunces(recent.volumeOunces))oz · \(LoggedDrink.displayPercent(recent.abvPercent))%")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+          // An untyped drink gets its own sentence rather than being fed
+          // through the noun slot — "Another one standard drink" is not a
+          // phrase — and shows no size or strength, because the 0.6oz/100% it
+          // stores is the definition it was logged against (ADR-0023).
+          if recent.isTypeUnspecified {
+            Text("Another standard drink")
+              .font(.subheadline)
+              .foregroundStyle(.primary)
+          } else {
+            Text("Another \(recent.type.displayName.lowercased())")
+              .font(.subheadline)
+              .foregroundStyle(.primary)
+            Text("\(LoggedDrink.displayOunces(recent.volumeOunces))oz · \(LoggedDrink.displayPercent(recent.abvPercent))%")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
           Spacer()
         }
         .padding(.horizontal, GlassTokens.Spacing.cardPadding)
@@ -382,7 +392,11 @@ struct TodayView: View {
       }
       .buttonStyle(.plain)
       .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-      .accessibilityLabel("Log another \(recent.type.displayName.lowercased()), same size and strength")
+      .accessibilityLabel(
+        recent.isTypeUnspecified
+          ? Text("Log another standard drink")
+          : Text("Log another \(recent.type.displayName.lowercased()), same size and strength")
+      )
       .transition(.opacity.combined(with: .move(edge: .top)))
       .animation(.smooth(duration: 0.25), value: recent)
     }

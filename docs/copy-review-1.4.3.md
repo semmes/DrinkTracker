@@ -504,6 +504,9 @@ recording behaviours without recommending either.
 | Row detail | "8:15 PM · no size or strength recorded" |
 | Sheet button, adding a type to an untyped drink | "Save details" |
 | Shortcuts intent description | "Logs one drink, the same way the app's counter does." |
+| Today's repeat control, untyped | "Another standard drink" (VoiceOver: "Log another standard drink") |
+| Day sheet caption, untyped seed | "Plus logs one standard drink, with no type — editable afterwards." |
+| Bulk fill caption, untyped seed | "Each logged as one standard drink, with no type — edit any of them afterwards." |
 
 **Reviewed against 1.4.3.** Nothing here sets a target, grades a drink, or
 implies one setting is the responsible choice. The two footnotes are the risk
@@ -526,6 +529,15 @@ framing this app refuses.
 **Neither option is named as the default in the interface.** The picker shows
 two options with no badge, no "recommended", and no ordering claim beyond
 reading order.
+
+**The last three exist because the first draft printed the definition back.**
+The repeat row rendered "Another one standard drink · 0.6oz · 100%" — not a
+phrase, and a serving the user never poured — and the two calendar captions
+described the *habit* seed while the ＋ was writing an untyped drink, which
+made them false statements about the app's own behaviour rather than merely
+awkward ones. Each now has an untyped branch that says what gets logged and
+stops, in the same shape as the typed sentence beside it ("— editable
+afterwards" is the existing pattern, kept).
 
 **No exclamation marks.** No celebration on adding details, and adding them
 produces no confirmation beyond the row changing.

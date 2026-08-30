@@ -142,8 +142,13 @@ struct DayLogSheet: View {
   /// literal, so translators get whole sentences rather than glued fragments.
   private var countCaption: Text {
     let adds: Text
+    // An untyped seed says what it logs and stops: printing its stored
+    // 0.6oz/100% would hand the standard-drink definition back as a serving
+    // (ADR-0023).
+    if let seed, seed.isTypeUnspecified {
+      adds = Text("Plus logs one standard drink, with no type — editable afterwards.")
     // "a other" is not a sentence; Other falls back to the generic noun.
-    if let seed, seed.type != .other {
+    } else if let seed, seed.type != .other {
       adds = Text("Plus logs a \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")
     } else if let seed {
       adds = Text("Plus logs a drink, \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")

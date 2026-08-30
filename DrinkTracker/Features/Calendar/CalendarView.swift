@@ -189,9 +189,19 @@ struct CalendarView: View {
     )
   }
 
-  /// What a calendar log should look like: the type logged most often, at the size
-  /// and strength it was last logged at. Falls back to the type's own defaults.
+  /// What a calendar log should look like — and it has to be *what the ＋ will
+  /// actually write*, because the day sheet and the bulk-fill sheet describe it
+  /// to the user before they tap. Reading the habit here while the counter
+  /// logged an untyped standard drink would make those captions state
+  /// something false about the app's own behaviour (ADR-0023).
+  ///
+  /// On the standard-drink seed: one standard drink, no type. Otherwise the
+  /// type logged most often, at the size and strength it was last logged at,
+  /// falling back to the type's own defaults.
   private var seedDrink: LoggedDrink? {
+    if settings.counterSeed == .standardDrink {
+      return .standardDrink(in: settings.effectiveRegion)
+    }
     let drinks = allEntries.loggedDrinks
     guard let type = TrendSummary.mostLoggedType(in: drinks) else { return nil }
     if let recent = TrendSummary.mostRecentDrink(ofType: type, in: drinks) {

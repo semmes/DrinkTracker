@@ -1091,6 +1091,21 @@ struct UntypedStandardDrinkTests {
     #expect(withFacts.abvPercent == uk.abvPercent)
   }
 
+  /// The repeat control on Today offers "another one of those" for the newest
+  /// repeatable drink, and an untyped standard drink qualifies (it has a real
+  /// volume). Repeating one must produce another untyped standard drink — not
+  /// a typed drink carrying 0.6oz at 100%, which is what a stray
+  /// `DrinkDraft(editing:)` path would hand back.
+  @Test("Repeating an untyped drink gives another untyped standard drink")
+  func repeatingStaysUntyped() {
+    let original = LoggedDrink.standardDrink(in: .unitedKingdom)
+    let repeated = DrinkDraft.repeating(original).makeLoggedDrink(region: .unitedKingdom)
+    #expect(repeated.isTypeUnspecified)
+    #expect(repeated.id != original.id)
+    #expect(abs(repeated.standardDrinks(in: .unitedKingdom) - 1.0) < 0.0001)
+    #expect(!repeated.recordsSizeAndStrength)
+  }
+
   @Test("Adding a type replaces the definition with that type's own facts")
   func choosingATypeClearsTheDefinition() {
     var draft = DrinkDraft.standardDrink(region: .unitedStates)
