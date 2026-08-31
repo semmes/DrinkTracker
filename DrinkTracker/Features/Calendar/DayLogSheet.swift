@@ -33,6 +33,9 @@ struct DayLogSheet: View {
   let deletion: DeletionCoordinator
 
   var onAddDrink: () -> Void
+  /// The way back to plain standard drinks after this day has a described
+  /// drink for ＋ to follow (ADR-0023 revision) — records one, dated this day.
+  var onAddStandardDrink: () -> Void
   var onRemoveMostRecent: () -> Void
   var onUndoDelete: () -> Void
   var onMarkAlcoholFree: () -> Void
@@ -112,6 +115,17 @@ struct DayLogSheet: View {
         .frame(maxWidth: .infinity)
         .fixedSize(horizontal: false, vertical: true)
         .animation(nil, value: existingDrinks.count)
+
+      // Same control as Today's, for the same reason: while ＋ follows a
+      // described drink, the alternative is one tap away and the caption
+      // above says which drink ＋ would log (ADR-0023 revision).
+      if settings.counterSeed == .standardDrink, let seed, !seed.isTypeUnspecified {
+        Button("Record a standard drink instead") {
+          onAddStandardDrink()
+        }
+        .font(.footnote)
+        .frame(maxWidth: .infinity)
+      }
     }
   }
 

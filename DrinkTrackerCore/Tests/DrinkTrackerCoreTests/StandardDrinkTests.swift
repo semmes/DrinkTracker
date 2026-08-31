@@ -1042,18 +1042,104 @@ struct UntypedStandardDrinkTests {
     #expect(TrendSummary.mostLoggedType(in: untyped) == nil)
   }
 
-  @Test("The standard-drink seed ignores the history entirely")
-  func seedIgnoresHabits() {
-    let history = (0..<9).map { _ in
-      LoggedDrink(type: .spirit, volumeOunces: 2, abvPercent: 40)
+  // MARK: The default seed's day memory (ADR-0023 revision)
+  //
+  // A fixed UTC calendar and explicit timestamps: these tests are about day
+  // boundaries, and the machine's zone or a DST edge must not decide them.
+
+  private static var utc: Calendar {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(secondsFromGMT: 0)!
+    return cal
+  }
+
+  /// Noon UTC on an arbitrary fixed day, plus whole days and hours.
+  private static func stamp(day: Int, hour: Int) -> Date {
+    Date(timeIntervalSince1970: 1_000_166_400 + Double(day) * 86_400 + Double(hour) * 3_600)
+  }
+
+  @Test("A day starts at one standard drink, whatever other days hold")
+  func dayStartsAtStandardDrink() {
+    // Nine spirits yesterday: a habit, and under this seed not an answer —
+    // no drink has been described *today*.
+    let history = (0..<9).map { i in
+      LoggedDrink(loggedAt: Self.stamp(day: 0, hour: 10 + i % 8), type: .spirit, volumeOunces: 2, abvPercent: 40)
     }
     let draft = DrinkDraft.quickCount(
-      1, from: history, seed: .standardDrink, region: .australia
+      1, from: history, seed: .standardDrink, region: .australia,
+      at: Self.stamp(day: 1, hour: 9), calendar: Self.utc
     )
     #expect(draft.type == .unspecified)
     #expect(draft.needsType)
-    let drink = draft.makeLoggedDrink(region: .australia)
-    #expect(abs(drink.standardDrinks(in: .australia) - 1.0) < 0.0001)
+    #expect(abs(draft.makeLoggedDrink(region: .australia).standardDrinks(in: .australia) - 1.0) < 0.0001)
+  }
+
+  @Test("Describing a drink makes the count mean another of it, for that day")
+  func followsTheDayLatestDescribedDrink() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    var draft = DrinkDraft.quickCount(
+      1, from: [beer], seed: .standardDrink, at: Self.stamp(day: 1, hour: 14), calendar: Self.utc
+    )
+    #expect(draft.type == .beer)
+    #expect(draft.volumeOunces == 16)
+    #expect(draft.abvPercent == 6)
+
+    // A later description moves the template: the count follows what the
+    // user said most recently, not what they said first.
+    let wine = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 15), type: .wine, volumeOunces: 8, abvPercent: 12)
+    draft = DrinkDraft.quickCount(
+      1, from: [beer, wine], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(draft.type == .wine)
+    #expect(draft.volumeOunces == 8)
+  }
+
+  @Test("Recording a standard drink again is the way back, same day")
+  func standardDrinkEntryClearsTheFollow() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let untyped = LoggedDrink.standardDrink(in: .unitedStates, at: Self.stamp(day: 1, hour: 15))
+    let draft = DrinkDraft.quickCount(
+      1, from: [beer, untyped], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(draft.type == .unspecified)
+  }
+
+  @Test("Midnight resets the follow — the next day starts standard")
+  func midnightResets() {
+    let lateBeer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 23), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let draft = DrinkDraft.quickCount(
+      1, from: [lateBeer], seed: .standardDrink, at: Self.stamp(day: 2, hour: 1), calendar: Self.utc
+    )
+    #expect(draft.type == .unspecified)
+  }
+
+  @Test("An import on the day is never the template; an earlier described drink is")
+  func importsNeverTemplateTheDay() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let imported = LoggedDrink.importedFromHealth(
+      sampleID: UUID(), count: 1, loggedAt: Self.stamp(day: 1, hour: 15)
+    )
+    let withBeer = DrinkDraft.quickCount(
+      1, from: [beer, imported], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(withBeer.type == .beer)
+
+    // An import-only day has had nothing described: standard drink.
+    let importsOnly = DrinkDraft.quickCount(
+      1, from: [imported], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(importsOnly.type == .unspecified)
+  }
+
+  @Test("The follow repeats as N separate entries, like any count")
+  func followedCountStaysSeparateEntries() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let drinks = DrinkDraft.quickCount(
+      3, from: [beer], seed: .standardDrink, at: Self.stamp(day: 1, hour: 14), calendar: Self.utc
+    ).makeLoggedDrinks(region: .unitedStates)
+    #expect(drinks.count == 3)
+    #expect(Set(drinks.map(\.id)).count == 3)
+    #expect(drinks.allSatisfy { $0.type == .beer && $0.volumeOunces == 16 })
   }
 
   @Test("The usual-drink seed is ADR-0009's rule, unchanged")

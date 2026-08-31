@@ -121,9 +121,10 @@ struct CalendarView: View {
         day: selection.date,
         existingDrinks: drinks(on: selection.date),
         isMarkedAlcoholFree: markedDays.contains(calendar.startOfDay(for: selection.date)),
-        seed: seedDrink,
+        seed: seedDrink(for: selection.date),
         deletion: deletion,
         onAddDrink: { addOneDrink(on: selection.date) },
+        onAddStandardDrink: { addStandardDrink(on: selection.date) },
         onRemoveMostRecent: { removeMostRecent(on: selection.date) },
         onUndoDelete: { Task { await deletion.undo(using: store) } },
         onMarkAlcoholFree: { store.markAlcoholFree(selection.date) },
@@ -144,7 +145,7 @@ struct CalendarView: View {
     .sheet(item: $bulkSelection) { selection in
       BulkFillSheet(
         days: selection.days,
-        seed: seedDrink,
+        seed: bulkFillSeed,
         onApply: { count, dates in
           bulkFill(count, on: dates)
           pendingDays = []
@@ -189,17 +190,22 @@ struct CalendarView: View {
     )
   }
 
-  /// What a calendar log should look like — and it has to be *what the ＋ will
-  /// actually write*, because the day sheet and the bulk-fill sheet describe it
-  /// to the user before they tap. Reading the habit here while the counter
-  /// logged an untyped standard drink would make those captions state
-  /// something false about the app's own behaviour (ADR-0023).
+  /// What a calendar log will look like on `day` — and it has to be *what the
+  /// ＋ will actually write*, because the day sheet describes it to the user
+  /// before they tap (ADR-0023).
   ///
-  /// On the standard-drink seed: one standard drink, no type. Otherwise the
-  /// type logged most often, at the size and strength it was last logged at,
-  /// falling back to the type's own defaults.
-  private var seedDrink: LoggedDrink? {
+  /// Under the standard-drink seed the memory is day-scoped (ADR-0023
+  /// revision): the day's own most recently described drink, else one
+  /// standard drink — the same rule `DrinkDraft.quickCount` applies, read
+  /// from the same entries. Under the usual-drink seed, the type logged most
+  /// often at its last-logged size, falling back to that type's defaults.
+  private func seedDrink(for day: Date) -> LoggedDrink? {
     if settings.counterSeed == .standardDrink {
+      if let template = DrinkDraft.dayTemplate(
+        on: day, in: drinks(on: day), calendar: calendar
+      ), !template.isTypeUnspecified {
+        return template
+      }
       return .standardDrink(in: settings.effectiveRegion)
     }
     let drinks = allEntries.loggedDrinks
@@ -208,6 +214,16 @@ struct CalendarView: View {
       return recent
     }
     return DrinkDraft(type: type).makeLoggedDrink(region: settings.effectiveRegion)
+  }
+
+  /// The bulk-fill caption's seed. Bulk fill only ever writes to blank days
+  /// (ADR-0011), and a blank day has no described drink to follow — so under
+  /// the standard-drink seed this is always the standard drink itself.
+  private var bulkFillSeed: LoggedDrink? {
+    if settings.counterSeed == .standardDrink {
+      return .standardDrink(in: settings.effectiveRegion)
+    }
+    return seedDrink(for: Date())
   }
 
   private func drinks(on day: Date) -> [LoggedDrink] {
@@ -238,16 +254,34 @@ struct CalendarView: View {
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
-      let history: [LoggedDrink] = seed == .standardDrink
-        ? []
-        : ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
+        .loggedDrinks
       let stamp = TrendSummary.backfillTimestamp(
         on: day,
         existing: store.repository.drinks(on: day, calendar: calendar),
         calendar: calendar
       )
       let drink = DrinkDraft
-        .quickCount(1, from: history, seed: seed, region: region, at: stamp)
+        .quickCount(1, from: history, seed: seed, region: region, at: stamp, calendar: calendar)
+        .makeLoggedDrink(region: region)
+      await store.save(drink)
+    }
+  }
+
+  /// The day sheet's way back to standard drinks (ADR-0023 revision): one
+  /// untyped standard drink, dated this day, which as the day's newest entry
+  /// is what ＋ repeats from here on. Same timestamp rule as the plus.
+  private func addStandardDrink(on day: Date) {
+    let store = store
+    let calendar = calendar
+    let region = settings.effectiveRegion
+    enqueueCounterOp {
+      let stamp = TrendSummary.backfillTimestamp(
+        on: day,
+        existing: store.repository.drinks(on: day, calendar: calendar),
+        calendar: calendar
+      )
+      let drink = DrinkDraft.standardDrink(region: region, at: stamp)
         .makeLoggedDrink(region: region)
       await store.save(drink)
     }
@@ -290,7 +324,7 @@ struct CalendarView: View {
       for date in dates {
         let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
         let drinks = DrinkDraft
-          .quickCount(count, from: history, seed: seed, region: region, at: noon)
+          .quickCount(count, from: history, seed: seed, region: region, at: noon, calendar: calendar)
           .makeLoggedDrinks(region: region)
         await store.save(drinks)
       }

@@ -204,6 +204,16 @@ struct TodayView: View {
 
       lastLoggedLine
 
+      // Visible only while the ＋ is following a described drink: states what
+      // the alternative records, and taps as one. Its presence is also how
+      // the follow behaviour announces itself (ADR-0023 revision).
+      if typedDayTemplate != nil {
+        Button("Record a standard drink instead") {
+          recordStandardDrink()
+        }
+        .font(.footnote)
+      }
+
       if todaysEntries.isEmpty {
         Group {
           if isTodayMarkedAlcoholFree {
@@ -247,26 +257,53 @@ struct TodayView: View {
     }
   }
 
-  /// One drink, logged now, by whichever seed the user chose — one standard
-  /// drink with no type, or what they usually log (ADR-0023). The same rule as
-  /// the calendar's day sheet and the widget's ＋ (see `DrinkDraft.quickCount`).
+  /// One drink, logged now, by whichever seed the user chose (ADR-0023, and
+  /// its day-memory revision): under the default, a day starts at one
+  /// standard drink and the count follows the most recent drink the user
+  /// described *today*; under the usual-drink seed, the type they log most.
+  /// The same rule as the calendar's day sheet and the widget's ＋ (see
+  /// `DrinkDraft.quickCount`).
   ///
-  /// History is fetched inside the op, after any pending write has committed;
-  /// this view otherwise only queries today. On the standard-drink seed there
-  /// is nothing to seed *from*, so the whole-log fetch is skipped.
+  /// History is fetched inside the op, after any pending write has committed —
+  /// which is also what makes rapid taps follow a just-described drink; this
+  /// view otherwise only queries today.
   private func addOneDrink() {
     let store = store
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
-      let history: [LoggedDrink] = seed == .standardDrink
-        ? []
-        : ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
+        .loggedDrinks
       let drink = DrinkDraft
         .quickCount(1, from: history, seed: seed, region: region)
         .makeLoggedDrink(region: region)
       lastLogged = await store.save(drink)
     }
+  }
+
+  /// The way back to plain standard drinks after describing a typed one
+  /// (ADR-0023 revision): logs one untyped standard drink now, which both
+  /// records this drink and — being the day's newest entry — is what the ＋
+  /// repeats from here on. No stored mode to reset; the log is the memory.
+  private func recordStandardDrink() {
+    let store = store
+    let region = settings.effectiveRegion
+    enqueueCounterOp {
+      let drink = DrinkDraft.standardDrink(region: region).makeLoggedDrink(region: region)
+      lastLogged = await store.save(drink)
+    }
+  }
+
+  /// The drink today's ＋ will repeat, when that is a typed one the user
+  /// described — the condition for offering the way back. Nil under the
+  /// usual-drink seed (that mode has no day memory) and while the day is
+  /// already on standard drinks.
+  private var typedDayTemplate: LoggedDrink? {
+    guard settings.counterSeed == .standardDrink else { return nil }
+    guard let template = DrinkDraft.dayTemplate(
+      on: Date(), in: todaysEntries.loggedDrinks, calendar: .current
+    ), !template.isTypeUnspecified else { return nil }
+    return template
   }
 
   /// Removes today's most recent entry through the same path as a swipe-delete,

@@ -180,7 +180,13 @@ a fifth category — the absence of the question, and excluded from
 Today's ＋, the day sheet, bulk fill, and the widget's ＋ (which needed no new
 control — `LogOneDrinkIntent` *is* the counter's mirror, so no home-screen
 re-add). Adding details later reuses adoption's vocabulary and destination
-(ADR-0016).
+(ADR-0016). **The owner's tier-3 review then revised the default into
+day-scoped memory** (ADR-0023 revision): a day starts at a standard drink,
+describing a drink makes ＋ repeat *it* for the rest of that day
+(`DrinkDraft.dayTemplate` — the day's most recent repeatable entry, no
+stored mode), "Record a standard drink instead" is the way back on Today and
+the day sheet, and midnight resets. `.usualDrink` stays ADR-0009's
+plurality rule, day-blind.
 
 **The rules that came out of it, worth keeping:** an untyped drink stores the
 *region's standard-drink definition* (0.6 fl oz at 100% for the US) — never

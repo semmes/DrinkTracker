@@ -98,10 +98,12 @@ plus logs, minus removes, undo included.
 ## What's New (1.2)
 
 ```
-One tap now records one standard drink, with no type. Add the type,
-size, and strength afterwards by tapping the entry, or skip them — the
-drink counts either way. If you'd rather one tap repeated the drink you
-log most, that's still there: Settings, What the counter logs.
+One tap now records one standard drink, with no type — add the type,
+size, and strength afterwards, or skip them; it counts either way. Once
+you describe a drink, the next taps record another of it for the rest
+of the day, with one tap back to plain standard drinks; each day starts
+back at a standard drink. If you'd rather one tap always repeated the
+drink you log most, that's in Settings: What the counter logs.
 
 Appearance: choose Light, Dark, or System in Settings.
 

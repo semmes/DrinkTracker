@@ -139,6 +139,41 @@ beer as it always has.
 - Nothing here adds a permission, a network call, a notification, or a
   judgment. The setting is a recording preference, and both answers record.
 
+## Revision (2026-08-31): the default seed remembers the day
+
+The owner's tier-3 review of the first build accepted the standard-drink
+start and rejected the "never learns" half: after describing a beer, the next
+＋ re-logging a standard drink made the counter ignore the most concrete thing
+it had just been told. The stated spec, adopted here verbatim as the
+default's behaviour:
+
+- A day starts at one standard drink, no type.
+- The moment the user *describes* a drink — the sheet, Siri, adding details —
+  the count means another of that drink, **for the rest of that day**.
+- There is always a way back: "Record a standard drink instead" appears while
+  ＋ is following a described drink (Today and the day sheet), and logs one —
+  which, as the day's newest entry, is also what ＋ repeats next.
+- Midnight resets. The next day starts at a standard drink again.
+
+**The mechanism is the log itself — no stored mode.** The template is simply
+the day's most recent repeatable entry (`DrinkDraft.dayTemplate`): typed →
+repeat it; untyped → a fresh standard drink; imports never qualify
+(ADR-0022's `isRepeatable`); other days never qualify, which is the whole of
+the reset. Ordering is by the entry's own timestamp, because acts are not
+recorded and evidence is — adding details tonight to this morning's entry
+moves this morning, not now, and a later entry still outranks it.
+
+This is day-scoped in both directions on purpose. Backfilling a past day in
+the day sheet follows *that day's* described drinks; bulk fill only touches
+blank days (ADR-0011), so its caption truthfully stays "one standard drink".
+`.usualDrink` is untouched — it remains ADR-0009's whole-log plurality rule
+for anyone who wants their habit inferred, and it has no day memory.
+
+What this supersedes in the decision above: the claim that the default
+"ignores the history entirely." It ignores *other days* entirely. The
+mostLoggedType exclusion, the stored facts, the region lens, and every
+no-definition-printed rule stand unchanged.
+
 ## How to reopen
 
 If the standard-drink default turns out to *under*-record at scale — heavy

@@ -255,14 +255,13 @@ struct LogOneDrinkIntent: AppIntent {
       let repository = DrinkRepository(context: container.mainContext)
 
       // Reads the same preference Today's counter does (ADR-0023), so the
-      // widget's ＋ and the app's ＋ cannot mean different things. On
-      // `.standardDrink` the history fetch is skipped entirely — there is
-      // nothing to seed from.
+      // widget's ＋ and the app's ＋ cannot mean different things — including
+      // the default's day memory, which needs the log to find today's most
+      // recently described drink.
       let region = AppSettings.storedRegion()
       let seed = AppSettings.storedCounterSeed()
-      let history: [LoggedDrink] = seed == .standardDrink
-        ? []
-        : ((try? container.mainContext.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+      let history = ((try? container.mainContext.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
+        .loggedDrinks
       let drink = DrinkDraft
         .quickCount(1, from: history, seed: seed, region: region)
         .makeLoggedDrink(region: region)

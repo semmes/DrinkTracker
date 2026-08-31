@@ -179,6 +179,24 @@ public struct DrinkDraft: Equatable, Sendable {
   /// detail sheet turns into a type question rather than a size form.
   public var needsType: Bool { type == .unspecified }
 
+  /// The entry that decides what a count means on `day` under the
+  /// standard-drink seed: that day's most recent repeatable entry.
+  ///
+  /// Repeatable (ADR-0022) excludes Health imports and marker-stripped
+  /// zero-volume rows; entries from other days never qualify, which is the
+  /// whole of the daily reset. An untyped entry *is* returned — its presence
+  /// is the user's most recent statement, "a standard drink" — and the caller
+  /// reads `isTypeUnspecified` to build a fresh one rather than repeat it.
+  public static func dayTemplate(
+    on day: Date,
+    in history: [LoggedDrink],
+    calendar: Calendar
+  ) -> LoggedDrink? {
+    history
+      .filter { calendar.isDate($0.loggedAt, inSameDayAs: day) && $0.isRepeatable }
+      .max { $0.loggedAt < $1.loggedAt }
+  }
+
   /// A draft for count-first logging: "N drinks", no type chosen by the user.
   ///
   /// The count is the user's statement; everything else is the best available
@@ -203,22 +221,37 @@ public struct DrinkDraft: Equatable, Sendable {
   /// to repeat, and that type's own defaults stand in. The type still comes from
   /// the log, so a habitual Other drinker gets Other, not a silent switch to
   /// beer.
-  /// **The seed is now the user's choice** (ADR-0023). `.standardDrink` ignores
-  /// the history entirely and writes one standard drink with no type — the
-  /// answer for someone who drinks varied things and was being asked to pick
-  /// a type they did not have. `.usualDrink` is the rule described above,
-  /// unchanged. `region` is only read by `.standardDrink`, whose facts are
-  /// the region's own definition.
+  /// **The seed is now the user's choice** (ADR-0023). `.usualDrink` is the
+  /// rule described above, unchanged. `.standardDrink` is the default, and its
+  /// memory is **scoped to the day** (ADR-0023 revision, from the owner's
+  /// tier-3 review): a day starts at one standard drink with no type, and the
+  /// moment the user describes a drink — the sheet, Siri, adding details — the
+  /// count means *another of that*, for the rest of that day. The template is
+  /// simply the day's own most recent repeatable entry: describing a new drink
+  /// moves it, logging a standard drink again clears it, and midnight resets
+  /// it, all without a stored mode — the log is the memory. `region` supplies
+  /// the standard-drink facts; `calendar` decides what "that day" means, the
+  /// same authority the rest of the app uses for day boundaries.
   public static func quickCount(
     _ count: Int,
     from history: [LoggedDrink],
     seed: CountSeed = .usualDrink,
     region: Region = .unitedStates,
-    at date: Date = Date()
+    at date: Date = Date(),
+    calendar: Calendar = .current
   ) -> DrinkDraft {
     var draft: DrinkDraft
     if seed == .standardDrink {
-      draft = .standardDrink(region: region, at: date)
+      if let template = dayTemplate(on: date, in: history, calendar: calendar),
+         !template.isTypeUnspecified {
+        draft = .repeating(template, at: date)
+      } else {
+        // No drink described on this day (or the latest statement was a
+        // standard drink): the count is standard drinks, freshly built from
+        // the current region rather than repeated, so a region change
+        // mid-day still yields exactly 1.0.
+        draft = .standardDrink(region: region, at: date)
+      }
       draft.quantity = max(1, count)
       return draft
     }

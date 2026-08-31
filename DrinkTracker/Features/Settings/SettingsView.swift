@@ -92,7 +92,7 @@ struct SettingsView: View {
   private var counterSeedFootnote: LocalizedStringKey {
     switch settings.counterSeed {
     case .standardDrink:
-      return "One tap records one standard drink, with no type. You can add the type, size, and strength later by tapping the entry, or skip it — the drink counts either way."
+      return "One tap records one standard drink, with no type — add the type and size later or skip them, it counts either way. Once you describe a drink, the next taps record another of it for the rest of the day. Each day starts back at a standard drink."
     case .usualDrink:
       return "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it."
     }
