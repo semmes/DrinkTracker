@@ -258,4 +258,31 @@ Open items for v1.2:
   `/Users/shawnsemmes/DrinkTracker`, which is where the user's Xcode builds
   from (that is where a build's `Localizable.xcstrings` changes land). Check
   both before concluding a build "did nothing".
+- **Repo visibility — private is on the table, deferred to the 1.2 train**
+  (raised 2026-08-31, user decision: hold and decide for 1.2). Deliberately
+  **not** before 1.2: the URLs below serve the *live* 1.0 listing, and 1.1 is
+  in App Review. Three blockers, each of which must land before the flip, not
+  after. (1) The ASC **Privacy Policy URL and Support URL are both
+  `github.com/semmes/DrinkTracker/blob/main/docs/…`**
+  (`docs/app-store-listing.md`) and 404 for signed-out visitors the moment the
+  repo goes private — guideline 5.1.1 and 1.5. (2) **Support *is* GitHub
+  Issues** (`docs/support.md`, and the policy's Contact section) — private
+  makes it invitation-only and there is no non-GitHub fallback contact
+  anywhere. (3) Both policy copies claim it "lives in the app's public source
+  repository; any change to it is visible in the repository's history"
+  (`docs/privacy-policy.md`, `PrivacyPolicyView.swift`) — the house rule is
+  that the policy's claims stay checkable, and this one would simply become
+  false. The in-app `PrivacyPolicyView.hostedURL` ("Read this policy online")
+  would 404 in already-shipped apps, so that fix needs a build. Order if it
+  goes ahead: host the policy + support page publicly elsewhere → repoint the
+  two ASC URLs (both editable on a live app, no binary) → add a support email
+  → rewrite the paragraph in both copies with a date bump, ADR, and 1.4.3
+  review → ship the new `hostedURL` → only then change visibility. Cost side,
+  which is a separate decision: CI is three `macos-latest` jobs, ~8 billable
+  macOS minutes per run, and **130 runs in August 2026** ≈ 1,040 min/month.
+  Private repos meter macOS at 10×, so that is roughly **$60–70/month** in
+  overage against a 2,000–3,000 minute allowance — and a $0 spending limit
+  stops CI outright rather than slowing it, which would end merge-when-green.
+  Nothing else depends on public: 0 forks, 1 star, 0 watchers, no Pages, and
+  both Xcode Cloud and `gh` work fine against a private repo.
 - Watch the 1.1 review outcome; a rejection comes back here with its text.
