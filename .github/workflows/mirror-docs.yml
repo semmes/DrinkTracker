@@ -98,12 +98,20 @@ jobs:
 
   verify:
     name: Verify published copies
-    # Not on push: the sync job above has just written them, and raw.git…
-    # serves through a CDN that can lag a fresh push by minutes. A push that
-    # fails to reach Tallyist already fails the sync job.
-    if: github.event_name != 'push'
+    # Not on push: the sync job has just written the copies, and a push that
+    # fails to reach Tallyist already fails that job.
+    #
+    # needs/always rather than running beside sync: on a manual dispatch both
+    # jobs are eligible, and a verify racing a sync reports the very drift the
+    # sync is repairing. always() keeps this running on the schedule, where
+    # sync is skipped, and after a sync that failed — the case where knowing
+    # whether the published copies are actually wrong matters most.
+    needs: sync
+    if: always() && github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: Compare published copies against this repository
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/mirror_docs.py check

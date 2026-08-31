@@ -10,12 +10,18 @@ mirror checkable rather than merely intended.
   check                compare every published copy against this repository's
 """
 
+import os
 import pathlib
 import sys
 import urllib.error
 import urllib.request
 
-RAW = "https://raw.githubusercontent.com/semmes/Tallyist/main/{name}"
+# The contents API rather than raw.githubusercontent: the raw host serves
+# through a CDN that can hand back a copy minutes old, which turns a check meant
+# to detect drift into one that reports drift that was already repaired. Asked
+# for as raw, this returns the file body directly.
+API = ("https://api.github.com/repos/semmes/Tallyist/contents/{name}"
+       "?ref=main")
 
 # The front matter each published copy carries. Keep in step with the layout in
 # semmes/Tallyist; a permalink change here is an App Store Connect change too.
@@ -51,8 +57,20 @@ def check(repo_root: pathlib.Path) -> int:
     failures = []
     for name in DOCS:
         expected = published_form(repo_root, name)
+        req = urllib.request.Request(
+            API.format(name=name),
+            headers={
+                "Accept": "application/vnd.github.raw",
+                "User-Agent": "tallyist-mirror-check",
+                # Anonymous requests are rate limited to 60/hour per IP, which a
+                # shared runner can exhaust. Actions provides a token; it needs
+                # no permissions here, since the repository is public.
+                **({"Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"}
+                   if os.environ.get("GITHUB_TOKEN") else {}),
+            },
+        )
         try:
-            with urllib.request.urlopen(RAW.format(name=name), timeout=30) as r:
+            with urllib.request.urlopen(req, timeout=30) as r:
                 actual = r.read().decode("utf-8")
         except urllib.error.HTTPError as e:
             failures.append(f"{name}: could not fetch published copy (HTTP {e.code})")
