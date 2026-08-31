@@ -54,10 +54,29 @@ move to the app layer or the package gains its own resources.
 
 ## Progress (2026-08-28)
 
-**Steps 1–4 are done, and the catalogs are populated.** Four catalogs now carry
-**284 keys**: 221 in the app, 33 in the widget, 26 in the core package, and 4 in a
-new `AppShortcuts.xcstrings`. Extraction and the committed catalogs agree exactly
-— zero missing, zero stale, verified key-set against key-set.
+**Steps 1–4 are done, and the catalogs are populated.** As of 2026-08-28 four
+catalogs carried **284 keys**: 221 in the app, 33 in the widget, 26 in the core
+package, and 4 in a new `AppShortcuts.xcstrings`. Extraction and the committed
+catalogs agreed exactly — zero missing, zero stale, verified key-set against
+key-set.
+
+**That count has drifted since, and the drift is hand-made.** Sessions without
+a Swift toolchain cannot run the sync, so keys have been spliced into the files
+directly, in the exact shape each one already uses. The app catalog went 221 →
+228 with the RecentSummary plural work (PR #47), and ADR-0023 (the untyped
+standard drink) took it to **235** while adding 2 to the widget's and 2 to the
+core package's, and rewording one intent description in both app and widget.
+
+Current: **301 keys** — 235 app, 34 widget, 28 core, 4 shortcuts.
+
+**So "extraction and the committed catalogs agree exactly" is a 2026-08-28
+claim, not a standing one.** Nothing is broken by the drift — an absent key
+falls back to the key itself, which in English is the string — but the claim is
+only re-established by running the sync below on a machine with Xcode. Do that
+before a second language, and expect a no-op if the hand-added keys were right.
+The core package's additions are the one part already pinned:
+`PackageLocalizationTests` walks `DrinkType.allCases` and fails in CI if a
+display name has no key.
 
 **How the catalogs get populated, since this cost a lot of confusion.** A build
 from the command line does *not* write extracted strings back into `.xcstrings`.

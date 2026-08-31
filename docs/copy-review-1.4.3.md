@@ -485,3 +485,100 @@ marks.
 
 **Nothing here grades the user's drinking,** which is the axis 1.4.3 actually
 polices for this app. The paragraph is about the app's own bookkeeping.
+
+---
+
+## Addendum (2026-08-29): logging a standard drink with no type
+
+New user-visible copy for ADR-0023. The feature exists because a user said the
+type question was the friction, so the copy's whole job is to describe two
+recording behaviours without recommending either.
+
+| Where | Reads |
+|---|---|
+| Settings section title | "What the counter logs" |
+| Picker options | "Standard drink" / "My usual drink" |
+| Footnote, standard-drink setting | "One tap records one standard drink, with no type. You can add the type, size, and strength later by tapping the entry, or skip it — the drink counts either way." |
+| Footnote, usual-drink setting | "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it." |
+| Drink type name, and the summary line (row title, CSV entry, Siri reply, "last logged") | "One standard drink" |
+| Row detail | "8:15 PM · no size or strength recorded" |
+| Sheet button, adding a type to an untyped drink | "Save details" |
+| Shortcuts intent description | "Logs one drink, the same way the app's counter does." |
+| Today's repeat control, untyped | "Another standard drink" (VoiceOver: "Log another standard drink") |
+| Day sheet caption, untyped seed | "Plus logs one standard drink, with no type — editable afterwards." |
+| Bulk fill caption, untyped seed | "Each logged as one standard drink, with no type — edit any of them afterwards." |
+
+**Reviewed against 1.4.3.** Nothing here sets a target, grades a drink, or
+implies one setting is the responsible choice. The two footnotes are the risk
+and were written against it: both describe what gets recorded and stop. The
+standard-drink footnote could easily have read "for when you don't want to
+fuss with details" — an editorial about the user — and instead states the
+mechanism and the fact that skipping costs nothing, which is the reassurance
+the user actually asked for and is verifiable rather than soothing.
+
+**"or skip it — the drink counts either way"** is the one clause doing
+persuasive work, and it earns its place: the report's worry was that a drink
+logged without details might not be tracked properly. That sentence answers a
+factual question about the app's behaviour. It is not encouragement.
+
+**"no size or strength recorded"** describes an absence without calling it
+incomplete. "Missing size" or "details needed" would turn a row the user chose
+into a chore the app is nagging about — a small version of exactly the goal
+framing this app refuses.
+
+**Neither option is named as the default in the interface.** The picker shows
+two options with no badge, no "recommended", and no ordering claim beyond
+reading order.
+
+**The last three exist because the first draft printed the definition back.**
+The repeat row rendered "Another one standard drink · 0.6oz · 100%" — not a
+phrase, and a serving the user never poured — and the two calendar captions
+described the *habit* seed while the ＋ was writing an untyped drink, which
+made them false statements about the app's own behaviour rather than merely
+awkward ones. Each now has an untyped branch that says what gets logged and
+stops, in the same shape as the typed sentence beside it ("— editable
+afterwards" is the existing pattern, kept).
+
+**No exclamation marks.** No celebration on adding details, and adding them
+produces no confirmation beyond the row changing.
+
+**One phrase was changed by the build, not by review.** The drink type was
+going to be called "Standard drink", matching the Settings option. In the core
+package that key is a build error: `xcstringstool` derives a Swift symbol per
+key and folds case, so it collides with the region unit name "standard drink" —
+the same family as the "≈" collision already recorded in
+`StandardDrink.liveEstimate`. The type is "One standard drink" instead, which
+also turns out to be the better line, since it is the whole summary a row needs
+and one key now serves both. The Settings picker keeps "Standard drink": it is
+an app-target string, naming an option rather than an entry.
+
+
+---
+
+## Addendum (2026-08-31): the default seed remembers the day
+
+The owner's tier-3 review turned the default into day-scoped memory
+(ADR-0023 revision), which changed two strings and added one.
+
+| Where | Reads |
+|---|---|
+| Settings footnote, standard-drink option (replaces the previous one) | "One tap records one standard drink, with no type — add the type and size later or skip them, it counts either way. Once you describe a drink, the next taps record another of it for the rest of the day. Each day starts back at a standard drink." |
+| While ＋ follows a described drink — inside Today's "Log by type" disclosure, and under the day sheet's caption | "Record a standard drink instead" |
+| What's New (1.2) lead paragraph | reworded to state the follow and the daily reset |
+
+**Reviewed against 1.4.3.** The footnote states three mechanics and stops —
+no verdict on either behaviour, and "describe a drink" names the user's act
+rather than grading it. "Each day starts back at a standard drink" is the
+sentence doing the most work: it states the reset as a fact of the control,
+not as a fresh start, a streak, or anything a day could fail at.
+
+**"Record a standard drink instead"** follows the "Record no alcohol today"
+precedent: an action label naming exactly what gets written. "Instead"
+carries the one fact that matters at that moment — it diverges from what ＋
+would do — without calling either choice better. It exists only while ＋ is
+following. On Today it was moved into the "Log by type" disclosure at the
+owner's direction (2026-08-31), keeping the counter area clear of a tap
+target beside the last-logged line's Edit; the last-logged line itself keeps
+the follow state readable.
+
+**No exclamation marks; nothing celebrates, warns, or resets a score.**

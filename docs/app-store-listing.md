@@ -98,6 +98,13 @@ plus logs, minus removes, undo included.
 ## What's New (1.2)
 
 ```
+One tap now records one standard drink, with no type — add the type,
+size, and strength afterwards, or skip them; it counts either way. Once
+you describe a drink, the next taps record another of it for the rest
+of the day, with one tap back to plain standard drinks; each day starts
+back at a standard drink. If you'd rather one tap always repeated the
+drink you log most, that's in Settings: What the counter logs.
+
 Appearance: choose Light, Dark, or System in Settings.
 
 Trends now reach further — Quarter and Year views — and can show a
@@ -152,6 +159,11 @@ Notes on what's new in 1.2:
   imported from Health are read-only mirrors, and the Today screen no
   longer offers to edit or delete one. Deleting a logged drink still
   retracts only samples this app wrote.
+- Logging a drink without stating its type is a recording preference, not
+  a new kind of data. The entry stores the standard-drink definition the
+  app already uses for its totals, and the user can add the type, size,
+  and strength later or leave them out. Nothing is inferred about the
+  user and nothing is sent anywhere.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```

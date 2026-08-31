@@ -59,6 +59,12 @@ struct DrinkRow: View {
         ? "\(time) · counted as 1 drink"
         : "\(time) · counted as \(count) drinks"
     }
+    // An untyped standard drink stores the definition it was logged against,
+    // not a serving. Printing "0.6oz · 100% ABV" would hand the user back
+    // arithmetic they never typed and invite them to correct it (ADR-0023).
+    if drink.isTypeUnspecified {
+      return "\(time) · no size or strength recorded"
+    }
     return "\(time) · \(LoggedDrink.displayOunces(drink.volumeOunces))oz · \(LoggedDrink.displayPercent(drink.abvPercent))% ABV"
   }
 
@@ -84,6 +90,9 @@ struct DrinkRow: View {
       return counted == 1
         ? String(localized: "\(time) · counted as 1 drink")
         : String(localized: "\(time) · counted as \(count) drinks")
+    }
+    if drink.isTypeUnspecified {
+      return String(localized: "\(time) · no size or strength recorded")
     }
     return String(
       localized: "\(time) · \(LoggedDrink.displayOunces(drink.volumeOunces))oz · \(LoggedDrink.displayPercent(drink.abvPercent))% ABV"

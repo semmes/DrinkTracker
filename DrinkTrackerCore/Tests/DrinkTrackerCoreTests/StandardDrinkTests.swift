@@ -149,9 +149,13 @@ struct DrinkTypeDefaultsTests {
   /// The pre-selected pill and the default volume have to agree, because the
   /// pill's volume is what `DrinkDraft.volumeOunces` actually uses. Before these
   /// were derived from each other, changing one silently did nothing.
+  ///
+  /// Iterates `selectableCases`, not `allCases`: pills exist only for types the
+  /// sheet offers, and `.unspecified` deliberately has none (ADR-0023) — it is
+  /// covered by its own assertion in `sizeOptions` below.
   @Test("The default pill matches the default volume for every type")
   func defaultPillMatchesDefaultVolume() {
-    for type in DrinkType.allCases {
+    for type in DrinkType.selectableCases {
       let selected = type.defaultSizeOption.volumeOunces ?? type.defaultVolumeOunces
       #expect(selected == type.defaultVolumeOunces, "\(type.displayName) pill disagrees")
     }
@@ -174,9 +178,15 @@ struct DrinkTypeDefaultsTests {
     #expect(DrinkType.wine.sizeOptions.count == 3)
     #expect(DrinkType.spirit.sizeOptions.count == 4)
     #expect(DrinkType.other.sizeOptions == [.custom])
-    for type in DrinkType.allCases {
+    // Every type the sheet offers can reach Custom, so no size is unreachable.
+    for type in DrinkType.selectableCases {
       #expect(type.sizeOptions.contains(.custom))
     }
+    // The untyped drink is the one type with no sizes at all, which is the
+    // point of it: the sheet hides the size section until a type is chosen,
+    // and a Custom pill there would invite editing the standard-drink
+    // definition (ADR-0023).
+    #expect(DrinkType.unspecified.sizeOptions.isEmpty)
   }
 }
 
@@ -871,6 +881,7 @@ struct PackageLocalizationTests {
     // rendered example. That form is what `String.LocalizationValue` builds:
     // plain `%@` in source order, never positional.
     for key in ["%@, %@oz, %@%% ABV", "From Apple Health, 1 drink",
+                "One standard drink",
                 "From Apple Health, %@ drinks", "%@ standard drink",
                 "%@ standard drinks", "%@ unit", "%@ units",
                 "Approximately %@ standard drink", "Approximately %@ standard drinks",
@@ -893,6 +904,38 @@ struct PackageLocalizationTests {
     }
   }
 
+  /// The build failure this test exists to prevent: `xcstringstool
+  /// generate-symbols` derives a Swift symbol from every key and folds case, so
+  /// two keys differing only in capitalisation are a hard error — not a warning,
+  /// and not visible until a CI build compiles the catalog. ADR-0023 hit it by
+  /// adding "Standard drink" beside the region unit name "standard drink".
+  ///
+  /// Same family as the "≈" collision recorded in `StandardDrink.liveEstimate`:
+  /// what the symbol generator ignores is what makes two distinct keys the same
+  /// key. This checks the axis that is mechanical; the app and widget catalogs
+  /// are not covered because only the package generates symbols.
+  @Test("No two keys in the package catalog differ only by case")
+  func catalogKeysCannotCollideAsSymbols() throws {
+    let url = try #require(
+      Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
+      "no catalog to check (Xcode-compiled bundles are covered by the test above)"
+    )
+    let data = try Data(contentsOf: url)
+    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let keys = Array((json["strings"] as? [String: Any] ?? [:]).keys)
+
+    var byFoldedCase: [String: [String]] = [:]
+    for key in keys {
+      byFoldedCase[key.lowercased(), default: []].append(key)
+    }
+    for (folded, colliding) in byFoldedCase {
+      #expect(
+        colliding.count == 1,
+        "these keys generate one symbol and fail the build: \(colliding.sorted()) (as \(folded))"
+      )
+    }
+  }
+
   @Test("The export's header never localizes, whatever the values do")
   func exportHeaderStaysMachineReadable() {
     // ADR-0015 pinned the column layout as a contract; ADR-0020 localizes the
@@ -900,5 +943,262 @@ struct PackageLocalizationTests {
     #expect(LogExport.header == "date,time,entry,volume_oz,abv_percent,standard_drinks,unit,source")
     #expect(LogExport.appName == "Tallyist")
     #expect(LogExport.healthName == "Apple Health")
+  }
+}
+
+@Suite("The untyped standard drink")
+struct UntypedStandardDrinkTests {
+
+  @Test("One standard drink is exactly one standard drink, in every region")
+  func exactlyOneAtLogTime() {
+    for region in Region.allCases {
+      let drink = LoggedDrink.standardDrink(in: region)
+      #expect(
+        abs(drink.standardDrinks(in: region) - 1.0) < 0.0001,
+        "\(region.displayName) logged \(drink.standardDrinks(in: region))"
+      )
+    }
+  }
+
+  /// The ADR-0022 guard, restated for the shape ADR-0023 introduces. An untyped
+  /// drink carries real facts precisely so that it can never be mistaken for the
+  /// empty "Other, 0oz, 0%" rows of the field bug — including by a build that
+  /// predates `.unspecified` and decodes the type to `.other`.
+  @Test("An untyped drink has a real volume, so it is a safe template")
+  func carriesRealFacts() {
+    for region in Region.allCases {
+      let drink = LoggedDrink.standardDrink(in: region)
+      #expect(drink.volumeOunces > 0)
+      #expect(drink.isRepeatable)
+    }
+  }
+
+  @Test("Read by a build that cannot see the type, it still totals one drink")
+  func degradesToCorrectArithmetic() {
+    // What `DrinkEntry.logged`'s `DrinkType(rawValue:) ?? .other` produces on a
+    // binary shipped before this case existed: the type is lost, the physical
+    // facts are not. The label is wrong; the number is not.
+    let asOlderBuildSeesIt = LoggedDrink(
+      type: .other,
+      volumeOunces: Region.unitedStates.flOzPureAlcoholPerStandardDrink,
+      abvPercent: 100
+    )
+    #expect(abs(asOlderBuildSeesIt.standardDrinks(in: .unitedStates) - 1.0) < 0.0001)
+    #expect(asOlderBuildSeesIt.isRepeatable)
+  }
+
+  @Test("The region stays a lens, exactly as it is for a typed drink")
+  func reExpressesUnderAnotherRegion() {
+    let us = LoggedDrink.standardDrink(in: .unitedStates)
+    let beer = LoggedDrink(type: .beer, volumeOunces: 12, abvPercent: 5)
+    // 14 g of ethanol read against the UK's 8 g unit — the same answer a 12 oz
+    // 5% beer gives, because they are the same amount of alcohol.
+    #expect(abs(us.standardDrinks(in: .unitedKingdom) - beer.standardDrinks(in: .unitedKingdom)) < 0.0001)
+    #expect(us.standardDrinks(in: .unitedKingdom) > 1.7)
+  }
+
+  @Test("An untyped drink says what it is and no more")
+  func summaryStatesNoSize() {
+    let drink = LoggedDrink.standardDrink(in: .unitedStates)
+    #expect(drink.summaryLine == "One standard drink")
+    // The stored definition must never surface as though the user typed it.
+    #expect(!drink.summaryLine.contains("100"))
+    #expect(!drink.summaryLine.contains("oz"))
+    #expect(!drink.recordsSizeAndStrength)
+  }
+
+  @Test("The export blanks size and strength but still carries the amount")
+  func exportOmitsTheDefinition() throws {
+    let csv = LogExport.csv(
+      drinks: [LoggedDrink.standardDrink(in: .unitedStates, at: Date())],
+      alcoholFreeDays: [],
+      region: .unitedStates
+    )
+    let row = try #require(csv.split(separator: "\n").last.map(String.init))
+    let columns = row.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+    // date,time,entry,volume_oz,abv_percent,standard_drinks,unit,source
+    #expect(columns[2] == DrinkType.unspecified.displayName)
+    #expect(columns[3].isEmpty, "volume column leaked the definition: \(columns[3])")
+    #expect(columns[4].isEmpty, "abv column leaked the definition: \(columns[4])")
+    #expect(columns[5] == "1")
+    #expect(columns[7] == LogExport.appName)
+  }
+
+  @Test("No picker can offer the untyped case")
+  func neverSelectable() {
+    #expect(!DrinkType.selectableCases.contains(.unspecified))
+    #expect(DrinkType.selectableCases.count == 4)
+    // It stays in allCases, which is what the seed tie-break orders against.
+    #expect(DrinkType.allCases.contains(.unspecified))
+  }
+
+  @Test("An untyped drink casts no vote for a type")
+  func castsNoSeedVote() {
+    let untyped = (0..<5).map { _ in LoggedDrink.standardDrink(in: .unitedStates) }
+    let oneWine = LoggedDrink(type: .wine, volumeOunces: 5, abvPercent: 12)
+    // Five untyped drinks against one wine: without the filter, "no answer"
+    // wins the plurality and hands itself back as the seed.
+    #expect(TrendSummary.mostLoggedType(in: untyped + [oneWine]) == .wine)
+    #expect(TrendSummary.mostLoggedType(in: untyped) == nil)
+  }
+
+  // MARK: The default seed's day memory (ADR-0023 revision)
+  //
+  // A fixed UTC calendar and explicit timestamps: these tests are about day
+  // boundaries, and the machine's zone or a DST edge must not decide them.
+
+  private static var utc: Calendar {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(secondsFromGMT: 0)!
+    return cal
+  }
+
+  /// Noon UTC on an arbitrary fixed day, plus whole days and hours.
+  private static func stamp(day: Int, hour: Int) -> Date {
+    Date(timeIntervalSince1970: 1_000_166_400 + Double(day) * 86_400 + Double(hour) * 3_600)
+  }
+
+  @Test("A day starts at one standard drink, whatever other days hold")
+  func dayStartsAtStandardDrink() {
+    // Nine spirits yesterday: a habit, and under this seed not an answer —
+    // no drink has been described *today*.
+    let history = (0..<9).map { i in
+      LoggedDrink(loggedAt: Self.stamp(day: 0, hour: 10 + i % 8), type: .spirit, volumeOunces: 2, abvPercent: 40)
+    }
+    let draft = DrinkDraft.quickCount(
+      1, from: history, seed: .standardDrink, region: .australia,
+      at: Self.stamp(day: 1, hour: 9), calendar: Self.utc
+    )
+    #expect(draft.type == .unspecified)
+    #expect(draft.needsType)
+    #expect(abs(draft.makeLoggedDrink(region: .australia).standardDrinks(in: .australia) - 1.0) < 0.0001)
+  }
+
+  @Test("Describing a drink makes the count mean another of it, for that day")
+  func followsTheDayLatestDescribedDrink() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    var draft = DrinkDraft.quickCount(
+      1, from: [beer], seed: .standardDrink, at: Self.stamp(day: 1, hour: 14), calendar: Self.utc
+    )
+    #expect(draft.type == .beer)
+    #expect(draft.volumeOunces == 16)
+    #expect(draft.abvPercent == 6)
+
+    // A later description moves the template: the count follows what the
+    // user said most recently, not what they said first.
+    let wine = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 15), type: .wine, volumeOunces: 8, abvPercent: 12)
+    draft = DrinkDraft.quickCount(
+      1, from: [beer, wine], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(draft.type == .wine)
+    #expect(draft.volumeOunces == 8)
+  }
+
+  @Test("Recording a standard drink again is the way back, same day")
+  func standardDrinkEntryClearsTheFollow() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let untyped = LoggedDrink.standardDrink(in: .unitedStates, at: Self.stamp(day: 1, hour: 15))
+    let draft = DrinkDraft.quickCount(
+      1, from: [beer, untyped], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(draft.type == .unspecified)
+  }
+
+  @Test("Midnight resets the follow — the next day starts standard")
+  func midnightResets() {
+    let lateBeer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 23), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let draft = DrinkDraft.quickCount(
+      1, from: [lateBeer], seed: .standardDrink, at: Self.stamp(day: 2, hour: 1), calendar: Self.utc
+    )
+    #expect(draft.type == .unspecified)
+  }
+
+  @Test("An import on the day is never the template; an earlier described drink is")
+  func importsNeverTemplateTheDay() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let imported = LoggedDrink.importedFromHealth(
+      sampleID: UUID(), count: 1, loggedAt: Self.stamp(day: 1, hour: 15)
+    )
+    let withBeer = DrinkDraft.quickCount(
+      1, from: [beer, imported], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(withBeer.type == .beer)
+
+    // An import-only day has had nothing described: standard drink.
+    let importsOnly = DrinkDraft.quickCount(
+      1, from: [imported], seed: .standardDrink, at: Self.stamp(day: 1, hour: 16), calendar: Self.utc
+    )
+    #expect(importsOnly.type == .unspecified)
+  }
+
+  @Test("The follow repeats as N separate entries, like any count")
+  func followedCountStaysSeparateEntries() {
+    let beer = LoggedDrink(loggedAt: Self.stamp(day: 1, hour: 13), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let drinks = DrinkDraft.quickCount(
+      3, from: [beer], seed: .standardDrink, at: Self.stamp(day: 1, hour: 14), calendar: Self.utc
+    ).makeLoggedDrinks(region: .unitedStates)
+    #expect(drinks.count == 3)
+    #expect(Set(drinks.map(\.id)).count == 3)
+    #expect(drinks.allSatisfy { $0.type == .beer && $0.volumeOunces == 16 })
+  }
+
+  @Test("The usual-drink seed is ADR-0009's rule, unchanged")
+  func usualSeedStillRepeats() {
+    let history = [
+      LoggedDrink(type: .wine, volumeOunces: 8, abvPercent: 13),
+      LoggedDrink(type: .wine, volumeOunces: 5, abvPercent: 12)
+    ]
+    let draft = DrinkDraft.quickCount(1, from: history, seed: .usualDrink, region: .unitedStates)
+    #expect(draft.type == .wine)
+    #expect(!draft.needsType)
+  }
+
+  @Test("A log of nothing but untyped drinks still seeds a typed path")
+  func typedPathFallsBackToBeer() {
+    let untyped = (0..<3).map { _ in LoggedDrink.standardDrink(in: .unitedStates) }
+    // .usualDrink with no votes falls to beer, as it always has — the untyped
+    // rows neither win nor block.
+    #expect(DrinkDraft.quickCount(1, from: untyped, seed: .usualDrink).type == .beer)
+  }
+
+  @Test("An intent's untyped drink follows the region, not the enum's fallback")
+  func intentDraftIsRegionAware() throws {
+    let uk = try #require(DrinkDraft.forIntent(type: .unspecified, region: .unitedKingdom))
+    #expect(uk.type == .unspecified)
+    #expect(
+      abs(uk.makeLoggedDrink(region: .unitedKingdom).standardDrinks(in: .unitedKingdom) - 1.0) < 0.0001
+    )
+    // Size and strength are refusals here, not overrides: a caller who knows
+    // them is describing a drink they can name.
+    let withFacts = try #require(
+      DrinkDraft.forIntent(type: .unspecified, volumeOunces: 16, abvPercent: 7, region: .unitedKingdom)
+    )
+    #expect(withFacts.volumeOunces == uk.volumeOunces)
+    #expect(withFacts.abvPercent == uk.abvPercent)
+  }
+
+  /// The repeat control on Today offers "another one of those" for the newest
+  /// repeatable drink, and an untyped standard drink qualifies (it has a real
+  /// volume). Repeating one must produce another untyped standard drink — not
+  /// a typed drink carrying 0.6oz at 100%, which is what a stray
+  /// `DrinkDraft(editing:)` path would hand back.
+  @Test("Repeating an untyped drink gives another untyped standard drink")
+  func repeatingStaysUntyped() {
+    let original = LoggedDrink.standardDrink(in: .unitedKingdom)
+    let repeated = DrinkDraft.repeating(original).makeLoggedDrink(region: .unitedKingdom)
+    #expect(repeated.isTypeUnspecified)
+    #expect(repeated.id != original.id)
+    #expect(abs(repeated.standardDrinks(in: .unitedKingdom) - 1.0) < 0.0001)
+    #expect(!repeated.recordsSizeAndStrength)
+  }
+
+  @Test("Adding a type replaces the definition with that type's own facts")
+  func choosingATypeClearsTheDefinition() {
+    var draft = DrinkDraft.standardDrink(region: .unitedStates)
+    draft.changeType(to: .wine)
+    #expect(draft.type == .wine)
+    #expect(!draft.needsType)
+    #expect(draft.volumeOunces == DrinkType.wine.defaultVolumeOunces)
+    #expect(draft.abvPercent == DrinkType.wine.defaultABVPercent)
   }
 }

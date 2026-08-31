@@ -33,6 +33,9 @@ struct DayLogSheet: View {
   let deletion: DeletionCoordinator
 
   var onAddDrink: () -> Void
+  /// The way back to plain standard drinks after this day has a described
+  /// drink for ＋ to follow (ADR-0023 revision) — records one, dated this day.
+  var onAddStandardDrink: () -> Void
   var onRemoveMostRecent: () -> Void
   var onUndoDelete: () -> Void
   var onMarkAlcoholFree: () -> Void
@@ -112,6 +115,17 @@ struct DayLogSheet: View {
         .frame(maxWidth: .infinity)
         .fixedSize(horizontal: false, vertical: true)
         .animation(nil, value: existingDrinks.count)
+
+      // Same control as Today's, for the same reason: while ＋ follows a
+      // described drink, the alternative is one tap away and the caption
+      // above says which drink ＋ would log (ADR-0023 revision).
+      if settings.counterSeed == .standardDrink, let seed, !seed.isTypeUnspecified {
+        Button("Record a standard drink instead") {
+          onAddStandardDrink()
+        }
+        .font(.footnote)
+        .frame(maxWidth: .infinity)
+      }
     }
   }
 
@@ -142,8 +156,13 @@ struct DayLogSheet: View {
   /// literal, so translators get whole sentences rather than glued fragments.
   private var countCaption: Text {
     let adds: Text
+    // An untyped seed says what it logs and stops: printing its stored
+    // 0.6oz/100% would hand the standard-drink definition back as a serving
+    // (ADR-0023).
+    if let seed, seed.isTypeUnspecified {
+      adds = Text("Plus logs one standard drink, with no type — editable afterwards.")
     // "a other" is not a sentence; Other falls back to the generic noun.
-    if let seed, seed.type != .other {
+    } else if let seed, seed.type != .other {
       adds = Text("Plus logs a \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")
     } else if let seed {
       adds = Text("Plus logs a drink, \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")

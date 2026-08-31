@@ -112,6 +112,10 @@
     "Imported drink": {
       "extractionState": "manual",
       "localizations": {}
+    },
+    "One standard drink": {
+      "extractionState": "manual",
+      "localizations": {}
     }
   }
 }

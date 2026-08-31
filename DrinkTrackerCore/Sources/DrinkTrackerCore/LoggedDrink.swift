@@ -90,6 +90,61 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
     )
   }
 
+  /// One standard drink, as the current region defines it, with no type stated
+  /// (ADR-0023).
+  ///
+  /// **What it stores, and why it is not a beverage.** Volume and ABV are the
+  /// ethanol a standard drink is *defined* as — the region's own
+  /// `flOzPureAlcoholPerStandardDrink`, at 100%. Materialising 12 oz at 5%
+  /// instead would have been the obvious move and is the wrong one twice: it
+  /// claims a beer the user never mentioned, and it bakes the US definition
+  /// into a UK user's log. The definition is the one fact actually in
+  /// evidence, so it is the one stored.
+  ///
+  /// **Why not zero, the way an import is.** A zero-volume row is exactly the
+  /// shape ADR-0022 taught us not to mint: a build predating `.unspecified`
+  /// decodes the type to `.other` (see `DrinkEntry.logged`), and if the row
+  /// also had no volume it would be indistinguishable from the empty
+  /// "Other, 0oz, 0%" drinks of the field bug — repeatable, absorbing, and
+  /// wrong. With real facts, the worst an older build can do is label it
+  /// "Other" and show 0.6oz at 100%: an odd-looking row whose *arithmetic is
+  /// exactly right*, in every region, and which repeats to another honest
+  /// standard drink. Degrading to ugly beats degrading to false.
+  ///
+  /// **The region is a lens here like everywhere else** (ADR-0002). This is a
+  /// physical fact, so switching to the UK re-expresses a US-logged standard
+  /// drink as 1.75 units, exactly as it does a 12 oz beer. Freezing it at 1.0
+  /// under every lens would have made these rows a second region-immune
+  /// class alongside imports, and a day holding one of each would report two
+  /// different arithmetics.
+  public static func standardDrink(
+    in region: Region,
+    at date: Date = Date()
+  ) -> LoggedDrink {
+    LoggedDrink(
+      loggedAt: date,
+      type: .unspecified,
+      volumeOunces: region.flOzPureAlcoholPerStandardDrink,
+      abvPercent: 100,
+      region: region
+    )
+  }
+
+  /// True for a drink logged as one standard drink with no type stated.
+  public var isTypeUnspecified: Bool { type == .unspecified }
+
+  /// Whether this entry's size and strength are facts the user supplied.
+  ///
+  /// False for the two kinds of row that carry a count rather than a
+  /// measurement: a Health import (which never had them) and an untyped
+  /// standard drink (whose stored 0.6oz/100% is the *definition* it was
+  /// logged against, not a serving anyone poured). Surfaces that print size
+  /// and strength check this instead of testing for imports alone, so
+  /// neither kind is rendered as a claim the user did not make.
+  public var recordsSizeAndStrength: Bool {
+    !isImportedFromHealth && !isTypeUnspecified
+  }
+
   /// Whether this imported drink can be adopted — turned into a full typed
   /// entry (ADR-0016).
   ///
@@ -159,6 +214,14 @@ public struct LoggedDrink: Identifiable, Hashable, Sendable {
       return countedDrinks == 1
         ? localized("From Apple Health, 1 drink", comment: "A drink imported from Apple Health, singular")
         : localized("From Apple Health, \(count) drinks", comment: "A drink imported from Apple Health; argument is a count, which may be fractional")
+    }
+    // An untyped drink says what it is and stops. Interpolating its stored
+    // 0.6oz at 100% into the line below would print the definition back at
+    // the user as though they had typed it (ADR-0023).
+    if isTypeUnspecified {
+      // The type's own name is already the whole sentence, so this is the one
+      // place it comes from rather than a second key saying the same thing.
+      return type.displayName
     }
     return localized(
       "\(type.displayName), \(Self.format(volumeOunces))oz, \(Self.format(abvPercent))% ABV",

@@ -247,21 +247,53 @@ struct TodayView: View {
     }
   }
 
-  /// One drink, logged now, seeded from what is usually logged — the same rule
-  /// as the calendar's day sheet (see `DrinkDraft.quickCount`). History is
-  /// fetched inside the op, after any pending write has committed; this view
-  /// otherwise only queries today.
+  /// One drink, logged now, by whichever seed the user chose (ADR-0023, and
+  /// its day-memory revision): under the default, a day starts at one
+  /// standard drink and the count follows the most recent drink the user
+  /// described *today*; under the usual-drink seed, the type they log most.
+  /// The same rule as the calendar's day sheet and the widget's ＋ (see
+  /// `DrinkDraft.quickCount`).
+  ///
+  /// History is fetched inside the op, after any pending write has committed —
+  /// which is also what makes rapid taps follow a just-described drink; this
+  /// view otherwise only queries today.
   private func addOneDrink() {
     let store = store
     let region = settings.effectiveRegion
+    let seed = settings.counterSeed
     enqueueCounterOp {
       let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
         .loggedDrinks
       let drink = DrinkDraft
-        .quickCount(1, from: history)
+        .quickCount(1, from: history, seed: seed, region: region)
         .makeLoggedDrink(region: region)
       lastLogged = await store.save(drink)
     }
+  }
+
+  /// The way back to plain standard drinks after describing a typed one
+  /// (ADR-0023 revision): logs one untyped standard drink now, which both
+  /// records this drink and — being the day's newest entry — is what the ＋
+  /// repeats from here on. No stored mode to reset; the log is the memory.
+  private func recordStandardDrink() {
+    let store = store
+    let region = settings.effectiveRegion
+    enqueueCounterOp {
+      let drink = DrinkDraft.standardDrink(region: region).makeLoggedDrink(region: region)
+      lastLogged = await store.save(drink)
+    }
+  }
+
+  /// The drink today's ＋ will repeat, when that is a typed one the user
+  /// described — the condition for offering the way back. Nil under the
+  /// usual-drink seed (that mode has no day memory) and while the day is
+  /// already on standard drinks.
+  private var typedDayTemplate: LoggedDrink? {
+    guard settings.counterSeed == .standardDrink else { return nil }
+    guard let template = DrinkDraft.dayTemplate(
+      on: Date(), in: todaysEntries.loggedDrinks, calendar: .current
+    ), !template.isTypeUnspecified else { return nil }
+    return template
   }
 
   /// Removes today's most recent entry through the same path as a swipe-delete,
@@ -334,6 +366,7 @@ struct TodayView: View {
         VStack(spacing: GlassTokens.Spacing.tight) {
           quickAddRow
           repeatControl
+          standardDrinkControl
         }
         .transition(.opacity.combined(with: .move(edge: .top)))
       }
@@ -363,12 +396,22 @@ struct TodayView: View {
           Image(systemName: "arrow.trianglehead.clockwise")
             .font(.footnote.weight(.semibold))
             .foregroundStyle(Color.accentColor)
-          Text("Another \(recent.type.displayName.lowercased())")
-            .font(.subheadline)
-            .foregroundStyle(.primary)
-          Text("\(LoggedDrink.displayOunces(recent.volumeOunces))oz · \(LoggedDrink.displayPercent(recent.abvPercent))%")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+          // An untyped drink gets its own sentence rather than being fed
+          // through the noun slot — "Another one standard drink" is not a
+          // phrase — and shows no size or strength, because the 0.6oz/100% it
+          // stores is the definition it was logged against (ADR-0023).
+          if recent.isTypeUnspecified {
+            Text("Another standard drink")
+              .font(.subheadline)
+              .foregroundStyle(.primary)
+          } else {
+            Text("Another \(recent.type.displayName.lowercased())")
+              .font(.subheadline)
+              .foregroundStyle(.primary)
+            Text("\(LoggedDrink.displayOunces(recent.volumeOunces))oz · \(LoggedDrink.displayPercent(recent.abvPercent))%")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
           Spacer()
         }
         .padding(.horizontal, GlassTokens.Spacing.cardPadding)
@@ -377,9 +420,44 @@ struct TodayView: View {
       }
       .buttonStyle(.plain)
       .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-      .accessibilityLabel("Log another \(recent.type.displayName.lowercased()), same size and strength")
+      .accessibilityLabel(
+        recent.isTypeUnspecified
+          ? Text("Log another standard drink")
+          : Text("Log another \(recent.type.displayName.lowercased()), same size and strength")
+      )
       .transition(.opacity.combined(with: .move(edge: .top)))
       .animation(.smooth(duration: 0.25), value: recent)
+    }
+  }
+
+  /// The way back to plain standard drinks, shown only while ＋ is following a
+  /// described drink (ADR-0023 revision). Lives in the disclosure with the
+  /// other type-level controls — the owner's call, keeping the counter area
+  /// clear of a tap target beside the last-logged line's Edit. The follow
+  /// state itself stays visible above: the last-logged line shows the drink
+  /// ＋ will repeat.
+  @ViewBuilder
+  private var standardDrinkControl: some View {
+    if typedDayTemplate != nil {
+      Button {
+        recordStandardDrink()
+      } label: {
+        HStack(spacing: GlassTokens.Spacing.tight) {
+          Image(systemName: DrinkType.unspecified.symbolName)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+          Text("Record a standard drink instead")
+            .font(.subheadline)
+            .foregroundStyle(.primary)
+          Spacer()
+        }
+        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+        .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+      .transition(.opacity.combined(with: .move(edge: .top)))
     }
   }
 
@@ -442,7 +520,13 @@ struct TodayView: View {
                 Button {
                   draft = DrinkDraft(editing: drink)
                 } label: {
-                  Label("Edit", systemImage: "pencil")
+                  // An untyped drink borrows adoption's vocabulary (ADR-0016):
+                  // there is nothing recorded to correct, only facts to add.
+                  // Same destination either way — the sheet asks for a type
+                  // when the entry has none (ADR-0023).
+                  drink.isTypeUnspecified
+                    ? Label("Add details", systemImage: "square.and.pencil")
+                    : Label("Edit", systemImage: "pencil")
                 }
                 .tint(.accentColor)
               }
@@ -492,7 +576,7 @@ struct TodayView: View {
   private var quickAddRow: some View {
     GlassEffectContainer(spacing: GlassTokens.Spacing.tight) {
       HStack(spacing: GlassTokens.Spacing.tight) {
-        ForEach(DrinkType.allCases) { type in
+        ForEach(DrinkType.selectableCases) { type in
           QuickAddButton(type: type) {
             draft = DrinkDraft(type: type)
           }

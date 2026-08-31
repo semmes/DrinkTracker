@@ -87,6 +87,20 @@ count for a past day still lives in the calendar's day sheet, where it belongs.
 `DrinkDraft.quantity` and `makeLoggedDrinks` are unchanged domain API — the counter
 and the day sheet both still use them.
 
+## Third revision (2026-08): the seed rule is a setting, and its default moved
+
+The rule above — a count means N of *your usual* drink — was reopened by the
+second field report and is now `AppSettings.counterSeed`, defaulting to one
+standard drink with no type at all. See
+[ADR-0023](0023-the-counter-can-log-an-untyped-standard-drink.md) for the
+argument and what it costs. `.usualDrink` is this ADR's rule, unchanged,
+still shared by every count-first surface, and still tested.
+
+What this revision does *not* touch: the counter is still the primary control,
+zero is still an ordinary value on it, ± still acts on the log directly, and a
+count is still N separate entries (ADR-0003). Only the answer to "N of what?"
+became the user's to give.
+
 ## How to reopen
 
 If real usage shows granular users buried (the disclosure tap resented daily) or

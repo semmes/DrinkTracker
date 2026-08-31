@@ -20,6 +20,10 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
   case wine
   case spirit
   case other
+  /// One standard drink, no type — the spoken form of the counter's ＋
+  /// (ADR-0023). Makes "Log a standard drink in Tallyist" work through the
+  /// existing typed phrase rather than needing a fifth shortcut.
+  case standardDrink
 
   static var typeDisplayRepresentation: TypeDisplayRepresentation {
     TypeDisplayRepresentation(name: "Drink Type")
@@ -30,7 +34,8 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
       .beer: DisplayRepresentation(title: "Beer"),
       .wine: DisplayRepresentation(title: "Wine"),
       .spirit: DisplayRepresentation(title: "Spirit"),
-      .other: DisplayRepresentation(title: "Other")
+      .other: DisplayRepresentation(title: "Other"),
+      .standardDrink: DisplayRepresentation(title: "Standard drink")
     ]
   }
 
@@ -40,6 +45,7 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
     case .wine: self = .wine
     case .spirit: self = .spirit
     case .other: self = .other
+    case .unspecified: self = .standardDrink
     }
   }
 
@@ -49,6 +55,7 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
     case .wine: .wine
     case .spirit: .spirit
     case .other: .other
+    case .standardDrink: .unspecified
     }
   }
 }
@@ -143,7 +150,8 @@ struct LogDrinkIntent: AppIntent {
         type: drinkType.drinkType,
         volumeOunces: volumeOunces,
         abvPercent: abvPercent,
-        quantity: quantity
+        quantity: quantity,
+        region: AppSettings.storedRegion()
       ) else {
         Diagnostics.record("nothing to log")
         return .result(dialog: IntentDialog(Self.nothingLoggedLine))
@@ -213,6 +221,11 @@ struct LogDrinkIntent: AppIntent {
 
 /// Logs one drink, seeded the same way as Today's counter — no parameter at all.
 ///
+/// What that seed *is* became a setting in 1.2 (ADR-0023): one standard drink
+/// with no type by default, or the user's usual drink. This intent follows
+/// whichever is set rather than carrying its own rule, which is the whole
+/// point of it being the counter's mirror.
+///
 /// This is the widget's mirror of the app's primary control. Parameterless on
 /// purpose, twice over: it matches the count-first model (the user states *one
 /// more*, not a type), and it structurally cannot repeat the resolution failure
@@ -227,7 +240,7 @@ struct LogDrinkIntent: AppIntent {
 struct LogOneDrinkIntent: AppIntent {
   static var title: LocalizedStringResource { "Log One Drink" }
   static var description: IntentDescription {
-    IntentDescription("Logs one drink, matching what you usually log.")
+    IntentDescription("Logs one drink, the same way the app's counter does.")
   }
 
   static var openAppWhenRun: Bool { false }
@@ -241,11 +254,17 @@ struct LogOneDrinkIntent: AppIntent {
       let container = try SharedModelContainer.make()
       let repository = DrinkRepository(context: container.mainContext)
 
+      // Reads the same preference Today's counter does (ADR-0023), so the
+      // widget's ＋ and the app's ＋ cannot mean different things — including
+      // the default's day memory, which needs the log to find today's most
+      // recently described drink.
+      let region = AppSettings.storedRegion()
+      let seed = AppSettings.storedCounterSeed()
       let history = ((try? container.mainContext.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
         .loggedDrinks
       let drink = DrinkDraft
-        .quickCount(1, from: history)
-        .makeLoggedDrink(region: AppSettings.storedRegion())
+        .quickCount(1, from: history, seed: seed, region: region)
+        .makeLoggedDrink(region: region)
       try repository.saveOrThrow(drink)
       Diagnostics.record("saved (one-drink)")
 
@@ -310,7 +329,8 @@ struct LogDrinksIntent: AppIntent {
       type: drinkType.drinkType,
       volumeOunces: volumeOunces,
       abvPercent: abvPercent,
-      quantity: quantity
+      quantity: quantity,
+      region: AppSettings.storedRegion()
     ) else {
       return .result(dialog: IntentDialog(LogDrinkIntent.nothingLoggedLine))
     }

@@ -73,14 +73,21 @@ public enum LogExport {
     calendar: Calendar
   ) -> String {
     let imported = drink.isImportedFromHealth
+    // Size and strength are blank for anything that recorded a count rather
+    // than a measurement — imports, and untyped standard drinks. Printing an
+    // untyped drink's stored 0.6 / 100 would put the standard-drink
+    // definition in the columns a reader takes for what the user poured
+    // (ADR-0023). The standard-drinks column still carries the amount, which
+    // is the fact that was actually stated.
+    let measured = drink.recordsSizeAndStrength
     return fields([
       dayString(drink.loggedAt, calendar: calendar),
       timeString(drink.loggedAt, calendar: calendar),
       imported
         ? localized("Imported drink", comment: "CSV entry column: a drink mirrored from another app's Health data")
         : drink.type.displayName,
-      imported ? "" : number(drink.volumeOunces),
-      imported ? "" : number(drink.abvPercent),
+      measured ? number(drink.volumeOunces) : "",
+      measured ? number(drink.abvPercent) : "",
       number(drink.standardDrinks(in: region)),
       unit,
       imported ? healthName : appName,

@@ -93,9 +93,14 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-08-26:** v1.0 live; **v1.1 submitted, in App Review** (Health
-import, authorization-refresh fix, drag-fill action bar, tip jar, onboarding
-refresh, bigger calendar). **Export shipped to main** (ADR-0015): Settings →
+**As of 2026-08-26:** v1.0 live; **v1.1 submitted, in App Review**. What is
+actually *in* 1.1 is PRs #21–#27: the Health import (ADR-0014), the
+authorization-refresh fix, the day-sheet live counter, and the Health read
+purpose string. The tip jar, the drag-fill action bar, the onboarding refresh
+and the bigger calendar shipped in **1.0** — they merged before the
+store-readiness PR that created the listing metadata, and 1.0's own What's New
+names drag-to-fill. An earlier version of this note filed them under 1.1;
+they were already in users' hands. **Export shipped to main** (ADR-0015): Settings →
 Export log shares the whole record as one CSV — `LogExport` in the core
 package (tier-1 tested), `LogExportFile` + Settings section in the app.
 **Design system synced** (2026-08-26): the claude.ai/design project
@@ -161,6 +166,41 @@ rows already written on a 1.0 device are ordinary entries and keep their
 votes in `mostLoggedType` — they go by hand from History, and the CSV export
 finds them (empty size and strength, source Tallyist).
 
+**Second field report, also fixed on the open train** (ADR-0023): a user asked
+for one tap to record *a standard drink with no type*, because switching
+between types was the friction — "the drink type and abv should be optional
+details I can choose to add or skip but still track". This reopens ADR-0009's
+seed rule, which assumed a habit to inherit; someone who drinks varied things
+gets handed a type they did not pick, and the row states it in the same voice
+it uses for a drink they described. So `DrinkType.unspecified` now exists (not
+a fifth category — the absence of the question, and excluded from
+`selectableCases` so no picker offers it), and `AppSettings.counterSeed`
+—Settings → "What the counter logs" — chooses between it and ADR-0009's rule,
+**defaulting to the standard drink**. Every count-first surface reads it:
+Today's ＋, the day sheet, bulk fill, and the widget's ＋ (which needed no new
+control — `LogOneDrinkIntent` *is* the counter's mirror, so no home-screen
+re-add). Adding details later reuses adoption's vocabulary and destination
+(ADR-0016). **The owner's tier-3 review then revised the default into
+day-scoped memory** (ADR-0023 revision): a day starts at a standard drink,
+describing a drink makes ＋ repeat *it* for the rest of that day
+(`DrinkDraft.dayTemplate` — the day's most recent repeatable entry, no
+stored mode), "Record a standard drink instead" is the way back on Today and
+the day sheet, and midnight resets. `.usualDrink` stays ADR-0009's
+plurality rule, day-blind.
+
+**The rules that came out of it, worth keeping:** an untyped drink stores the
+*region's standard-drink definition* (0.6 fl oz at 100% for the US) — never
+zero volume, because ADR-0022's lesson is that an older build decodes the
+unknown type to `.other`, and a zero-volume `.other` row is exactly the field
+bug again; with real facts the worst an old build does is mislabel a row whose
+arithmetic is right. Region stays a lens (ADR-0002), so these re-express like
+any physical fact. No surface prints the stored definition back as a serving —
+`recordsSizeAndStrength` is the single predicate covering imports and untyped
+drinks together. And `DrinkType.unspecified.defaultVolumeOunces` is a *US
+fallback*: build these through `LoggedDrink.standardDrink(in:)` or
+`DrinkDraft.standardDrink(region:)`, never `DrinkDraft(type: .unspecified)`,
+or a UK user silently gets US amounts.
+
 User-side when 1.1 clears: create the 1.2 version in ASC,
 paste the listing material, pick a green main build from Xcode Cloud,
 submit. The long-pending catalog population is **done** — and did not need
@@ -195,7 +235,13 @@ Open items for v1.2:
   for an `app` table, finds none, and empties the file), and an incremental
   build re-extracts only what recompiled, so force a full rebuild first or sync
   prunes everything that did not.
-  Four rules worth keeping: `Text(String)` is the *verbatim* initializer, so a
+  Five rules worth keeping: **two keys that differ only in case are a build
+  error in the core package** — `xcstringstool generate-symbols` folds case, so
+  ADR-0023's "Standard drink" collided with the unit name "standard drink" and
+  failed CI (the same family as the "≈" collision; a tier-1 test now pins the
+  whole axis, and note the *app* catalog does not generate symbols, so it
+  tolerates pairs like "Last 12 months"/"last 12 months");
+  `Text(String)` is the *verbatim* initializer, so a
   String-returning helper is invisible to the extractor; don't create a key made
   only of `%@` and punctuation; **positional specifiers belong in a
   localization's value, never in a key** (a positional key is never looked up —
