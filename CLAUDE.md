@@ -47,7 +47,15 @@ identity derive from it, and renaming orphans the user's store (README
   `.github/scripts/mirror_docs.py`, and the daily check will flag it.
   The sync needs a `TALLYIST_SYNC_TOKEN` secret (fine-grained PAT, scoped to
   `semmes/Tallyist`, Contents: write); without it the sync warns instead of
-  failing, and drift still surfaces through `verify`.
+  failing, and drift still surfaces through `verify`. **The token expires, and
+  a daily `token-expiry` job watches it** — silent while more than 30 days
+  remain, an Actions warning inside 30, and a failing job inside 7 or once it
+  has lapsed. The date is read from the token itself, so rotating it needs no
+  edit here; rotate at `https://github.com/settings/personal-access-tokens` and
+  update the secret. Paste the new token straight into GitHub's secret form
+  rather than through a terminal — `read`/`pbpaste` routes have mangled it
+  before (bracketed-paste escapes produce a stored value that fails with a
+  confusing 401 rather than an obvious error).
 - New user-visible copy goes through the App Store guideline **1.4.3** tone
   review — append to `docs/copy-review-1.4.3.md`. House voice: factual,
   no celebration, no judgment, no exclamation marks (one exception: the

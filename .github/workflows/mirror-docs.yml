@@ -96,6 +96,22 @@ jobs:
           git push
           echo "Pushed updated published copies."
 
+  # The mirror's quietest failure: when this token lapses, sync starts failing
+  # on merges nobody is watching and the published policy simply stops tracking
+  # the app. Nothing about the page looks wrong — it looks exactly as it did the
+  # day the token died. So the expiry is watched rather than remembered, and it
+  # is read from the token itself so a rotation does not need an edit here.
+  token-expiry:
+    name: Mirror token expiry
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Warn before the mirror token expires
+        env:
+          TALLYIST_SYNC_TOKEN: ${{ secrets.TALLYIST_SYNC_TOKEN }}
+        run: python3 .github/scripts/check_token_expiry.py
+
   verify:
     name: Verify published copies
     # Not on push: the sync job has just written the copies, and a push that
