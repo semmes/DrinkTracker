@@ -12,6 +12,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Cheapest gate in the file, and Linux rather than macOS on purpose: it reads
+  # two files and compares a date. The privacy policy's copies drifting apart is
+  # a documentation bug that looks like nothing on screen, so it is worth
+  # catching before review rather than after a release.
+  policy-copies:
+    name: Policy copies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Dates agree across the policy's copies
+        run: python3 .github/scripts/check_policy_dates.py
+
   # Tier 1 (docs/PRD.md §4). Pure value types, no simulator and no signing —
   # DrinkTrackerCore declares .macOS(.v15) precisely so this can run natively.
   domain-tests:

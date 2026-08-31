@@ -91,3 +91,57 @@ If the source repository is never made private and never restructured, this
 separation buys less than it costs, and the documents could be folded back — but
 the stable, code-independent URL would be given up in doing so, and that is worth
 keeping on its own.
+
+## Amendment (2026-08-31): the mirror is enforced, not trusted
+
+The "How to reopen" above said the mirror should become automation *if a
+published copy ever shipped out of step*. The owner chose to build it
+immediately instead, before that had happened. Recording the reasoning, because
+this reverses a judgement made the same day and the original reasoning was not
+wrong so much as differently weighted.
+
+What changed is the assessment of the failure's cost, not its likelihood. The
+original argument was that one manual step per policy change is cheap and drift
+is unlikely. Both remain true. But the failure is silent, it is discovered by
+the wrong people — App Review, or a user reading a policy that does not describe
+the app they are holding — and the interval between causing it and noticing it
+is unbounded. A rule that is cheap to follow and catastrophic to forget is a bad
+candidate for human memory, however easy it looks.
+
+Three guards now exist, at different distances from the mistake:
+
+- **`policy-copies`** in `ci.yml` fails a pull request whose two in-repository
+  copies disagree on their "Last updated" date. No network, no secrets, runs on
+  Linux. This catches the common human error — editing one copy — before it
+  merges.
+- **`mirror-docs.yml` / `sync`** renders `docs/privacy-policy.md` and
+  `docs/support.md` into their published form and pushes them to
+  `semmes/Tallyist` on merge to `main`. Nobody has to remember the step.
+- **`mirror-docs.yml` / `verify`** compares the published copies against this
+  repository on a daily schedule. This is the one that matters most, and the one
+  that would have been easiest to leave out: it catches a published copy edited
+  directly, *and* it catches the sync having silently stopped — an expired token
+  is indistinguishable from a quiet week.
+
+The sync deliberately does not run on the schedule. A scheduled job that both
+detects and repairs drift would keep the published copies correct while hiding
+that the merge-triggered path had broken, which trades a loud failure for a
+quiet one.
+
+The token remains the cost this was avoiding, and it has not gone away:
+`TALLYIST_SYNC_TOKEN` is a fine-grained personal access token scoped to
+`semmes/Tallyist` with Contents: write, and it expires. When it does, `sync`
+starts warning and `verify` starts failing the first time the copies actually
+diverge — which is the correct order for those two to fail in. Until the token
+is configured, `sync` warns rather than failing, so the absence of automation
+never looks like a broken build; only real drift does.
+
+## How to reopen (revised)
+
+If the mirror machinery itself becomes the thing that breaks — a token nobody
+rotates, a scheduled workflow GitHub disabled after 60 days of inactivity — the
+honest move is not more automation but fewer copies: move the canonical text
+into `semmes/Tallyist` and have this repository verify its Swift copy against
+the published one instead. That trades the atomic "policy and code change in one
+commit" property for having only one place the text can be wrong, and would be
+worth it if the mirror needs more attention than the text does.

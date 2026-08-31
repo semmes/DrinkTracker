@@ -1,0 +1,109 @@
+name: Mirror published documents
+
+# The privacy policy and support page are canonical here and published from
+# semmes/Tallyist (ADR-0024). Two failure modes are worth machinery:
+#
+#   sync   — this repository changed and the published copy did not. Handled on
+#            merge, automatically, so nobody has to remember.
+#   verify — the published copy changed on its own, or a sync silently stopped
+#            running (an expired token looks exactly like nothing happening).
+#            Only a check that runs on its own schedule notices that.
+#
+# Both live here rather than in semmes/Tallyist because this is where the
+# canonical text is, and because this workflow must keep working if this
+# repository is ever made private.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/privacy-policy.md
+      - docs/support.md
+      - .github/scripts/mirror_docs.py
+      - .github/workflows/mirror-docs.yml
+  schedule:
+    # Daily. GitHub disables scheduled workflows after 60 days without repository
+    # activity, so a long-dormant project loses this check silently — worth
+    # knowing rather than assuming it runs forever.
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-docs
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync to semmes/Tallyist
+    # Never on the scheduled run: a schedule that pushes would hide the fact
+    # that the merge-triggered sync had stopped working.
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Look for the mirror token
+        id: token
+        env:
+          TOKEN: ${{ secrets.TALLYIST_SYNC_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report a missing token without failing
+        if: steps.token.outputs.present == 'false'
+        run: |
+          echo "::warning title=Mirror not configured::TALLYIST_SYNC_TOKEN is not set, so the published copies were not updated. Drift is still caught by the daily verify job, but it will not be fixed automatically. See ADR-0024."
+
+      - name: Check out semmes/Tallyist
+        if: steps.token.outputs.present == 'true'
+        uses: actions/checkout@v5
+        with:
+          repository: semmes/Tallyist
+          token: ${{ secrets.TALLYIST_SYNC_TOKEN }}
+          path: tallyist
+
+      - name: Render the published copies
+        if: steps.token.outputs.present == 'true'
+        run: |
+          python3 .github/scripts/mirror_docs.py render privacy-policy.md tallyist/privacy-policy.md
+          python3 .github/scripts/mirror_docs.py render support.md         tallyist/support.md
+
+      - name: Commit and push if anything changed
+        if: steps.token.outputs.present == 'true'
+        working-directory: tallyist
+        run: |
+          if git diff --quiet; then
+            echo "Published copies already match; nothing to push."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add privacy-policy.md support.md
+          git commit -F - <<MSG
+          Mirror the published documents from the app repository
+
+          Generated from docs/ in semmes/DrinkTracker@${GITHUB_SHA:0:7} by
+          .github/scripts/mirror_docs.py. The bodies are canonical there; only
+          the Jekyll front matter is added here (ADR-0024).
+          MSG
+          git push
+          echo "Pushed updated published copies."
+
+  verify:
+    name: Verify published copies
+    # Not on push: the sync job above has just written them, and raw.git…
+    # serves through a CDN that can lag a fresh push by minutes. A push that
+    # fails to reach Tallyist already fails the sync job.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compare published copies against this repository
+        run: python3 .github/scripts/mirror_docs.py check
