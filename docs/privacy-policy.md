@@ -1,6 +1,6 @@
 # Tallyist Privacy Policy
 
-**Last updated: August 28, 2026**
+**Last updated: August 31, 2026**
 
 Tallyist does not collect your data. Nothing you log leaves your control.
 
@@ -73,12 +73,13 @@ charged.
 
 ## Changes to this policy
 
-This policy lives in the app's public source repository; any change to it is
-visible in the repository's history. If a future version of the app ever
+This policy is published in a public repository at
+<https://github.com/semmes/Tallyist>; every change to it, and its date, is
+visible in that repository's history. If a future version of the app ever
 collects data — for example, if a server component is added — this policy and
 the App Store privacy labels will change *before* that version ships.
 
 ## Contact
 
-Questions about this policy can be raised as an issue on the app's repository:
-<https://github.com/semmes/DrinkTracker/issues>.
+Questions about this policy can be raised as an issue on the app's public
+issue tracker: <https://github.com/semmes/Tallyist/issues>.

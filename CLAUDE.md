@@ -33,9 +33,14 @@ identity derive from it, and renaming orphans the user's store (README
   and a `Claude-Session:` link. **Never put internal model identifiers in any
   pushed artifact** — commit messages, code comments, PR bodies included.
 - Every product decision gets an ADR (`docs/decisions/0000-template.md`).
-- The privacy policy has two copies that change together in the same commit:
-  `docs/privacy-policy.md` (the hosted URL in the App Store listing) and
-  `PrivacyPolicyView.swift`. Bump the "Last updated" date in both.
+- The privacy policy has **three** copies that change together (ADR-0024):
+  `docs/privacy-policy.md` (canonical) and `PrivacyPolicyView.swift` here, in
+  the same commit, plus `privacy-policy.md` in the separate public
+  `semmes/Tallyist` repo, which is what the App Store listing's Privacy Policy
+  URL actually serves. `docs/support.md` mirrors there too. Bump the "Last
+  updated" date in all three, and keep the two markdown bodies byte-identical —
+  `diff` them. **Nothing enforces the mirror yet**; forgetting it ships a
+  published policy that disagrees with the app.
 - New user-visible copy goes through the App Store guideline **1.4.3** tone
   review — append to `docs/copy-review-1.4.3.md`. House voice: factual,
   no celebration, no judgment, no exclamation marks (one exception: the
@@ -258,31 +263,24 @@ Open items for v1.2:
   `/Users/shawnsemmes/DrinkTracker`, which is where the user's Xcode builds
   from (that is where a build's `Localizable.xcstrings` changes land). Check
   both before concluding a build "did nothing".
-- **Repo visibility — private is on the table, deferred to the 1.2 train**
-  (raised 2026-08-31, user decision: hold and decide for 1.2). Deliberately
-  **not** before 1.2: the URLs below serve the *live* 1.0 listing, and 1.1 is
-  in App Review. Three blockers, each of which must land before the flip, not
-  after. (1) The ASC **Privacy Policy URL and Support URL are both
-  `github.com/semmes/DrinkTracker/blob/main/docs/…`**
-  (`docs/app-store-listing.md`) and 404 for signed-out visitors the moment the
-  repo goes private — guideline 5.1.1 and 1.5. (2) **Support *is* GitHub
-  Issues** (`docs/support.md`, and the policy's Contact section) — private
-  makes it invitation-only and there is no non-GitHub fallback contact
-  anywhere. (3) Both policy copies claim it "lives in the app's public source
-  repository; any change to it is visible in the repository's history"
-  (`docs/privacy-policy.md`, `PrivacyPolicyView.swift`) — the house rule is
-  that the policy's claims stay checkable, and this one would simply become
-  false. The in-app `PrivacyPolicyView.hostedURL` ("Read this policy online")
-  would 404 in already-shipped apps, so that fix needs a build. Order if it
-  goes ahead: host the policy + support page publicly elsewhere → repoint the
-  two ASC URLs (both editable on a live app, no binary) → add a support email
-  → rewrite the paragraph in both copies with a date bump, ADR, and 1.4.3
-  review → ship the new `hostedURL` → only then change visibility. Cost side,
-  which is a separate decision: CI is three `macos-latest` jobs, ~8 billable
-  macOS minutes per run, and **130 runs in August 2026** ≈ 1,040 min/month.
-  Private repos meter macOS at 10×, so that is roughly **$60–70/month** in
-  overage against a 2,000–3,000 minute allowance — and a $0 spending limit
-  stops CI outright rather than slowing it, which would end merge-when-green.
-  Nothing else depends on public: 0 forks, 1 star, 0 watchers, no Pages, and
-  both Xcode Cloud and `gh` work fine against a private repo.
+- **Repo visibility — the listing no longer depends on it** (ADR-0024,
+  2026-08-31). The blockers that made "go private" break the *live* listing are
+  resolved: `semmes/Tallyist` is a separate public repo serving the policy and
+  support page via Pages at `https://semmes.github.io/Tallyist/`, support moved
+  to its issue tracker, the "public source repository" claim was rewritten in
+  all three copies, and `PrivacyPolicyView.hostedURL` now points at
+  `/Tallyist/privacy/`. **Still to do, and both are the user's:** (a) repoint
+  the two URLs in App Store Connect — Privacy Policy URL is app-level under App
+  Information, Support URL is on the version page, and per the user's decision
+  this waits until **1.1 is live**, since the old URLs keep working until then;
+  (b) decide the GitHub Actions cost separately — three `macos-latest` jobs,
+  ~8 billable macOS minutes per run, 130 runs in August 2026 ≈ 1,040 min/month,
+  metered at 10× on private repos, so roughly **$60–70/month**, and a $0
+  spending limit stops CI outright rather than slowing it.
+  **Do not flip visibility until 1.2 is live**, not merely submitted: users on
+  1.0/1.1 hold the old `github.com/semmes/DrinkTracker/blob/…` link in their
+  binaries and lose "Read this policy online" permanently (the policy text
+  itself ships natively and still reads offline). That cost is recorded in the
+  ADR and does not go away — it only stops growing once 1.2 is the version
+  people are installing.
 - Watch the 1.1 review outcome; a rejection comes back here with its text.

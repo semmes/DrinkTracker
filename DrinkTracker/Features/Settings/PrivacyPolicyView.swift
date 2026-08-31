@@ -6,13 +6,14 @@ import SwiftUI
 /// accessible" in the app; a HealthKit app gets held to that strictly. Shipping
 /// the text natively (rather than a web view of the hosted copy) means it is
 /// readable offline, respects Dynamic Type, and can't differ from what was
-/// reviewed. The canonical copy lives at `docs/privacy-policy.md` in the repo —
-/// which is also the public URL App Store Connect points to — and the two must
-/// change together (the doc says so too).
+/// reviewed. The canonical copy lives at `docs/privacy-policy.md` in this repo;
+/// it is published at the URL below, from the separate public `semmes/Tallyist`
+/// repository, which is what App Store Connect points to (ADR-0024). All three
+/// copies change together (the doc says so too).
 struct PrivacyPolicyView: View {
 
   /// The hosted copy of this same text — the URL given to App Store Connect.
-  static let hostedURL = URL(string: "https://github.com/semmes/DrinkTracker/blob/main/docs/privacy-policy.md")!
+  static let hostedURL = URL(string: "https://semmes.github.io/Tallyist/privacy/")!
 
   var body: some View {
     ScrollView {
@@ -105,8 +106,9 @@ struct PrivacyPolicyView: View {
         policySection(
           "Changes to this policy",
           """
-          This policy lives in the app's public source repository; any change to it \
-          is visible in the repository's history. If a future version of the app \
+          This policy is published in a public repository at \
+          github.com/semmes/Tallyist; every change to it, and its date, is \
+          visible in that repository's history. If a future version of the app \
           ever collects data, this policy and the App Store privacy labels will \
           change before that version ships.
           """
@@ -115,7 +117,7 @@ struct PrivacyPolicyView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Link("Read this policy online", destination: Self.hostedURL)
             .font(.body)
-          Text("Last updated August 28, 2026.")
+          Text("Last updated August 31, 2026.")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
