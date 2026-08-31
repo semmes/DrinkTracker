@@ -11,8 +11,8 @@ App Information / the version page. Everything here has been through the same
 | Name | **Tallyist** |
 | Subtitle (30 chars max) | `Your drinks, tallied.` |
 | Primary category | Health & Fitness |
-| Privacy Policy URL | `https://github.com/semmes/DrinkTracker/blob/main/docs/privacy-policy.md` |
-| Support URL | `https://github.com/semmes/DrinkTracker/blob/main/docs/support.md` |
+| Privacy Policy URL | `https://semmes.github.io/Tallyist/privacy/` |
+| Support URL | `https://semmes.github.io/Tallyist/support/` |
 | License Agreement | Apple's standard EULA (leave the custom EULA field empty) |
 
 ## Description
@@ -52,7 +52,7 @@ Tallyist itself reminds you a week before each renewal so you can cancel
 first if you want.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://github.com/semmes/DrinkTracker/blob/main/docs/privacy-policy.md
+Privacy Policy: https://semmes.github.io/Tallyist/privacy/
 ```
 
 Notes on the description, so edits keep it compliant:

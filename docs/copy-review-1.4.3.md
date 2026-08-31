@@ -582,3 +582,39 @@ target beside the last-logged line's Edit; the last-logged line itself keeps
 the follow state readable.
 
 **No exclamation marks; nothing celebrates, warns, or resets a score.**
+
+---
+
+## Addendum (2026-08-31): the policy names its own public record
+
+Moving the published policy and support page to `semmes/Tallyist` (ADR-0024)
+changed three user-visible sentences and one date. Two of them ship inside the
+app.
+
+| Where | Reads |
+|---|---|
+| Privacy policy, "Changes to this policy" (in-app and published) | "This policy is published in a public repository at github.com/semmes/Tallyist; every change to it, and its date, is visible in that repository's history." |
+| Privacy policy, "Contact" (published copy) | "Questions about this policy can be raised as an issue on the app's public issue tracker: https://github.com/semmes/Tallyist/issues." |
+| Support page, footer | "This page and the privacy policy are published in a public repository, where every change to them stays visible in the history." |
+| Privacy policy footer date, all three copies | "Last updated August 31, 2026." |
+
+**Reviewed against 1.4.3.** None of this text is about drinking, so the
+guideline's usual risk — a health claim, a judgment, a target — isn't in play.
+What it is instead is a **claim about verifiability**, which this project holds
+to a stricter standard than tone: the previous sentence said the policy lives in
+the app's public source repository, and that was about to stop being true. The
+replacement states a narrower fact that will stay true whatever happens to the
+source: it names the repository that publishes the policy, and says its history
+is public. It promises a record, not openness in general.
+
+"Every change to it, and its date" is deliberate. The old sentence claimed only
+that changes were visible; the new one commits to the dated history a reader
+would need to actually check a claim against a version of the app.
+
+The support page's footer previously told users the app's full source code lived
+alongside it. That sentence was removed rather than reworded — it was an
+invitation to inspect the source, and this change is precisely what makes such
+an invitation something the project may not be able to honour.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks. Nothing here grades the reader or the app.

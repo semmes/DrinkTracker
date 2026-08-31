@@ -537,15 +537,18 @@ changed and what was checked and left alone.
 
 ### The privacy policy
 
-[`docs/privacy-policy.md`](docs/privacy-policy.md) is the canonical policy, and its
-public URL on this repository is what App Store Connect points to:
+[`docs/privacy-policy.md`](docs/privacy-policy.md) is the canonical policy. It is
+published from the separate public repository `semmes/Tallyist`, and that URL —
+not a file in this repository — is what App Store Connect points to (ADR-0024):
 
-    https://github.com/semmes/DrinkTracker/blob/main/docs/privacy-policy.md
+    https://semmes.github.io/Tallyist/privacy/
 
 The same text ships natively in the app (`PrivacyPolicyView`, Settings → About →
 Privacy Policy) because guideline 5.1.1 wants the policy accessible *inside* the
-app too, and a native screen works offline and respects Dynamic Type. **The two
-copies change together** — a policy edit that touches only one of them is a bug.
+app too, and a native screen works offline and respects Dynamic Type. **All three
+copies change together** — the canonical file here, `PrivacyPolicyView`, and the
+published copy in `semmes/Tallyist` — and a policy edit that touches only some of
+them is a bug.
 
 ## The tip jar
 

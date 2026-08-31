@@ -5,9 +5,10 @@ pattern. No goals, no streaks, no lectures — it reports, it never grades.
 
 ## Getting help
 
-The fastest way to reach the developer is to open an issue on this repository:
+The fastest way to reach the developer is to open an issue on the app's
+public issue tracker:
 
-**<https://github.com/semmes/DrinkTracker/issues>** — tap **New issue** and
+**<https://github.com/semmes/Tallyist/issues>** — tap **New issue** and
 describe what happened. You'll need a free GitHub account; issues are public,
 so please don't include personal details from your log.
 
@@ -80,10 +81,11 @@ being charged.
 
 ## Documents
 
-- [Privacy Policy](privacy-policy.md)
+- [Privacy Policy](/Tallyist/privacy/)
 - [Terms of Use (Apple's standard EULA)](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/)
 
 ---
 
-Tallyist is developed independently. Its full source code, including this page
-and the privacy policy, lives in this repository.
+Tallyist is developed independently. This page and the privacy policy are
+published in a public repository, where every change to them stays visible in
+the history.
