@@ -151,8 +151,14 @@ default's behaviour:
 - The moment the user *describes* a drink — the sheet, Siri, adding details —
   the count means another of that drink, **for the rest of that day**.
 - There is always a way back: "Record a standard drink instead" appears while
-  ＋ is following a described drink (Today and the day sheet), and logs one —
-  which, as the day's newest entry, is also what ＋ repeats next.
+  ＋ is following a described drink, and logs one — which, as the day's newest
+  entry, is also what ＋ repeats next. On Today it lives inside the "Log by
+  type" disclosure with the other type-level controls (the owner's call: the
+  counter area stays clear of a tap target beside the last-logged line's
+  Edit); the day sheet keeps it visible under its caption, which has no such
+  neighbour. The trade is accepted knowingly: with the disclosure closed the
+  way back is a tap further away, and the follow state stays readable from
+  the last-logged line, which shows the drink ＋ will repeat.
 - Midnight resets. The next day starts at a standard drink again.
 
 **The mechanism is the log itself — no stored mode.** The template is simply

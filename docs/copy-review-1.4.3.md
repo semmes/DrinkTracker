@@ -563,7 +563,7 @@ The owner's tier-3 review turned the default into day-scoped memory
 | Where | Reads |
 |---|---|
 | Settings footnote, standard-drink option (replaces the previous one) | "One tap records one standard drink, with no type — add the type and size later or skip them, it counts either way. Once you describe a drink, the next taps record another of it for the rest of the day. Each day starts back at a standard drink." |
-| Today and the day sheet, while ＋ follows a described drink | "Record a standard drink instead" |
+| While ＋ follows a described drink — inside Today's "Log by type" disclosure, and under the day sheet's caption | "Record a standard drink instead" |
 | What's New (1.2) lead paragraph | reworded to state the follow and the daily reset |
 
 **Reviewed against 1.4.3.** The footnote states three mechanics and stops —
@@ -575,8 +575,10 @@ not as a fresh start, a streak, or anything a day could fail at.
 **"Record a standard drink instead"** follows the "Record no alcohol today"
 precedent: an action label naming exactly what gets written. "Instead"
 carries the one fact that matters at that moment — it diverges from what ＋
-would do — without calling either choice better. The button doubles as the
-disclosure of the follow behaviour: it exists only while ＋ is following, so
-its presence is the state, stated.
+would do — without calling either choice better. It exists only while ＋ is
+following. On Today it was moved into the "Log by type" disclosure at the
+owner's direction (2026-08-31), keeping the counter area clear of a tap
+target beside the last-logged line's Edit; the last-logged line itself keeps
+the follow state readable.
 
 **No exclamation marks; nothing celebrates, warns, or resets a score.**

@@ -204,16 +204,6 @@ struct TodayView: View {
 
       lastLoggedLine
 
-      // Visible only while the ＋ is following a described drink: states what
-      // the alternative records, and taps as one. Its presence is also how
-      // the follow behaviour announces itself (ADR-0023 revision).
-      if typedDayTemplate != nil {
-        Button("Record a standard drink instead") {
-          recordStandardDrink()
-        }
-        .font(.footnote)
-      }
-
       if todaysEntries.isEmpty {
         Group {
           if isTodayMarkedAlcoholFree {
@@ -376,6 +366,7 @@ struct TodayView: View {
         VStack(spacing: GlassTokens.Spacing.tight) {
           quickAddRow
           repeatControl
+          standardDrinkControl
         }
         .transition(.opacity.combined(with: .move(edge: .top)))
       }
@@ -436,6 +427,37 @@ struct TodayView: View {
       )
       .transition(.opacity.combined(with: .move(edge: .top)))
       .animation(.smooth(duration: 0.25), value: recent)
+    }
+  }
+
+  /// The way back to plain standard drinks, shown only while ＋ is following a
+  /// described drink (ADR-0023 revision). Lives in the disclosure with the
+  /// other type-level controls — the owner's call, keeping the counter area
+  /// clear of a tap target beside the last-logged line's Edit. The follow
+  /// state itself stays visible above: the last-logged line shows the drink
+  /// ＋ will repeat.
+  @ViewBuilder
+  private var standardDrinkControl: some View {
+    if typedDayTemplate != nil {
+      Button {
+        recordStandardDrink()
+      } label: {
+        HStack(spacing: GlassTokens.Spacing.tight) {
+          Image(systemName: DrinkType.unspecified.symbolName)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+          Text("Record a standard drink instead")
+            .font(.subheadline)
+            .foregroundStyle(.primary)
+          Spacer()
+        }
+        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+        .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+      .transition(.opacity.combined(with: .move(edge: .top)))
     }
   }
 
