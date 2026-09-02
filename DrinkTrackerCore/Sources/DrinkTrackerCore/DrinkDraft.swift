@@ -69,13 +69,21 @@ public struct DrinkDraft: Equatable, Sendable {
   /// Timestamps are staggered by a second so list ordering is deterministic rather
   /// than jittering between equal keys. That second is a tie-breaker, not a claim
   /// about when each drink was actually finished.
-  public func makeLoggedDrinks(region: Region) -> [LoggedDrink] {
+  public func makeLoggedDrinks(region: Region, calendar: Calendar = .current) -> [LoggedDrink] {
     guard editingEntryID == nil else { return [makeLoggedDrink(region: region)] }
     let count = max(1, quantity)
+    // The stagger never leaves the day. A batch spoken at 23:59:55 used to
+    // spill its tail onto tomorrow — short on the day it was meant for, and
+    // tomorrow's template seeded before tomorrow began (ADR-0023). If the
+    // seconds would cross midnight the whole run shifts earlier instead, so
+    // every stamp stays distinct and inside `loggedAt`'s day.
+    let lastSecond = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: loggedAt))
+      .map { $0.addingTimeInterval(-1) } ?? .distantFuture
+    let base = min(loggedAt, lastSecond.addingTimeInterval(-Double(count - 1)))
     return (0..<count).map { index in
       LoggedDrink(
         id: UUID(),
-        loggedAt: loggedAt.addingTimeInterval(Double(index)),
+        loggedAt: base.addingTimeInterval(Double(index)),
         type: type,
         volumeOunces: volumeOunces,
         abvPercent: abvPercent,
@@ -126,7 +134,10 @@ public struct DrinkDraft: Equatable, Sendable {
       return draft
     }
     var draft = DrinkDraft(type: type)
-    if let volumeOunces, volumeOunces > 0 {
+    // Finite as well as positive: a Shortcuts variable can carry infinity,
+    // which passes `> 0` and then prints "infoz", totals as inf, and reaches
+    // arithmetic that cannot take it. Strength got this guard first.
+    if let volumeOunces, volumeOunces.isFinite, volumeOunces > 0 {
       let match = type.sizeOptions.first { $0.volumeOunces == volumeOunces }
       draft.selectedSize = match ?? .custom
       draft.customVolumeOunces = volumeOunces
@@ -142,7 +153,19 @@ public struct DrinkDraft: Equatable, Sendable {
   ///
   /// Used by the one-tap repeat control: same type, size, and strength, but a new
   /// entry rather than an edit of the original.
-  public static func repeating(_ drink: LoggedDrink, at date: Date = Date()) -> DrinkDraft {
+  ///
+  /// An untyped drink is the exception, and `region` is why this takes one:
+  /// its stored 0.6oz at 100% is the definition of the region it was logged
+  /// under, not a size the user chose, so "another standard drink" is rebuilt
+  /// from the current region — the rule `quickCount` already applied — rather
+  /// than copied. Copying it after a region change wrote the old region's
+  /// amount under the new region's label (ADR-0023).
+  public static func repeating(
+    _ drink: LoggedDrink,
+    region: Region,
+    at date: Date = Date()
+  ) -> DrinkDraft {
+    if drink.isTypeUnspecified { return standardDrink(region: region, at: date) }
     var draft = DrinkDraft(editing: drink)
     draft.editingEntryID = nil
     draft.loggedAt = date
@@ -244,7 +267,7 @@ public struct DrinkDraft: Equatable, Sendable {
     if seed == .standardDrink {
       if let template = dayTemplate(on: date, in: history, calendar: calendar),
          !template.isTypeUnspecified {
-        draft = .repeating(template, at: date)
+        draft = .repeating(template, region: region, at: date)
       } else {
         // No drink described on this day (or the latest statement was a
         // standard drink): the count is standard drinks, freshly built from
@@ -258,7 +281,7 @@ public struct DrinkDraft: Equatable, Sendable {
     if let type = TrendSummary.mostLoggedType(in: history) {
       if let recent = TrendSummary.mostRecentDrink(ofType: type, in: history),
          recent.isRepeatable {
-        draft = .repeating(recent, at: date)
+        draft = .repeating(recent, region: region, at: date)
       } else {
         draft = DrinkDraft(type: type, loggedAt: date)
       }

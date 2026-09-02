@@ -80,8 +80,12 @@ public enum Region: String, CaseIterable, Codable, Sendable, Identifiable {
   /// That is why count-bearing sentences are catalog keys at their call sites
   /// rather than assembled from this (ADR-0020): a phrase key can carry real
   /// plural variations, a noun handed back to string interpolation cannot.
+  ///
+  /// The choice follows the digits a reader sees, not the raw value: the
+  /// default beer computes to 1.0000000000000002 and displays as "1", and a
+  /// `== 1` test here read that as plural on every default beer and spirit.
   public func unitName(for count: Double) -> String {
-    count == 1 ? unitName : unitNamePlural
+    StandardDrink.readsAsOne(count) ? unitName : unitNamePlural
   }
 
   /// Fluid ounces of pure alcohol that make up one standard drink.

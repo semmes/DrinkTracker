@@ -98,6 +98,14 @@ struct PopulationReferenceTests {
     #expect(try reference.comparison(gramsPerWeek: 80 * 14) == .moreThan(percent: 95))
   }
 
+  @Test("Non-finite and absurd averages neither trap nor claim a bracket")
+  func absurdAveragesAreSafe() throws {
+    #expect(try reference.comparison(gramsPerWeek: .infinity) == nil)
+    #expect(try reference.comparison(gramsPerWeek: .nan) == nil)
+    // Past Int.max in survey drinks: the open-ended top row, not a trap.
+    #expect(try reference.comparison(gramsPerWeek: 1e21) == .moreThan(percent: 95))
+  }
+
   @Test("The history gate is four weeks")
   func minimumHistory() {
     #expect(PopulationReference.minimumHistory == 28 * 24 * 3600)
