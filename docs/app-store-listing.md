@@ -1,6 +1,7 @@
 # App Store listing — paste-ready metadata
 
-**Status:** draft for first submission · **Owner:** Shawn · App Store Connect →
+**Status:** 1.0 and 1.1 live; 1.2 material ready to paste (reviewed
+2026-09-02) · **Owner:** Shawn · App Store Connect →
 App Information / the version page. Everything here has been through the same
 1.4.3 tone review as the app's own copy: factual, no celebration, no verdicts.
 
@@ -101,9 +102,10 @@ plus logs, minus removes, undo included.
 One tap now records one standard drink, with no type — add the type,
 size, and strength afterwards, or skip them; it counts either way. Once
 you describe a drink, the next taps record another of it for the rest
-of the day, with one tap back to plain standard drinks; each day starts
-back at a standard drink. If you'd rather one tap always repeated the
-drink you log most, that's in Settings: What the counter logs.
+of the day, and "Record a standard drink instead" is the way back; each
+day starts back at a standard drink. If you'd rather one tap always
+repeated the drink you log most, that's in Settings: What the counter
+logs.
 
 Appearance: choose Light, Dark, or System in Settings.
 
@@ -155,10 +157,13 @@ Notes on what's new in 1.2:
   user-initiated; the app never speaks first, sends no notifications, and
   makes no suggestions. Spoken replies state only what was written to the
   user's own log.
-- A fix tightens the HealthKit contract rather than loosening it: drinks
-  imported from Health are read-only mirrors, and the Today screen no
-  longer offers to edit or delete one. Deleting a logged drink still
-  retracts only samples this app wrote.
+- The HealthKit contract is tighter, not looser: drinks imported from
+  Health are read-only mirrors, and no screen offers to edit or delete
+  one. The one thing a user can do with a single-drink import is add the
+  type, size, and strength on Tallyist's side ("Add details"); that
+  annotates the app's own row and never writes to, edits, or deletes the
+  other app's Health sample. Deleting a logged drink still retracts only
+  samples this app wrote.
 - Logging a drink without stating its type is a recording preference, not
   a new kind of data. The entry stores the standard-drink definition the
   app already uses for its totals, and the user can add the type, size,

@@ -180,6 +180,32 @@ What this supersedes in the decision above: the claim that the default
 mostLoggedType exclusion, the stored facts, the region lens, and every
 no-definition-printed rule stand unchanged.
 
+## Amendment (2026-09-02): what the release review added
+
+- **An older build can make the degradation permanent.** The cross-version
+  paragraph above covers the read side: a 1.0 or 1.1 binary decodes
+  `unspecified` to `.other` and shows "Other, 0.6oz, 100% ABV", arithmetic
+  intact. Its write side goes further. Saving that row from the 1.1 sheet, or
+  repeating it with 1.1's ＋, rewrites `typeRawValue` as `other` — a genuine
+  typed row — which 1.2 then prints as a serving (`recordsSizeAndStrength` is
+  true), counts as an *Other* vote in `mostLoggedType`, and follows as a day
+  template. Still exactly 1.0 per row. Not repairable by shipping; a field
+  report reading "Other · 0.6oz · 100% ABV" is this, and the row goes by hand
+  from History. A future revision could treat (`.other`, volume equal to a
+  region's definition, 100%) as untyped, the way ADR-0022 treats zero volume.
+- **The row's title is region-blind while its figure is lensed.** "One
+  standard drink" is a fixed key that doubles as summary line, CSV entry, and
+  spoken reply. Under the UK lens every total says "unit" while the row says
+  "standard drink", and after a region switch the row reads "One standard
+  drink" beside "1.8". The arithmetic is the lens working as ADR-0002 intends;
+  the wording is a recorded tension, not yet a decision. Rendering the title
+  through `StandardDrink.amountPhrase(drink.standardDrinks(in:), region:)` is
+  the obvious route if it is ever taken.
+- **The repeat control was the one construction site that copied a stored
+  definition.** `DrinkDraft.repeating` now takes the region and rebuilds an
+  untyped drink from it (PR #56), so "Another standard drink" and ＋ write the
+  same amount after a same-day region change.
+
 ## How to reopen
 
 If the standard-drink default turns out to *under*-record at scale — heavy

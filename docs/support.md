@@ -18,10 +18,14 @@ happened instead, and your iPhone model and iOS version.
 ## Common questions
 
 **How do I log a drink?**
-Tap **+** on the Today screen — one tap, one drink, sized and styled like the
-one you usually log. The disclosure underneath ("Log by type") opens size and
-strength controls when you want them. The home-screen widget logs one drink
-without opening the app.
+Tap **+** on the Today screen — one tap, one drink. By default that records one
+standard drink with no type; you can add the type, size, and strength
+afterwards, or leave them out and it still counts. Once you describe a drink,
+the next taps that day record another of it, and each day starts back at a
+standard drink. If you'd rather **+** always repeated the drink you log most,
+choose that under Settings → What the counter logs. The disclosure underneath
+("Log by type") opens the type, size, and strength controls when you want them.
+The home-screen widget logs one drink without opening the app, the same way.
 
 **How do I fix a mistake?**
 Tap **−** on Today to remove the most recent drink (there's a 10-second undo).
@@ -47,9 +51,11 @@ the current Health status in plain words.
 Yes. With Health access allowed, drinks that other apps recorded in Apple
 Health appear in Tallyist automatically, labeled "From Apple Health" and
 counted as logged — each recorded beverage counts as one drink. Health doesn't
-store their size or strength, so those rows can't be edited in Tallyist;
-change or delete them in the app that logged them (or in the Health app) and
-Tallyist follows.
+store their size or strength. For a single-drink entry, tap it and choose
+**Add details** to record the type, size, and strength in Tallyist; the Health
+record stays exactly as the other app wrote it. Entries that count more than
+one drink stay as they are. To change or delete what Health holds, do it in
+the app that logged it (or in the Health app) and Tallyist follows.
 
 **Does my log sync between my devices?**
 Yes, through your own private iCloud, if the device is signed into iCloud.
@@ -81,7 +87,7 @@ being charged.
 
 ## Documents
 
-- [Privacy Policy](/Tallyist/privacy/)
+- [Privacy Policy](https://semmes.github.io/Tallyist/privacy/)
 - [Terms of Use (Apple's standard EULA)](https://www.apple.com/legal/internet-services/itunes/dev/stdeula/)
 
 ---

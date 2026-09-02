@@ -635,3 +635,18 @@ described the drink.
 **Reviewed against 1.4.3.** Factual, no judgment, no exclamation marks. "Every
 drink you described" names the user's own act as the reason a row has detail;
 "carries only its count" states the limit rather than apologising for it.
+
+## Addendum (2026-09-02): What's New (1.2), the way back
+
+| Where | Reads |
+|---|---|
+| What's New (1.2), first paragraph | "Once you describe a drink, the next taps record another of it for the rest of the day, and "Record a standard drink instead" is the way back; each day starts back at a standard drink." |
+
+**Why it changed.** The sentence promised "one tap back to plain standard
+drinks". After the control moved into Today's "Log by type" disclosure
+(ADR-0023 revision), a default-configured user reaches it in two taps there and
+one on the calendar's day sheet. The replacement names the control instead of
+counting taps, which stays true wherever it sits.
+
+**Reviewed against 1.4.3.** Still a description of a mechanism, not a target;
+no judgment about which drink anyone should record.

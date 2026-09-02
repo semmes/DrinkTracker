@@ -167,17 +167,21 @@ DrinkTracker.xcodeproj      two targets: the app and the widget extension
 DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persistence
   Sources/                    Region, DrinkType, StandardDrink, LoggedDrink,
                               DrinkDraft, TrendSummary, DayIntensity,
-                              CalendarGrid, RecentSummary
-  Tests/                      50 tests, all passing
+                              CalendarGrid, RecentSummary, SessionPace,
+                              PopulationReference (+ bundled JSON), LogExport,
+                              DisplayStrings (+ the package's string catalog)
+  Tests/                      150 tests, all passing
 Shared/                     compiled into BOTH targets
                               AppGroup, AppSettings, DrinkEntry + AlcoholFreeDay
-                              (SwiftData), DrinkRepository, LogDrinkIntent
-DrinkTrackerTests/          xctest bundle — 31 tests, the SwiftData layer in-memory
+                              (SwiftData), SchemaVersions, DrinkRepository,
+                              LogDrinkIntent (all four intents)
+DrinkTrackerTests/          xctest bundle — 52 tests, the SwiftData layer in-memory
 DrinkTracker/               App target
   DesignSystem/               AppTheme, GlassTokens, FlowLayout, CountStepper,
-                              IntensityPalette
+                              IntensityPalette, AppearancePreference
   Persistence/                DrinkStore (HealthKit-aware wrapper)
-  Services/                   HealthKitService, DrinkTrackerShortcuts
+  Services/                   HealthKitService, DrinkTrackerShortcuts, TipJar,
+                              CloudKitStatusProbe
   Features/                   Onboarding, Today, DrinkDetail, Calendar, Trends,
                               Settings
 DrinkTrackerWidget/         Widget extension target
@@ -304,11 +308,15 @@ drink, no confirm step. On an empty day, "Record no alcohol today" makes the zer
 explicit — and deleting your last drink deliberately does *not* auto-mark the day,
 because removing an entry says nothing about abstinence.
 
-A counted drink is seeded from the type you log most often, at the size and strength
-you last logged it (`DrinkDraft.quickCount` — the same rule the calendar's day sheet
-uses, shared code). With no history it's beer's defaults, which are exactly 1.0 US
-standard drinks, so a fresh install's count is a standard-drink count. Every entry
-is a real, typed drink — individually editable, own HealthKit sample, per ADR-0003.
+By default a counted drink is one standard drink with no type stated — the region's
+own definition, exactly 1.0 in every region — and the type, size, and strength can
+be added afterwards or left out (ADR-0023). Describing a drink makes ＋ repeat *it*
+for the rest of that day, "Record a standard drink instead" is the way back, and
+each day starts over. Settings → "What the counter logs" restores the older rule:
+the type you log most often, at the size and strength you last logged it
+(`DrinkDraft.quickCount` — the same rule the calendar's day sheet and the widget
+use, shared code). Every entry is a real, individually editable drink with its own
+HealthKit sample, per ADR-0003.
 
 **The typed path didn't go anywhere.** "Log by type — size and strength" discloses
 the beer/wine/spirit/other row and the repeat control, and the preference persists,
@@ -578,10 +586,13 @@ two links — paste-ready metadata lives in
 
 ## Localization
 
-**The app is not localized yet.** `Localizable.xcstrings` exists in both targets but
-is empty — `SWIFT_EMIT_LOC_STRINGS` is already on, so the next Xcode build populates
-both catalogs from the existing literals. That step needs Xcode and can't be done
-from CI.
+**The app is not localized yet, but the catalogs are populated.** Four string
+catalogs (app, widget, the core package's own, and `AppShortcuts.xcstrings`) hold
+304 keys, kept in exact agreement with extraction by running
+`xcrun xcstringstool sync <Catalog>.xcstrings --stringsdata …` against a clean
+build's `.stringsdata` files — a command-line build emits those but never writes
+back into a catalog; only the Xcode GUI does. Language choice and translation are
+deferred by decision.
 
 Plural forms are declared per region (`Region.unitNamePlural`, `unitName(for:)`)
 rather than built by appending `"s"`, which six call sites used to do. That isn't

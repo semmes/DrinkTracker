@@ -50,7 +50,9 @@ them fail *silently* — that is precisely why they are written down.
 removes the most recent (undoable). The typed path (`quickAddRow` →
 `DrinkDetailSheet` → Log) sits one persisted disclosure deeper for those who want
 size and strength — see [ADR-0009](decisions/0009-count-first-logging.md).
-`QuickLogWidget` logs the type's default outright.
+`QuickLogWidget`'s ＋ runs `LogOneDrinkIntent`, the counter's mirror: the same seed
+rule, read from the App Group, so one tap cannot mean different things in the
+widget and the app ([ADR-0023](decisions/0023-the-counter-can-log-an-untyped-standard-drink.md)).
 *Failure mode:* every added step is paid in entries that never get logged, which
 defeats the north star.
 
@@ -333,8 +335,10 @@ Currently in the README's "Not built" list, plus what has come up since:
   share sheet; rendered in `DrinkTrackerCore` and pinned by tier-1 tests. See
   [ADR-0015](decisions/0015-export-is-a-csv-of-the-log.md) for why CSV and not a
   summarising PDF (ADR-0006's boundary).
-- **Longer trend ranges** (90-day, year). Watch invariant 3 — a year of history spans
-  region changes.
+- **Longer trend ranges.** ✅ Done (2026-08) — Quarter (13 calendar weeks) and Year
+  (12 calendar months), calendar-bucketed, the average over completed buckets only.
+  Invariant 3 pinned by `regionLensOverAYear`; the day loop's behaviour across a
+  midnight daylight-saving change pinned by a Santiago test after the 1.2 review.
 - **Widget size/ABV choice.** Explicitly rejected once, as the widget mirrors the
   sheet's fast path. Reopening it needs an ADR, not just an implementation.
 - **Bulk edit.** Adjacent ground is now covered: bulk *fill* (drag-select blank

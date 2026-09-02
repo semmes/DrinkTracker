@@ -113,7 +113,9 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-08-26:** v1.0 live; **v1.1 submitted, in App Review**. What is
+**As of 2026-09-02:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
+**1.2 is on main, reviewed, and awaiting the owner's device test** — see the
+2026-09-02 bullet at the end of this section. What is
 actually *in* 1.1 is PRs #21–#27: the Health import (ADR-0014), the
 authorization-refresh fix, the day-sheet live counter, and the Health read
 purpose string. The tip jar, the drag-fill action bar, the onboarding refresh
@@ -154,10 +156,9 @@ features are implemented, and release prep is done** (2026-08-27):
 MARKETING_VERSION is 1.2, the privacy policy gained an "Export and
 sharing" bullet (both copies, dated), and `docs/app-store-listing.md`
 carries the paste-ready What's New (1.2) and App Review notes. **The 1.2
-train stays open**: nothing freezes until the build is submitted, and 1.2
-can't be submitted while 1.1 sits in App Review anyway — new features can
-keep merging; each one just re-touches What's New / reviewer notes / the
-claims table. **Siri/App Intents landed on the open train** (ADR-0019):
+train stays open**: nothing freezes until the build is submitted — new
+features can keep merging; each one just re-touches What's New / reviewer
+notes / the claims table. **Siri/App Intents landed on the open train** (ADR-0019):
 four App Shortcuts (instant typed, habit-seeded, conversational, no
 alcohol). The rule that governs any future intent work: `LogDrinkIntent`
 is the *widget's* and must never gain a promptable parameter (optional or
@@ -184,7 +185,8 @@ rows offered edit/remove on imports, and Remove reached
 `health.deleteSample` on another app's UUID). Not repairable by shipping:
 rows already written on a 1.0 device are ordinary entries and keep their
 votes in `mostLoggedType` — they go by hand from History, and the CSV export
-finds them (empty size and strength, source Tallyist).
+finds them (type Other, size 0 and strength 0 — printed as zeros, not blanks;
+blanks mean a Health import or an untyped standard drink — source Tallyist).
 
 **Second field report, also fixed on the open train** (ADR-0023): a user asked
 for one tap to record *a standard drink with no type*, because switching
@@ -240,13 +242,18 @@ Open items for v1.2:
   remain in ADR-0011/0014 if real use argues otherwise.
 - Health-import adoption flow: **done** (ADR-0016) — tap/swipe "Add details"
   on a single-count import, typed facts rewrite it in place, Health untouched.
-  Known wrinkle recorded in the ADR: adopting then *editing* can leave the
-  foreign sample plus ours in Health; fix waits for a real report.
+  The adopt-then-edit wrinkle is **closed** (ADR-0016 amendment, PR #56):
+  `HealthKitService.deleteSample` reports retired / foreign / kept, and
+  `DrinkStore.save` writes a replacement sample only after *retired*, so
+  editing an adopted entry keeps its foreign id (the dedup key) and touches
+  Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28): **284 keys** across four catalogs — 221 app, 33
-  widget, 26 core, 4 in a new `AppShortcuts.xcstrings`. Extraction and the
-  committed catalogs agree exactly. See `docs/localization-status.md`.
+  populated** (2026-08-28, re-synced 2026-09-02): **304 keys** across four
+  catalogs — 239 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  Extraction and the committed catalogs agree exactly as of the clean build
+  on 2026-09-02; count them (`len(json['strings'])` per file) rather than
+  trusting this number. See `docs/localization-status.md`.
   **How to populate them, because this repeatedly looked like "my build did
   nothing":** a command-line build does *not* write back into `.xcstrings` —
   it emits `.stringsdata` and stops; write-back is Xcode-GUI behaviour. Use
@@ -286,8 +293,8 @@ Open items for v1.2:
   all three copies, and `PrivacyPolicyView.hostedURL` now points at
   `/Tallyist/privacy/`. **Still to do, and both are the user's:** (a) repoint
   the two URLs in App Store Connect — Privacy Policy URL is app-level under App
-  Information, Support URL is on the version page, and per the user's decision
-  this waits until **1.1 is live**, since the old URLs keep working until then;
+  Information, Support URL is on the version page — **1.1 went live on
+  2026-09-01, so this is actionable now**; the old URLs keep working meanwhile;
   (b) decide the GitHub Actions cost separately — three `macos-latest` jobs,
   ~8 billable macOS minutes per run, 130 runs in August 2026 ≈ 1,040 min/month,
   metered at 10× on private repos, so roughly **$60–70/month**, and a $0
@@ -298,4 +305,37 @@ Open items for v1.2:
   itself ships natively and still reads offline). That cost is recorded in the
   ADR and does not go away — it only stops growing once 1.2 is the version
   people are installing.
-- Watch the 1.1 review outcome; a rejection comes back here with its text.
+- **1.2 release review (2026-09-02)**, done in a local session with the
+  toolchain: 14 change units read at their current state, 8 adversarial
+  lenses over the 1.1→main diff with probe tests in scratch copies of the
+  core package, 51 findings deduplicated and verified by hand at their cited
+  lines. Verdict: nothing in What's New unbuilt, every 1.0 App Review claim
+  still true against the code, entitlements and manifests byte-identical to
+  1.1, both test tiers green. **PR #56 fixed fourteen findings** — two 1.2
+  regressions in the core package (Trends drifted after a midnight-DST
+  change in Chile/Cuba/Egypt/Lebanon; the population comparison trapped on
+  a non-finite or absurd volume) plus the adoption dedup key, the double
+  backfill on cold launch, Today pinned to its launch day, the usual-drink
+  caption, the staged CSV, the export footnote, the two pickers, the widget
+  on region change, the dead diagnostic, and the batch stagger across
+  midnight. Recorded rather than fixed (design consequences, ADR-0023
+  amendment): the untyped row's fixed "One standard drink" title beside a
+  lensed figure; Health imports entering the population comparison at the
+  current region's grams; alcohol-free markers stored as instants; an older
+  build's edit or repeat rewriting an untyped row as a genuine "Other,
+  0.6oz, 100%" entry. **Still tier 3/4, for the owner's device pass:** Siri
+  phrase invocation for all four shortcuts (the Shortcuts app prints "Log a
+  Other in Tallyist"); the adopt-then-edit sample count in the Health app;
+  the cold-launch sample count after a widget tap; the suspended-midnight
+  resume; the two Settings pickers answering a tap; the share sheets; and
+  **the CloudKit environment** — an Xcode Run build mirrors to
+  *Development* while the App Store install mirrored to *Production* (the
+  entitlements set no container environment), so cross-device and
+  cross-version checks need a TestFlight build. Open low-priority items the
+  review left: the share card's own literal grounds (invariant 10 has a
+  second literal-colour site now), the population card hardcoding its
+  source line instead of reading the bundled file, and the localization
+  verbatim traps in onboarding and the core package's legend/size/range
+  labels (translation is deferred anyway).
+- **ASC URL repoint is unblocked** now that 1.1 is live: Privacy Policy URL
+  (App Information) and Support URL (version page) → the Pages site.
