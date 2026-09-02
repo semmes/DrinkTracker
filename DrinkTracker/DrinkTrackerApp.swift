@@ -17,6 +17,8 @@ struct DrinkTrackerApp: App {
 
   init() {
     AppTheme.install()
+    // A CSV staged for a share sheet last session has no reason to still exist.
+    LogExportFile.removeStaleExports()
 
     #if DEBUG
     // A missing App Group doesn't fail the build — the app and widget just end up

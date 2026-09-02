@@ -60,7 +60,9 @@ struct SettingsView: View {
       }
       .pickerStyle(.segmented)
       .padding(GlassTokens.Spacing.tight)
-      .glassSurface(cornerRadius: GlassTokens.Radius.control)
+      // interactive: the same rule as the toggle below — a control on
+      // non-interactive glass can lose its taps.
+      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
     }
   }
 
@@ -85,7 +87,9 @@ struct SettingsView: View {
       }
       .pickerStyle(.segmented)
       .padding(GlassTokens.Spacing.tight)
-      .glassSurface(cornerRadius: GlassTokens.Radius.control)
+      // interactive: the same rule as the toggle below — a control on
+      // non-interactive glass can lose its taps.
+      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
     }
   }
 
@@ -279,7 +283,7 @@ struct SettingsView: View {
   private var exportSection: some View {
     SettingsSection(
       title: "Export",
-      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days you recorded as no alcohol. Totals are in your current unit; each drink's size and strength are included so the numbers can be rechecked."
+      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days you recorded as no alcohol. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count."
     ) {
       ShareLink(
         item: LogExportFile(

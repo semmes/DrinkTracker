@@ -120,16 +120,6 @@ struct LogDrinkIntent: AppIntent {
 
   init() {}
 
-  init(drinkType: DrinkType) {
-    self.drinkType = QuickLogDrinkType(drinkType)
-    // Which process built this, and for what. The widget extension and the app
-    // both construct these, and knowing which one got as far as constructing is
-    // half the answer when a tap does nothing.
-    Diagnostics.recordIntentBuild(
-      "\(drinkType.rawValue) · \(Bundle.main.bundleIdentifier ?? "unknown bundle")"
-    )
-  }
-
   @MainActor
   func perform() async throws -> some IntentResult & ProvidesDialog {
     // Breadcrumb: a widget button that does nothing is indistinguishable from a
@@ -245,7 +235,15 @@ struct LogOneDrinkIntent: AppIntent {
 
   static var openAppWhenRun: Bool { false }
 
-  init() {}
+  init() {
+    // Which process built the widget's ＋. The typed intent used to record
+    // this, until the widget stopped placing it (ADR-0023) and the Settings
+    // row read "never built" forever — the exact state its bisect table says
+    // means the widget never rendered its buttons.
+    Diagnostics.recordIntentBuild(
+      "one-drink · \(Bundle.main.bundleIdentifier ?? "unknown bundle")"
+    )
+  }
 
   @MainActor
   func perform() async throws -> some IntentResult & ProvidesDialog {

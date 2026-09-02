@@ -407,6 +407,25 @@ struct ImportAdoptionRepositoryTests {
     #expect(entries.count == 1)
   }
 
+  @Test("An edited adoption that keeps its foreign sample id stays deduplicated")
+  func editedAdoptionKeepsDedup() throws {
+    let (sampleID, adopted) = importAndAdopt()
+
+    // The edit path re-saves the row. `DrinkStore.save` keeps the foreign id
+    // when Health will not retire the sample; this pins what that preserves:
+    // the same key, so a re-delivered sample still finds the row.
+    var edited = adopted
+    edited.loggedAt = adopted.loggedAt.addingTimeInterval(600)
+    repository.save(edited)
+    repository.importExternalSample(id: sampleID, count: 1, loggedAt: adopted.loggedAt)
+
+    let entries = try context.fetch(FetchDescriptor<DrinkEntry>())
+    #expect(entries.count == 1)
+    #expect(entries.first?.healthKitSampleID == sampleID)
+    #expect(entries.first?.loggedAt == edited.loggedAt)
+    #expect(repository.awaitingHealthKitSync().isEmpty)
+  }
+
   @Test("Adopted entries never enter the HealthKit backfill queue")
   func adoptedNeverBackfills() {
     _ = importAndAdopt()

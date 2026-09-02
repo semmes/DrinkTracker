@@ -210,7 +210,11 @@ struct CalendarView: View {
     }
     let drinks = allEntries.loggedDrinks
     guard let type = TrendSummary.mostLoggedType(in: drinks) else { return nil }
-    if let recent = TrendSummary.mostRecentDrink(ofType: type, in: drinks) {
+    // The write's rule exactly (`DrinkDraft.quickCount`, ADR-0022): a newest
+    // row with no size to repeat is not what ＋ will log, so the caption must
+    // not describe it either. Without the check the day sheet said "0oz at
+    // 0%" while ＋ wrote the type's defaults.
+    if let recent = TrendSummary.mostRecentDrink(ofType: type, in: drinks), recent.isRepeatable {
       return recent
     }
     return DrinkDraft(type: type).makeLoggedDrink(region: settings.effectiveRegion)

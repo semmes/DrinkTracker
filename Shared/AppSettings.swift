@@ -1,6 +1,7 @@
 import DrinkTrackerCore
 import Foundation
 import Observation
+import WidgetKit
 
 /// Preferences shared between the app and the widget.
 ///
@@ -27,6 +28,10 @@ final class AppSettings {
       } else {
         defaults.removeObject(forKey: Keys.region)
       }
+      // The medium widget's ≈ caption is in the region's unit, captured at
+      // its last timeline build; without this it kept the old unit until the
+      // next log or midnight (invariant 3 reaches the widget too).
+      WidgetCenter.shared.reloadAllTimelines()
     }
   }
 

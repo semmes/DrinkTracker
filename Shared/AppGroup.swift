@@ -82,7 +82,8 @@ enum Diagnostics {
 
   static let intentBuildKey = "lastIntentBuild"
 
-  /// Records that a `LogDrinkIntent` was *constructed*, and by which process.
+  /// Records that the widget's `LogOneDrinkIntent` was *constructed*, and by
+  /// which process.
   ///
   /// Separate key from `lastWidgetLog` on purpose: construction and execution are
   /// different events, and one overwriting the other is what made the last round of

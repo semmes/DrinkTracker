@@ -618,3 +618,20 @@ an invitation something the project may not be able to honour.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks. Nothing here grades the reader or the app.
+
+## Addendum (2026-09-02): the export footnote after ADR-0023
+
+| Where | Reads |
+|---|---|
+| Settings → Export, footnote | "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days you recorded as no alcohol. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count." |
+
+**Why it changed.** The previous sentence promised "each drink's size and
+strength" — true when it was written, and false once the counter's default
+became an untyped standard drink whose stored definition the export
+deliberately leaves blank (ADR-0023). The replacement states what the file
+holds and why a row can be blank, without suggesting the user should have
+described the drink.
+
+**Reviewed against 1.4.3.** Factual, no judgment, no exclamation marks. "Every
+drink you described" names the user's own act as the reason a row has detail;
+"carries only its count" states the limit rather than apologising for it.
