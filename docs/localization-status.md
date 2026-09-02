@@ -67,13 +67,16 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **301 keys** — 235 app, 34 widget, 28 core, 4 shortcuts.
+Current: **304 keys** — 239 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-02; the case-colliding core key "Standard drink" was removed the same
+day the 301 figure was written, and four Today/day-sheet keys arrived after it).
 
-**So "extraction and the committed catalogs agree exactly" is a 2026-08-28
-claim, not a standing one.** Nothing is broken by the drift — an absent key
-falls back to the key itself, which in English is the string — but the claim is
-only re-established by running the sync below on a machine with Xcode. Do that
-before a second language, and expect a no-op if the hand-added keys were right.
+**"Extraction and the committed catalogs agree exactly" was re-established on
+2026-09-02** by running the sync below against a clean build on a machine with
+Xcode: every catalog came back byte-identical except for one reworded footnote
+key. The hand-spliced keys were right. It remains a dated claim — an absent key
+falls back to the key itself, so nothing breaks when it drifts — and the sync
+should be repeated before a second language.
 The core package's additions are the one part already pinned:
 `PackageLocalizationTests` walks `DrinkType.allCases` and fails in CI if a
 display name has no key.
