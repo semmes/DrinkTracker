@@ -378,9 +378,12 @@ Open items for v1.2:
   the other app land; the review that found this is on PR #58. The privacy policy changed in both in-repo copies (dated
   September 2, 2026; the mirror pushes the third on merge), and support,
   README, listing (What's New 1.2 + reviewer notes), PRD and the copy review
-  followed. **Owner step before the next TestFlight build: deploy the
-  CloudKit schema to Production** — see "CI / distribution" above for the
-  check that must come first. **Tier 3/4 for the
+  followed. **The CloudKit schema is deployed to Production (owner,
+  2026-09-02):** `CD_healthKitSampleID` was added to `CD_AlcoholFreeDay` by
+  hand in Development as STRING (the type SwiftData gives a UUID; no
+  indexes, which mirroring never needs) and deployed. Any TestFlight build
+  from main is now safe to install; one installed before the deploy simply
+  catches up, since failed exports retry. **Tier 3/4 for the
   device pass:** a real zero sample from another app becoming a marker; the
   one-time re-walk on an existing install; the read-only marker states on the
   day sheet and Today; logging a drink onto a Health-marked day clearing it;
