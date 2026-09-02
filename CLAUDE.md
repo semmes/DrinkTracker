@@ -88,6 +88,21 @@ purchases work in the simulator with no App Store Connect setup).
   from Xcode work too (build numbers restart per version train).
 - Remote Claude sessions have **no Swift toolchain** — CI is the only
   compile/test check; say so rather than claiming local verification.
+- **A schema change is also a CloudKit step.** The store mirrors to CloudKit,
+  and Production learns a new attribute only when the owner deploys it
+  (CloudKit Console → the app's container → Schema → *Deploy Schema
+  Changes*). Do it **before the next TestFlight build** that carries the
+  change — TestFlight mirrors to Production too — or that build's records
+  with the field fail to export and sync stalls silently. Development learns
+  a field when a debug build exports a record carrying it, and an all-nil
+  optional may not create it, so check Development → Schema → Record Types
+  first and add the field by hand if it is missing (same type as an existing
+  field of the same Swift type, e.g. `CD_DrinkEntry.CD_healthKitSampleID`).
+  The recipe in `Shared/SchemaVersions.swift` says how to version the change;
+  the upgrade-path tests open real V1 store files in
+  `DrinkTrackerTests/Fixtures/` — write new fixtures from the last commit of
+  the outgoing version when the next version arrives, and never regenerate
+  the existing ones.
 
 ## The user's Mac (sync gotchas)
 
@@ -115,7 +130,8 @@ so keep them true.
 
 **As of 2026-09-02:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is on main, reviewed, and awaiting the owner's device test** — see the
-2026-09-02 bullet at the end of this section. What is
+two 2026-09-02 bullets at the end of this section (the release review, and
+ADR-0025, which added a schema version and a CloudKit deploy step). What is
 actually *in* 1.1 is PRs #21–#27: the Health import (ADR-0014), the
 authorization-refresh fix, the day-sheet live counter, and the Health read
 purpose string. The tip jar, the drag-fill action bar, the onboarding refresh
@@ -339,3 +355,36 @@ Open items for v1.2:
   labels (translation is deferred anyway).
 - **ASC URL repoint is unblocked** now that 1.1 is live: Privacy Policy URL
   (App Information) and Support URL (version page) → the Pages site.
+- **ADR-0025 landed on the open train (2026-09-02, PR #58):** a zero-count Health
+  sample from another app now marks a blank day as no alcohol — a read-only
+  marker carrying the sample id ("From Apple Health" under "Recorded as no
+  alcohol" on the day sheet and Today, no remove control, deletion-synced,
+  Apple Health in the CSV source column); days with no Health record stay
+  blank. It reopened ADR-0014, whose `count > 0` drop was undocumented and
+  untested. Mechanics to know: `AlcoholFreeDay.healthKitSampleID` is
+  **schema V2** — the shipped shape is frozen as nested classes in
+  `DrinkTrackerSchemaV1`, one lightweight stage, and the migration tests
+  open two real V1 store files written by main at f7b6581
+  (`Fixtures/v1-unversioned.sqlite`, `v1-stamped.sqlite`). **Never
+  instantiate the frozen V1 classes in a test**: two live containers holding
+  different shapes of one entity crashed the whole run with
+  `setValue:forUndefinedKey:` under Swift Testing's parallelism, which is why
+  the fixtures are files. The import anchor now carries a **generation**
+  (2), so the first foreground sweep after updating drains the old anchor
+  for its deletions, re-walks all Health history once — drinks dedup by
+  sample id, zeros 1.1 dropped become markers — and commits the anchor only
+  after the delta is applied. One sweep's deletions are applied before its
+  additions (`applyExternalChanges`), which is what lets a correction made in
+  the other app land; the review that found this is on PR #58. The privacy policy changed in both in-repo copies (dated
+  September 2, 2026; the mirror pushes the third on merge), and support,
+  README, listing (What's New 1.2 + reviewer notes), PRD and the copy review
+  followed. **Owner step before the next TestFlight build: deploy the
+  CloudKit schema to Production** — see "CI / distribution" above for the
+  check that must come first. **Tier 3/4 for the
+  device pass:** a real zero sample from another app becoming a marker; the
+  one-time re-walk on an existing install; the read-only marker states on the
+  day sheet and Today; logging a drink onto a Health-marked day clearing it;
+  deleting the zero in the other app removing the marker on the next
+  foreground; the V1→V2 migration on a real device store (Settings →
+  Diagnostics must not say "in memory"); and the new field syncing between
+  two devices on a TestFlight build, which is what exercises Production.

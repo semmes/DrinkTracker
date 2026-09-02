@@ -126,7 +126,9 @@ Siri and Shortcuts: "Log a beer in Tallyist", "Log drinks in Tallyist"
 logging without touching the screen.
 
 Also: a drink imported from Apple Health can take details — tap it and
-add the type, size, and strength.
+add the type, size, and strength. And a day another app recorded in
+Apple Health as zero drinks now appears as a no-alcohol day, labeled
+"From Apple Health".
 
 Fixed: with drinks imported from Apple Health in the log, one-tap logging
 could copy one of them — an entry that records a count and a time, but no
@@ -163,7 +165,11 @@ Notes on what's new in 1.2:
   type, size, and strength on Tallyist's side ("Add details"); that
   annotates the app's own row and never writes to, edits, or deletes the
   other app's Health sample. Deleting a logged drink still retracts only
-  samples this app wrote.
+  samples this app wrote. A zero-count sample another app wrote is shown
+  as a no-alcohol day on the same terms — read-only, labeled, and removed
+  when the sample is; nothing is written to Health for it. No new Health
+  data type is read: it is the same alcoholic-beverages category, with a
+  value of zero.
 - Logging a drink without stating its type is a recording preference, not
   a new kind of data. The entry stores the standard-drink definition the
   app already uses for its totals, and the user can add the type, size,

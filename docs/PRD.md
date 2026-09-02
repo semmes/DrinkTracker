@@ -157,6 +157,14 @@ about *rows* has to live here rather than in the package. Covered:
 - Day scoping and totals, including that a total is expressed in the caller's region
   rather than the one stored on the entry (invariant 3).
 - The HealthKit backfill queue: only unsynced entries, oldest first.
+- Health import classification (ADR-0025): a positive sample is a count-based
+  entry, a zero on a blank day is a read-only marker carrying the sample id,
+  a zero yields to a day with entries while a positive clears a same-day
+  marker (evidence beats assertion), one sweep's deletions are applied before
+  its additions so a correction in the other app lands, and each mirror
+  follows its own sample's deletion and nothing else's.
+- The schema upgrade: real V1 store files, written by the last V1 commit,
+  reopen intact under the migration plan.
 - `AppSettings` round-tripping through defaults, including `storedRegion()`'s
   nil-to-US fallback and the skipped-vs-chose-US distinction.
 

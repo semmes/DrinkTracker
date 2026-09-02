@@ -359,16 +359,31 @@ struct TodayView: View {
     return alcoholFreeDays.contains { $0.day == today }
   }
 
+  /// Whether another app's Health zero is what marked today (ADR-0025).
+  private var isTodayMarkedFromHealth: Bool {
+    let today = Calendar.current.startOfDay(for: Date())
+    return alcoholFreeDays.contains { $0.day == today && $0.isImportedFromHealth }
+  }
+
   /// Factual in both directions: states what was recorded, awards nothing.
   private var markedTodayState: some View {
     VStack(spacing: GlassTokens.Spacing.tight) {
       Label("Recorded as no alcohol today", systemImage: "checkmark.circle")
         .font(.subheadline)
         .foregroundStyle(.secondary)
-      Button("Remove that record") {
-        store.unmarkAlcoholFree(Date())
+      if isTodayMarkedFromHealth {
+        // Mirrored from another app, so read-only here — same as the day
+        // sheet, same reason as an imported drink (ADR-0014). Logging a
+        // drink still clears it.
+        Text("From Apple Health")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      } else {
+        Button("Remove that record") {
+          store.unmarkAlcoholFree(Date())
+        }
+        .font(.footnote)
       }
-      .font(.footnote)
     }
     .frame(maxWidth: .infinity)
   }

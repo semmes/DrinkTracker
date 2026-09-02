@@ -1,7 +1,10 @@
 # 0014 — Health import: count-based, read-only, deduped by sample
 
 **Status:** accepted · **Date:** 2026-08 · **Relates to:** ADR-0002, ADR-0003,
-ADR-0011, PRD invariants 3 and 7
+ADR-0011, PRD invariants 3 and 7 · **Amended by:** ADR-0025 — a zero-count
+sample, which this record never mentioned and the code silently dropped, is now
+a read-only no-alcohol marker, and deletion sync removes that marker as it
+removes a count-based mirror (the sync-mechanics bullet below predates it)
 
 ## Context
 

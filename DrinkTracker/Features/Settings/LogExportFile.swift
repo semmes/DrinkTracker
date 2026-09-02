@@ -26,11 +26,14 @@ struct LogExportFile: Transferable {
   private func write() throws -> URL {
     let context = ModelContext(container)
     let drinks = try context.fetch(FetchDescriptor<DrinkEntry>()).map(\.logged)
-    let freeDays = try context.fetch(FetchDescriptor<AlcoholFreeDay>()).map(\.day)
+    let markers = try context.fetch(FetchDescriptor<AlcoholFreeDay>())
 
+    // Markers split by who recorded them, so the source column stays true
+    // for a no-alcohol day another app put in Health (ADR-0025).
     let csv = LogExport.csv(
       drinks: drinks,
-      alcoholFreeDays: Set(freeDays),
+      alcoholFreeDays: Set(markers.filter { !$0.isImportedFromHealth }.map(\.day)),
+      alcoholFreeDaysFromHealth: Set(markers.filter(\.isImportedFromHealth).map(\.day)),
       region: region
     )
 

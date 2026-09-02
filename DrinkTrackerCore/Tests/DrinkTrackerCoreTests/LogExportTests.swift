@@ -93,6 +93,37 @@ struct LogExportTests {
     #expect(lines[3].hasPrefix("2026-08-25,20:30,Spirit"))
   }
 
+  /// ADR-0025: the marker's provenance rides in the source column, the same
+  /// column that already tells an imported drink from a logged one.
+  @Test("A no-alcohol day mirrored from Health names Health as its source")
+  func healthAlcoholFreeDayRow() {
+    let csv = LogExport.csv(
+      drinks: [],
+      alcoholFreeDays: [date(2026, 8, 24)],
+      alcoholFreeDaysFromHealth: [date(2026, 8, 25)],
+      region: .unitedStates,
+      calendar: calendar
+    )
+    let lines = csv.split(separator: "\n").map(String.init)
+    #expect(lines.count == 3)
+    #expect(lines[1] == "2026-08-24,,No alcohol recorded,,,0,US standard drink,Tallyist")
+    #expect(lines[2] == "2026-08-25,,No alcohol recorded,,,0,US standard drink,Apple Health")
+  }
+
+  @Test("A day in both marker sets prints once, as Apple Health's — the screen's precedence")
+  func overlappingMarkerSetsPrintOnce() {
+    let csv = LogExport.csv(
+      drinks: [],
+      alcoholFreeDays: [date(2026, 8, 24)],
+      alcoholFreeDaysFromHealth: [date(2026, 8, 24)],
+      region: .unitedStates,
+      calendar: calendar
+    )
+    let lines = csv.split(separator: "\n").map(String.init)
+    #expect(lines.count == 2)
+    #expect(lines[1].hasSuffix(",Apple Health"))
+  }
+
   @Test("Drinks come out oldest first regardless of input order")
   func chronologicalOrder() {
     let csv = LogExport.csv(

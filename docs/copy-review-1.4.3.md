@@ -650,3 +650,35 @@ counting taps, which stays true wherever it sits.
 
 **Reviewed against 1.4.3.** Still a description of a mechanism, not a target;
 no judgment about which drink anyone should record.
+
+## Addendum (2026-09-02): a Health zero is a no-alcohol day (ADR-0025)
+
+| Where | Reads |
+|---|---|
+| Day sheet and Today, under "Recorded as no alcohol" / "Recorded as no alcohol today", when the marker came from Health | "From Apple Health" (the existing label imported drinks carry; replaces the "Remove that record" button) |
+| Settings → Apple Health, footnote (access allowed) | "Your log is written to Health as alcoholic beverages, and what other apps record in Health appears here: their drinks, counted as logged, and a day they recorded as zero drinks, shown as no alcohol. Change access in the Health app under Sharing." |
+| Settings → Apple Health, footnote (access not allowed) | "Your log is kept in the app either way. Turn access on in the Health app under Sharing to save to Health and to see what other apps have recorded there." |
+| Privacy policy, "What Tallyist stores" (all three copies) | "Days recorded as alcohol-free — by you, or by another app that recorded zero drinks in Apple Health." |
+| Privacy policy, Apple Health bullet (all three copies) | "…including drinks that other apps recorded there, which then appear in your Tallyist log, clearly labeled, and days they recorded as zero drinks, which appear as no-alcohol days." |
+| Privacy policy footer date, all three copies | "Last updated September 2, 2026." |
+| Support page, "How do I record a day where I didn't drink?" | "…Tallyist records the second only when you say so — here, or in another app that writes a zero to Apple Health (see below)." |
+| Support page, "I used another app before" | "A day the other app recorded there as zero drinks appears as a no-alcohol day, labeled the same way; a day it recorded nothing for stays blank." and "That includes a no-alcohol day that came from Health: it has no remove control in Tallyist, and logging a drink on that day replaces it." |
+| Settings → Export, footnote | "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days recorded as no alcohol, here or in Apple Health. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count." |
+| What's New (1.2) | "And a day another app recorded in Apple Health as zero drinks now appears as a no-alcohol day, labeled "From Apple Health"." |
+
+**Reviewed against 1.4.3.** Every sentence describes a mechanism: what the
+other app wrote, what Tallyist shows for it, and what can change it. "Zero
+drinks" is the other app's own figure, not a characterisation of the day;
+"no alcohol" is the app's existing name for the recorded fact, and it is
+stated as recorded, not achieved. The read-only marker is explained by where
+the record lives ("logging a drink on that day replaces it"), which tells the
+user the one thing they can do without suggesting they should.
+
+**Why "From Apple Health" is reused rather than a new sentence.** It is the
+label the imported drink already carries in History, so a no-alcohol day from
+the same source reads the same way, and one catalog key serves both. The
+"Remove that record" button it replaces would be a promise the app cannot
+keep for another app's sample.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

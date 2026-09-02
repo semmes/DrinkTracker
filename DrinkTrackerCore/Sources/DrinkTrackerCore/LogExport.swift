@@ -12,7 +12,9 @@ import Foundation
 /// - a drink imported from Apple Health, carrying only its count (ADR-0014) —
 ///   volume and ABV stay empty rather than pretending;
 /// - a day recorded as alcohol-free, because "no alcohol" is a recorded fact,
-///   not an absence (the calendar's distinction, kept in the export).
+///   not an absence (the calendar's distinction, kept in the export) — by the
+///   user here, or by another app's zero in Health (ADR-0025); the source
+///   column says which.
 ///
 /// The `standard_drinks` column is expressed in the *current* region, like
 /// every total in the app (PRD invariant 3); the `unit` column names that
@@ -31,7 +33,13 @@ public enum LogExport {
   ///
   /// - Parameters:
   ///   - drinks: Every logged drink, in any order.
-  ///   - alcoholFreeDays: Start-of-day dates the user marked alcohol-free.
+  ///   - alcoholFreeDays: Start-of-day dates the user marked alcohol-free in
+  ///     this app.
+  ///   - alcoholFreeDaysFromHealth: Start-of-day dates marked by another
+  ///     app's zero-count Health sample (ADR-0025). Printed with Apple Health
+  ///     as the source, exactly as an imported drink is. A day in both sets
+  ///     (two devices acting before CloudKit merged) is printed once, as
+  ///     Apple Health's — the precedence the day sheet and Today use.
   ///   - region: The unit lens for the `standard_drinks` column — the user's
   ///     current region, never a per-entry one (PRD invariant 3).
   ///   - calendar: Supplies the time zone dates are rendered in, matching how
@@ -39,6 +47,7 @@ public enum LogExport {
   public static func csv(
     drinks: [LoggedDrink],
     alcoholFreeDays: Set<Date>,
+    alcoholFreeDaysFromHealth: Set<Date> = [],
     region: Region,
     calendar: Calendar = .current
   ) -> String {
@@ -47,14 +56,16 @@ public enum LogExport {
     var rows: [(sortKey: Date, line: String)] = drinks.map { drink in
       (drink.loggedAt, drinkLine(drink, unit: unit, region: region, calendar: calendar))
     }
-    rows += alcoholFreeDays.map { day in
+    let markerLine = { (day: Date, source: String) -> (sortKey: Date, line: String) in
       let line = fields([
         dayString(day, calendar: calendar), "",
-        localized("No alcohol recorded", comment: "CSV entry column: a day the user recorded as having no alcohol"),
-        "", "", "0", unit, appName,
+        localized("No alcohol recorded", comment: "CSV entry column: a day recorded as having no alcohol"),
+        "", "", "0", unit, source,
       ])
       return (day, line)
     }
+    rows += alcoholFreeDays.subtracting(alcoholFreeDaysFromHealth).map { markerLine($0, appName) }
+    rows += alcoholFreeDaysFromHealth.map { markerLine($0, healthName) }
 
     // Oldest first: the file reads as a timeline. Ties (an alcohol-free
     // marker never shares a day with a drink, but two drinks can share a

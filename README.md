@@ -479,6 +479,14 @@ The repository refuses to mark a day that already has drinks. Keeping a dormant
 contradictory marker would be worse than refusing: it would reassert itself the
 moment those entries were removed, claiming abstinence the user never stated.
 
+The person recording can also be the user in *another* app
+([ADR-0025](docs/decisions/0025-a-health-zero-is-a-recorded-no-alcohol-day.md)):
+a `numberOfAlcoholicBeverages` sample with a value of zero is that app's way
+of recording the same fact, and it mirrors here as a marker carrying the
+sample's id — read-only ("From Apple Health", no remove control), removed when
+the sample is, cleared by a logged drink like any marker. A day with no Health
+record stays blank; nothing is inferred.
+
 ### The colour ramp
 
 `IntensityPalette` is the only place in the app that defines literal colours, and
@@ -614,7 +622,11 @@ another app's samples, so a Tallyist-side edit could never propagate; change
 the drink where it was logged and the mirror follows, deletions included).
 The sync is an anchored query on the foreground sweep, deduped by sample UUID,
 with the app's own samples filtered out by source so backfill and import can
-never echo into each other.
+never echo into each other. Zero-valued samples are the other app's no-alcohol
+days and mirror as markers on the same terms
+([ADR-0025](docs/decisions/0025-a-health-zero-is-a-recorded-no-alcohol-day.md));
+the anchor carries a generation, so an install that walked past zeros under
+1.1's reading walks history once more and picks them up.
 
 The one door out of read-only is **adoption**
 ([ADR-0016](docs/decisions/0016-adoption-turns-an-import-into-a-typed-entry.md)):
