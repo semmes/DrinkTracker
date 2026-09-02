@@ -212,7 +212,10 @@ privacy manifest and entitlements, and that check only works in the language it
 was written for. The hosted copy now says so itself instead of implying it.
 
 `shouldTranslate` survives `xcstringstool sync` — verified, because a marking a
-routine re-sync silently dropped would be worse than none.
+routine re-sync silently dropped would be worse than none. Only for a key that
+did not change, though: editing a policy sentence makes a new key, which sync
+creates unmarked. Re-mark it by hand in the same commit, and check the count
+(`grep -c '"shouldTranslate" : false' DrinkTracker/Localizable.xcstrings` → 14).
 
 **Auto-generated comments are missing on the new keys, and a build will not add
 them.** Xcode writes translator comments when *it* is the thing adding a key to a

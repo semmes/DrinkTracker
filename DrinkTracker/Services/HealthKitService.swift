@@ -169,19 +169,17 @@ final class HealthKitService {
   // keep — and per the comment in save(), it was the wrong fact to freeze anyway.
   private static let gramsOfAlcoholKey = "DrinkTrackerGramsOfAlcohol"
 
-  // MARK: - Reading other apps' data (ADR-0014)
-
-  /// One external beverage sample, reduced to the facts Health actually has.
-  struct ExternalBeverageSample: Sendable {
-    let id: UUID
-    let count: Double
-    let loggedAt: Date
-  }
+  // MARK: - Reading other apps' data (ADR-0014, ADR-0025)
 
   /// What changed in Health since the last look.
   struct ExternalBeverageDelta: Sendable {
     let added: [ExternalBeverageSample]
     let deletedIDs: [UUID]
+    /// The anchor this delta advances to, archived. Written by `commit`, not
+    /// by the fetch, so a sweep killed mid-application replays what it never
+    /// applied instead of skipping it — which matters most on the one-time
+    /// re-walk a generation bump triggers.
+    fileprivate let anchor: Data
   }
 
   /// Everything alcohol-related other apps have put into (or removed from)
@@ -193,30 +191,77 @@ final class HealthKitService {
   /// attempted whenever Health exists and the permission prompt has been shown,
   /// returning nil only when there is nothing to report. The app's own samples
   /// are filtered out by source; importing them back would double every drink.
+  ///
+  /// Every external sample comes back, zero-valued ones included: a zero is
+  /// another app's record of a no-alcohol day, and the repository turns it
+  /// into a marker (ADR-0025). Until 1.2 this dropped zeros here, silently,
+  /// which is why the anchor carries a generation — see `anchorGenerationKey`.
+  ///
+  /// The caller applies the delta and then calls `commit(_:)`; an unapplied
+  /// delta advances nothing.
   func fetchExternalChanges() async -> ExternalBeverageDelta? {
     guard authorization == .authorized || authorization == .denied else { return nil }
 
+    let stored = Self.storedAnchor()
+    let generationIsCurrent = Self.anchorGenerationIsCurrent
+    var addedSamples: [HKQuantitySample] = []
+    var deletedIDs: [UUID] = []
+
+    // A stale generation means "walk history again from nothing". A walk
+    // from no anchor reports no deletions, though — they exist only relative
+    // to an anchor — so drain the outgoing one first, or anything deleted at
+    // the source since the last sweep under the old reading would leave a
+    // mirror nothing can ever remove.
+    if let stored, !generationIsCurrent {
+      let drain = HKAnchoredObjectQueryDescriptor(
+        predicates: [.quantitySample(type: beverageType)],
+        anchor: stored
+      )
+      guard let drained = try? await drain.result(for: store) else { return nil }
+      addedSamples += drained.addedSamples
+      deletedIDs += drained.deletedObjects.map(\.uuid)
+    }
+
     let descriptor = HKAnchoredObjectQueryDescriptor(
       predicates: [.quantitySample(type: beverageType)],
-      anchor: Self.loadAnchor()
+      anchor: generationIsCurrent ? stored : nil
     )
     guard let result = try? await descriptor.result(for: store) else { return nil }
-    Self.storeAnchor(result.newAnchor)
+    addedSamples += result.addedSamples
+    deletedIDs += result.deletedObjects.map(\.uuid)
+    guard let anchor = Self.archive(result.newAnchor) else { return nil }
 
     let ownBundleID = Bundle.main.bundleIdentifier ?? ""
-    let added = result.addedSamples.compactMap { sample -> ExternalBeverageSample? in
+    var seen = Set<UUID>()
+    let added = addedSamples.compactMap { sample -> ExternalBeverageSample? in
       guard sample.sourceRevision.source.bundleIdentifier != ownBundleID else { return nil }
+      // The drain and the walk overlap; one offer per sample is enough.
+      guard seen.insert(sample.uuid).inserted else { return nil }
       let count = sample.quantity.doubleValue(for: .count())
-      guard count > 0 else { return nil }
+      // HealthKit refuses negative and non-finite quantities at write time, so
+      // this guard documents the contract more than it filters; what a count
+      // *means* — drinks, or a recorded zero — is the repository's call.
+      guard count.isFinite, count >= 0 else { return nil }
       return ExternalBeverageSample(id: sample.uuid, count: count, loggedAt: sample.startDate)
     }
     // Deletions are reported for every source; the repository only acts on ones
     // that mirror external samples, so the app's own log never follows a pruned
     // mirror sample.
-    let deleted = result.deletedObjects.map(\.uuid)
+    let deleted = Array(Set(deletedIDs))
 
-    guard !added.isEmpty || !deleted.isEmpty else { return nil }
-    return ExternalBeverageDelta(added: added, deletedIDs: deleted)
+    guard !added.isEmpty || !deleted.isEmpty else {
+      // Nothing to apply, so nothing to lose by advancing now.
+      Self.storeAnchor(anchor)
+      return nil
+    }
+    return ExternalBeverageDelta(added: added, deletedIDs: deleted, anchor: anchor)
+  }
+
+  /// Records that `delta` has been applied: the anchor advances and the
+  /// generation is stamped current. Until this is called the next sweep
+  /// offers the same changes again, which dedup makes harmless.
+  func commit(_ delta: ExternalBeverageDelta) {
+    Self.storeAnchor(delta.anchor)
   }
 
   /// The anchor lives in the App Group so a reinstall that keeps the group
@@ -224,16 +269,37 @@ final class HealthKitService {
   /// harmless, just slow).
   private static let anchorKey = "healthImportAnchor"
 
-  private static func loadAnchor() -> HKQueryAnchor? {
+  /// Which *reading* of Health the stored anchor belongs to.
+  ///
+  /// An anchor says "everything before this point has been handled", and that
+  /// is only true for the rules in force when it was written. Generation 1 —
+  /// 1.1's import — dropped zero-valued samples on the floor, so on an
+  /// existing install every no-alcohol day another app ever recorded sits
+  /// behind the anchor, unreachable. A different generation makes the next
+  /// sweep drain the old anchor for its deletions, then walk history from
+  /// nothing, once: drinks re-offered by the walk dedup by sample id
+  /// (adopted ones included — they keep the id), and the zeros become
+  /// markers. Bump it again only when the reading changes again.
+  private static let anchorGenerationKey = "healthImportAnchorGeneration"
+  private static let currentAnchorGeneration = 2
+
+  private static var anchorGenerationIsCurrent: Bool {
+    AppGroup.defaults.integer(forKey: anchorGenerationKey) == currentAnchorGeneration
+  }
+
+  /// The stored anchor regardless of generation — the caller decides what a
+  /// stale one is still good for.
+  private static func storedAnchor() -> HKQueryAnchor? {
     guard let data = AppGroup.defaults.data(forKey: anchorKey) else { return nil }
     return try? NSKeyedUnarchiver.unarchivedObject(ofClass: HKQueryAnchor.self, from: data)
   }
 
-  private static func storeAnchor(_ anchor: HKQueryAnchor) {
-    guard let data = try? NSKeyedArchiver.archivedData(
-      withRootObject: anchor,
-      requiringSecureCoding: true
-    ) else { return }
-    AppGroup.defaults.set(data, forKey: anchorKey)
+  private static func archive(_ anchor: HKQueryAnchor) -> Data? {
+    try? NSKeyedArchiver.archivedData(withRootObject: anchor, requiringSecureCoding: true)
+  }
+
+  private static func storeAnchor(_ anchor: Data) {
+    AppGroup.defaults.set(anchor, forKey: anchorKey)
+    AppGroup.defaults.set(currentAnchorGeneration, forKey: anchorGenerationKey)
   }
 }

@@ -67,7 +67,11 @@ silently made responsible for a legal representation they have no way to verify.
 
 `shouldTranslate` survives `xcrun xcstringstool sync`, which is how the catalogs
 are populated here — verified before relying on it, since a marking that a routine
-re-sync quietly dropped would be worse than no marking at all.
+re-sync quietly dropped would be worse than no marking at all. It survives on an
+*unchanged* key only: an edited policy sentence is a new key, and sync creates it
+unmarked. Re-mark by hand in the same commit (ADR-0025's policy edit, 2026-09-02,
+lost three markings this way until review caught it; nothing in CI pins the
+count).
 
 Left undone deliberately: the 1,088-character key covering iCloud, Health, the
 widget, and export is a poor translation unit — four topics a translator would

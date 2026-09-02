@@ -121,6 +121,7 @@ struct CalendarView: View {
         day: selection.date,
         existingDrinks: drinks(on: selection.date),
         isMarkedAlcoholFree: markedDays.contains(calendar.startOfDay(for: selection.date)),
+        markerIsFromHealth: healthMarkedDays.contains(calendar.startOfDay(for: selection.date)),
         seed: seedDrink(for: selection.date),
         deletion: deletion,
         onAddDrink: { addOneDrink(on: selection.date) },
@@ -162,6 +163,12 @@ struct CalendarView: View {
 
   private var markedDays: Set<Date> {
     Set(alcoholFreeDays.map(\.day))
+  }
+
+  /// The subset another app's Health zero put there (ADR-0025). The grid
+  /// paints them like any marked day; only the day sheet tells them apart.
+  private var healthMarkedDays: Set<Date> {
+    Set(alcoholFreeDays.filter(\.isImportedFromHealth).map(\.day))
   }
 
   private var totalsByDay: [Date: Double] {

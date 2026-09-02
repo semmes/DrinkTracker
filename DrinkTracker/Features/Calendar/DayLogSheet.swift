@@ -27,6 +27,9 @@ struct DayLogSheet: View {
   let day: Date
   let existingDrinks: [LoggedDrink]
   let isMarkedAlcoholFree: Bool
+  /// True when another app's Health zero put the marker there (ADR-0025). The
+  /// sheet then says so and offers no remove control.
+  let markerIsFromHealth: Bool
   /// Type and defaults seeded from what's usually logged.
   let seed: LoggedDrink?
   /// Owned by the calendar so an undo stays available after this sheet closes.
@@ -196,10 +199,20 @@ struct DayLogSheet: View {
       Label("Recorded as no alcohol", systemImage: "checkmark.circle")
         .font(.subheadline)
         .foregroundStyle(.secondary)
-      Button("Remove that record") {
-        onClearAlcoholFree()
+      if markerIsFromHealth {
+        // Another app's record, mirrored. Read-only here for the reason an
+        // imported drink is (ADR-0014): HealthKit will not let this app
+        // delete that sample, so a removal could never propagate. Change it
+        // where it was recorded — or log a drink, which clears it.
+        Text("From Apple Health")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      } else {
+        Button("Remove that record") {
+          onClearAlcoholFree()
+        }
+        .font(.footnote)
       }
-      .font(.footnote)
     }
     .frame(maxWidth: .infinity)
   }

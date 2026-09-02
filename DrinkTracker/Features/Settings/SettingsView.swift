@@ -267,9 +267,9 @@ struct SettingsView: View {
   private var healthFootnote: LocalizedStringKey {
     switch health.authorization {
     case .authorized:
-      "Your log is written to Health as alcoholic beverages, and drinks other apps record in Health appear here, counted as logged. Change access in the Health app under Sharing."
+      "Your log is written to Health as alcoholic beverages, and what other apps record in Health appears here: their drinks, counted as logged, and a day they recorded as zero drinks, shown as no alcohol. Change access in the Health app under Sharing."
     case .denied, .notDetermined:
-      "Your log is kept in the app either way. Turn access on in the Health app under Sharing to save to Health and to see drinks other apps have recorded there."
+      "Your log is kept in the app either way. Turn access on in the Health app under Sharing to save to Health and to see what other apps have recorded there."
     case .unavailable:
       "Your log is kept in the app."
     }
@@ -283,7 +283,7 @@ struct SettingsView: View {
   private var exportSection: some View {
     SettingsSection(
       title: "Export",
-      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days you recorded as no alcohol. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count."
+      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days recorded as no alcohol, here or in Apple Health. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count."
     ) {
       ShareLink(
         item: LogExportFile(

@@ -321,6 +321,321 @@ struct HealthImportTests {
     #expect(logged?.standardDrinks(in: .unitedKingdom) == 4)
     #expect(logged?.standardDrinks(in: .unitedStates) == 4)
   }
+
+  // MARK: - Zero-count samples (ADR-0025)
+
+  private func allMarkers() -> [AlcoholFreeDay] {
+    (try? context.fetch(FetchDescriptor<AlcoholFreeDay>())) ?? []
+  }
+
+  private func days(from day: Date, offset: Int) -> Date {
+    Calendar.current.date(byAdding: .day, value: offset, to: day)!
+  }
+
+  /// The decision itself: a zero is another app's record of a no-alcohol day,
+  /// and it lands as a marker carrying the sample's id — never as a row.
+  @Test("A zero-count sample on a blank day records it as no alcohol, from Health")
+  func zeroMarksABlankDay() {
+    let sampleID = UUID()
+    let day = Date()
+    repository.importExternalSample(id: sampleID, count: 0, loggedAt: day)
+
+    #expect(allEntries().isEmpty)
+    #expect(repository.isMarkedAlcoholFree(day))
+    let marker = allMarkers().first
+    #expect(marker?.healthKitSampleID == sampleID)
+    #expect(marker?.isImportedFromHealth == true)
+    #expect(marker?.day == Calendar.current.startOfDay(for: day))
+    #expect(marker?.recordedAt == day)
+  }
+
+  @Test("A zero sample imports once, however often it is offered")
+  func zeroIsIdempotent() {
+    let sampleID = UUID()
+    repository.importExternalSample(id: sampleID, count: 0, loggedAt: Date())
+    repository.importExternalSample(id: sampleID, count: 0, loggedAt: Date())
+    repository.importExternalSample(id: sampleID, count: 0, loggedAt: Date())
+    #expect(allMarkers().count == 1)
+  }
+
+  /// The standing rule, unchanged by who is asserting: evidence beats
+  /// assertion, and a day with drinks refuses the marker.
+  @Test("A zero sample on a day with a logged drink is refused")
+  func zeroRefusedByLoggedDrink() {
+    let day = Date()
+    repository.save(LoggedDrink(loggedAt: day, type: .beer, volumeOunces: 12, abvPercent: 5))
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+    #expect(!repository.isMarkedAlcoholFree(day))
+    #expect(allMarkers().isEmpty)
+  }
+
+  @Test("A zero sample on a day with an imported drink is refused too")
+  func zeroRefusedByImportedDrink() {
+    let day = Date()
+    repository.importExternalSample(id: UUID(), count: 2, loggedAt: day)
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+    #expect(!repository.isMarkedAlcoholFree(day))
+    #expect(allEntries().count == 1)
+  }
+
+  @Test("A drink imported after a zero clears the marker, like any logged drink")
+  func drinkAfterZeroClearsMarker() {
+    let day = Date()
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+    #expect(repository.isMarkedAlcoholFree(day))
+    repository.importExternalSample(id: UUID(), count: 1, loggedAt: day)
+    #expect(!repository.isMarkedAlcoholFree(day))
+    #expect(allEntries().count == 1)
+  }
+
+  /// The user's own claim stays the user's: no sample id is attached, so a
+  /// later deletion of the sample cannot take their marker with it.
+  @Test("A zero sample leaves the user's own marker as the user's")
+  func zeroKeepsUserMarker() {
+    let day = Date()
+    #expect(repository.markAlcoholFree(day))
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+
+    let markers = allMarkers()
+    #expect(markers.count == 1)
+    #expect(markers.first?.healthKitSampleID == nil)
+  }
+
+  @Test("A second zero sample on the same day attaches to nothing")
+  func secondZeroIsIgnored() {
+    let first = UUID()
+    let day = Date()
+    repository.importExternalSample(id: first, count: 0, loggedAt: day)
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+
+    let markers = allMarkers()
+    #expect(markers.count == 1)
+    #expect(markers.first?.healthKitSampleID == first)
+  }
+
+  @Test("Marking a Health-marked day by hand changes nothing")
+  func userMarkOnHealthMarkedDay() {
+    let sampleID = UUID()
+    let day = Date()
+    repository.importExternalSample(id: sampleID, count: 0, loggedAt: day)
+    #expect(repository.markAlcoholFree(day))
+
+    let markers = allMarkers()
+    #expect(markers.count == 1)
+    #expect(markers.first?.healthKitSampleID == sampleID)
+  }
+
+  /// Deletion sync for markers, mirroring `deletionRemovesOnlyMirrors`: the
+  /// delta reports every deleted UUID, and only the matching mirror follows.
+  @Test("Deleting the zero sample at the source removes only its marker")
+  func zeroDeletionFollows() {
+    let sampleID = UUID()
+    let today = Date()
+    let yesterday = days(from: today, offset: -1)
+    repository.importExternalSample(id: sampleID, count: 0, loggedAt: today)
+    #expect(repository.markAlcoholFree(yesterday))
+
+    repository.removeImportedMarkers(sampleIDs: [sampleID, UUID()])
+
+    #expect(!repository.isMarkedAlcoholFree(today))
+    #expect(repository.isMarkedAlcoholFree(yesterday))
+  }
+
+  @Test("Deleting a drink sample never touches a marker, and the reverse")
+  func deletionPathsStayApart() {
+    let drinkID = UUID()
+    let zeroID = UUID()
+    let today = Date()
+    let yesterday = days(from: today, offset: -1)
+    repository.importExternalSample(id: drinkID, count: 1, loggedAt: today)
+    repository.importExternalSample(id: zeroID, count: 0, loggedAt: yesterday)
+
+    repository.removeImportedMarkers(sampleIDs: [drinkID])
+    #expect(allEntries().count == 1)
+    #expect(repository.isMarkedAlcoholFree(yesterday))
+
+    repository.removeImportedEntries(sampleIDs: [zeroID])
+    #expect(allEntries().count == 1)
+    #expect(repository.isMarkedAlcoholFree(yesterday))
+  }
+
+  /// Read-only, for ADR-0014's reason: HealthKit will not let this app delete
+  /// another app's sample, so a removal here could never propagate.
+  @Test("A marker from Health cannot be removed in the app; the user's own still can")
+  func healthMarkerIsReadOnly() {
+    let day = Date()
+    let other = days(from: day, offset: -3)
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+    #expect(repository.markAlcoholFree(other))
+
+    repository.unmarkAlcoholFree(day)
+    repository.unmarkAlcoholFree(other)
+
+    #expect(repository.isMarkedAlcoholFree(day))
+    #expect(!repository.isMarkedAlcoholFree(other))
+  }
+
+  @Test("Logging a drink still clears a marker from Health")
+  func loggedDrinkClearsHealthMarker() {
+    let day = Date()
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+    repository.save(LoggedDrink(loggedAt: day, type: .wine, volumeOunces: 5, abvPercent: 12))
+    #expect(!repository.isMarkedAlcoholFree(day))
+    #expect(allMarkers().isEmpty)
+  }
+
+  /// A marker from Health is a marker: it reaches the grid as the same bucket
+  /// the user's own would, and the export names its source.
+  @Test("A marker from Health reaches the calendar as alcoholFree")
+  func healthMarkerReachesTheGrid() {
+    let day = Calendar.current.startOfDay(for: Date())
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+
+    let grid = TrendSummary.monthGrid(
+      containing: day,
+      totalsByDay: [:],
+      alcoholFreeDays: repository.allAlcoholFreeDays(),
+      calendar: .current
+    )
+    #expect(grid.days.first { $0.date == day }?.intensity == .alcoholFree)
+  }
+
+  @Test("Values Health cannot hold import as nothing at all")
+  func impossibleValuesAreDropped() {
+    repository.importExternalSample(id: UUID(), count: -1, loggedAt: Date())
+    repository.importExternalSample(id: UUID(), count: .nan, loggedAt: Date())
+    repository.importExternalSample(id: UUID(), count: .infinity, loggedAt: Date())
+    #expect(allEntries().isEmpty)
+    #expect(allMarkers().isEmpty)
+  }
+
+  /// ADR-0025's deletion-over-dormancy trade, stated: a refused zero inserts
+  /// nothing, so removing the drink later leaves the day blank, not marked.
+  @Test("A refused zero does not come back when the drink is removed")
+  func refusedZeroStaysGone() {
+    let day = Date()
+    let drink = LoggedDrink(loggedAt: day, type: .beer, volumeOunces: 12, abvPercent: 5)
+    repository.save(drink)
+    repository.importExternalSample(id: UUID(), count: 0, loggedAt: day)
+    repository.delete(id: drink.id)
+    #expect(allEntries().isEmpty)
+    #expect(!repository.isMarkedAlcoholFree(day))
+  }
+
+  /// The same trade for the user's own marker: an import cleared it, and the
+  /// import's later deletion at the source does not bring it back.
+  @Test("A user marker cleared by an import is not restored when the import is deleted")
+  func clearedUserMarkerStaysCleared() {
+    let day = Date()
+    let sampleID = UUID()
+    #expect(repository.markAlcoholFree(day))
+    repository.importExternalSample(id: sampleID, count: 1, loggedAt: day)
+    #expect(!repository.isMarkedAlcoholFree(day))
+    repository.removeImportedEntries(sampleIDs: [sampleID])
+    #expect(allEntries().isEmpty)
+    #expect(!repository.isMarkedAlcoholFree(day))
+  }
+
+  // MARK: - One sweep's delta, in order
+
+  private func sample(_ id: UUID, count: Double, at date: Date) -> ExternalBeverageSample {
+    ExternalBeverageSample(id: id, count: count, loggedAt: date)
+  }
+
+  /// The blocker the review caught: a correction in the other app is a delete
+  /// plus a save in one delta, and a marker is one per day, so the stale
+  /// record has to be gone before the replacement is offered.
+  @Test("A zero re-saved in the other app replaces its marker within one sweep")
+  func resavedZeroReplacesMarker() {
+    let day = Date()
+    let first = UUID()
+    let second = UUID()
+    repository.applyExternalChanges(added: [sample(first, count: 0, at: day)], deletedIDs: [])
+    repository.applyExternalChanges(added: [sample(second, count: 0, at: day)], deletedIDs: [first])
+
+    let markers = allMarkers()
+    #expect(markers.count == 1)
+    #expect(markers.first?.healthKitSampleID == second)
+  }
+
+  @Test("A day corrected from one drink to none becomes a no-alcohol day within one sweep")
+  func drinkCorrectedToZero() {
+    let day = Date()
+    let drink = UUID()
+    let zero = UUID()
+    repository.applyExternalChanges(added: [sample(drink, count: 1, at: day)], deletedIDs: [])
+    repository.applyExternalChanges(added: [sample(zero, count: 0, at: day)], deletedIDs: [drink])
+
+    #expect(allEntries().isEmpty)
+    #expect(repository.isMarkedAlcoholFree(day))
+    #expect(allMarkers().first?.healthKitSampleID == zero)
+  }
+
+  @Test("A day corrected from none to one drink becomes a drink within one sweep")
+  func zeroCorrectedToDrink() {
+    let day = Date()
+    let zero = UUID()
+    let drink = UUID()
+    repository.applyExternalChanges(added: [sample(zero, count: 0, at: day)], deletedIDs: [])
+    repository.applyExternalChanges(added: [sample(drink, count: 1, at: day)], deletedIDs: [zero])
+
+    #expect(allMarkers().isEmpty)
+    #expect(allEntries().count == 1)
+    #expect(allEntries().first?.healthKitSampleID == drink)
+  }
+
+  @Test("A drink re-saved in the other app is one entry afterwards, and unknown deletions are ignored")
+  func resavedDrinkReplacesEntry() {
+    let day = Date()
+    let first = UUID()
+    let second = UUID()
+    repository.applyExternalChanges(added: [sample(first, count: 2, at: day)], deletedIDs: [])
+    repository.applyExternalChanges(added: [sample(second, count: 3, at: day)], deletedIDs: [first, UUID()])
+
+    let entries = allEntries()
+    #expect(entries.count == 1)
+    #expect(entries.first?.healthKitSampleID == second)
+    #expect(entries.first?.countedDrinks == 3)
+  }
+
+  // MARK: - Two markers on one day (two devices before CloudKit merges)
+
+  @Test("Deleting a zero sample removes every marker that carries it")
+  func deletionRemovesDuplicateMarkers() {
+    let sampleID = UUID()
+    let day = Calendar.current.startOfDay(for: Date())
+    context.insert(AlcoholFreeDay(day: day, healthKitSampleID: sampleID))
+    context.insert(AlcoholFreeDay(day: day, healthKitSampleID: sampleID))
+    try? context.save()
+
+    repository.removeImportedMarkers(sampleIDs: [sampleID])
+    #expect(allMarkers().isEmpty)
+  }
+
+  @Test("A logged drink clears every marker on its day")
+  func drinkClearsDuplicateMarkers() {
+    let day = Calendar.current.startOfDay(for: Date())
+    context.insert(AlcoholFreeDay(day: day))
+    context.insert(AlcoholFreeDay(day: day, healthKitSampleID: UUID()))
+    try? context.save()
+
+    repository.save(LoggedDrink(loggedAt: day, type: .beer, volumeOunces: 12, abvPercent: 5))
+    #expect(allMarkers().isEmpty)
+  }
+
+  @Test("Unmarking removes the user's own marker beside a Health one, and leaves the Health one")
+  func unmarkBesideHealthMarker() {
+    let day = Calendar.current.startOfDay(for: Date())
+    let sampleID = UUID()
+    context.insert(AlcoholFreeDay(day: day))
+    context.insert(AlcoholFreeDay(day: day, healthKitSampleID: sampleID))
+    try? context.save()
+
+    repository.unmarkAlcoholFree(day)
+    let markers = allMarkers()
+    #expect(markers.count == 1)
+    #expect(markers.first?.healthKitSampleID == sampleID)
+  }
 }
 
 /// Tier 2 (docs/PRD.md §4) — adoption's persistence guarantees (ADR-0016).

@@ -35,7 +35,8 @@ day, tap the entry.
 **How do I record a day where I didn't drink?**
 On Today, set the counter to zero and tap **Record no alcohol today**. For past
 days, tap the day in the calendar. "No entries" and "no alcohol" are different
-facts, and Tallyist only records the second when you say so.
+facts, and Tallyist records the second only when you say so — here, or in
+another app that writes a zero to Apple Health (see below).
 
 **What's the press-and-drag on the calendar?**
 Touch and hold a day, then drag across a stretch of days to give them all the
@@ -50,12 +51,16 @@ the current Health status in plain words.
 **I used another app before — does my old data show up?**
 Yes. With Health access allowed, drinks that other apps recorded in Apple
 Health appear in Tallyist automatically, labeled "From Apple Health" and
-counted as logged — each recorded beverage counts as one drink. Health doesn't
+counted as logged — each recorded beverage counts as one drink. A day the
+other app recorded there as zero drinks appears as a no-alcohol day, labeled
+the same way; a day it recorded nothing for stays blank. Health doesn't
 store their size or strength. For a single-drink entry, tap it and choose
 **Add details** to record the type, size, and strength in Tallyist; the Health
 record stays exactly as the other app wrote it. Entries that count more than
 one drink stay as they are. To change or delete what Health holds, do it in
-the app that logged it (or in the Health app) and Tallyist follows.
+the app that logged it (or in the Health app) and Tallyist follows. That
+includes a no-alcohol day that came from Health: it has no remove control in
+Tallyist, and logging a drink on that day replaces it.
 
 **Does my log sync between my devices?**
 Yes, through your own private iCloud, if the device is signed into iCloud.

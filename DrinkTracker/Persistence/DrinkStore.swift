@@ -125,8 +125,9 @@ struct DrinkStore {
   }
 
   /// The other direction: mirrors alcohol data other apps put in Health into the
-  /// log as count-based entries, and removes mirrors whose samples were deleted
-  /// at the source (ADR-0014).
+  /// log — a positive count as a count-based entry (ADR-0014), a zero as a
+  /// no-alcohol marker (ADR-0025) — and removes either kind of mirror when its
+  /// sample is deleted at the source.
   ///
   /// Incremental and idempotent — the anchored query returns only changes, and
   /// the repository dedups by sample UUID — so it rides the same foreground
@@ -134,12 +135,11 @@ struct DrinkStore {
   /// writes entries with no sample id, imports arrive with one.
   func syncFromHealth() async {
     guard let delta = await health.fetchExternalChanges() else { return }
-    for sample in delta.added {
-      repository.importExternalSample(id: sample.id, count: sample.count, loggedAt: sample.loggedAt)
-    }
-    repository.removeImportedEntries(sampleIDs: delta.deletedIDs)
-    if !delta.added.isEmpty || !delta.deletedIDs.isEmpty {
-      WidgetCenter.shared.reloadAllTimelines()
-    }
+    // The repository owns the order (deletions first — see
+    // `applyExternalChanges`); the anchor advances only once it has applied
+    // everything, so a sweep cut short replays rather than skips.
+    repository.applyExternalChanges(added: delta.added, deletedIDs: delta.deletedIDs)
+    health.commit(delta)
+    WidgetCenter.shared.reloadAllTimelines()
   }
 }
