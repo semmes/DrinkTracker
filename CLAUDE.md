@@ -355,7 +355,7 @@ Open items for v1.2:
   labels (translation is deferred anyway).
 - **ASC URL repoint is unblocked** now that 1.1 is live: Privacy Policy URL
   (App Information) and Support URL (version page) → the Pages site.
-- **ADR-0025 landed on the open train (2026-09-02):** a zero-count Health
+- **ADR-0025 landed on the open train (2026-09-02, PR #58):** a zero-count Health
   sample from another app now marks a blank day as no alcohol — a read-only
   marker carrying the sample id ("From Apple Health" under "Recorded as no
   alcohol" on the day sheet and Today, no remove control, deletion-synced,
@@ -375,7 +375,7 @@ Open items for v1.2:
   sample id, zeros 1.1 dropped become markers — and commits the anchor only
   after the delta is applied. One sweep's deletions are applied before its
   additions (`applyExternalChanges`), which is what lets a correction made in
-  the other app land; the review that found this is in the PR. The privacy policy changed in both in-repo copies (dated
+  the other app land; the review that found this is on PR #58. The privacy policy changed in both in-repo copies (dated
   September 2, 2026; the mirror pushes the third on merge), and support,
   README, listing (What's New 1.2 + reviewer notes), PRD and the copy review
   followed. **Owner step before the next TestFlight build: deploy the
