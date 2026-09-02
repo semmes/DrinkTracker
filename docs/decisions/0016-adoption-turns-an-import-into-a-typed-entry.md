@@ -74,6 +74,39 @@ than revising them), primary action "Save details".
 - No schema change. Adoption is a value-level rewrite of fields that already
   exist, which is why it could ship before the next `VersionedSchema` bump.
 
+## Amendment (2026-09-02): editing an adopted entry leaves Health alone
+
+The wrinkle above had a second half, found in the 1.2 release review before
+any user reported it. `DrinkStore.save` did not only write a Tallyist sample
+beside the foreign one; it overwrote the row's `healthKitSampleID` with the
+new sample's id — or with nil, when Health was not authorized at the time.
+That id is the dedup key `importExternalSample` matches a re-delivered sample
+against, and the guard that keeps the row out of the backfill queue. With it
+gone, a second device, or a reinstall with a reset anchor, inserted a fresh
+count-based mirror next to the typed entry: a duplicate in Tallyist, which
+the consequences above say never happens. Remove-then-Undo took the same
+path.
+
+**Decision.** `HealthKitService.deleteSample` now reports what it did:
+`retired` (gone, or never there), `foreign` (another app's sample, which
+Health would refuse and the app must not want to delete), or `kept`
+(unauthorized, or the delete failed). `DrinkStore.save` writes a replacement
+sample only after `retired`; after `foreign` or `kept` the row keeps the id it
+had and nothing is written. Editing an adopted entry therefore changes what
+the log knows and touches Health not at all, exactly as adoption itself does.
+An edit made while Health access is revoked no longer orphans the previous
+sample either: the row keeps pointing at it, and the next authorized edit
+retires it as before.
+
+The trade is that an adopted entry's time, if edited, is not reflected in
+Health. That record belongs to the app that wrote it, and correcting it there
+is the route the support page already gives.
+
+Pinned at tier 2 (`editedAdoptionKeepsDedup`): a re-saved adoption that keeps
+its foreign id is found by a re-delivered sample and stays out of the backfill
+queue. The `deleteSample` outcome itself needs HealthKit, so it is tier 4 —
+adopt, edit, and count the samples in the Health app.
+
 ## How to reopen
 
 - Multi-count adoption (splitting "3 drinks" into three typed entries) needs

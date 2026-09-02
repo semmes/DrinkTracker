@@ -121,18 +121,46 @@ final class HealthKitService {
     }
   }
 
-  /// Removes a previously written sample, used when an entry is edited or deleted.
-  func deleteSample(id: UUID) async {
-    guard authorization == .authorized else { return }
+  /// What became of a sample the app asked to retire.
+  enum RetireOutcome: Equatable {
+    /// Gone from Health, or never there — the slot is free for a new sample.
+    case retired
+    /// Another app wrote it (an adopted import, ADR-0016). Health would refuse
+    /// the delete, and the app must not want it: that sample is the other
+    /// app's record, and its id is the row's dedup key.
+    case foreign
+    /// Not authorized right now, or the delete failed. The sample is still
+    /// there and the row should keep pointing at it.
+    case kept
+  }
+
+  /// Removes a previously written sample, used when an entry is edited or
+  /// deleted, and says whether it did.
+  ///
+  /// The answer is what lets `DrinkStore.save` keep an adopted entry's foreign
+  /// sample id instead of overwriting it with a fresh Tallyist sample's — the
+  /// overwrite doubled the drink in Health and let a re-delivered sample
+  /// insert a duplicate row.
+  @discardableResult
+  func deleteSample(id: UUID) async -> RetireOutcome {
+    guard authorization == .authorized else { return .kept }
     let predicate = HKQuery.predicateForObject(with: id)
     let descriptor = HKSampleQueryDescriptor(
       predicates: [.quantitySample(type: beverageType, predicate: predicate)],
       sortDescriptors: []
     )
-    guard let samples = try? await descriptor.result(for: store), !samples.isEmpty else {
-      return
+    guard let samples = try? await descriptor.result(for: store) else { return .kept }
+    guard !samples.isEmpty else { return .retired }
+    let ownBundleID = Bundle.main.bundleIdentifier ?? ""
+    guard samples.allSatisfy({ $0.sourceRevision.source.bundleIdentifier == ownBundleID }) else {
+      return .foreign
     }
-    try? await store.delete(samples)
+    do {
+      try await store.delete(samples)
+      return .retired
+    } catch {
+      return .kept
+    }
   }
 
   // "DrinkTrackerStandardDrinks" existed as a second key but never shipped a

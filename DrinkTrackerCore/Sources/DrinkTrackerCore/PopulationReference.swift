@@ -101,20 +101,28 @@ public struct PopulationReference: Sendable {
   }
 
   public func comparison(gramsPerWeek: Double) -> Comparison? {
-    guard gramsPerWeek > 0 else { return nil }
+    // Non-finite input has no bracket, and it must not get any further: a
+    // size field or a Shortcuts variable can deliver infinity, and this
+    // function used to convert it to an Int, which traps — on every open of
+    // Trends, until the row was deleted.
+    guard gramsPerWeek.isFinite, gramsPerWeek > 0 else { return nil }
     let surveyDrinks = gramsPerWeek / gramsPerSurveyDrink
     // The 0.005-drink shave (0.07 g of ethanol a week) keeps an
     // exactly-N-drink average at level N: regional grams are derived values
     // (a US drink computes to 14.0001 g, 7.8 ppm high), and without the
     // shave that drift compounds with volume and the ceiling bumps exact
     // averages into the next bracket.
-    let level = max(1, Int((surveyDrinks - 0.005).rounded(.up)))
+    //
+    // Kept as a Double until a row is chosen: an absurd but finite volume
+    // exceeds Int.max long before it exceeds the table, and the open-ended
+    // top row already covers everything above the last bound.
+    let level = max(1, (surveyDrinks - 0.005).rounded(.up))
 
     // Smallest row whose upper bound covers the level; the open-ended top
     // row covers everything above the table.
     let row = rows.first { row in
       guard let max = row.drinksMax else { return true }
-      return level <= max
+      return level <= Double(max)
     }
     guard let row else { return nil }
 

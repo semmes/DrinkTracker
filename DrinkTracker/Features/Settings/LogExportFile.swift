@@ -34,14 +34,31 @@ struct LogExportFile: Transferable {
       region: region
     )
 
-    // A fresh directory per export keeps the human-readable file name without
-    // two exports racing over one path.
-    let directory = FileManager.default.temporaryDirectory
+    // Every export is staged under one directory that is cleared before the
+    // next export and on every launch, so the staging copy does not outlive
+    // the share that needed it — the policy says the app keeps no copy, and
+    // until this the file sat in tmp until iOS got round to purging it. A
+    // fresh subdirectory per export keeps the human-readable file name
+    // without two exports racing over one path.
+    Self.removeStaleExports()
+    let directory = Self.exportsDirectory
       .appendingPathComponent(UUID().uuidString, isDirectory: true)
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     let url = directory.appendingPathComponent(fileName)
     try Data(csv.utf8).write(to: url, options: .atomic)
     return url
+  }
+
+  /// Where exports are staged for the share sheet.
+  static var exportsDirectory: URL {
+    FileManager.default.temporaryDirectory.appendingPathComponent("Exports", isDirectory: true)
+  }
+
+  /// Deletes every previously staged export. Called before each export and
+  /// at launch (`DrinkTrackerApp`), so a staged file lives only as long as
+  /// the share sheet that reads it.
+  static func removeStaleExports() {
+    try? FileManager.default.removeItem(at: exportsDirectory)
   }
 
   /// `tallyist-log-2026-08-26.csv` — dated so successive exports sort and

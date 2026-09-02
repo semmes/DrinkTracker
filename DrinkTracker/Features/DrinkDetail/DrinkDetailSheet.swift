@@ -233,8 +233,10 @@ struct DrinkDetailSheet: View {
         .onChange(of: customVolumeText) { _, newValue in
           // An unparseable or empty field leaves the last good volume in place
           // rather than dropping the estimate to zero mid-typing.
+          // `isFinite` too: Double("inf") and "1e400" parse, and a volume of
+          // infinity is storable, prints as "infoz", and cannot be summed.
           if let parsed = Double(newValue.replacingOccurrences(of: ",", with: ".")),
-             parsed > 0 {
+             parsed.isFinite, parsed > 0 {
             draft.customVolumeOunces = parsed
           }
         }

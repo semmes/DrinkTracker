@@ -35,6 +35,10 @@ struct StandardDrinkTests {
       #expect(region.unitName(for: 0) == region.unitNamePlural)
       #expect(region.unitName(for: 2) == region.unitNamePlural)
       #expect(region.unitName(for: 0.5) == region.unitNamePlural)
+      // The default beer computes to 1.0000000000000002 and displays as "1".
+      #expect(region.unitName(for: 12 * 0.05 / 0.6) == region.unitName)
+      #expect(region.unitName(for: 1.04) == region.unitName)
+      #expect(region.unitName(for: 1.06) == region.unitNamePlural)
       #expect(region.unitNamePlural != region.unitName)
     }
     #expect(Region.unitedKingdom.unitNamePlural == "units")
@@ -397,7 +401,7 @@ struct DrinkDraftTests {
       abvPercent: 6.5
     )
     let later = Date(timeIntervalSince1970: 1_700_003_600)
-    let draft = DrinkDraft.repeating(original, at: later)
+    let draft = DrinkDraft.repeating(original, region: original.region, at: later)
 
     #expect(draft.type == .beer)
     #expect(draft.volumeOunces == 16)
@@ -637,6 +641,40 @@ struct LongTrendRangeTests {
     #expect(buckets.last?.dayCount == 26)
   }
 
+  @Test("A midnight daylight-saving change drifts nothing: every day keeps its total")
+  func midnightTransitionKeepsEveryDay() {
+    // Chile moves its clocks at 00:00 on 2026-09-06, so that day starts at
+    // 01:00 and has no midnight. The 1.2 day loop chained from that stamp and
+    // never matched another day's key; this pins both halves of the fix.
+    var santiago = Calendar(identifier: .gregorian)
+    santiago.timeZone = TimeZone(identifier: "America/Santiago")!
+    santiago.firstWeekday = 1
+    func noon(_ month: Int, _ day: Int) -> Date {
+      santiago.date(from: DateComponents(year: 2026, month: month, day: day, hour: 12))!
+    }
+    let drinks = [noon(9, 6), noon(9, 7), noon(9, 16)].map {
+      LoggedDrink(loggedAt: $0, type: .beer, volumeOunces: 12, abvPercent: 5)
+    }
+
+    let month = TrendSummary.dailyTotals(
+      range: .month, endingOn: noon(9, 26), drinks: drinks, region: .unitedStates, calendar: santiago
+    )
+    #expect(month.count == 30)
+    #expect(abs(month.reduce(0) { $0 + $1.standardDrinks } - 3.0) < 0.0001)
+    #expect(month.last?.date == santiago.startOfDay(for: noon(9, 26)))
+
+    // The week that begins on the transition day is seven days long and
+    // therefore complete, so the three beers average over twelve weeks.
+    let quarter = TrendSummary.dailyTotals(
+      range: .quarter, endingOn: noon(10, 16), drinks: drinks, region: .unitedStates, calendar: santiago
+    )
+    let buckets = TrendSummary.bucketed(quarter, by: .weekOfYear, calendar: santiago)
+    let transitionWeek = buckets.first { santiago.isDate($0.start, inSameDayAs: noon(9, 6)) }
+    #expect(transitionWeek?.dayCount == 7)
+    let average = TrendSummary.bucketAverage(buckets, unit: .weekOfYear, calendar: santiago)
+    #expect(average.map { abs($0 - 3.0 / 12) < 0.0001 } == true)
+  }
+
   @Test("Buckets sum their days, and empty weeks stay in the series as zero")
   func bucketSums() {
     let today = date(2026, 8, 26)
@@ -791,6 +829,34 @@ struct IntentDraftTests {
     #expect(custom.selectedSize == .custom)
     #expect(custom.volumeOunces == 6.5)
     #expect(custom.abvPercent == 13)
+  }
+
+  @Test("A non-finite size falls back to the type's default, as strength does")
+  func nonFiniteSizeFallsBack() throws {
+    let infinite = try #require(DrinkDraft.forIntent(type: .beer, volumeOunces: .infinity))
+    #expect(infinite.volumeOunces == DrinkType.beer.defaultVolumeOunces)
+    let nan = try #require(DrinkDraft.forIntent(type: .beer, volumeOunces: .nan))
+    #expect(nan.volumeOunces == DrinkType.beer.defaultVolumeOunces)
+  }
+
+  @Test("A batch logged just before midnight stays on its day, every stamp distinct")
+  func batchNeverCrossesMidnight() throws {
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(secondsFromGMT: 0)!
+    let late = utc.date(
+      from: DateComponents(year: 2026, month: 9, day: 1, hour: 23, minute: 59, second: 50)
+    )!
+    var draft = DrinkDraft(type: .beer, loggedAt: late)
+    draft.quantity = 12
+    let drinks = draft.makeLoggedDrinks(region: .unitedStates, calendar: utc)
+    #expect(drinks.count == 12)
+    #expect(drinks.allSatisfy { utc.isDate($0.loggedAt, inSameDayAs: late) })
+    #expect(Set(drinks.map(\.loggedAt)).count == 12)
+    // Nowhere near midnight, the first drink keeps the stated time.
+    let early = utc.date(from: DateComponents(year: 2026, month: 9, day: 1, hour: 20))!
+    var afternoon = DrinkDraft(type: .beer, loggedAt: early)
+    afternoon.quantity = 3
+    #expect(afternoon.makeLoggedDrinks(region: .unitedStates, calendar: utc).first?.loggedAt == early)
   }
 
   @Test("ABV clamps to the type's slider range, volume must be positive")
@@ -1185,11 +1251,29 @@ struct UntypedStandardDrinkTests {
   @Test("Repeating an untyped drink gives another untyped standard drink")
   func repeatingStaysUntyped() {
     let original = LoggedDrink.standardDrink(in: .unitedKingdom)
-    let repeated = DrinkDraft.repeating(original).makeLoggedDrink(region: .unitedKingdom)
+    let repeated = DrinkDraft.repeating(original, region: .unitedKingdom)
+      .makeLoggedDrink(region: .unitedKingdom)
     #expect(repeated.isTypeUnspecified)
     #expect(repeated.id != original.id)
     #expect(abs(repeated.standardDrinks(in: .unitedKingdom) - 1.0) < 0.0001)
     #expect(!repeated.recordsSizeAndStrength)
+  }
+
+  @Test("Repeating an untyped drink after a region change follows the new region")
+  func repeatingRebuildsFromTheCurrentRegion() {
+    // Logged under the US definition, repeated under the UK one: another
+    // standard drink means one unit now, not the 1.75 the stored 0.6oz makes.
+    let original = LoggedDrink.standardDrink(in: .unitedStates)
+    let repeated = DrinkDraft.repeating(original, region: .unitedKingdom)
+      .makeLoggedDrink(region: .unitedKingdom)
+    #expect(repeated.isTypeUnspecified)
+    #expect(abs(repeated.standardDrinks(in: .unitedKingdom) - 1.0) < 0.0001)
+
+    // A typed drink is a size the user chose, and is copied exactly.
+    let beer = LoggedDrink(loggedAt: Date(), type: .beer, volumeOunces: 16, abvPercent: 6)
+    let again = DrinkDraft.repeating(beer, region: .unitedKingdom)
+      .makeLoggedDrink(region: .unitedKingdom)
+    #expect(again.type == .beer && again.volumeOunces == 16 && again.abvPercent == 6)
   }
 
   @Test("Adding a type replaces the definition with that type's own facts")

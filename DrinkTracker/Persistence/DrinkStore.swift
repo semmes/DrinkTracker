@@ -27,12 +27,27 @@ struct DrinkStore {
 
     // Retire the old sample before writing the replacement, so an edit never
     // leaves two beverages behind in Health.
+    //
+    // Unless the old sample is not ours to retire. An adopted import
+    // (ADR-0016) keeps the other app's sample id as its dedup key and its
+    // backfill guard; overwriting that id let a re-delivered sample insert a
+    // duplicate row, and writing our own sample doubled the drink in Health.
+    // The same holds while Health is not authorized: the old sample is still
+    // there, so the row keeps pointing at it rather than entering the
+    // backfill queue and being mirrored a second time when access returns.
+    // Either way nothing new is written, and the next authorized edit of a
+    // Tallyist-owned row retires its sample as before.
     if let existing = repository.entry(with: drink.id),
        let oldSampleID = existing.healthKitSampleID {
-      await health.deleteSample(id: oldSampleID)
+      switch await health.deleteSample(id: oldSampleID) {
+      case .retired:
+        drink.healthKitSampleID = await health.save(drink)
+      case .foreign, .kept:
+        drink.healthKitSampleID = oldSampleID
+      }
+    } else {
+      drink.healthKitSampleID = await health.save(drink)
     }
-
-    drink.healthKitSampleID = await health.save(drink)
     repository.save(drink)
     WidgetCenter.shared.reloadAllTimelines()
     return drink
@@ -100,6 +115,8 @@ struct DrinkStore {
   func backfillHealthKit() async {
     guard health.authorization == .authorized else { return }
     for entry in repository.awaitingHealthKitSync() {
+      // The save suspends; a sweep that ran meanwhile may have filled the slot.
+      guard entry.healthKitSampleID == nil else { continue }
       if let sampleID = await health.save(entry.logged) {
         entry.healthKitSampleID = sampleID
       }

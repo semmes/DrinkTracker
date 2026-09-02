@@ -1,3 +1,4 @@
+import Combine
 import ComponentsKit
 import DrinkTrackerCore
 import SwiftData
@@ -12,9 +13,30 @@ struct TodayView: View {
   @Environment(HealthKitService.self) private var health
   @Environment(\.modelContext) private var context
 
-  /// Scoped to today only; the trend screens run their own wider query.
-  @Query private var todaysEntries: [DrinkEntry]
+  /// Everything since the start of the day this view was built, newest first;
+  /// the trend screens run their own wider query. The lower bound only ever
+  /// grows older relative to now, so the window keeps covering today —
+  /// `todaysEntries` cuts it down to the current calendar day.
+  @Query private var recentEntries: [DrinkEntry]
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
+
+  /// Bumped when the calendar day changes, so `todaysEntries` re-evaluates.
+  @State private var dayChanged = Date()
+
+  /// Today's entries, decided by the calendar day *now* rather than the day
+  /// the view was built.
+  ///
+  /// The query's lower bound is fixed at init and nothing rebuilt the view
+  /// across midnight, so an app suspended overnight and resumed showed
+  /// yesterday's rows as today — while ＋, − and the day template, which read
+  /// the clock, already acted on the new day. Filtering the wider query by
+  /// the current day, and re-running that on the day-change notification and
+  /// on every foregrounding, keeps the number, the list, and the controls on
+  /// the same day.
+  private var todaysEntries: [DrinkEntry] {
+    _ = dayChanged
+    return recentEntries.filter { Calendar.current.isDateInToday($0.loggedAt) }
+  }
 
   @State private var draft: DrinkDraft?
   /// The imported entry being given typed details, if any (ADR-0016).
@@ -31,11 +53,15 @@ struct TodayView: View {
   /// (ADR-0013).
   @State private var counterOps: Task<Void, Never>?
 
+  /// The tail of the foreground sweeps, chained the same way (see
+  /// `runForegroundSweep`).
+  @State private var foregroundSweep: Task<Void, Never>?
+
   @Environment(\.scenePhase) private var scenePhase
 
   init() {
     let startOfDay = Calendar.current.startOfDay(for: Date())
-    _todaysEntries = Query(FetchDescriptor<DrinkEntry>.since(startOfDay))
+    _recentEntries = Query(FetchDescriptor<DrinkEntry>.since(startOfDay))
   }
 
   var body: some View {
@@ -132,12 +158,7 @@ struct TodayView: View {
         SettingsView()
       }
       .task {
-        // Refresh first: the guards below read the authorization state, and
-        // the system's remembered answer can change while the app is away.
-        health.refreshAuthorization()
-        await backfillHealthKit()
-        await store.syncFromHealth()
-        await CloudKitStatusProbe.refresh()
+        runForegroundSweep()
       }
       .onChange(of: scenePhase) { _, phase in
         // Anything logged from the widget while the app was away lands without a
@@ -146,23 +167,43 @@ struct TodayView: View {
         // since the user can sign in while the app is backgrounded and nothing
         // else would notice.
         if phase == .active {
-          health.refreshAuthorization()
-          Task {
-            await backfillHealthKit()
-            await store.syncFromHealth()
-            await CloudKitStatusProbe.refresh()
-          }
+          dayChanged = Date()
+          runForegroundSweep()
         }
       }
+      .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+        dayChanged = Date()
+      }
+    }
+  }
+
+  /// The foreground sweep — authorization refresh, Health backfill, Health
+  /// import, iCloud probe — chained so two triggers never run it at once.
+  ///
+  /// `.task` and the scene-phase change both fire on a cold launch. Unchained,
+  /// the second sweep fetched the same sample-less rows while the first was
+  /// suspended on the HealthKit save, and every widget- or Siri-logged drink
+  /// got two samples in Health, one of them orphaned for good. Same shape as
+  /// `counterOps`: each sweep awaits the previous, so a tap that lands
+  /// mid-sweep is picked up by the next, and a sweep that finds nothing to do
+  /// costs one fetch.
+  private func runForegroundSweep() {
+    let store = store
+    let health = health
+    let previous = foregroundSweep
+    foregroundSweep = Task { @MainActor in
+      await previous?.value
+      // Refresh first: the guards below read the authorization state, and
+      // the system's remembered answer can change while the app is away.
+      health.refreshAuthorization()
+      await store.backfillHealthKit()
+      await store.syncFromHealth()
+      await CloudKitStatusProbe.refresh()
     }
   }
 
   private var store: DrinkStore {
     DrinkStore(context: context, health: health)
-  }
-
-  private func backfillHealthKit() async {
-    await store.backfillHealthKit()
   }
 
   // MARK: - The counter
@@ -464,7 +505,8 @@ struct TodayView: View {
   /// Logs an identical drink at the current time — a new entry, not an edit, so the
   /// original stays exactly where it was.
   private func repeatDrink(_ drink: LoggedDrink) {
-    let copy = DrinkDraft.repeating(drink).makeLoggedDrink(region: settings.effectiveRegion)
+    let region = settings.effectiveRegion
+    let copy = DrinkDraft.repeating(drink, region: region).makeLoggedDrink(region: region)
     Task {
       let saved = await store.save(copy)
       lastLogged = saved

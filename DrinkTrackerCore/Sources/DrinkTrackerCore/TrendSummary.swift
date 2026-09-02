@@ -130,7 +130,7 @@ public enum TrendSummary {
     calendar: Calendar = .current
   ) -> [DayTotal] {
     let lastDay = calendar.startOfDay(for: endDate)
-    let firstDay = range.startDate(endingOn: endDate, calendar: calendar)
+    let firstDay = calendar.startOfDay(for: range.startDate(endingOn: endDate, calendar: calendar))
 
     var byDay: [Date: Double] = [:]
     for drink in drinks {
@@ -143,8 +143,14 @@ public enum TrendSummary {
     var day = firstDay
     while day <= lastDay {
       totals.append(DayTotal(date: day, standardDrinks: byDay[day] ?? 0))
+      // Re-normalised every step, never chained. In a zone whose clocks
+      // change at midnight (Santiago, Havana, Cairo, Beirut) the transition
+      // day has no 00:00 and `startOfDay` returns 01:00; adding a day to that
+      // keeps the 01:00, and a chained key never again equals the `byDay`
+      // keys built from `startOfDay`. Every later day read zero and the range
+      // lost its last day. US zones switch at 02:00 and never showed it.
       guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
-      day = next
+      day = calendar.startOfDay(for: next)
     }
     return totals
   }
@@ -190,13 +196,30 @@ public enum TrendSummary {
     calendar: Calendar = .current
   ) -> Double? {
     let completed = buckets.filter { bucket in
-      guard let interval = calendar.dateInterval(of: unit, for: bucket.start),
-        let length = calendar.dateComponents([.day], from: interval.start, to: interval.end).day
+      guard let length = periodLength(of: unit, containing: bucket.start, calendar: calendar)
       else { return false }
       return bucket.dayCount == length
     }
     guard !completed.isEmpty else { return nil }
     return completed.reduce(0) { $0 + $1.standardDrinks } / Double(completed.count)
+  }
+
+  /// How many calendar days the period containing `date` holds.
+  ///
+  /// Counted in whole days, not elapsed time. A week that starts on a
+  /// midnight-DST day begins at 01:00, and measured as an interval it is six
+  /// days and twenty-three hours — `.day` said 6, the bucket held 7, and the
+  /// week was never "complete". Day ordinals count the days that exist.
+  static func periodLength(
+    of unit: Calendar.Component,
+    containing date: Date,
+    calendar: Calendar
+  ) -> Int? {
+    guard let interval = calendar.dateInterval(of: unit, for: date),
+      let first = calendar.ordinality(of: .day, in: .era, for: interval.start),
+      let next = calendar.ordinality(of: .day, in: .era, for: interval.end)
+    else { return nil }
+    return next - first
   }
 
   /// Mean standard drinks per day across the range, including zero days.
