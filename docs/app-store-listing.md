@@ -112,7 +112,10 @@ Appearance: choose Light, Dark, or System in Settings.
 Trends now reach further — Quarter and Year views — and can show a
 published population reference: your weekly average beside a 2020
 national survey of US adults who drink, computed on your device from a
-bundled statistic. Nothing about your log leaves your phone.
+bundled statistic. Nothing about your log leaves your phone. Tap a bar
+— or drag across the bars — to see what it holds: the day, week, or
+month, its total, what was logged by type, and for a week or month, days
+with drinks, days recorded as no alcohol, and days with nothing logged.
 
 Session pace, off by default: while you're logging, Today can show how
 many drinks this sitting, when it started, and how long since the last.
@@ -161,6 +164,11 @@ Notes on what's new in 1.2:
   chosen span — the last 30 days, the month shown, or the year shown. It
   compares nothing to any other period or person, sets no target, and is
   not shared or sent anywhere.
+- Tapping a bar on Trends shows the facts behind it — dates, totals, and
+  counts from the user's own log, the same figures the calendar already
+  shows for that period. Nothing is compared to a target, to the average
+  line, or to other people; nothing about the selection is stored; nothing
+  leaves the device.
 - Siri/Shortcuts support uses App Intents only. Every phrase is
   user-initiated; the app never speaks first, sends no notifications, and
   makes no suggestions. Spoken replies state only what was written to the
