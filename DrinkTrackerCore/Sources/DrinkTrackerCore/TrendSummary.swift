@@ -249,7 +249,9 @@ public enum TrendSummary {
     totals.reduce(0) { $0 + $1.standardDrinks }
   }
 
-  /// Number of days in the range with nothing logged.
+  /// Number of days in the range whose total is zero — days with nothing
+  /// logged, days marked no alcohol, and days whose only drinks are 0% ABV.
+  /// Backs the "Days with no drinks logged" card (ADR-0028).
   public static func daysWithoutDrinks(_ totals: [DayTotal]) -> Int {
     totals.count { $0.standardDrinks == 0 }
   }

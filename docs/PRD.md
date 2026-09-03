@@ -97,7 +97,8 @@ See [ADR-0003](decisions/0003-quantity-saves-separate-entries.md).
 **8. Copy stays factual and countable.**
 "Another beer", "drinks today", "Record no alcohol today". No encouragement to
 reach a number, nothing that reads as a reward for volume. The strings that carry this
-live in `TodayView`'s counter area, `TodayView.repeatControl`, and `DayLogSheet`.
+live in `TodayView`'s counter area, `TodayView.repeatControl`, `DayLogSheet`, and
+`PeriodDetailView` (a Trends bar's facts, never its distance from the average line).
 *Failure mode:* guideline 1.4.3, applied by a reviewer rather than by us.
 
 **9. The domain layer stays free of UI and persistence.**

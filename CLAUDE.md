@@ -265,8 +265,8 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-03): **316 keys** across four
-  catalogs — 251 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **321 keys** across four
+  catalogs — 256 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
   on 2026-09-03; count them (`len(json['strings'])` per file) rather than
   trusting this number. See `docs/localization-status.md`.
@@ -404,8 +404,7 @@ Open items for v1.2:
   fixed a real bug — on a midnight-DST day (Santiago, Havana, Cairo, Beirut)
   the rolling card read 29 of 30 days as unlogged. The card is split into
   `RecentSummaryCaptions` → `RecentSummaryFigures` → `RecentSummaryCard(heading:)`
-  so the share cards (ADR-0027) and the Trends bar detail (ADR-0028, next on
-  the train) reuse the reviewed copy; an average over no drinking days prints "—";
+  so the share cards (ADR-0027) and the Trends bar detail (ADR-0028) reuse the reviewed copy; an average over no drinking days prints "—";
   `DayIntensity.legendKey` (app-side) finally puts the five legend words in
   the catalog. **No schema change, no CloudKit step.** Rules that came out of
   it: never a delta between windows; "through today" is the on-device clip
@@ -437,3 +436,25 @@ Open items for v1.2:
   chunk inspection (no tEXt/iTXt/zTXt/XMP), legibility in a Messages bubble,
   the year card's height, both appearances, tap-to-sheet timing on a long
   log, "Save to Files" names, the app's tmp directory empty after a share.
+- **ADR-0028 landed on the open train (2026-09-03):** tap or drag on the
+  Trends chart selects one bar (`chartXSelection`); the selected bar keeps
+  its accent, the rest dim to 35%, the average line is untouched, and a
+  block under the chart in the same card reports the bar's own facts —
+  period as a date, a bucket's day count, the total in the current unit,
+  composition by kind (Beer/Wine/Spirit/Other/No type/From Apple Health,
+  rows summing to the bar), which zero a zero day is, and for a week or
+  month the calendar card's four figures via `RecentSummaryFigures`. All
+  arithmetic is `PeriodDetail` in the core package (`bucketStart`,
+  `adjacentBucketStart`, `periodDetail`, `shares`) with a range-independence
+  test pinning that nothing average-relative can creep in. The selection is
+  raw-Date `@State`, cleared by ✕, the range picker, or VoiceOver escape; the
+  chart is one adjustable VoiceOver element. Trends now queries
+  `AlcoholFreeDay`, and its card is relabelled "Days with no drinks logged".
+  **No schema change, no CloudKit step, no setting.** **Tier 3 for the
+  owner's pass:** whether a horizontal scrub coexists with the vertical
+  scroll (if the pan is captured, swap in the documented `.chartGesture`
+  hold-then-drag fallback and say so in the commit); whether tapping the
+  selected bar again clears it; the live update of a selected bar when a
+  drink is logged from Today; the three zero-bar states; VoiceOver stepping
+  and the "No bar selected" value; AX5 with four kinds logged; a ~10k-entry
+  scrub for frame drops.
