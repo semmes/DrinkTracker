@@ -129,9 +129,15 @@ so keep them true.
 ## Current state (update me at end of session)
 
 **As of 2026-09-03:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
-**1.2 is on main, reviewed, and awaiting the owner's device test** — see the
-two 2026-09-02 bullets at the end of this section (the release review, and
-ADR-0025, which added a schema version and a CloudKit deploy step). What is
+**1.2 is on main, reviewed, device-tested by the owner, and ready to submit**
+— the owner built main at 5563b74 (PRs #60–#62 merged 2026-09-03: ADR-0026
+summary window, ADR-0027 share cards, ADR-0028 Trends bar detail) and ran the
+device pass on 2026-09-03, verdict "good to submit". See the 2026-09-02 and
+2026-09-03 bullets at the end of this section for what each change added and
+what its device pass covered. **The train is now frozen for submission**: new
+feature work targets 1.3 (bump `MARKETING_VERSION` in the first 1.3 PR); a fix
+that must ship in 1.2 needs a new build and a re-submission, so say so.
+Once submitted, record the build number and the submission date here. What is
 actually *in* 1.1 is PRs #21–#27: the Health import (ADR-0014), the
 authorization-refresh fix, the day-sheet live counter, and the Health read
 purpose string. The tip jar, the drag-fill action bar, the onboarding refresh
@@ -239,9 +245,12 @@ fallback*: build these through `LoggedDrink.standardDrink(in:)` or
 `DrinkDraft.standardDrink(region:)`, never `DrinkDraft(type: .unspecified)`,
 or a UK user silently gets US amounts.
 
-User-side when 1.1 clears: create the 1.2 version in ASC,
-paste the listing material, pick a green main build from Xcode Cloud,
-submit. The long-pending catalog population is **done** — and did not need
+User-side, now (1.1 is live, 1.2 is device-tested): create the 1.2 version
+in ASC, paste the description, What's New (1.2) and reviewer notes from
+`docs/app-store-listing.md`, repoint the Privacy Policy URL (App Information)
+and Support URL (version page) to the Pages site, select the three tip-jar
+products on the version page, pick the Xcode Cloud build of main at or after
+5563b74, submit. The long-pending catalog population is **done** — and did not need
 a GUI build after all (see the localization bullet). A real GUI build over
 the pulled tree afterwards produced **no catalog change at all**, which
 confirms the sync route writes what Xcode would. It also does not add
