@@ -104,11 +104,13 @@ bumped, same commit (ADR-0024).
   bubble rendering proves unreadable at tier 3, four columns with 8pt cells
   is the trade to re-run, not a new decision.
 - The year render draws 365 cells on the main actor at share time —
-  expected tens of milliseconds, measured at tier 3 and stated in the
-  commit.
+  expected tens of milliseconds; to be measured at tier 3 and recorded here
+  as an amendment.
 - A shared image is a snapshot in the region and store state current at
   share time, like the CSV (ADR-0015): two shares made under different
-  settings disagree in the totals while agreeing in the grid.
+  settings disagree in the totals and may disagree in a drinking day's
+  shade, since the ramp buckets the lensed count (ADR-0002); they agree only
+  in which days have drinks, which are marked as none, and which are blank.
 - A current-year card leaves up to eleven months blank, and a blank future
   cell looks like an unlogged one; the "Through" line is what tells them
   apart. A future-dated row (an edit moved forward) draws faded in the grid

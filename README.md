@@ -503,7 +503,9 @@ record stays blank; nothing is inferred.
 
 ### The colour ramp
 
-`IntensityPalette` is the only place in the app that defines literal colours, and
+`IntensityPalette` is the only place in the app that defines literal colours,
+with one named companion, `ShareCardInk` — the ground and inks of an exported
+image, which has no host surface to inherit from (ADR-0027) —, and
 [`GlassTokens`](DrinkTracker/DesignSystem/GlassTokens.swift) still defines none. The
 exception is narrow and deliberate: in a heatmap the colour *is* the data, and data
 has to be specified rather than inherited from the system.

@@ -1,6 +1,8 @@
 # 0007 — The calendar's intensity ramp is one hue, validated
 
-**Status:** accepted · **Date:** 2026-08 · **Relates to:** PRD invariants 8 and 10
+**Status:** accepted · **Date:** 2026-08 · **Relates to:** PRD invariants 8 and 10 ·
+**Amended by:** ADR-0027 (`ShareCardInk`, the exported image's ground and inks, is
+the named second literal-colour site; every fill and outline still comes from here)
 
 ## Context
 
@@ -59,9 +61,10 @@ values above pass all four. This is invariant 10.
 
 ## Consequences
 
-- `IntensityPalette` is the only literal-colour file in the app. That is a real
-  exception to a deliberate rule, so it is scoped to the calendar surfaces and its
-  doc comment says why it exists.
+- `IntensityPalette` is the only literal-colour file in the app, with one named
+  companion since ADR-0027 (`ShareCardInk`, for exported images, which have no
+  host surface). That is a real exception to a deliberate rule, so it is scoped
+  to the calendar surfaces and its doc comment says why it exists.
 - The calendar looks less immediately "alarming" than the competitor's. That is the
   intended outcome, not a side effect.
 - Blue is the accent colour, so the ramp sits inside the app's existing palette

@@ -348,8 +348,8 @@ Open items for v1.2:
   *Development* while the App Store install mirrored to *Production* (the
   entitlements set no container environment), so cross-device and
   cross-version checks need a TestFlight build. Open low-priority items the
-  review left: the share card's own literal grounds (invariant 10 has a
-  second literal-colour site now), the population card hardcoding its
+  review left: the share card's own literal grounds (closed by ADR-0027 —
+  `ShareCardInk` is the named second literal-colour site), the population card hardcoding its
   source line instead of reading the bundled file, and the localization
   verbatim traps in onboarding and the core package's legend/size/range
   labels (translation is deferred anyway).

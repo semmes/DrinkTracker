@@ -70,8 +70,8 @@ core package's, and rewording one intent description in both app and widget.
 Current: **316 keys** — 251 app, 34 widget, 27 core, 4 shortcuts (counted
 2026-09-03 after ADR-0027's sync: "Through %@", "on days with drinks", and
 "Share this year as an image" in, the translatable "Tallyist" out — the
-wordmark is a name, rendered verbatim — and the policy's "What Tallyist
-stores" paragraph and its date line replaced by their reworded keys, both
+wordmark is a name, rendered verbatim — and the policy's "Where your data can
+go" paragraph and its date line replaced by their reworded keys, both
 re-marked `shouldTranslate: false`, so the count of marked keys is still 14.
 ADR-0026's sync the same day had put twelve app keys in — the summary
 window's picker and headings, the "—" average's spoken form, the year

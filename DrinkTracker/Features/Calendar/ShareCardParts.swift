@@ -294,8 +294,8 @@ struct ShareCardLegend: View {
 /// The card is a 360pt document; a 7-column grid or a 2×2 cannot reflow at
 /// accessibility sizes, so the render pins `.large` and the in-app card and
 /// cells remain the Dynamic Type and VoiceOver surface. PNG data from
-/// `pngData()` carries no EXIF beyond orientation, resolution, and pixel
-/// size — verified by chunk inspection on the shipped month card.
+/// `pngData()` carries no EXIF beyond orientation, colour space,
+/// resolution, and pixel size — verified by chunk inspection on both cards.
 enum ShareCardRenderer {
   @MainActor
   static func png(_ content: some View, scheme: ColorScheme) -> Data? {

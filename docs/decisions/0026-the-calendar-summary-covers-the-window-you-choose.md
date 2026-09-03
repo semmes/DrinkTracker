@@ -146,8 +146,9 @@ to its launch day" class of bug, pre-empted for a card headed "through today".
 - The share card, when it prints the four figures (ADR-0027), must use
   `monthSummary` / `yearSummary` so the image and the card on screen agree —
   and argues that rendered summary against ADR-0006 there, per ADR-0015's
-  reopen clause. Its current per-week figure divides by the
-  whole month's day count, future days included; the same fold corrects it.
+  reopen clause. The shipped 1.2 card's per-week
+  figure divided by the whole month's day count, future days included;
+  ADR-0027 removed it rather than correcting it.
 - No schema change, so no CloudKit step — stated because ADR-0025 made the
   step easy to assume. No new permissions, no new privacy label categories,
   nothing leaves the device.

@@ -1,7 +1,7 @@
 import DrinkTrackerCore
 import SwiftUI
 
-/// The calendar's intensity ramp — the one place this app defines literal colours.
+/// The calendar's intensity ramp — where this app defines its literal colours.
 ///
 /// `GlassTokens` deliberately defines none, so that everything inherits Liquid
 /// Glass's automatic light/dark and vibrancy behaviour. This is the documented
