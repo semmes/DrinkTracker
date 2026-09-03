@@ -121,8 +121,10 @@ Session pace, off by default: while you're logging, Today can show how
 many drinks this sitting, when it started, and how long since the last.
 Turn it on in Settings.
 
-Export your whole log as a CSV from Settings, and share any month as an
-image from the calendar. The calendar's summary can cover the last 30
+Export your whole log as a CSV from Settings, and share any month or
+year as an image from the calendar — the grid and the same four figures
+the calendar shows: days with drinks, days with none, the total, and the
+average on days with drinks. The calendar's summary can cover the last 30
 days or the month shown, and the year view carries the same four figures
 for the year.
 
@@ -157,9 +159,11 @@ Notes on what's new in 1.2:
   (Alcohol Research Group, 2020 National Alcohol Survey), named and dated
   in the app. It is not data from other users, and no network request is
   made — the app still contains no networking code.
-- The CSV export and the month share image are user-initiated, one-way
-  exports of the user's own data through the system share sheet, with no
-  identifiers in the files.
+- The CSV export and the month and year share images are user-initiated,
+  one-way exports of the user's own data through the system share sheet,
+  with no identifiers in the files. Each image carries only the user's own
+  calendar and the four figures the app already shows for that period, with
+  unlogged days stated — no comparison to anyone, no goal, no score.
 - The calendar summary reports the user's own counts and totals over a
   chosen span — the last 30 days, the month shown, or the year shown. It
   compares nothing to any other period or person, sets no target, and is

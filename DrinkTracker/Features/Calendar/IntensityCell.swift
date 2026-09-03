@@ -95,9 +95,9 @@ struct IntensityCell: View {
 }
 
 extension DayIntensity {
-  /// Legend order. The in-app legend reads it, and the share cards adopt it
-  /// next (ADR-0027) so the two cannot drift — until then `MonthShareCard`
-  /// still lists its own four swatches. "Not logged" is drawn as nothing, so
+  /// Legend order, shared by the in-app legend and the share cards'
+  /// `ShareCardLegend` (ADR-0027) so the two cannot drift. "Not logged" is
+  /// drawn as nothing, so
   /// naming it last is what tells a reader that a blank cell means absence
   /// of data, not a zero.
   static let legendOrder: [DayIntensity] = [.alcoholFree, .low, .medium, .high, .unlogged]

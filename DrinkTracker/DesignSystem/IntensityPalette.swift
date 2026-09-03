@@ -1,13 +1,16 @@
 import DrinkTrackerCore
 import SwiftUI
 
-/// The calendar's intensity ramp — the one place this app defines literal colours.
+/// The calendar's intensity ramp — where this app defines its literal colours.
 ///
 /// `GlassTokens` deliberately defines none, so that everything inherits Liquid
 /// Glass's automatic light/dark and vibrancy behaviour. This is the documented
 /// exception, and it is narrow on purpose: a heatmap encodes magnitude *in* colour,
 /// so the colour is data rather than styling, and data has to be specified rather
 /// than inherited. Nothing outside the calendar surfaces may draw from it.
+/// The one other literal-colour site is `ShareCardInk` — the ground and inks
+/// of an exported image, which has no host surface to inherit from — and it
+/// takes every fill and outline decision from here (ADR-0027, invariant 10).
 ///
 /// ## Why one hue rather than a red-to-green scale
 ///

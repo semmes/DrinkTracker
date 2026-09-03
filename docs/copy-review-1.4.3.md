@@ -724,6 +724,45 @@ stays because at 11pt cells the legend's "Not logged" swatch needs the words.
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
 
+## Addendum (2026-09-03): month and year share cards (ADR-0027)
+
+| Where | Reads |
+|---|---|
+| Month card title (locale date format, no key) | "September 2026" |
+| Year card title (the year as text, no key) | "2026" |
+| Both cards, under the title, only while the period is in progress | "Through September 2" |
+| Both cards, beside it (the in-app card's own count line) | "2 days" · "31 days" · "245 days" |
+| Both cards, figures 1–3 (the in-app card's keys) | "12 / days with drinks" · "9 / days with none" · "38.5 / standard drinks total" (UK: "units total"; singular at a displayed 1) |
+| Both cards, figure 4 | "3.2 / on days with drinks" |
+| Both cards, figure 4 when no day has drinks | "—" |
+| Both cards, under the figures, only when non-zero (the in-app sentence) | "11 days have nothing logged either way." |
+| Month card, weekday header (locale symbols, no key) | "S M T W T F S" |
+| Both cards, legend (the in-app keys, "Not logged" now included) | "No alcohol · 1–2 · 3–5 · 6+ · Not logged" |
+| Both cards, wordmark (verbatim; the translatable key is retired) | "Tallyist" |
+| Year view toolbar, share button accessibility label | "Share this year as an image" |
+| Share sheet preview titles | "September 2026" / "2026" |
+| Suggested filenames | "tallyist-2026-09.png" / "tallyist-2026.png" |
+| Removed from the month card | "3.5 standard drinks a week" |
+| Privacy policy, "Export and sharing" bullet, all three copies | "…the calendar can render a month or a year as an image." |
+| Privacy policy footer date, all three copies | "Last updated September 3, 2026." |
+| What's New (1.2), the export/share sentence | "Export your whole log as a CSV from Settings, and share any month or year as an image from the calendar — the grid and the same four figures the calendar shows: days with drinks, days with none, the total, and the average on days with drinks." |
+| Reviewer notes (1.2), the CSV/share bullet | "The CSV export and the month and year share images are user-initiated, one-way exports of the user's own data through the system share sheet, with no identifiers in the files. Each image carries only the user's own calendar and the four figures the app already shows for that period, with unlogged days stated — no comparison to anyone, no goal, no score." |
+
+**Reviewed against 1.4.3.** Each string is a number and a noun, or a
+mechanism. "Through September 2" states where the record ends as a fact —
+not "today", which is stale the moment the image is sent, and not "so far",
+which implies a total still to come. "On days with drinks" replaces the
+in-app "on days you drank" because the image is read by someone who is not
+its subject; it reuses the first figure's own phrase so the reader sees
+which count the average divides by. The unlogged sentence is required on an
+image others read: two day-counts that do not sum to the period leave a
+remainder a reader will take as alcohol-free. Nothing on either card grades
+a number, compares it to anyone, or ends in an exclamation mark.
+
+**Why "a week" went.** The figure was not on the in-app calendar, so a
+reader could not check it; it divided by the whole month even on the 2nd;
+and drinks-per-week is the unit consumption guidelines are quoted in, so it
+invited the threshold comparison spec constraint 5 refuses.
 ## Addendum (2026-09-03): a Trends bar reports its own facts (ADR-0028)
 
 | Where | Reads |

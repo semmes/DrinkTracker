@@ -19,6 +19,7 @@ import SwiftUI
 struct YearView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.colorScheme) private var colorScheme
 
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
@@ -78,6 +79,26 @@ struct YearView: View {
     }
     .navigationTitle(String(year))
     .navigationBarTitleDisplayMode(.large)
+    .toolbar {
+      // Each surface shares what it shows (ADR-0027): the calendar's button
+      // renders the visible month, this one the visible year. User-initiated,
+      // built at share time from the same grids the page draws.
+      ToolbarItem(placement: .topBarTrailing) {
+        ShareLink(
+          item: YearShareImage(
+            year: year,
+            grids: grids,
+            region: settings.effectiveRegion,
+            colorScheme: colorScheme,
+            calendar: calendar
+          ),
+          preview: SharePreview(String(year))
+        ) {
+          Image(systemName: "square.and.arrow.up")
+        }
+        .accessibilityLabel("Share this year as an image")
+      }
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { today = calendar.startOfDay(for: Date()) }
     }

@@ -470,11 +470,17 @@ not logged. Never its distance from the average line
   to change a recorded day and the VoiceOver path
   ([ADR-0011](docs/decisions/0011-bulk-fill-never-touches-a-recorded-day.md)).
 
-### Sharing a month
+### Sharing a month or a year
 
-The calendar's share button renders the visible month as an image — name,
-total, average per week, the grid, a small wordmark — through the system
-share sheet. One-way and user-initiated every time: the PNG is built at
+The calendar's share button renders the visible month, and the year view's
+renders the visible year, as an image — the period's name, where the record
+stops ("Through September 2") and how many days it covers, the calendar's
+four figures (days with drinks, days with none, total, average on days with
+drinks) with unlogged days named, the grid (twelve mini grids for a year),
+the five-entry legend, a small wordmark — through the system share sheet
+([ADR-0027](docs/decisions/0027-the-calendar-shares-a-month-or-a-year-as-its-own-figures.md)).
+Every figure is one the calendar already shows for that period, from the
+same function; the old per-week average is gone. One-way and user-initiated every time: the PNG is built at
 share time from raw data (no temp file, nothing persisted, nothing recorded
 about whether or where it went), renders in the app's current appearance,
 and carries no identifying metadata (orientation, resolution, and pixel
@@ -503,7 +509,9 @@ record stays blank; nothing is inferred.
 
 ### The colour ramp
 
-`IntensityPalette` is the only place in the app that defines literal colours, and
+`IntensityPalette` is the only place in the app that defines literal colours,
+with one named companion, `ShareCardInk` — the ground and inks of an exported
+image, which has no host surface to inherit from (ADR-0027) —, and
 [`GlassTokens`](DrinkTracker/DesignSystem/GlassTokens.swift) still defines none. The
 exception is narrow and deliberate: in a heatmap the colour *is* the data, and data
 has to be specified rather than inherited from the system.

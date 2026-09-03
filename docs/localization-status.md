@@ -67,16 +67,18 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **319 keys** — 254 app, 34 widget, 27 core, 4 shortcuts (counted
-2026-09-03 after ADR-0028's sync on top of ADR-0026's: the bar detail's five
-keys in — the tip line, "No type", "1 drink" / "%lld drinks", "No bar
-selected" — and "Days with nothing logged" relabelled "Days with no drinks
-logged"; ADR-0026's sync had put twelve app keys in — the summary window's
-picker and headings, the "—" average's spoken form, the year caption, and the
-five legend words, which `Text(String)` had kept out of the catalog until
-`DayIntensity.legendKey` — and the two year-footnote keys out; the shared
-"%@, through today" key serves a month and a year and may need splitting at
-translation time).
+Current: **316 keys** — 251 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-03 after ADR-0027's sync: "Through %@", "on days with drinks", and
+"Share this year as an image" in, the translatable "Tallyist" out — the
+wordmark is a name, rendered verbatim — and the policy's "Where your data can
+go" paragraph and its date line replaced by their reworded keys, both
+re-marked `shouldTranslate: false`, so the count of marked keys is still 14.
+ADR-0026's sync the same day had put twelve app keys in — the summary
+window's picker and headings, the "—" average's spoken form, the year
+caption, and the five legend words, which `Text(String)` had kept out of the
+catalog until `DayIntensity.legendKey` — and the two year-footnote keys out;
+the shared "%@, through today" key serves a month and a year and may need
+splitting at translation time).
 
 **"Extraction and the committed catalogs agree exactly" was re-established on
 2026-09-02** by running the sync below against a clean build on a machine with

@@ -111,7 +111,8 @@ the arithmetic is right.
 **10. The intensity ramp is one hue, and changes to it are validated, not eyeballed.**
 `IntensityPalette` is the only place in the app that defines literal colours — a
 deliberate, narrow exception to `GlassTokens` defining none, because in a heatmap the
-colour *is* the data. It carries magnitude in **lightness**, which is the one channel
+colour *is* the data — with one named companion, `ShareCardInk`: the ground and inks
+of an exported image, which has no host surface to inherit from (ADR-0027). It carries magnitude in **lightness**, which is the one channel
 that survives every form of colour vision deficiency and greyscale. Alcohol-free sits
 off the ramp entirely, with an outline as a second encoding channel.
 *Failure mode:* a hue-based ramp (green→yellow→orange→red is the tempting one) is

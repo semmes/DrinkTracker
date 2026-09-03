@@ -265,8 +265,8 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-03): **319 keys** across four
-  catalogs — 254 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **316 keys** across four
+  catalogs — 251 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
   on 2026-09-03; count them (`len(json['strings'])` per file) rather than
   trusting this number. See `docs/localization-status.md`.
@@ -348,8 +348,8 @@ Open items for v1.2:
   *Development* while the App Store install mirrored to *Production* (the
   entitlements set no container environment), so cross-device and
   cross-version checks need a TestFlight build. Open low-priority items the
-  review left: the share card's own literal grounds (invariant 10 has a
-  second literal-colour site now), the population card hardcoding its
+  review left: the share card's own literal grounds (closed by ADR-0027 —
+  `ShareCardInk` is the named second literal-colour site), the population card hardcoding its
   source line instead of reading the bundled file, and the localization
   verbatim traps in onboarding and the core package's legend/size/range
   labels (translation is deferred anyway).
@@ -404,17 +404,39 @@ Open items for v1.2:
   fixed a real bug — on a midnight-DST day (Santiago, Havana, Cairo, Beirut)
   the rolling card read 29 of 30 days as unlogged. The card is split into
   `RecentSummaryCaptions` → `RecentSummaryFigures` → `RecentSummaryCard(heading:)`
-  so the share cards (ADR-0027, next on the train) and the Trends bar detail
-  (ADR-0028, after it) can reuse the reviewed copy; an average over no drinking days prints "—";
+  so the share cards (ADR-0027) and the Trends bar detail (ADR-0028, next on
+  the train) reuse the reviewed copy; an average over no drinking days prints "—";
   `DayIntensity.legendKey` (app-side) finally puts the five legend words in
   the catalog. **No schema change, no CloudKit step.** Rules that came out of
   it: never a delta between windows; "through today" is the on-device clip
   wording (never "so far"); the three summary surfaces name the average
   differently on purpose only where the reader is not the subject (the share
-  image will say "on days with drinks" — ADR-0027, next on the train). **Tier 3 for the owner's
+  image says "on days with drinks" — ADR-0027). **Tier 3 for the owner's
   pass:** the picker answering a tap (interactive glass), the crossfade on a
   switch, the day-change refresh of "through today" after a night suspended,
   the "—" figure and its spoken form, AX5 fit of the two segment labels.
+- **ADR-0027 landed on the open train (2026-09-03):** the calendar shares a
+  month or a year as an image of its own four figures. Each surface shares
+  what it shows — the calendar's button renders the visible month, the year
+  view's new button the visible year; no menu. Both cards: period name, a
+  "Through <date>" line while in progress with the day count beside it, the
+  four ADR-0006 figures from `monthSummary` / `yearSummary` (the same fold as
+  the on-screen card) with unlogged days named, the grid (twelve 12pt mini
+  grids in three columns for a year), the five-entry legend, the wordmark.
+  The per-week average is **gone**, and ADR-0015's reopen clause is answered
+  once: a share image may carry only a figure the in-app calendar surface
+  for that period already shows, from the same function. Parts live in
+  `ShareCardParts.swift` (`ShareCardInk` is the named second literal-colour
+  site, PRD invariant 10 — the review's open item is closed); `MonthGrid.rows`
+  feeds `Grid`/`GridRow` because nothing lazy may run under `ImageRenderer`;
+  filenames are per item (`tallyist-2026-09.png`, `tallyist-2026.png`); the
+  image's average caption reads "on days with drinks" (the reader is not the
+  subject). The privacy policy says "a month or a year" in both in-repo
+  copies, dated September 3, 2026 (the mirror pushes the third). **No schema
+  change, no CloudKit step.** **Tier 3 for the owner's pass:** the two PNGs'
+  chunk inspection (no tEXt/iTXt/zTXt/XMP), legibility in a Messages bubble,
+  the year card's height, both appearances, tap-to-sheet timing on a long
+  log, "Save to Files" names, the app's tmp directory empty after a share.
 - **ADR-0028 landed on the open train (2026-09-03):** tap or drag on the
   Trends chart selects one bar (`chartXSelection`); the selected bar keeps
   its accent, the rest dim to 35%, the average line is untouched, and a
