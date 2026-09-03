@@ -129,15 +129,21 @@ so keep them true.
 ## Current state (update me at end of session)
 
 **As of 2026-09-03:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
-**1.2 is on main, reviewed, device-tested by the owner, and ready to submit**
+**1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**
 — the owner built main at 5563b74 (PRs #60–#62 merged 2026-09-03: ADR-0026
-summary window, ADR-0027 share cards, ADR-0028 Trends bar detail) and ran the
-device pass on 2026-09-03, verdict "good to submit". See the 2026-09-02 and
-2026-09-03 bullets at the end of this section for what each change added and
-what its device pass covered. **The train is now frozen for submission**: new
-feature work targets 1.3 (bump `MARKETING_VERSION` in the first 1.3 PR); a fix
-that must ship in 1.2 needs a new build and a re-submission, so say so.
-Once submitted, record the build number and the submission date here. What is
+summary window, ADR-0027 share cards, ADR-0028 Trends bar detail), ran the
+device pass the same day, and submitted; the build number was not recorded
+here — add it when known. See the 2026-09-02 and 2026-09-03 bullets at the
+end of this section for what each change added and what its device pass
+covered. **The 1.2 train is frozen**: new feature work targets 1.3 (bump
+`MARKETING_VERSION` in the first 1.3 PR); a fix that must ship in 1.2 means
+a new build and a re-submission, so say so. **When 1.2 is approved and
+live:** record the date here; confirm the two App Store Connect URLs point at
+the Pages site (ADR-0024); the repo-visibility decision that ADR-0024 deferred
+until 1.2 is live becomes actionable (see the bullet below); and the 1.3 spec
+can open. If App Review comes back with questions, the reviewer notes in
+`docs/app-store-listing.md` and the claims table in
+`docs/tallyist-1.2-spec.md` are the record of what was said and why. What is
 actually *in* 1.1 is PRs #21–#27: the Health import (ADR-0014), the
 authorization-refresh fix, the day-sheet live counter, and the Health read
 purpose string. The tip jar, the drag-fill action bar, the onboarding refresh
@@ -245,12 +251,11 @@ fallback*: build these through `LoggedDrink.standardDrink(in:)` or
 `DrinkDraft.standardDrink(region:)`, never `DrinkDraft(type: .unspecified)`,
 or a UK user silently gets US amounts.
 
-User-side, now (1.1 is live, 1.2 is device-tested): create the 1.2 version
-in ASC, paste the description, What's New (1.2) and reviewer notes from
-`docs/app-store-listing.md`, repoint the Privacy Policy URL (App Information)
-and Support URL (version page) to the Pages site, select the three tip-jar
-products on the version page, pick the Xcode Cloud build of main at or after
-5563b74, submit. The long-pending catalog population is **done** — and did not need
+User-side, done 2026-09-03: the 1.2 version was created in ASC and submitted
+with a build of main at or after 5563b74. Still to confirm on the ASC side:
+that the Privacy Policy URL (App Information) and Support URL (version page)
+point at the Pages site, and that the three tip-jar products were selected on
+the version page (they must ship with the first version that contains them). The long-pending catalog population is **done** — and did not need
 a GUI build after all (see the localization bullet). A real GUI build over
 the pulled tree afterwards produced **no catalog change at all**, which
 confirms the sync route writes what Xcode would. It also does not add
