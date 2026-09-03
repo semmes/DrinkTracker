@@ -141,7 +141,10 @@ extension TrendSummary {
   /// is 01:00, and `date(byAdding: .day, value: -k, to:)` from it lands on
   /// 01:00 of every earlier day — keys that match nothing in `totalsByDay`.
   /// The shipped `recentSummary` had exactly this: on that one day, 29 of 30
-  /// days read unlogged. `count <= 0` is empty.
+  /// days read unlogged — and in Havana, whose autumn change repeats the
+  /// midnight hour, the fall transition day was keyed at the wrong offset
+  /// and read as unlogged in every window containing it, the whole month
+  /// after. `count <= 0` is empty.
   static func trailingDays(count: Int, endingOn endDate: Date, calendar: Calendar) -> [Date] {
     guard count > 0 else { return [] }
     let lastDay = calendar.startOfDay(for: endDate)

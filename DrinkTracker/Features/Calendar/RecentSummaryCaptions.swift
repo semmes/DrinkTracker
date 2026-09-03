@@ -3,7 +3,8 @@ import SwiftUI
 
 /// The summary card's captions, in one place, so every surface that prints
 /// ADR-0006's figures names them with the same words (ADR-0026): the calendar
-/// card under the month grid, the year view's card, and the share images.
+/// card under the month grid and the year view's card; the share images adopt
+/// them next (ADR-0027).
 ///
 /// **The captions carry no count, and that is deliberate.** A catalog key can
 /// only take plural variations if the count is inside it, so a language with
