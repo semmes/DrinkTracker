@@ -132,8 +132,7 @@ so keep them true.
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**
 — the owner built main at 5563b74 (PRs #60–#62 merged 2026-09-03: ADR-0026
 summary window, ADR-0027 share cards, ADR-0028 Trends bar detail), ran the
-device pass the same day, and submitted; the build number was not recorded
-here — add it when known. See the 2026-09-02 and 2026-09-03 bullets at the
+device pass the same day, and submitted build 23F81a. See the 2026-09-02 and 2026-09-03 bullets at the
 end of this section for what each change added and what its device pass
 covered. **The 1.2 train is frozen**: new feature work targets 1.3 (bump
 `MARKETING_VERSION` in the first 1.3 PR); a fix that must ship in 1.2 means
