@@ -155,6 +155,41 @@ struct SummaryWindowTests {
     #expect(abs(summary.totalStandardDrinks - 6.0) < 0.0001)
   }
 
+  /// Cuba's autumn change repeats the 00:00–01:00 hour on 2026-11-01. The
+  /// shipped arithmetic keyed that day at the pre-change offset while
+  /// `totalsByDay` keyed it at `startOfDay`'s, so the day read as unlogged in
+  /// every rolling window that contained it — the whole month after, not one
+  /// day. Same walk, same fix; a second pin for the other direction.
+  @Test("The rolling window survives a repeated midnight hour")
+  func rollingWindowOnRepeatedMidnight() {
+    var havana = Calendar(identifier: .gregorian)
+    havana.timeZone = TimeZone(identifier: "America/Havana")!
+    havana.firstWeekday = 1
+    func noon(_ month: Int, _ day: Int) -> Date {
+      havana.date(from: DateComponents(year: 2026, month: month, day: day, hour: 12))!
+    }
+    let days = [noon(10, 30), noon(10, 31), noon(11, 1), noon(11, 2), noon(11, 3), noon(11, 4), noon(11, 5)]
+    let drinks = days.map { LoggedDrink(loggedAt: $0, type: .beer, volumeOunces: 12, abvPercent: 5) }
+    let totals = TrendSummary.totalsByDay(drinks, region: .unitedStates, calendar: havana)
+
+    let summary = TrendSummary.recentSummary(
+      dayCount: 7, endingOn: noon(11, 5), totalsByDay: totals, alcoholFreeDays: [], calendar: havana
+    )
+    #expect(summary.dayCount == 7)
+    #expect(summary.daysWithDrinks == 7)
+    #expect(summary.daysUnlogged == 0)
+
+    // Four weeks later the transition day is still inside the window (which
+    // now starts on October 31, so the October 30 beer has left it) and is
+    // still counted.
+    let later = TrendSummary.recentSummary(
+      dayCount: 30, endingOn: noon(11, 29), totalsByDay: totals, alcoholFreeDays: [], calendar: havana
+    )
+    #expect(later.dayCount == 30)
+    #expect(later.daysWithDrinks == 6)
+    #expect(later.daysUnlogged == 24)
+  }
+
   // MARK: - The month shown
 
   @Test("A past month is whole")

@@ -48,8 +48,11 @@ from `startOfDay(endDate)`; reproduced with Foundation for America/Santiago
 on 2026-09-06 (a day that starts at 01:00, because Chile moves its clocks at
 midnight), the chained keys land on 01:00 of every earlier day and match one
 of six drinking days' keys — on that one day, in Santiago, Havana, Cairo, and
-Beirut, 29 of 30 days read unlogged. Generalising the API without fixing it
-would have carried the bug into the new windows.
+Beirut, 29 of 30 days read unlogged. Havana's autumn change *repeats* the
+midnight hour rather than skipping it, and there the damage ran the other
+way: the fall transition day (2026-11-01) read as unlogged in every rolling
+window that contained it, the whole month after. Generalising the API
+without fixing it would have carried the bug into the new windows.
 
 ## Decision
 
@@ -120,25 +123,28 @@ to its launch day" class of bug, pre-empted for a card headed "through today".
   ADR-0006's sentence citing that footnote is amended by this record rather
   than edited; the reasoning survives as the card's unlogged line.
 - The rolling card no longer has the midnight-DST blind spot. That is a
-  behaviour change for four time zones on one day a year, and the test that
-  pins it (`rollingWindowOnTransitionDay`) fails against the old arithmetic.
+  behaviour change for one day a year in three zones and about thirty in
+  Havana, and the tests that pin it (`rollingWindowOnTransitionDay`,
+  `rollingWindowOnRepeatedMidnight`) fail against the old arithmetic.
 - The average on a fresh install's rolling card reads "—" instead of "0"
   until a day with drinks exists. A two-line, separable change; the owner can
   say the word if the old "0" should stay.
 - One more App Group key that the widget never reads, not CloudKit-synced, so
   two devices may hold different windows — like region. The figures recompute
   from `@Query` on every merge, so sync simply re-renders.
-- Nine app-catalog keys added ("Month shown", "Days the summary covers",
+- Twelve app-catalog keys added ("Month shown", "Days the summary covers",
   "%@, through today", "1 day", "%lld days", "No days with drinks to
   average", "Blank days are days without a record, not days without
-  alcohol.", plus the five legend words less the two that already existed
-  as other keys' text — count the file, don't trust this list) and the two
-  year-footnote keys retired; the "%@, through today" key serves both a month
-  and a year and may need splitting at translation time.
+  alcohol.", and the five legend words "No alcohol", "1–2", "3–5", "6+",
+  "Not logged", none of which the catalog held before — count the file,
+  don't trust this list) and the two year-footnote keys retired; the
+  "%@, through today" key serves both a month and a year and may need
+  splitting at translation time.
 - "Month" on Trends still means the rolling 30 days, and Trends' ComponentsKit
   picker keeps its VoiceOver hole. Both recorded as follow-ups, not fixed
   here.
-- The share card, when it prints the four figures (ADR-0027), must use
+- The share card, when it prints the four figures (its own record, ADR-0027,
+  next on the train), must use
   `monthSummary` / `yearSummary` so the image and the card on screen agree —
   and must argue that rendered summary against ADR-0006 in its own record,
   per ADR-0015's reopen clause. Its current per-week figure divides by the
