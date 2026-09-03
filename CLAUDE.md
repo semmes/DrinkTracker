@@ -265,8 +265,8 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-03): **316 keys** across four
-  catalogs — 251 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **321 keys** across four
+  catalogs — 256 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
   on 2026-09-03; count them (`len(json['strings'])` per file) rather than
   trusting this number. See `docs/localization-status.md`.
