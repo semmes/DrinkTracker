@@ -90,11 +90,19 @@ shared month's figures the same arithmetic.
   one holds") is one more sentence on the screen, kept on the calendar's
   precedent for a gesture with no visible affordance.
 - Trends runs a second `@Query` (`AlcoholFreeDay` — already on the screen
-  through `PopulationReferenceCard`, now in `TrendsView` too), and every
-  selection change adds one pass over the log to the pass the view already
-  makes per render; acceptable to ~10k entries (a tier-1 test agrees every
-  bar with its detail at that scale), measured at tier 3, no cache until
-  measured.
+  through `PopulationReferenceCard`, now in `TrendsView` too), and a render with a bar selected makes one `periodDetail` pass over the
+  log on top of the one pass the view makes for its bars — both derived once
+  per render in a snapshot, never once per bar, and never cached; acceptable
+  to ~10k entries (a tier-1 test agrees every bar with its detail at that
+  scale), measured at tier 3.
+- "Today" is view state refreshed on the day-change notification and on
+  foregrounding, as the calendar's is (ADR-0026): the range's end, the
+  selected bar, and the "Today" caption move together at midnight.
+- Selection changes animate explicitly (the dimming, the block's transition)
+  rather than through an animation keyed to the selection on the card, which
+  would have put the chart's data change inside the animation on a range
+  switch and morphed the bars from one range into the next; the range picker
+  clears the selection in the same update it changes the range.
 - The chart's per-mark VoiceOver stops are replaced by stepping — a user who
   learned the thirty stops loses them and gains a sentence per step.
 - The selection gesture is Apple's: whether the scrub coexists with the
@@ -108,9 +116,11 @@ shared month's figures the same arithmetic.
   logged" as it did under the old label; the relabel fixes the contradiction
   with the block, not that edge.
 - The per-entry list and a jump to the day sheet are not built.
-- Five app-catalog keys added and one relabelled, none in the core package
-  (every name in the breakdown is a `DrinkType.displayName` or an existing
-  key); "so far" appears nowhere — the on-device clip wording is ADR-0026's
+- Six app-catalog keys in and one out — five new strings and the relabelled
+  card — none in the core package (the typed names are
+  `DrinkType.displayName`, "From Apple Health" is an existing key, and "No
+  type" is the one new name: ADR-0023's vocabulary, used because
+  `.unspecified.displayName` is the summary line "One standard drink"); "so far" appears nowhere — the on-device clip wording is ADR-0026's
   "through today", and a bucket's day count says the rest.
 - No schema, no CloudKit step, no App Group key, no widget change, no new
   permission or privacy category, no networking; the CSV and the share cards

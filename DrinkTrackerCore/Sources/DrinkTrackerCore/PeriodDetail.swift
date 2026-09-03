@@ -123,14 +123,20 @@ extension TrendSummary {
   }
 
   /// Start of the bar containing `date` on a chart of `range` ending on
-  /// `endDate`, or nil when `date` falls outside the range's days.
+  /// `endDate`, or nil when `date` falls on no bar.
   ///
-  /// Selection hands back a continuous x value, so a touch past the last bar
-  /// (the chart pads its domain) or before the first resolves to nothing —
-  /// never a clamp to the nearest bar. Day keys are re-normalised through
-  /// `startOfDay`; week and month starts come from `dateInterval(of:for:)`,
-  /// which is what `bucketed` keys on, so on a midnight-DST day both agree
-  /// on 01:00.
+  /// Selection hands back a continuous x value. On a daily chart a touch
+  /// past the last bar (the chart pads its domain) or before the first
+  /// resolves to nothing — never a clamp to the nearest bar. On a bucketed
+  /// chart the trailing bar is *drawn* across its whole calendar week or
+  /// month, so the clip is on the bucket, not the touch: a touch anywhere in
+  /// that unit — including its days after today — resolves to the trailing
+  /// bar, and a touch past the unit's end resolves to nothing;
+  /// `periodDetail` then clips the bucket's days to the range. Day keys are
+  /// re-normalised through `startOfDay`; week and month starts come from
+  /// `dateInterval(of:for:)`, which is what `bucketed` keys on, so on a
+  /// midnight-DST day both agree on 01:00. `firstDay` is itself the first
+  /// bucket's start on Quarter and Year (`TrendRange.startDate`).
   public static func bucketStart(
     containing date: Date,
     range: TrendRange,
@@ -140,9 +146,13 @@ extension TrendSummary {
     let day = calendar.startOfDay(for: date)
     let firstDay = calendar.startOfDay(for: range.startDate(endingOn: endDate, calendar: calendar))
     let lastDay = calendar.startOfDay(for: endDate)
-    guard day >= firstDay, day <= lastDay else { return nil }
-    guard range.bucket != .day else { return day }
-    return calendar.dateInterval(of: range.bucket, for: day)?.start
+    guard range.bucket != .day else {
+      return day >= firstDay && day <= lastDay ? day : nil
+    }
+    guard let start = calendar.dateInterval(of: range.bucket, for: day)?.start,
+      start >= firstDay, start <= lastDay
+    else { return nil }
+    return start
   }
 
   /// The bar after (`direction > 0`) or before (`direction < 0`) the bar at

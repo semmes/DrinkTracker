@@ -22,6 +22,7 @@ import SwiftUI
 struct TrendsView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.scenePhase) private var scenePhase
 
   @State private var range: TrendRange = .week
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
@@ -35,14 +36,27 @@ struct TrendsView: View {
   /// and data changes; a snapshot goes stale the moment a drink is logged.
   @State private var selectedDate: Date?
 
+  /// The clock the chart is drawn against, refreshed on the day-change
+  /// notification and on every foregrounding (the calendar's pattern,
+  /// ADR-0026). Read for the range's end, the selected bar, and "Today", so
+  /// a screen left open across midnight moves its window, re-resolves its
+  /// selection, and drops a stale "Today" together.
+  @State private var today = Date()
+
   private var calendar: Calendar { .current }
 
   var body: some View {
+    // Everything a render needs, derived once. The selection in particular
+    // is a pass over the whole log; deriving it per bar (once for every
+    // dimming decision) would multiply that by the bar count on every frame
+    // of a scrub.
+    let snapshot = snapshot()
+
     ScrollView {
       VStack(spacing: GlassTokens.Spacing.section) {
         rangePicker
-        chartCard
-        summaryCards
+        chartCard(snapshot)
+        summaryCards(snapshot)
         PopulationReferenceCard()
       }
       .screenMargin()
@@ -50,35 +64,61 @@ struct TrendsView: View {
     }
     .navigationTitle("Trends")
     .navigationBarTitleDisplayMode(.large)
-    // A day selected on Week would silently become a whole week on Quarter —
-    // the app choosing which bucket the user meant.
-    .onChange(of: range) { _, _ in selectedDate = nil }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { today = Date() }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+      today = Date()
+    }
   }
 
   // MARK: - Data
 
-  private var totals: [DayTotal] {
-    TrendSummary.dailyTotals(
-      range: range,
-      endingOn: Date(),
-      drinks: allEntries.loggedDrinks,
-      region: settings.effectiveRegion
+  /// One render's worth of figures, computed from the store once.
+  private struct Snapshot {
+    let totals: [DayTotal]
+    /// Chart bars for the bucketed ranges — weekly for quarter, monthly for year.
+    let buckets: [PeriodTotal]
+    /// The average line's value on bucketed charts: mean per completed
+    /// bucket, nil while no bucket is complete (no line beats a misleading one).
+    let bucketAverage: Double?
+    /// The selected bar's facts, or nil when nothing is selected or the
+    /// selected date no longer falls on a bar (a rolling window has moved on).
+    let selection: PeriodDetail?
+
+    var average: Double { TrendSummary.dailyAverage(totals) }
+    var sum: Double { TrendSummary.sum(totals) }
+    var restDays: Int { TrendSummary.daysWithoutDrinks(totals) }
+  }
+
+  private func snapshot() -> Snapshot {
+    let drinks = allEntries.loggedDrinks
+    let region = settings.effectiveRegion
+    let totals = TrendSummary.dailyTotals(
+      range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
     )
-  }
-
-  private var average: Double { TrendSummary.dailyAverage(totals) }
-  private var periodSum: Double { TrendSummary.sum(totals) }
-  private var restDays: Int { TrendSummary.daysWithoutDrinks(totals) }
-
-  /// Chart bars for the bucketed ranges — weekly for quarter, monthly for year.
-  private var buckets: [PeriodTotal] {
-    TrendSummary.bucketed(totals, by: range.bucket)
-  }
-
-  /// The average line's value on bucketed charts: mean per completed bucket,
-  /// nil while no bucket is complete (no line beats a misleading one).
-  private var bucketAverage: Double? {
-    TrendSummary.bucketAverage(buckets, unit: range.bucket)
+    let buckets = TrendSummary.bucketed(totals, by: range.bucket, calendar: calendar)
+    // Derived, never stored: a drink logged from Today, a marker arriving
+    // over CloudKit, an undo, or a region change all re-express it on the
+    // next render.
+    let selection = selectedDate.flatMap { date in
+      TrendSummary.periodDetail(
+        containing: date,
+        range: range,
+        endingOn: today,
+        drinks: drinks,
+        alcoholFreeDays: markedDays,
+        healthMarkedDays: healthMarkedDays,
+        region: region,
+        calendar: calendar
+      )
+    }
+    return Snapshot(
+      totals: totals,
+      buckets: buckets,
+      bucketAverage: TrendSummary.bucketAverage(buckets, unit: range.bucket, calendar: calendar),
+      selection: selection
+    )
   }
 
   private var isBucketed: Bool { range.bucket != .day }
@@ -92,34 +132,44 @@ struct TrendsView: View {
     Set(alcoholFreeDays.filter(\.isImportedFromHealth).map(\.day))
   }
 
-  /// Derived every render, never stored. A drink logged from Today, a marker
-  /// arriving over CloudKit, an undo, or a region change all re-express it on
-  /// the next render; a selected day that leaves a rolling window at midnight
-  /// resolves to nil.
-  private var selection: PeriodDetail? {
-    guard let selectedDate else { return nil }
-    return TrendSummary.periodDetail(
-      containing: selectedDate,
-      range: range,
-      endingOn: Date(),
-      drinks: allEntries.loggedDrinks,
-      alcoholFreeDays: markedDays,
-      healthMarkedDays: healthMarkedDays,
-      region: settings.effectiveRegion,
-      calendar: calendar
+  // MARK: - Selection state
+
+  /// Selection changes animate explicitly — the dimming and the block's
+  /// transition — rather than through an `.animation(value:)` on the card,
+  /// which would also put the chart's data change inside the animation when
+  /// the range switches and morph the bars from one range into the next.
+  private var selectionBinding: Binding<Date?> {
+    Binding(
+      get: { selectedDate },
+      set: { newValue in
+        withAnimation(.smooth(duration: 0.25)) { selectedDate = newValue }
+      }
     )
   }
 
-  private func isDimmed(_ barStart: Date) -> Bool {
-    guard let selection else { return false }
-    return selection.start != barStart
+  private func clearSelection() {
+    withAnimation(.smooth(duration: 0.25)) { selectedDate = nil }
+  }
+
+  /// The range picker clears the selection in the same update it changes
+  /// the range: a day selected on Week would otherwise be resolved as a whole
+  /// week on Quarter for one render — the app choosing which bucket the user
+  /// meant.
+  private var rangeBinding: Binding<TrendRange> {
+    Binding(
+      get: { range },
+      set: { newRange in
+        selectedDate = nil
+        range = newRange
+      }
+    )
   }
 
   // MARK: - Range picker
 
   private var rangePicker: some View {
     SUSegmentedControl(
-      selectedId: $range,
+      selectedId: rangeBinding,
       model: SegmentedControlVM<TrendRange> {
         $0.items = TrendRange.allCases.map { range in
           SegmentedControlItemVM(id: range) { $0.title = range.title }
@@ -133,26 +183,26 @@ struct TrendsView: View {
 
   // MARK: - Chart
 
-  private var chartCard: some View {
+  private func chartCard(_ snapshot: Snapshot) -> some View {
     SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         Text(chartTitle)
           .font(GlassTokens.Typography.cardLabel)
           .foregroundStyle(.secondary)
 
-        chart
+        chart(snapshot)
 
         Divider().opacity(0.5)
 
         // The block describes the bar it sits under and moves with the card;
         // the bars never move under the finger, the cards below slide down.
-        if let selection {
+        if let selection = snapshot.selection {
           PeriodDetailView(
             detail: selection,
             region: settings.effectiveRegion,
-            isToday: selection.unit == .day && calendar.isDateInToday(selection.start),
+            isToday: selection.unit == .day && calendar.isDate(selection.start, inSameDayAs: today),
             calendar: calendar,
-            onClear: { selectedDate = nil }
+            onClear: clearSelection
           )
           .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
         } else {
@@ -164,17 +214,21 @@ struct TrendsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
-      .animation(.smooth(duration: 0.25), value: selection?.start)
     }
   }
 
-  private var chart: some View {
-    Chart {
+  private func chart(_ snapshot: Snapshot) -> some View {
+    let selectedStart = snapshot.selection?.start
+    func isDimmed(_ barStart: Date) -> Bool {
+      selectedStart.map { $0 != barStart } ?? false
+    }
+
+    return Chart {
       if isBucketed {
         // A bar per calendar week or month. Daily bars past ~30 days are
         // noise; the trailing bucket is simply "so far", like the current
         // month in the year calendar.
-        ForEach(buckets) { period in
+        ForEach(snapshot.buckets) { period in
           BarMark(
             x: .value("Period", period.start, unit: range.bucket),
             y: .value(unitNounPlural, period.standardDrinks)
@@ -184,7 +238,7 @@ struct TrendsView: View {
           .opacity(isDimmed(period.start) ? 0.35 : 1)
         }
       } else {
-        ForEach(totals) { day in
+        ForEach(snapshot.totals) { day in
           BarMark(
             x: .value("Day", day.date, unit: .day),
             y: .value(unitNounPlural, day.standardDrinks)
@@ -200,7 +254,9 @@ struct TrendsView: View {
       // bars would hug the floor and read as meaningless. Never dimmed and
       // never annotated relative to the selection: the eye can compare
       // without the app putting the comparison into words.
-      if let lineValue = isBucketed ? bucketAverage : (average > 0 ? average : nil),
+      if let lineValue = isBucketed
+        ? snapshot.bucketAverage
+        : (snapshot.average > 0 ? snapshot.average : nil),
         lineValue > 0 {
         RuleMark(y: .value("Average", lineValue))
           .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
@@ -212,10 +268,12 @@ struct TrendsView: View {
           }
       }
     }
-    // Tap selects, drag scrubs; the domain snaps the continuous x value to
-    // the bar it lands in. Only opacity changes inside the plot — no
-    // annotation, no second rule, no colour (invariant 10).
-    .chartXSelection(value: $selectedDate)
+    // Tap selects, drag scrubs; the value is the continuous x under the
+    // finger, and the domain resolves it to the bar it lands on — a touch on
+    // any part of a drawn bar, including a trailing bar's days after today.
+    // Only opacity changes inside the plot — no annotation, no second rule,
+    // no colour (invariant 10).
+    .chartXSelection(value: selectionBinding)
     .chartYAxis {
       AxisMarks(position: .leading)
     }
@@ -245,7 +303,7 @@ struct TrendsView: View {
     }
     .frame(height: GlassTokens.Layout.chartHeight)
     // A tick as the selection crosses a bar, as the calendar drag does.
-    .sensoryFeedback(.selection, trigger: selection?.start)
+    .sensoryFeedback(.selection, trigger: selectedStart)
     // One adjustable VoiceOver element — the CountStepper pattern, and the
     // year view's "twelve summaries, not 365 stops" applied to bars. Swipe
     // up and down step through the bars via the same selection sighted
@@ -253,10 +311,10 @@ struct TrendsView: View {
     // double-tap on a mark reaches the selection gesture.
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(chartAccessibilityLabel)
-    .accessibilityValue(spokenSelection)
+    .accessibilityValue(spokenSelection(snapshot.selection))
     .accessibilityAdjustableAction { direction in step(direction) }
-    .accessibilityAction(.escape) { selectedDate = nil }
-    .accessibilityAction(named: Text("Clear selection")) { selectedDate = nil }
+    .accessibilityAction(.escape) { clearSelection() }
+    .accessibilityAction(named: Text("Clear selection")) { clearSelection() }
   }
 
   // MARK: - Selection accessibility
@@ -265,7 +323,7 @@ struct TrendsView: View {
   /// localized (the IntensityCell precedent) — a locale date, the day-count
   /// caption, and either the amount phrase or the legend's description of a
   /// zero day.
-  private var spokenSelection: Text {
+  private func spokenSelection(_ selection: PeriodDetail?) -> Text {
     guard let selection else { return Text("No bar selected") }
     let title = PeriodDetailView.titleString(for: selection, calendar: calendar)
     let amount: String
@@ -274,7 +332,7 @@ struct TrendsView: View {
     case .unlogged?: amount = DayIntensity.unlogged.accessibilityDescription
     case .drinks?, nil: amount = StandardDrink.amountPhrase(selection.standardDrinks, region: settings.effectiveRegion)
     }
-    if selection.unit == .day, calendar.isDateInToday(selection.start) {
+    if selection.unit == .day, calendar.isDate(selection.start, inSameDayAs: today) {
       return Text("Today, \(title), \(amount)")
     }
     var parts = [title]
@@ -288,23 +346,23 @@ struct TrendsView: View {
 
   /// Swipe up (`.increment`) moves to the next bar in time, swipe down to the
   /// previous; from nothing selected, down lands on the newest bar and up on
-  /// the oldest. Ends clamp, never wrap.
+  /// the oldest. Ends clamp, never wrap. Runs on an event, so deriving a
+  /// snapshot here is one pass, not one per frame.
   private func step(_ direction: AccessibilityAdjustmentDirection) {
-    let now = Date()
+    let snapshot = snapshot()
     let forward = direction == .increment
-    if let current = selection?.start {
-      if let next = TrendSummary.adjacentBucketStart(
-        from: current, direction: forward ? 1 : -1, range: range, endingOn: now, calendar: calendar
-      ) {
-        selectedDate = next
-      }
-      return
-    }
-    if isBucketed {
-      selectedDate = forward ? buckets.first?.start : buckets.last?.start
+    let next: Date?
+    if let current = snapshot.selection?.start {
+      next = TrendSummary.adjacentBucketStart(
+        from: current, direction: forward ? 1 : -1, range: range, endingOn: today, calendar: calendar
+      )
+    } else if isBucketed {
+      next = forward ? snapshot.buckets.first?.start : snapshot.buckets.last?.start
     } else {
-      selectedDate = forward ? totals.first?.date : totals.last?.date
+      next = forward ? snapshot.totals.first?.date : snapshot.totals.last?.date
     }
+    guard let next else { return }
+    withAnimation(.smooth(duration: 0.25)) { selectedDate = next }
   }
 
   // LocalizedStringKey, not String: `Text(String)` is the *verbatim*
@@ -340,15 +398,15 @@ struct TrendsView: View {
 
   // MARK: - Summary cards
 
-  private var summaryCards: some View {
+  private func summaryCards(_ snapshot: Snapshot) -> some View {
     VStack(spacing: GlassTokens.Spacing.regular) {
       HStack(spacing: GlassTokens.Spacing.regular) {
         StatCard(
-          value: StandardDrink.formatted(periodSum),
+          value: StandardDrink.formatted(snapshot.sum),
           label: sumLabel
         )
         StatCard(
-          value: StandardDrink.formatted(average),
+          value: StandardDrink.formatted(snapshot.average),
           label: "per day on average"
         )
       }
@@ -372,7 +430,7 @@ struct TrendsView: View {
             .font(GlassTokens.Typography.cardLabel)
             .foregroundStyle(.secondary)
 
-          Text("\(restDays) of \(totals.count)")
+          Text("\(snapshot.restDays) of \(snapshot.totals.count)")
             .font(GlassTokens.Typography.cardValue)
             .foregroundStyle(.primary)
         }

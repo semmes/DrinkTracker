@@ -81,6 +81,28 @@ struct PeriodDetailTests {
     }
   }
 
+  /// The trailing bar is drawn across its whole calendar unit, so a touch on
+  /// the part of it after today must still select it; the next unit is no bar.
+  @Test("A touch anywhere on the trailing week or month bar selects it, and past it selects nothing")
+  func trailingBarIsSelectableAcrossItsUnit() {
+    let end = date(2026, 9, 3, 12)  // a Thursday
+    #expect(TrendSummary.bucketStart(containing: date(2026, 9, 20), range: .year, endingOn: end, calendar: calendar) == date(2026, 9, 1))
+    #expect(TrendSummary.bucketStart(containing: date(2026, 9, 30, 23, 59), range: .year, endingOn: end, calendar: calendar) == date(2026, 9, 1))
+    #expect(TrendSummary.bucketStart(containing: date(2026, 10, 1, 1), range: .year, endingOn: end, calendar: calendar) == nil)
+    #expect(TrendSummary.bucketStart(containing: date(2026, 9, 5, 12), range: .quarter, endingOn: end, calendar: calendar) == date(2026, 8, 30))
+    #expect(TrendSummary.bucketStart(containing: date(2026, 9, 6, 1), range: .quarter, endingOn: end, calendar: calendar) == nil)
+
+    // The detail is still the bucket clipped to the range.
+    let september = detail(date(2026, 9, 20), range: .year, endingOn: end)
+    #expect(september?.start == date(2026, 9, 1))
+    #expect(september?.lastDay == date(2026, 9, 3))
+    #expect(september?.summary.dayCount == 3)
+    #expect(september?.isPartial == true)
+
+    // Daily charts keep clipping the touch itself: no bar is drawn past today.
+    #expect(TrendSummary.bucketStart(containing: date(2026, 9, 4, 1), range: .week, endingOn: end, calendar: calendar) == nil)
+  }
+
   @Test("A month bar's detail is the month clipped to the range, and says so")
   func monthBarClips() {
     let end = date(2026, 8, 26, 12)

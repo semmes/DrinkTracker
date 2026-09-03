@@ -404,8 +404,7 @@ Open items for v1.2:
   fixed a real bug — on a midnight-DST day (Santiago, Havana, Cairo, Beirut)
   the rolling card read 29 of 30 days as unlogged. The card is split into
   `RecentSummaryCaptions` → `RecentSummaryFigures` → `RecentSummaryCard(heading:)`
-  so the share cards (ADR-0027) and the Trends bar detail (ADR-0028, next on
-  the train) reuse the reviewed copy; an average over no drinking days prints "—";
+  so the share cards (ADR-0027) and the Trends bar detail (ADR-0028) reuse the reviewed copy; an average over no drinking days prints "—";
   `DayIntensity.legendKey` (app-side) finally puts the five legend words in
   the catalog. **No schema change, no CloudKit step.** Rules that came out of
   it: never a delta between windows; "through today" is the on-device clip

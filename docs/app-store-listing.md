@@ -168,11 +168,12 @@ Notes on what's new in 1.2:
   chosen span — the last 30 days, the month shown, or the year shown. It
   compares nothing to any other period or person, sets no target, and is
   not shared or sent anywhere.
-- Tapping a bar on Trends shows the facts behind it — dates, totals, and
-  counts from the user's own log, the same figures the calendar already
-  shows for that period. Nothing is compared to a target, to the average
-  line, or to other people; nothing about the selection is stored; nothing
-  leaves the device.
+- Tapping a bar on Trends shows the facts behind it — the period's dates,
+  its total, and what was logged by type, from the user's own log; for a
+  week or month, the same four figures the calendar's summary card shows,
+  computed over the bar's own days by the same code. Nothing is compared
+  to a target, to the average line, or to other people; nothing about the
+  selection is stored; nothing leaves the device.
 - Siri/Shortcuts support uses App Intents only. Every phrase is
   user-initiated; the app never speaks first, sends no notifications, and
   makes no suggestions. Spoken replies state only what was written to the

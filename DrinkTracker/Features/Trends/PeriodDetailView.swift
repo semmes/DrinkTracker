@@ -61,10 +61,12 @@ struct PeriodDetailView: View {
 
   // MARK: - Header
 
-  /// The wrapping text column first, the 44pt button second, top-aligned so
-  /// the ✕ stays pinned top-trailing when the title wraps at AX sizes.
+  /// The wrapping text column first, the 44pt button second, aligned on the
+  /// title's first baseline so the ✕ sits on the title's own line — and stays
+  /// there when the title wraps at AX sizes, since the first line is the
+  /// anchor.
   private var header: some View {
-    HStack(alignment: .top, spacing: GlassTokens.Spacing.tight) {
+    HStack(alignment: .firstTextBaseline, spacing: GlassTokens.Spacing.tight) {
       VStack(alignment: .leading, spacing: 2) {
         titleText
           .font(.subheadline.weight(.semibold))
@@ -146,7 +148,10 @@ struct PeriodDetailView: View {
       Text(StandardDrink.formatted(detail.standardDrinks))
         .font(GlassTokens.Typography.cardValue)
         .foregroundStyle(.primary)
-        .contentTransition(.numericText())
+        // The bar changed, not the value: a crossfade, never a roll that
+        // would draw a direction between two bars (ADR-0026, design-system
+        // §5) — the same rule the four bucket figures beside it follow.
+        .contentTransition(.opacity)
       Text(verbatim: region.unitName(for: detail.standardDrinks))
         .font(GlassTokens.Typography.cardLabel)
         .foregroundStyle(.secondary)

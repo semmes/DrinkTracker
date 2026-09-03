@@ -771,7 +771,7 @@ invited the threshold comparison spec constraint 5 refuses.
 | Detail header, a day bar (system date format, no key) | "Sunday, September 6" — and "Today" beneath (existing key) when it is |
 | Detail header, a week bar (system interval format, no key) | "Aug 30 – Sep 2, 2026" |
 | Detail header, a month bar (ADR-0026's heading) | "August 2026" · "September 2026, through today" |
-| Detail header, beside a week or month title (the calendar card's count line) | "4 days" · "7 days" · "1 day" |
+| Detail header, under a week or month title (the calendar card's count line) | "4 days" · "7 days" · "1 day" |
 | Detail body, a day with drinks (the amount in the current unit) | "3.2 / standard drinks" · "1 / unit" |
 | Detail body, a day recorded as no alcohol (existing key, the day sheet's) | "Recorded as no alcohol" |
 | Under it, when the marker came from Health (existing key) | "From Apple Health" |
@@ -785,7 +785,7 @@ invited the threshold comparison spec constraint 5 refuses.
 | Chart VoiceOver value, a selected bar (composed from localized parts) | "Today, Sunday, September 6, 3.2 standard drinks" · "Aug 30 – Sep 2, 2026, 4 days, 1 standard drink" · "Tuesday, August 25, no alcohol" |
 | Trends card, relabelled | "Days with no drinks logged" (was "Days with nothing logged") |
 | What's New (1.2), appended to the Trends paragraph | "Tap a bar — or drag across the bars — to see what it holds: the day, week, or month, its total, what was logged by type, and for a week or month, days with drinks, days recorded as no alcohol, and days with nothing logged." |
-| Reviewer notes (1.2), new bullet | "Tapping a bar on Trends shows the facts behind it — dates, totals, and counts from the user's own log, the same figures the calendar already shows for that period. Nothing is compared to a target, to the average line, or to other people; nothing about the selection is stored; nothing leaves the device." |
+| Reviewer notes (1.2), new bullet | "Tapping a bar on Trends shows the facts behind it — the period's dates, its total, and what was logged by type, from the user's own log; for a week or month, the same four figures the calendar's summary card shows, computed over the bar's own days by the same code. Nothing is compared to a target, to the average line, or to other people; nothing about the selection is stored; nothing leaves the device." |
 
 **Reviewed against 1.4.3.** Every line is a count, an amount, or the name
 of a period. The deliberate absence is anything relative to the average
@@ -796,7 +796,7 @@ ADR-0023's own vocabulary and describes an absence without calling the
 record incomplete. "Not logged" is the legend's word, so a blank bar and a
 blank cell read the same; it is not "no drinks", because an unlogged day is
 not a day without alcohol. The bucket figures reuse the calendar card's
-reviewed copy unchanged, and the count line beside a week or month title is
+reviewed copy unchanged, and the count line under a week or month title is
 what keeps its three day-counts checkable.
 
 **Why the Trends card was relabelled.** It counts every zero-total day,
