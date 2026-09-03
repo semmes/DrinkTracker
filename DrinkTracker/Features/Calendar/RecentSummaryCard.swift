@@ -2,7 +2,8 @@ import ComponentsKit
 import DrinkTrackerCore
 import SwiftUI
 
-/// The last 30 days, as facts.
+/// A window of days, as facts: the last 30, the month shown, or the year shown
+/// (ADR-0026). "Recent" predates the choice of window.
 ///
 /// This is where a competitor puts a "sobriety score". It deliberately isn't one.
 /// A single composite number is a number that goes up and down, which makes it a
@@ -10,99 +11,110 @@ import SwiftUI
 /// destroys the only thing this app actually offers. See ADR-0006.
 ///
 /// So: four independent figures, each checkable against the log, none combined into
-/// a verdict. No arrow, no delta against last month, no colour that grades them.
+/// a verdict. No arrow, no delta against another window, no colour that grades them.
 struct RecentSummaryCard: View {
   let summary: RecentSummary
   let region: Region
+  let heading: SummaryHeading
 
   var body: some View {
     SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-        Text("Last \(summary.dayCount) days")
-          .font(GlassTokens.Typography.cardLabel)
-          .foregroundStyle(.secondary)
-
-        HStack(alignment: .top, spacing: GlassTokens.Spacing.regular) {
-          figure(
-            value: "\(summary.daysWithDrinks)",
-            label: summary.daysWithDrinks == 1 ? "day with drinks" : "days with drinks",
-            spoken: summary.daysWithDrinks == 1
-              ? Text("\(summary.daysWithDrinks) day with drinks")
-              : Text("\(summary.daysWithDrinks) days with drinks")
-          )
-          figure(
-            value: "\(summary.daysAlcoholFree)",
-            label: summary.daysAlcoholFree == 1 ? "day with none" : "days with none",
-            spoken: summary.daysAlcoholFree == 1
-              ? Text("\(summary.daysAlcoholFree) day with none")
-              : Text("\(summary.daysAlcoholFree) days with none")
-          )
-        }
-
-        Divider().opacity(0.5)
-
-        HStack(alignment: .top, spacing: GlassTokens.Spacing.regular) {
-          figure(
-            value: StandardDrink.formatted(summary.totalStandardDrinks),
-            label: totalLabel
-          )
-          figure(
-            value: StandardDrink.formatted(summary.averageOnDrinkingDays),
-            label: "on days you drank"
-          )
-        }
-
-        if summary.daysUnlogged > 0 {
-          // Named rather than hidden. Without it the two day-counts look like they
-          // should add to 30, and a reader would reasonably assume the difference
-          // was alcohol-free rather than unrecorded.
-          Text(
-            summary.daysUnlogged == 1
-              ? "\(summary.daysUnlogged) day has nothing logged either way."
-              : "\(summary.daysUnlogged) days have nothing logged either way."
-          )
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-        }
+        titleRow
+        RecentSummaryFigures(summary: summary, region: region)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
+      // The window changed, not the value: the figures crossfade. Never a
+      // digit roll — a roll from 27 down to 1 draws a direction between two
+      // windows, which is the delta ADR-0006 forbids (design-system §5).
+      .animation(.smooth(duration: 0.25), value: summary)
     }
   }
 
-  /// The totals caption, as a whole phrase per region and number.
-  ///
-  /// It used to be `"\(region.unitNamePlural) total"`, which handed the noun in
-  /// already inflected and always plural — so a total of exactly one read
-  /// "1 standard drinks total". The two day figures above had always agreed with
-  /// their number; this one simply had not been made to follow.
-  private var totalLabel: LocalizedStringKey {
-    let isSingular = StandardDrink.readsAsOne(summary.totalStandardDrinks)
-    switch region {
-    case .unitedStates, .australia:
-      return isSingular ? "standard drink total" : "standard drinks total"
-    case .unitedKingdom:
-      return isSingular ? "unit total" : "units total"
+  /// The window's name, with its day count beside it for the month and year
+  /// windows. One VoiceOver element: "September 2026, through today, 2 days".
+  private var titleRow: some View {
+    ViewThatFits(in: .horizontal) {
+      HStack(alignment: .firstTextBaseline) {
+        title
+        Spacer(minLength: GlassTokens.Spacing.regular)
+        dayCount
+      }
+      VStack(alignment: .leading, spacing: 2) {
+        title
+        dayCount
+      }
     }
+    .accessibilityElement(children: .combine)
   }
 
-  /// One figure: a large number with a caption naming it.
-  ///
-  /// **The captions carry no count, and that is deliberate.** A catalog key can
-  /// only take plural variations if the count is inside it, so a language with
-  /// more than two plural forms gets two slots here and has to pick the one that
-  /// reads best. The alternative is a caption that repeats the number standing
-  /// 40 points above it, or dismantling the four-figure layout ADR-0006 exists to
-  /// protect. A caption under a number is doing different work from a sentence:
-  /// the number carries the meaning and the caption names it. Same kind of
-  /// documented limit as `Region.unitName(for:)`.
-  ///
-  /// `spoken` is where that trade is *not* accepted. VoiceOver fuses the number
-  /// and its caption into one sentence, with no adjacency left to carry the
-  /// meaning, so the two whole-number figures pass a single key holding the count
-  /// — genuinely pluralisable. The fractional figures pass nil: their value
-  /// reaches the catalog as `%@`, which no plural rule can select on, so a
-  /// separate key there would add nothing but another string to translate.
+  private var title: some View {
+    heading.titleText
+      .font(GlassTokens.Typography.cardLabel)
+      .foregroundStyle(.secondary)
+      .fixedSize(horizontal: false, vertical: true)
+  }
+
+  @ViewBuilder
+  private var dayCount: some View {
+    if heading.showsDayCount {
+      Text(RecentSummaryCaptions.dayCount(summary.dayCount))
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+}
+
+/// ADR-0006's four figures plus the named unlogged count — the part of the
+/// card every summarising surface shares, so the copy, the plural keys, and
+/// the spoken labels cannot drift between the calendar card and anything
+/// else that reports a window of days.
+struct RecentSummaryFigures: View {
+  let summary: RecentSummary
+  let region: Region
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
+      HStack(alignment: .top, spacing: GlassTokens.Spacing.regular) {
+        figure(
+          value: "\(summary.daysWithDrinks)",
+          label: RecentSummaryCaptions.daysWithDrinks(summary.daysWithDrinks),
+          spoken: RecentSummaryCaptions.spokenDaysWithDrinks(summary.daysWithDrinks)
+        )
+        figure(
+          value: "\(summary.daysAlcoholFree)",
+          label: RecentSummaryCaptions.daysWithNone(summary.daysAlcoholFree),
+          spoken: RecentSummaryCaptions.spokenDaysWithNone(summary.daysAlcoholFree)
+        )
+      }
+
+      Divider().opacity(0.5)
+
+      HStack(alignment: .top, spacing: GlassTokens.Spacing.regular) {
+        figure(
+          value: StandardDrink.formatted(summary.totalStandardDrinks),
+          label: RecentSummaryCaptions.total(summary.totalStandardDrinks, region: region)
+        )
+        figure(
+          value: RecentSummaryCaptions.averageValue(summary),
+          label: RecentSummaryCaptions.averageCaption,
+          spoken: summary.daysWithDrinks == 0 ? RecentSummaryCaptions.spokenNoAverage : nil
+        )
+      }
+
+      if let unlogged = RecentSummaryCaptions.unlogged(summary.daysUnlogged) {
+        Text(unlogged)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
+  /// One figure: a large number with a caption naming it. The captions carry
+  /// no count, and the spoken forms do — see `RecentSummaryCaptions`.
   @ViewBuilder
   private func figure(
     value: String,
@@ -113,6 +125,7 @@ struct RecentSummaryCard: View {
       Text(value)
         .font(GlassTokens.Typography.cardValue)
         .foregroundStyle(.primary)
+        .contentTransition(.opacity)
       Text(label)
         .font(GlassTokens.Typography.cardLabel)
         .foregroundStyle(.secondary)

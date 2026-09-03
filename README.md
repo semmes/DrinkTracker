@@ -438,6 +438,14 @@ Totals are always expressed in the current region, a year of history included
 - **Year view** — twelve months at once. Cells are 11pt, far below a touch target,
   so nothing there is tappable: it is a reading surface, and days are edited in the
   month view.
+- **Summary window** — the card under the month grid covers the last 30 days by
+  default, or the month shown (whole when past, through today when current)
+  via the picker above it; the year view carries the same four figures for the
+  year shown. Future days are never counted as unlogged, the window's day count
+  sits beside its title, and an average over no drinking days prints "—".
+  Same figures, no delta between windows
+  ([ADR-0006](docs/decisions/0006-a-summary-not-a-score.md),
+  [ADR-0026](docs/decisions/0026-the-calendar-summary-covers-the-window-you-choose.md)).
 - **Recording a past day** is a count, not a size and a strength. Reconstructing
   exact volumes days later is guesswork, and demanding precision someone doesn't
   have produces worse data than accepting the number they do remember. It seeds

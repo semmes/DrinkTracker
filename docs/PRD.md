@@ -166,7 +166,8 @@ about *rows* has to live here rather than in the package. Covered:
 - The schema upgrade: real V1 store files, written by the last V1 commit,
   reopen intact under the migration plan.
 - `AppSettings` round-tripping through defaults, including `storedRegion()`'s
-  nil-to-US fallback and the skipped-vs-chose-US distinction.
+  nil-to-US fallback and the skipped-vs-chose-US distinction, and the calendar
+  summary window's default and unknown-value fallback (ADR-0026).
 
 It is a standalone bundle with no `TEST_HOST`, so it reaches `Shared/` but not the
 app target. `DrinkStore.backfillHealthKit` itself is therefore **still uncovered** —

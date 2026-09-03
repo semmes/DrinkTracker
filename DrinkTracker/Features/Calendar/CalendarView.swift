@@ -11,11 +11,19 @@ struct CalendarView: View {
   @Environment(HealthKitService.self) private var health
   @Environment(\.modelContext) private var context
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.scenePhase) private var scenePhase
 
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
 
   @State private var visibleMonth: Date = Calendar.current.startOfDay(for: Date())
+
+  /// Start of the current calendar day, refreshed on the day-change
+  /// notification and on every foregrounding (TodayView's `dayChanged`
+  /// pattern). The summary path reads this, never `Date()`, so a card headed
+  /// "through today" survives an app left suspended across midnight instead
+  /// of keeping yesterday's count until something else re-renders.
+  @State private var today: Date = Calendar.current.startOfDay(for: Date())
   @State private var selectedDay: SelectedDay?
   @State private var editingDraft: DrinkDraft?
   @State private var deletion = DeletionCoordinator()
@@ -57,7 +65,7 @@ struct CalendarView: View {
             .padding(.horizontal, -gridBleed)
           IntensityLegend()
           selectionHint
-          RecentSummaryCard(summary: summary, region: settings.effectiveRegion)
+          summarySection
         }
         .screenMargin()
         .padding(.vertical, GlassTokens.Spacing.section)
@@ -84,6 +92,12 @@ struct CalendarView: View {
     // the dismiss-then-appear pops in unanimated.
     .animation(.smooth(duration: 0.25), value: selectedDay)
     .onDisappear { pendingDays = [] }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { today = calendar.startOfDay(for: Date()) }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+      today = calendar.startOfDay(for: Date())
+    }
     .navigationTitle("Calendar")
     .navigationBarTitleDisplayMode(.large)
     .toolbar {
@@ -188,13 +202,34 @@ struct CalendarView: View {
     )
   }
 
+  /// The card's window (ADR-0026): the rolling 30 days ending today, or the
+  /// month the grid shows — whole once past, the 1st through today while in
+  /// progress. Both are one fold in the core package, so the card cannot
+  /// disagree with the grid above it; the region is read at display time
+  /// (invariant 3).
   private var summary: RecentSummary {
-    TrendSummary.recentSummary(
-      endingOn: Date(),
-      totalsByDay: totalsByDay,
-      alcoholFreeDays: markedDays,
-      calendar: calendar
-    )
+    switch settings.calendarSummaryWindow {
+    case .lastThirtyDays:
+      TrendSummary.recentSummary(
+        endingOn: today,
+        totalsByDay: totalsByDay,
+        alcoholFreeDays: markedDays,
+        calendar: calendar
+      )
+    case .monthShown:
+      TrendSummary.monthSummary(grid, through: today, calendar: calendar)
+    }
+  }
+
+  /// "Clipped" is read off the data, not off the calendar: on the last day of
+  /// a month nothing was cut short and the plain name shows.
+  private var summaryHeading: SummaryHeading {
+    switch settings.calendarSummaryWindow {
+    case .lastThirtyDays:
+      .lastDays(summary.dayCount)
+    case .monthShown:
+      .month(grid.month, isClipped: summary.dayCount < grid.days.count)
+    }
   }
 
   /// What a calendar log will look like on `day` — and it has to be *what the
@@ -381,7 +416,7 @@ struct CalendarView: View {
   /// There is nothing to see in the future, and a calendar that scrolls into it
   /// invites logging drinks that haven't happened.
   private var isShowingCurrentMonth: Bool {
-    calendar.isDate(visibleMonth, equalTo: Date(), toGranularity: .month)
+    calendar.isDate(visibleMonth, equalTo: today, toGranularity: .month)
   }
 
   private func shiftMonth(by months: Int) {
@@ -458,6 +493,37 @@ struct CalendarView: View {
       gridWidth = width
     }
     .frame(height: gridHeight)
+  }
+
+  // MARK: - Summary
+
+  /// The picker and the card it governs, as one block: a 12pt gap inside,
+  /// the 24pt section gap outside, so the control visibly belongs to the card
+  /// and not to the grid.
+  private var summarySection: some View {
+    VStack(spacing: GlassTokens.Spacing.regular) {
+      summaryWindowPicker
+      RecentSummaryCard(summary: summary, region: settings.effectiveRegion, heading: summaryHeading)
+    }
+  }
+
+  /// The two windows (ADR-0026), in the shape Settings' pickers already use:
+  /// a native segmented control on interactive glass. Native rather than the
+  /// ComponentsKit control Trends uses, because that one is a row of Text
+  /// with tap gestures — no button or selected trait for VoiceOver, titles
+  /// the catalog never sees, and a fixed height under Dynamic Type. The
+  /// Picker's title is its VoiceOver label; the segmented style hides it.
+  private var summaryWindowPicker: some View {
+    @Bindable var settings = settings
+    return Picker("Days the summary covers", selection: $settings.calendarSummaryWindow) {
+      Text("Last 30 days").tag(CalendarSummaryWindow.lastThirtyDays)
+      Text("Month shown").tag(CalendarSummaryWindow.monthShown)
+    }
+    .pickerStyle(.segmented)
+    .padding(GlassTokens.Spacing.tight)
+    // interactive: a control on non-interactive glass loses taps — the same
+    // rule every tappable control in the app follows.
+    .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
   }
 
   /// Discoverability for a gesture with no visible affordance. One quiet line —

@@ -167,7 +167,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Size pill** | `DrinkDetailSheet.SizePill` | Selected = accent capsule; wraps via `FlowLayout` |
 | **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
-| **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` | Value + noun. No deltas, no arrows, no progress bars (copy review F2) |
+| **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` (`RecentSummaryFigures` + `RecentSummaryCaptions`) | Value + noun. No deltas, no arrows, no progress bars (copy review F2). The calendar card takes a window picker above it — native segmented control on interactive glass — and crossfades its figures on a switch, never rolls them (ADR-0026) |
 | **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring on every selected cell + 15% wash on blank cells only — the wash previews exactly which days a bulk action will touch |
 | **Selection action bar** | `Calendar/CalendarView.swift` (`selectionBar`) | Bottom-pinned glass bar (radius 22): live day count, one-tap "Mark no drinks" (AccentFill under white), "Log drinks…" to the bulk sheet, 32pt dismiss. From the prototype handoff, carrying ADR-0011 semantics |
 | **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | A staged batch counter — the model the day sheet had before it became a live log (ADR-0013) — applied to a dragged run of days; skips recorded days and says so (ADR-0011) |

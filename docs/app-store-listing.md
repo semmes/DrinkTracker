@@ -119,7 +119,9 @@ many drinks this sitting, when it started, and how long since the last.
 Turn it on in Settings.
 
 Export your whole log as a CSV from Settings, and share any month as an
-image from the calendar.
+image from the calendar. The calendar's summary can cover the last 30
+days or the month shown, and the year view carries the same four figures
+for the year.
 
 Siri and Shortcuts: "Log a beer in Tallyist", "Log drinks in Tallyist"
 (Siri asks which and how many), or "Record no alcohol in Tallyist" —
@@ -155,6 +157,10 @@ Notes on what's new in 1.2:
 - The CSV export and the month share image are user-initiated, one-way
   exports of the user's own data through the system share sheet, with no
   identifiers in the files.
+- The calendar summary reports the user's own counts and totals over a
+  chosen span — the last 30 days, the month shown, or the year shown. It
+  compares nothing to any other period or person, sets no target, and is
+  not shared or sent anywhere.
 - Siri/Shortcuts support uses App Intents only. Every phrase is
   user-initiated; the app never speaks first, sends no notifications, and
   makes no suggestions. Spoken replies state only what was written to the

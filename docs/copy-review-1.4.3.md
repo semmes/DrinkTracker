@@ -682,3 +682,45 @@ keep for another app's sample.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## Addendum (2026-09-03): the summary window (ADR-0026)
+
+| Where | Reads |
+|---|---|
+| Calendar → picker above the summary card, VoiceOver label (the Picker's title; hidden by the segmented style) | "Days the summary covers" |
+| Same picker, segment 1 (existing key, Trends' chart title) | "Last 30 days" |
+| Same picker, segment 2 | "Month shown" |
+| Summary card heading, rolling window (unchanged key) | "Last 30 days" |
+| Summary card heading, a past month (locale date format, no key) | "August 2026" |
+| Summary card heading, the month in progress | "September 2026, through today" |
+| Summary card heading, a past year (year view; the year as text, no key) | "2025" |
+| Summary card heading, the year in progress (year view; same key as the month) | "2026, through today" |
+| Beside a month or year heading | "31 days" · "2 days" · "1 day" · "245 days" |
+| Summary card, the average when no day in the window has drinks — displayed / spoken | "—" / "No days with drinks to average" |
+| Year view, caption under the legend (the retained second sentence of the retired footnote) | "Blank days are days without a record, not days without alcohol." |
+| Year view, retired | "%lld of %lld days in %@ have something recorded. …" and "Nothing recorded in %@ yet. …" — removed with the card's unlogged line taking their job |
+| Calendar and year legend (wording unchanged; the five words are now catalog keys) | "No alcohol" · "1–2" · "3–5" · "6+" · "Not logged" |
+| What's New (1.2), appended to the export/share paragraph | "The calendar's summary can cover the last 30 days or the month shown, and the year view carries the same four figures for the year." |
+| Reviewer notes (1.2), new bullet | "The calendar summary reports the user's own counts and totals over a chosen span — the last 30 days, the month shown, or the year shown. It compares nothing to any other period or person, sets no target, and is not shared or sent anywhere." |
+
+**Reviewed against 1.4.3.** Every string names a span or a count. "Month
+shown" describes the grid on screen, not a period of the user's life, and
+stays true on a past page where "This month" would not. "Through today"
+states where the record stops and nothing about where it is going — it was
+chosen over "so far", which reads as a report in progress. The day count
+beside a month or year title is what keeps the three day-counts checkable
+now that the window is not always 30. The em dash names a figure that does
+not exist rather than inventing a zero; its spoken form says why. No
+comparison between windows exists to describe: one window is on screen at a
+time, and switching crossfades the digits rather than rolling them, so no
+motion draws a direction between two windows.
+
+**Why the year footnote went.** "N of 365 days … have something recorded"
+beside a card whose unlogged line counts elapsed days would put two
+denominators on one screen for the year in progress. The card's line is the
+same reasoning (ADR-0006) over days that exist; the sentence about blank days
+stays because at 11pt cells the legend's "Not logged" swatch needs the words.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
+
