@@ -1,8 +1,10 @@
 # 0015 — Export is a CSV of the log, shared from Settings
 
 **Status:** accepted · **Date:** 2026-08-26 · **Amended by:** ADR-0020
-(localization: headers stay English, row values localize) · **Relates to:**
-ADR-0002, ADR-0006, ADR-0014, PRD invariants 3, 8, 9
+(localization: headers stay English, row values localize) · **Reopened by:**
+ADR-0027, answered in one specific shape (a share image may carry only the
+calendar's own four figures for that period, from the same function) ·
+**Relates to:** ADR-0002, ADR-0006, ADR-0014, PRD invariants 3, 8, 9
 
 ## Context
 

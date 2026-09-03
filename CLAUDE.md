@@ -265,8 +265,8 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-03): **314 keys** across four
-  catalogs — 249 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **316 keys** across four
+  catalogs — 251 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
   on 2026-09-03; count them (`len(json['strings'])` per file) rather than
   trusting this number. See `docs/localization-status.md`.
@@ -415,3 +415,25 @@ Open items for v1.2:
   pass:** the picker answering a tap (interactive glass), the crossfade on a
   switch, the day-change refresh of "through today" after a night suspended,
   the "—" figure and its spoken form, AX5 fit of the two segment labels.
+- **ADR-0027 landed on the open train (2026-09-03):** the calendar shares a
+  month or a year as an image of its own four figures. Each surface shares
+  what it shows — the calendar's button renders the visible month, the year
+  view's new button the visible year; no menu. Both cards: period name, a
+  "Through <date>" line while in progress with the day count beside it, the
+  four ADR-0006 figures from `monthSummary` / `yearSummary` (the same fold as
+  the on-screen card) with unlogged days named, the grid (twelve 12pt mini
+  grids in three columns for a year), the five-entry legend, the wordmark.
+  The per-week average is **gone**, and ADR-0015's reopen clause is answered
+  once: a share image may carry only a figure the in-app calendar surface
+  for that period already shows, from the same function. Parts live in
+  `ShareCardParts.swift` (`ShareCardInk` is the named second literal-colour
+  site, PRD invariant 10 — the review's open item is closed); `MonthGrid.rows`
+  feeds `Grid`/`GridRow` because nothing lazy may run under `ImageRenderer`;
+  filenames are per item (`tallyist-2026-09.png`, `tallyist-2026.png`); the
+  image's average caption reads "on days with drinks" (the reader is not the
+  subject). The privacy policy says "a month or a year" in both in-repo
+  copies, dated September 3, 2026 (the mirror pushes the third). **No schema
+  change, no CloudKit step.** **Tier 3 for the owner's pass:** the two PNGs'
+  chunk inspection (no tEXt/iTXt/zTXt/XMP), legibility in a Messages bubble,
+  the year card's height, both appearances, tap-to-sheet timing on a long
+  log, "Save to Files" names, the app's tmp directory empty after a share.

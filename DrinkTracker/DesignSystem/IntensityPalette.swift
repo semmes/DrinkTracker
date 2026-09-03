@@ -8,6 +8,9 @@ import SwiftUI
 /// exception, and it is narrow on purpose: a heatmap encodes magnitude *in* colour,
 /// so the colour is data rather than styling, and data has to be specified rather
 /// than inherited. Nothing outside the calendar surfaces may draw from it.
+/// The one other literal-colour site is `ShareCardInk` — the ground and inks
+/// of an exported image, which has no host surface to inherit from — and it
+/// takes every fill and outline decision from here (ADR-0027, invariant 10).
 ///
 /// ## Why one hue rather than a red-to-green scale
 ///

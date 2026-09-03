@@ -464,11 +464,17 @@ Totals are always expressed in the current region, a year of history included
   to change a recorded day and the VoiceOver path
   ([ADR-0011](docs/decisions/0011-bulk-fill-never-touches-a-recorded-day.md)).
 
-### Sharing a month
+### Sharing a month or a year
 
-The calendar's share button renders the visible month as an image — name,
-total, average per week, the grid, a small wordmark — through the system
-share sheet. One-way and user-initiated every time: the PNG is built at
+The calendar's share button renders the visible month, and the year view's
+renders the visible year, as an image — the period's name, where the record
+stops ("Through September 2") and how many days it covers, the calendar's
+four figures (days with drinks, days with none, total, average on days with
+drinks) with unlogged days named, the grid (twelve mini grids for a year),
+the five-entry legend, a small wordmark — through the system share sheet
+([ADR-0027](docs/decisions/0027-the-calendar-shares-a-month-or-a-year-as-its-own-figures.md)).
+Every figure is one the calendar already shows for that period, from the
+same function; the old per-week average is gone. One-way and user-initiated every time: the PNG is built at
 share time from raw data (no temp file, nothing persisted, nothing recorded
 about whether or where it went), renders in the app's current appearance,
 and carries no identifying metadata (orientation, resolution, and pixel
