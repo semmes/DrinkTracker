@@ -73,6 +73,23 @@ public struct MonthGrid: Identifiable, Hashable, Sendable {
     return days.filter { $0.date <= cutoff }
   }
 
+  /// The month as rows of seven cells, first weekday first, with `nil` for
+  /// the leading blanks before the 1st and the trailing blanks after the last
+  /// day (ADR-0027).
+  ///
+  /// For layouts that place cells row by row (`Grid`/`GridRow`) rather than
+  /// flowing them — what an offscreen render needs: nothing lazy, nothing
+  /// skipped. Always a multiple of seven cells, four to six rows. The in-app
+  /// `LazyVGrid`s keep using `leadingBlanks` + `days`; this and
+  /// `dayIndex(row:column:)` agree by construction, and a test says so.
+  public var rows: [[CalendarDay?]] {
+    guard !days.isEmpty else { return [] }
+    let cells: [CalendarDay?] = Array(repeating: nil, count: leadingBlanks) + days.map { $0 }
+    let trailing = (7 - cells.count % 7) % 7
+    let padded = cells + Array(repeating: nil, count: trailing)
+    return stride(from: 0, to: padded.count, by: 7).map { Array(padded[$0..<$0 + 7]) }
+  }
+
   // MARK: - Drag selection
 
   /// Maps a grid position — row and weekday column — to an index into `days`.

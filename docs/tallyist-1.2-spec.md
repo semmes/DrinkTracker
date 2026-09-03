@@ -340,6 +340,8 @@ One way image export. The user renders their own month and sends it wherever the
 
 Content: month name, total, average per week, and the calendar grid. No comparison to anyone. A small wordmark is fine, nothing more.
 
+> **Superseded in part by ADR-0027 (2026-09-03):** the card carries the calendar's own four figures (days with drinks, days with none, total, average on days with drinks) with unlogged days named, and the per-week average was removed — it was not on the in-app calendar, divided by the whole month even mid-month, and is a rate in the unit consumption guidelines are quoted in. A year card shares from the year view on the same terms.
+
 ### Rules
 
 - User initiated every single time. No prompts, no "share your month" nudges, no badges.
@@ -362,7 +364,7 @@ The 1.0 Resolution Center response made four specific claims. This table is the 
 | Claim made in 1.0 | Status in 1.2 |
 |---|---|
 | "no goals, streaks, scores, or advice" | Preserved. The session card reports counts and elapsed time inside a window, sets no target, and keeps no record. The population reference is a neutral descriptive statistic with no encouragement or warning. |
-| "No user-generated content is shared between users" | Preserved. Nothing is shared. The share card is a user initiated one way image export through the system share sheet. |
+| "No user-generated content is shared between users" | Preserved. Nothing is shared. The share cards (a month or a year) are user initiated one way image exports through the system share sheet, carrying only the user's own grid and the calendar's four figures. |
 | "There are no accounts of any kind" | Preserved. |
 | "External services, tools, and platforms ... None" | Preserved. The population reference is a bundled static resource. No network calls added. |
 
@@ -371,7 +373,7 @@ The 1.0 Resolution Center response made four specific claims. This table is the 
 - The appearance setting is a display preference only.
 - The session pace view is optional and off by default. It shows counts and elapsed time within a 4 hour window. It is not a goal, a streak, or a timer to beat, and it sends no notifications.
 - The population reference uses a bundled published statistic, named and dated in the app. It is not data from other users. No network request is made.
-- The share card is a user initiated image export containing only the user's own data and no identifier.
+- The share cards (a month or a year) are user initiated image exports containing only the user's own data and no identifier.
 - No new permissions. No new privacy label categories. No new third party code.
 
 ### Stop conditions
