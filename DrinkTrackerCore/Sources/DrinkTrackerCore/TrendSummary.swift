@@ -139,20 +139,37 @@ public enum TrendSummary {
       byDay[day, default: 0] += drink.standardDrinks(in: region)
     }
 
-    var totals: [DayTotal] = []
-    var day = firstDay
-    while day <= lastDay {
-      totals.append(DayTotal(date: day, standardDrinks: byDay[day] ?? 0))
-      // Re-normalised every step, never chained. In a zone whose clocks
-      // change at midnight (Santiago, Havana, Cairo, Beirut) the transition
-      // day has no 00:00 and `startOfDay` returns 01:00; adding a day to that
-      // keeps the 01:00, and a chained key never again equals the `byDay`
-      // keys built from `startOfDay`. Every later day read zero and the range
-      // lost its last day. US zones switch at 02:00 and never showed it.
-      guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
-      day = calendar.startOfDay(for: next)
+    return dayKeys(from: firstDay, through: lastDay, calendar: calendar).map { day in
+      DayTotal(date: day, standardDrinks: byDay[day] ?? 0)
     }
-    return totals
+  }
+
+  /// Start-of-day keys from `first` through `last`, oldest first — the one day
+  /// walk every window in the package shares (ADR-0026): the chart's daily
+  /// series, the rolling summary's trailing days, and a bucket's days.
+  ///
+  /// Re-normalised every step, never chained. In a zone whose clocks change
+  /// at midnight (Santiago, Havana, Cairo, Beirut) the transition day has no
+  /// 00:00 and `startOfDay` returns 01:00; adding a day to that keeps the
+  /// 01:00, and a chained key never again equals a key built from
+  /// `startOfDay`. Every later day read zero and the range lost its last day.
+  /// US zones switch at 02:00 and never showed it. The rolling summary had
+  /// the mirror image of the same bug — offsets chained *backwards* from the
+  /// transition day — until it was routed through here. The guard that the
+  /// walk advances is belt and braces: a calendar that returned the same day
+  /// would otherwise never terminate.
+  static func dayKeys(from first: Date, through last: Date, calendar: Calendar) -> [Date] {
+    let lastDay = calendar.startOfDay(for: last)
+    var keys: [Date] = []
+    var day = calendar.startOfDay(for: first)
+    while day <= lastDay {
+      keys.append(day)
+      guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+      let normalized = calendar.startOfDay(for: next)
+      guard normalized > day else { break }
+      day = normalized
+    }
+    return keys
   }
 
   /// Groups daily totals into calendar buckets (weeks or months), oldest first.

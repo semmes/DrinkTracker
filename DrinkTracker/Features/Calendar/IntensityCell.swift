@@ -94,6 +94,33 @@ struct IntensityCell: View {
   }
 }
 
+extension DayIntensity {
+  /// Legend order, shared by the in-app legend and the share cards so the two
+  /// can never drift. "Not logged" is drawn as nothing, so naming it last is
+  /// what tells a reader that a blank cell means absence of data, not a zero.
+  static let legendOrder: [DayIntensity] = [.alcoholFree, .low, .medium, .high, .unlogged]
+
+  /// The legend label as a catalog key.
+  ///
+  /// `legendLabel` is the package's plain String, and `Text(String)` is the
+  /// verbatim initializer — so the in-app legend never reached the catalog.
+  /// The words are the same five. They live app-side rather than behind the
+  /// package's `localized()` because `xcstringstool generate-symbols` derives
+  /// a Swift identifier from every package key, and keys made of digits and
+  /// punctuation ("1–2", "6+") are the ones it has no good answer for; the app
+  /// catalog generates no symbols and tolerates them. Localizing the package's
+  /// own labels is ADR-0020's question, deferred with the rest of translation.
+  var legendKey: LocalizedStringKey {
+    switch self {
+    case .unlogged: "Not logged"
+    case .alcoholFree: "No alcohol"
+    case .low: "1–2"
+    case .medium: "3–5"
+    case .high: "6+"
+    }
+  }
+}
+
 /// Legend for the intensity ramp.
 ///
 /// Always present. The ramp is readable without it, but a legend is what makes the
@@ -106,18 +133,12 @@ struct IntensityLegend: View {
 
   @Environment(\.colorScheme) private var scheme
 
-  private var shown: [DayIntensity] {
-    // "Not logged" is drawn as nothing, so naming it in the legend is what tells a
-    // reader that a blank cell means absence of data rather than a zero.
-    [.alcoholFree, .low, .medium, .high, .unlogged]
-  }
-
   var body: some View {
     FlowLayout(spacing: GlassTokens.Spacing.regular) {
-      ForEach(shown, id: \.self) { intensity in
+      ForEach(DayIntensity.legendOrder, id: \.self) { intensity in
         HStack(spacing: 6) {
           swatch(intensity)
-          Text(intensity.legendLabel)
+          Text(intensity.legendKey)
             .font(.caption)
             .foregroundStyle(.secondary)
         }

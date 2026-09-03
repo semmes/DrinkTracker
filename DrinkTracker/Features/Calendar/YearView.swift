@@ -11,13 +11,25 @@ import SwiftUI
 /// This is the view the single-hue ramp exists for. At this density hue is nearly
 /// useless — the eye is reading lightness, and lightness is the channel that
 /// survives every form of colour vision deficiency.
+///
+/// The page ends on the same four figures the month view's card carries, for
+/// the year shown (ADR-0026): whole for a past year, January 1 through today
+/// for the current one. Twelve named months match exactly one window, so
+/// there is no picker here.
 struct YearView: View {
   @Environment(AppSettings.self) private var settings
+  @Environment(\.scenePhase) private var scenePhase
 
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
 
   @State private var year: Int = Calendar.current.component(.year, from: Date())
+
+  /// Start of the current calendar day, refreshed on the day-change
+  /// notification and on foregrounding — the same reason `CalendarView`
+  /// holds one: "2025, through today" has to become "2025" on January 1
+  /// without waiting for something else to re-render.
+  @State private var today: Date = Calendar.current.startOfDay(for: Date())
 
   private var calendar: Calendar { .current }
 
@@ -27,6 +39,13 @@ struct YearView: View {
   ]
 
   var body: some View {
+    // Built once per render and handed to everything below: the twelve grids
+    // cost a walk over the whole log, and the card would otherwise pay it
+    // again.
+    let grids = self.grids
+    let summary = TrendSummary.yearSummary(grids, through: today, calendar: calendar)
+    let yearDayCount = grids.reduce(0) { $0 + $1.days.count }
+
     ScrollView {
       VStack(spacing: GlassTokens.Spacing.section) {
         yearHeader
@@ -39,17 +58,32 @@ struct YearView: View {
 
         IntensityLegend(isCompact: true)
 
-        Text(recordedSummary)
+        // A year grid that is mostly blank looks like a year of not drinking.
+        // At 11pt cells the legend's "Not logged" swatch needs the words, and
+        // the card below names how many days that is.
+        Text("Blank days are days without a record, not days without alcohol.")
           .font(.caption)
           .foregroundStyle(.secondary)
           .frame(maxWidth: .infinity, alignment: .leading)
           .fixedSize(horizontal: false, vertical: true)
+
+        RecentSummaryCard(
+          summary: summary,
+          region: settings.effectiveRegion,
+          heading: .year(year, isClipped: summary.dayCount < yearDayCount)
+        )
       }
       .screenMargin()
       .padding(.vertical, GlassTokens.Spacing.section)
     }
     .navigationTitle(String(year))
     .navigationBarTitleDisplayMode(.large)
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { today = calendar.startOfDay(for: Date()) }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+      today = calendar.startOfDay(for: Date())
+    }
   }
 
   // MARK: - Data
@@ -69,23 +103,6 @@ struct YearView: View {
       alcoholFreeDays: markedDays,
       calendar: calendar
     )
-  }
-
-  /// How much of the year is actually accounted for.
-  ///
-  /// A year grid that is mostly blank looks like a year of not drinking. Saying how
-  /// many days were recorded keeps the picture honest about what it doesn't know.
-  private var recordedSummary: LocalizedStringKey {
-    let recorded = grids.reduce(0) { $0 + $1.recordedDayCount }
-    let total = grids.reduce(0) { $0 + $1.days.count }
-    // The year goes in as text, not as a number. A numeric placeholder is
-    // resolved through String(format:locale:), which would group the digits
-    // and print "2,026" under a navigation title still reading "2026".
-    let yearText = String(year)
-    guard recorded > 0 else {
-      return "Nothing recorded in \(yearText) yet. Blank days are days without a record, not days without alcohol."
-    }
-    return "\(recorded) of \(total) days in \(yearText) have something recorded. Blank days are days without a record, not days without alcohol."
   }
 
   // MARK: - Header
@@ -126,7 +143,7 @@ struct YearView: View {
   }
 
   private var isCurrentYear: Bool {
-    year >= calendar.component(.year, from: Date())
+    year >= calendar.component(.year, from: today)
   }
 }
 

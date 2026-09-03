@@ -80,6 +80,20 @@ final class AppSettings {
     didSet { defaults.set(showsSessionPace, forKey: Keys.sessionPace) }
   }
 
+  /// Which span the calendar's summary card covers (ADR-0026).
+  ///
+  /// Defaults to the rolling 30 days — the shipped behaviour, the window
+  /// ADR-0006 was decided on, never clipped (nobody's first sight of the card
+  /// is a two-day month), and the spec's rule that a new surface ships
+  /// neutral. Stored as a raw string so "never set" is `nil` and the default
+  /// lives here alone (the `counterSeed` pattern). App-only, like
+  /// `showsSessionPace`: the widget has no summary card, so this `didSet`
+  /// does not reload widget timelines. Not iCloud-synced, like every setting
+  /// here — which window a device shows is about that device's reader.
+  var calendarSummaryWindow: CalendarSummaryWindow {
+    didSet { defaults.set(calendarSummaryWindow.rawValue, forKey: Keys.calendarSummaryWindow) }
+  }
+
   private let defaults: UserDefaults
 
   init(defaults: UserDefaults = AppGroup.defaults) {
@@ -89,6 +103,8 @@ final class AppSettings {
     self.prefersDetailedLogging = defaults.bool(forKey: Keys.detailedLogging)
     self.showsSessionPace = defaults.bool(forKey: Keys.sessionPace)
     self.counterSeed = Self.storedCounterSeed(defaults: defaults)
+    self.calendarSummaryWindow = defaults.string(forKey: Keys.calendarSummaryWindow)
+      .flatMap(CalendarSummaryWindow.init(rawValue:)) ?? .lastThirtyDays
   }
 
   /// Region lookup for contexts without a live `AppSettings` — notably the widget's
@@ -115,5 +131,6 @@ final class AppSettings {
     static let detailedLogging = "prefersDetailedLogging"
     static let sessionPace = "showsSessionPace"
     static let counterSeed = "counterSeed"
+    static let calendarSummaryWindow = "calendarSummaryWindow"
   }
 }

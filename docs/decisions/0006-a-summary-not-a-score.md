@@ -1,6 +1,9 @@
 # 0006 — The 30-day view is a summary, not a score
 
-**Status:** accepted · **Date:** 2026-08 · **Relates to:** ADR-0001, PRD §1 and §2
+**Status:** accepted · **Date:** 2026-08 · **Relates to:** ADR-0001, PRD §1 and §2 ·
+**Amended by:** ADR-0026 (the window is now chosen — the last 30 days, the month
+shown, or the year shown — and the year view's footnote moved into the card; the
+shape is unchanged)
 
 ## Context
 

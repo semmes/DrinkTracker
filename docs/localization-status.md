@@ -67,9 +67,13 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **304 keys** — 239 app, 34 widget, 27 core, 4 shortcuts (counted
-2026-09-02; the case-colliding core key "Standard drink" was removed the same
-day the 301 figure was written, and four Today/day-sheet keys arrived after it).
+Current: **314 keys** — 249 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-03 after ADR-0026's sync: twelve app keys in — the summary window's
+picker and headings, the "—" average's spoken form, the year caption, and the
+five legend words, which `Text(String)` had kept out of the catalog until
+`DayIntensity.legendKey` — and the two year-footnote keys out; the shared
+"%@, through today" key serves a month and a year and may need splitting at
+translation time).
 
 **"Extraction and the committed catalogs agree exactly" was re-established on
 2026-09-02** by running the sync below against a clean build on a machine with

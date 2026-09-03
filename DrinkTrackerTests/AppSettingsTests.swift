@@ -89,6 +89,28 @@ struct AppSettingsTests {
     #expect(AppSettings(defaults: defaults).prefersDetailedLogging)
   }
 
+  // MARK: - Calendar summary window
+
+  /// The card's window (ADR-0026) starts on the rolling 30 days every install
+  /// already shows, and survives a relaunch once chosen.
+  @Test("The calendar summary window defaults to the last 30 days and round-trips")
+  func calendarSummaryWindowRoundTrips() {
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.calendarSummaryWindow == .lastThirtyDays)
+
+    settings.calendarSummaryWindow = .monthShown
+    #expect(AppSettings(defaults: defaults).calendarSummaryWindow == .monthShown)
+  }
+
+  /// The raw strings are the stored contract; anything else falls back rather
+  /// than crashing, the same rule `region` follows.
+  @Test("An unrecognised stored window falls back to the last 30 days")
+  func unknownStoredWindowFallsBack() {
+    defaults.set("fortnight", forKey: "calendarSummaryWindow")
+
+    #expect(AppSettings(defaults: defaults).calendarSummaryWindow == .lastThirtyDays)
+  }
+
   // MARK: - Onboarding
 
   @Test("The onboarding flag round-trips and starts false")

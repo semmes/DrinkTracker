@@ -57,6 +57,22 @@ public struct MonthGrid: Identifiable, Hashable, Sendable {
     days.count { $0.intensity.isRecorded }
   }
 
+  /// This month's cells up to and including the day containing `date`: the
+  /// whole month once it has ended, the 1st through today while it is in
+  /// progress, and nothing for a month that has not begun (ADR-0026).
+  ///
+  /// A summary counts days that have happened. A future day is not "nothing
+  /// logged either way" — it is not in the window — so clipping here is what
+  /// keeps a card's unlogged line honest and its day count equal to the days
+  /// it names. Both sides of the comparison are `startOfDay` values (cells
+  /// are built that way in `monthGrid`), so a midnight-DST day compares
+  /// correctly and no date arithmetic is introduced. Callers pass the clock
+  /// in; nothing here reads it.
+  public func days(through date: Date, calendar: Calendar = .current) -> [CalendarDay] {
+    let cutoff = calendar.startOfDay(for: date)
+    return days.filter { $0.date <= cutoff }
+  }
+
   // MARK: - Drag selection
 
   /// Maps a grid position — row and weekday column — to an index into `days`.

@@ -265,10 +265,10 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-02): **304 keys** across four
-  catalogs — 239 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **314 keys** across four
+  catalogs — 249 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
-  on 2026-09-02; count them (`len(json['strings'])` per file) rather than
+  on 2026-09-03; count them (`len(json['strings'])` per file) rather than
   trusting this number. See `docs/localization-status.md`.
   **How to populate them, because this repeatedly looked like "my build did
   nothing":** a command-line build does *not* write back into `.xcstrings` —
@@ -391,3 +391,27 @@ Open items for v1.2:
   foreground; the V1→V2 migration on a real device store (Settings →
   Diagnostics must not say "in memory"); and the new field syncing between
   two devices on a TestFlight build, which is what exercises Production.
+- **ADR-0026 landed on the open train (2026-09-03):** the calendar's summary
+  card takes a window — "Last 30 days" (default, unchanged) or "Month shown"
+  (the grid's own cells, whole when past, the 1st through today when current,
+  headed "…, through today" with the day count beside it) — via a native
+  segmented picker on interactive glass above the card, persisted in
+  `AppSettings.calendarSummaryWindow`; the year view carries the same card
+  for the year shown and retired its "N of 365" footnote. **One fold**,
+  `TrendSummary.summary(of: [CalendarDay])`, is behind every window
+  (`recentSummary`, `monthSummary`, `yearSummary`); `dayKeys` is the
+  package's one DST-safe day walk, and routing `recentSummary` through it
+  fixed a real bug — on a midnight-DST day (Santiago, Havana, Cairo, Beirut)
+  the rolling card read 29 of 30 days as unlogged. The card is split into
+  `RecentSummaryCaptions` → `RecentSummaryFigures` → `RecentSummaryCard(heading:)`
+  so the share cards (ADR-0027) and the Trends bar detail (ADR-0028) reuse
+  the reviewed copy; an average over no drinking days prints "—";
+  `DayIntensity.legendKey` (app-side) finally puts the five legend words in
+  the catalog. **No schema change, no CloudKit step.** Rules that came out of
+  it: never a delta between windows; "through today" is the on-device clip
+  wording (never "so far"); the three summary surfaces name the average
+  differently on purpose only where the reader is not the subject (the share
+  image says "on days with drinks", ADR-0027). **Tier 3 for the owner's
+  pass:** the picker answering a tap (interactive glass), the crossfade on a
+  switch, the day-change refresh of "through today" after a night suspended,
+  the "—" figure and its spoken form, AX5 fit of the two segment labels.
