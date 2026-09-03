@@ -143,11 +143,10 @@ to its launch day" class of bug, pre-empted for a card headed "through today".
 - "Month" on Trends still means the rolling 30 days, and Trends' ComponentsKit
   picker keeps its VoiceOver hole. Both recorded as follow-ups, not fixed
   here.
-- The share card, when it prints the four figures (its own record, ADR-0027,
-  next on the train), must use
+- The share card, when it prints the four figures (ADR-0027), must use
   `monthSummary` / `yearSummary` so the image and the card on screen agree —
-  and must argue that rendered summary against ADR-0006 in its own record,
-  per ADR-0015's reopen clause. Its current per-week figure divides by the
+  and argues that rendered summary against ADR-0006 there, per ADR-0015's
+  reopen clause. Its current per-week figure divides by the
   whole month's day count, future days included; the same fold corrects it.
 - No schema change, so no CloudKit step — stated because ADR-0025 made the
   step easy to assume. No new permissions, no new privacy label categories,
