@@ -80,6 +80,29 @@ clinical definitions, risk estimates, threshold-defined categories, attitude
 polling, third-hand concentration figures. The contract's verifier now
 rejects them by construction.
 
+## Feature E: The bar readout moves into the chart card's header — done (ADR-0028 amendment)
+
+From the owner's design pass (`docs/design/Bar chart hover states design/`).
+The block that reported a selected Trends bar sat *under* the chart, where the
+reading hand covers it and the card grew as it appeared. It moves into the
+card's header, above the plot, as two states sharing one box over a scaled
+floor, so the card's height is identical selected or not. The average line's
+label leaves the plot and becomes a legend carrying the line's own value beside
+the range's own — two independent facts, never a delta. The grid lines go; the
+zero baseline and the dashed average are the only rules left behind the bars. A
+rail and a hairline mark the touched bar. The selection lasts the touch, which
+is what iOS 26 already did; the ✕ and the fuller block with the type breakdown
+narrow to the accessibility-stepped selection.
+
+**Not built, and why it stops here:** the design's fourth figure was a longest
+run without a drink, on the header row and as a summary card. That is a
+longest-gap record — a stop condition inherited from the 1.2 spec and named by
+ADR-0027 — so the slot takes ADR-0006's own second figure, days with none, and
+the summary cards are unchanged. The design's live-figure tint is the intensity
+ramp's 6+ drinks fill, which would make lightness carry interaction state
+instead of magnitude (PRD invariant 10); the figure is `.primary`, with a
+costed one-commit route in the ADR if the owner wants the tint.
+
 ## App Review consistency
 
 | Claim made in the 1.0 response, kept through 1.2 | 1.3 |

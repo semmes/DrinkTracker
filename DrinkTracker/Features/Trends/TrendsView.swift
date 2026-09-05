@@ -12,10 +12,13 @@ import SwiftUI
 /// natively. The surrounding KPI cards and progress bars are ComponentsKit,
 /// themed to sit inside the same Liquid Glass material as everything else.
 ///
-/// Tap or drag across the bars to select one (ADR-0028): the selected bar keeps
-/// its accent, the rest dim, and a block under the chart reports that bar's own
-/// facts — never its distance from the average line. The selection is view
-/// state only: nothing about it is persisted, synced, or logged.
+/// Drag across the bars to read one (ADR-0028 and its 2026-09-05 amendment):
+/// the touched bar keeps its accent, the rest dim, and the card's header —
+/// above the plot, so nothing appears under the reading hand — reports that
+/// bar's own facts, never its distance from the average line. A touch
+/// selection lasts the touch; a stepped selection persists and keeps the
+/// shipped block below the chart. The selection is view state only: nothing
+/// about it is persisted, synced, or logged.
 ///
 /// Tone: the average line is described as "your average", never as a target,
 /// and nothing here congratulates or warns. It reports, and stops.
@@ -23,6 +26,7 @@ struct TrendsView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.colorScheme) private var colorScheme
 
   @State private var range: TrendRange = .week
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
@@ -35,6 +39,27 @@ struct TrendsView: View {
   /// and never a `PeriodDetail` snapshot. A Date survives inserts, re-sorts,
   /// and data changes; a snapshot goes stale the moment a drink is logged.
   @State private var selectedDate: Date?
+
+  /// True only for a selection the accessibility stepper put there. The touch
+  /// gesture never sets it: on iOS 26 `chartXSelection` writes nil itself the
+  /// moment the finger lifts, so a scrub is over before a control could be
+  /// reached, and the ✕ belongs to the selection that actually persists.
+  @State private var selectionIsHeld = false
+
+  /// The readout's floor. A scaled metric, not a fixed height: the card must
+  /// not change height with the selection, which this delivers at the sizes the
+  /// design was drawn at — but a fixed height clips (design-system §3, and the
+  /// fault that disqualified `SUSegmentedControl` in ADR-0026).
+  ///
+  /// 84, not the design's 76. Measured on a 402pt screen at the default text
+  /// size the idle state's own content is 76.2pt — the design's number, drawn
+  /// from the idle state — but the scrub state's is 81.4pt, because its title
+  /// is subheadline where the idle title is footnote. At 76 the floor bound
+  /// neither, and the card moved 5pt on every selection: the exact fault this
+  /// readout exists to remove. At 84 the floor binds both and the height is
+  /// identical. Above the floor, at the accessibility sizes, the box grows
+  /// rather than clips and the two states may differ again.
+  @ScaledMetric(relativeTo: .footnote) private var readoutHeight: CGFloat = 84
 
   /// The clock the chart is drawn against, refreshed on the day-change
   /// notification and on every foregrounding (the calendar's pattern,
@@ -88,6 +113,10 @@ struct TrendsView: View {
     let selection: PeriodDetail?
     /// The range by weekday (ADR-0032), seven rows in the calendar's order.
     let weekdays: [WeekdayTotal]
+    /// ADR-0006's figures over the whole range — the header's idle line. Read
+    /// only for `daysWithDrinks`: the printed total stays `sum`, the fold the
+    /// StatCard below already prints, so one number has one source.
+    let rangeSummary: RecentSummary
 
     var average: Double { TrendSummary.dailyAverage(totals) }
     var sum: Double { TrendSummary.sum(totals) }
@@ -123,6 +152,10 @@ struct TrendsView: View {
       selection: selection,
       weekdays: TrendSummary.weekdayTotals(
         range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
+      ),
+      rangeSummary: TrendSummary.rangeSummary(
+        range: range, endingOn: today, drinks: drinks,
+        alcoholFreeDays: markedDays, region: region, calendar: calendar
       )
     )
   }
@@ -148,13 +181,20 @@ struct TrendsView: View {
     Binding(
       get: { selectedDate },
       set: { newValue in
-        withAnimation(.smooth(duration: 0.25)) { selectedDate = newValue }
+        // Framework writes — including the nil it writes on release — are the
+        // touch path, which is never "held". Cleared before the assignment so
+        // the stepper's own write can set it afterwards and win.
+        selectionIsHeld = false
+        withAnimation(.smooth(duration: 0.22)) { selectedDate = newValue }
       }
     )
   }
 
   private func clearSelection() {
-    withAnimation(.smooth(duration: 0.25)) { selectedDate = nil }
+    withAnimation(.smooth(duration: 0.22)) {
+      selectedDate = nil
+      selectionIsHeld = false
+    }
   }
 
   /// The range picker clears the selection in the same update it changes
@@ -166,6 +206,7 @@ struct TrendsView: View {
       get: { range },
       set: { newRange in
         selectedDate = nil
+        selectionIsHeld = false
         range = newRange
       }
     )
@@ -192,17 +233,17 @@ struct TrendsView: View {
   private func chartCard(_ snapshot: Snapshot) -> some View {
     SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-        Text(chartTitle)
-          .font(GlassTokens.Typography.cardLabel)
-          .foregroundStyle(.secondary)
-
-        chart(snapshot)
+        readout(snapshot)
 
         Divider().opacity(0.5)
 
-        // The block describes the bar it sits under and moves with the card;
-        // the bars never move under the finger, the cards below slide down.
-        if let selection = snapshot.selection {
+        chart(snapshot)
+
+        // A stepped selection holds between actions, so it keeps the shipped
+        // block: composition rows, the named unlogged count, and the ✕ that
+        // clears it. A scrub never reaches here — it ends when the finger lifts.
+        if selectionIsHeld, let selection = snapshot.selection {
+          Divider().opacity(0.5)
           PeriodDetailView(
             detail: selection,
             region: settings.effectiveRegion,
@@ -211,16 +252,121 @@ struct TrendsView: View {
             onClear: clearSelection
           )
           .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
-        } else {
-          // Discoverability for a gesture with no visible affordance — the
-          // calendar's own precedent. One line, one key for all four ranges.
-          Text("Tip: tap or drag across the bars to see what each one holds")
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
     }
+  }
+
+  // MARK: - Readout
+
+  /// The card's header: the range's own figures when nothing is being scrubbed,
+  /// the touched bar's while a finger is on the chart (ADR-0028 amendment).
+  ///
+  /// Both states share one box with a floor, so the card's height does not
+  /// change with the selection — the property the design asked a fixed 76
+  /// points for, without the fixed height Dynamic Type rules out. The header
+  /// stays idle for a stepped selection, because the block below the chart
+  /// already says all of it and more.
+  @ViewBuilder
+  private func readout(_ snapshot: Snapshot) -> some View {
+    let live = selectionIsHeld ? nil : snapshot.selection
+    let offset: CGFloat = reduceMotion ? 0 : 6
+
+    ZStack(alignment: .topLeading) {
+      idleReadout(snapshot)
+        .opacity(live == nil ? 1 : 0)
+        .offset(y: live == nil ? 0 : -offset)
+        .accessibilityHidden(live != nil)
+        .allowsHitTesting(live == nil)
+
+      if let live {
+        PeriodReadout(
+          detail: live,
+          region: settings.effectiveRegion,
+          isToday: live.unit == .day && calendar.isDate(live.start, inSameDayAs: today),
+          calendar: calendar
+        )
+        .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: offset)))
+      }
+    }
+    .frame(maxWidth: .infinity, minHeight: readoutHeight, alignment: .topLeading)
+  }
+
+  private func idleReadout(_ snapshot: Snapshot) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      HStack(alignment: .firstTextBaseline) {
+        Text(chartTitle)
+          .font(GlassTokens.Typography.cardLabel)
+          .foregroundStyle(.secondary)
+        Spacer(minLength: GlassTokens.Spacing.tight)
+        if let line = averageLineValue(snapshot) { averageLegend(line) }
+      }
+
+      HStack(alignment: .firstTextBaseline, spacing: 5) {
+        Text(StandardDrink.formatted(snapshot.sum))
+          .font(GlassTokens.Typography.cardValue)
+          .monospacedDigit()
+          .foregroundStyle(.primary)
+          .contentTransition(.opacity)
+        rangeCaption(snapshot)
+          .font(GlassTokens.Typography.cardLabel)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .padding(.top, 5)
+
+      // Discoverability for a gesture with no visible affordance — the
+      // calendar's own precedent. One line, one key for all four ranges.
+      // "tap" is gone because on iOS 26 an instantaneous tap does not select:
+      // selection needs the short dwell that begins a scrub.
+      Text("Tip: drag across the bars to see what each one holds")
+        .font(.caption2)
+        .foregroundStyle(.tertiary)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, 6)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
+  }
+
+  /// "standard drinks · 30 days with drinks" — the noun from the package and
+  /// the count from the calendar card's own count-bearing key, joined as
+  /// separate `Text` values. A key made of a placeholder and punctuation is
+  /// never looked up (ADR-0020), so the middle dot is never part of one.
+  private func rangeCaption(_ snapshot: Snapshot) -> Text {
+    Text(verbatim: settings.effectiveRegion.unitName(for: snapshot.sum))
+      + Text(verbatim: " · ")
+      + RecentSummaryCaptions.daysWithDrinksPhrase(snapshot.rangeSummary.daysWithDrinks)
+  }
+
+  /// The dashed line's own value, beside the range's own — an independent fact,
+  /// never a delta, never signed, no direction word (ADR-0028). Drawn only when
+  /// the line is: a legend for a line that is not there is a caption for
+  /// nothing (ADR-0029's rule for the year-in-review caption).
+  private func averageLegend(_ value: Double) -> some View {
+    HStack(spacing: 6) {
+      DashedRule()
+        .stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
+        .foregroundStyle(.secondary)
+        .frame(width: 14, height: 1)
+      (Text(averageLineLabel)
+        + Text(verbatim: " · ")
+        + Text(verbatim: StandardDrink.formatted(value)))
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+    }
+    .fixedSize()
+    .accessibilityElement(children: .combine)
+  }
+
+  /// One expression behind both the `RuleMark` and the header legend, so the
+  /// legend can never describe a line that is not drawn. The gate is `> 0`,
+  /// never `!= nil`: `bucketAverage` returns `Optional(0.0)` for an empty log
+  /// on both bucketed ranges, so nil is practically unreachable.
+  private func averageLineValue(_ snapshot: Snapshot) -> Double? {
+    let value: Double? = isBucketed ? snapshot.bucketAverage : snapshot.average
+    guard let value, value > 0 else { return nil }
+    return value
   }
 
   private func chart(_ snapshot: Snapshot) -> some View {
@@ -257,21 +403,14 @@ struct TrendsView: View {
 
       // The line matches the bars' scale: per day on daily charts, per
       // completed week/month on bucketed ones — a daily line under weekly
-      // bars would hug the floor and read as meaningless. Never dimmed and
-      // never annotated relative to the selection: the eye can compare
-      // without the app putting the comparison into words.
-      if let lineValue = isBucketed
-        ? snapshot.bucketAverage
-        : (snapshot.average > 0 ? snapshot.average : nil),
-        lineValue > 0 {
+      // bars would hug the floor and read as meaningless. Never dimmed, never
+      // annotated relative to the selection — and no longer annotated at all:
+      // its label is the header legend, where it reads at a glance instead of
+      // colliding with the bars.
+      if let lineValue = averageLineValue(snapshot) {
         RuleMark(y: .value("Average", lineValue))
           .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
           .foregroundStyle(.secondary)
-          .annotation(position: .top, alignment: .leading) {
-            Text(averageLineLabel)
-              .font(.caption2)
-              .foregroundStyle(.secondary)
-          }
       }
     }
     // Tap selects, drag scrubs; the value is the continuous x under the
@@ -280,29 +419,93 @@ struct TrendsView: View {
     // Only opacity changes inside the plot — no annotation, no second rule,
     // no colour (invariant 10).
     .chartXSelection(value: selectionBinding)
+    // A rail behind the bars and a hairline in front of them — the two marks
+    // that say where the finger is. Neither encodes anything about the data,
+    // which is why they are a selected state (design-system §2) rather than a
+    // second colour role, and why no annotation, no second rule and no colour
+    // on the bars themselves is needed (invariant 10).
+    .chartBackground { proxy in
+      GeometryReader { geo in
+        if let selection = snapshot.selection,
+          let anchor = proxy.plotFrame,
+          let slot = selectedBarSlot(selection, proxy: proxy) {
+          let plot = geo[anchor]
+          UnevenRoundedRectangle(
+            topLeadingRadius: 9,
+            bottomLeadingRadius: 0,
+            bottomTrailingRadius: 0,
+            topTrailingRadius: 9,
+            style: .continuous
+          )
+          .fill(
+            LinearGradient(
+              colors: [
+                Color.accentColor.opacity(colorScheme == .dark ? 0.22 : 0.14),
+                Color.accentColor.opacity(colorScheme == .dark ? 0.04 : 0.03),
+              ],
+              startPoint: .top,
+              endPoint: .bottom
+            )
+          )
+          .frame(width: slot.width, height: plot.height)
+          .position(x: plot.minX + slot.centre, y: plot.midY)
+          .animation(.smooth(duration: 0.16), value: selection.start)
+        }
+      }
+      .allowsHitTesting(false)
+    }
+    .chartOverlay { proxy in
+      GeometryReader { geo in
+        if let selection = snapshot.selection,
+          let anchor = proxy.plotFrame,
+          let slot = selectedBarSlot(selection, proxy: proxy),
+          let barTop = proxy.position(forY: selection.standardDrinks) {
+          let plot = geo[anchor]
+          let height = max(0, barTop)
+          Rectangle()
+            .fill(
+              LinearGradient(
+                colors: [Color.accentColor.opacity(0), Color.accentColor.opacity(0.5)],
+                startPoint: .top,
+                endPoint: .bottom
+              )
+            )
+            .frame(width: 1, height: height)
+            .position(x: plot.minX + slot.centre, y: plot.minY + height / 2)
+            .animation(.smooth(duration: 0.16), value: selection.start)
+        }
+      }
+      // Mandatory: without it the overlay's content intercepts the touch that
+      // drives `chartXSelection`.
+      .allowsHitTesting(false)
+    }
     .chartYAxis {
-      AxisMarks(position: .leading)
+      // Labels only, plus the zero rule. The zero baseline *is* a y-axis grid
+      // line, so dropping the grid wholesale would leave the plot with no
+      // floor at all — measured, not assumed.
+      AxisMarks(position: .leading) { value in
+        AxisValueLabel()
+        if let raw = value.as(Double.self), raw == 0 { AxisGridLine() }
+      }
     }
     .chartXAxis {
+      // Labels only. With the grid gone the dashed average is the single
+      // reference behind the bars instead of one line among a dozen.
       switch range {
       case .week:
         AxisMarks(values: .stride(by: .day, count: 1)) { _ in
-          AxisGridLine()
           AxisValueLabel(format: .dateTime.weekday(.narrow))
         }
       case .month:
         AxisMarks(values: .stride(by: .day, count: 7)) { _ in
-          AxisGridLine()
           AxisValueLabel(format: .dateTime.month(.abbreviated).day())
         }
       case .quarter:
         AxisMarks(values: .stride(by: .month, count: 1)) { _ in
-          AxisGridLine()
           AxisValueLabel(format: .dateTime.month(.abbreviated))
         }
       case .year:
         AxisMarks(values: .stride(by: .month, count: 2)) { _ in
-          AxisGridLine()
           AxisValueLabel(format: .dateTime.month(.abbreviated))
         }
       }
@@ -321,6 +524,33 @@ struct TrendsView: View {
     .accessibilityAdjustableAction { direction in step(direction) }
     .accessibilityAction(.escape) { clearSelection() }
     .accessibilityAction(named: Text("Clear selection")) { clearSelection() }
+  }
+
+  /// The selected bar's slot inside the plot, in the plot's own coordinates:
+  /// the two edges of its bucket, and the centre between them.
+  ///
+  /// `position(forX:)` returns the position of that *instant*, and a bar is
+  /// drawn centred on its bin — so the bucket's start alone lands half a bucket
+  /// to the left of the bar it names (measured at 21.9 of a 44.1pt weekly
+  /// pitch, which puts a rail almost entirely over the previous bar). The last
+  /// bar has no adjacent start, so its trailing edge comes from the calendar.
+  /// These are plot coordinates: callers add `plotFrame`'s minX, because the
+  /// y-label gutter widens with the digits and is not a constant.
+  ///
+  /// The width is the slot's own, not the design's literal 26 points. That
+  /// number was drawn against 13 weekly bars, where it is slightly *wider* than
+  /// the 24.7pt pitch — the rail fills the slot, which is what makes it read as
+  /// a column behind the bar. Fixed at 26 it would be narrower than a Week
+  /// bar and read as a stripe inside one instead.
+  private func selectedBarSlot(_ detail: PeriodDetail, proxy: ChartProxy) -> (centre: CGFloat, width: CGFloat)? {
+    let next = TrendSummary.adjacentBucketStart(
+      from: detail.start, direction: 1, range: range, endingOn: today, calendar: calendar
+    ) ?? calendar.date(byAdding: range.bucket, value: 1, to: detail.start)
+    guard let next,
+      let leading = proxy.position(forX: detail.start),
+      let trailing = proxy.position(forX: next)
+    else { return nil }
+    return ((leading + trailing) / 2, max(12, abs(trailing - leading)))
   }
 
   // MARK: - Selection accessibility
@@ -368,7 +598,10 @@ struct TrendsView: View {
       next = forward ? snapshot.totals.first?.date : snapshot.totals.last?.date
     }
     guard let next else { return }
-    withAnimation(.smooth(duration: 0.25)) { selectedDate = next }
+    withAnimation(.smooth(duration: 0.22)) {
+      selectedDate = next
+      selectionIsHeld = true
+    }
   }
 
   // LocalizedStringKey, not String: `Text(String)` is the *verbatim*

@@ -246,6 +246,17 @@ Notes on what's new in 1.3:
   limit, a risk figure, or a category; the app never classifies the user
   and never compares to a threshold. The new By weekday card reports only
   the user's own log by day of the week, with no ranking.
+- On the Trends screen, dragging across the bars reads one bar at a time in
+  the chart card's header — the period's dates, its total, and for a week or
+  month bar three of the four figures the calendar's summary card already
+  shows, computed over that bar's own days by the same code. The selection
+  lasts the touch and clears when the finger lifts. A selection reached with
+  VoiceOver holds between steps and shows a fuller block below the chart with
+  what was logged by type. Nothing is compared to a target, to the average
+  line, or to other people; nothing about the selection is stored, and nothing
+  leaves the device. (This corrects one line in the 1.2 notes: a *tap* does
+  not open the type breakdown on iOS 26 — a held, accessibility-stepped
+  selection does.)
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```

@@ -108,6 +108,32 @@ extension TrendSummary {
     dayKeys(from: range.startDate(endingOn: endDate, calendar: calendar), through: endDate, calendar: calendar)
   }
 
+  /// ADR-0006's figures over a whole Trends range — what the chart card's
+  /// header names beside the range total.
+  ///
+  /// Built from the same three internals `periodDetail` uses, so the header, a
+  /// bar's readout, and the calendar cannot disagree about what a day is. It is
+  /// deliberately **not** `daysWithoutDrinks`'s complement: that counts days
+  /// whose *total* is zero, so a day whose only drink is 0% ABV falls on the
+  /// other side of it, and the header would contradict by one the very bar
+  /// sitting under it. The filter before `totalsByDay` matters for the same
+  /// reason `periodDetail` filters first — `totalsByDay` walks whatever log it
+  /// is handed, not just the range's days.
+  public static func rangeSummary(
+    range: TrendRange,
+    endingOn endDate: Date,
+    drinks: [LoggedDrink],
+    alcoholFreeDays: Set<Date>,
+    region: Region,
+    calendar: Calendar = .current
+  ) -> RecentSummary {
+    let keys = days(in: range, endingOn: endDate, calendar: calendar)
+    let keySet = Set(keys)
+    let inRange = drinks.filter { keySet.contains(calendar.startOfDay(for: $0.loggedAt)) }
+    let totals = totalsByDay(inRange, region: region, calendar: calendar)
+    return summary(of: calendarDays(keys, totalsByDay: totals, alcoholFreeDays: alcoholFreeDays))
+  }
+
   /// The distinct bar keys of a range, oldest first: the day keys themselves
   /// on daily charts, the calendar-period starts `bucketed` keys on otherwise.
   static func bucketStarts(range: TrendRange, endingOn endDate: Date, calendar: Calendar) -> [Date] {
