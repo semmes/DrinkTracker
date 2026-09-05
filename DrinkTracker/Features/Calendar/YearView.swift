@@ -83,20 +83,40 @@ struct YearView: View {
       // Each surface shares what it shows (ADR-0027): the calendar's button
       // renders the visible month, this one the visible year. User-initiated,
       // built at share time from the same grids the page draws.
+      //
+      // A year that has ended with something recorded in it has two
+      // pictures (ADR-0029) — the calendar, and the year in review — so its
+      // button opens a two-item menu naming both. The year in progress keeps
+      // its one tap: there is no review of a year that is not over. Never a
+      // prompt, a badge, or a banner; the control is the only entrance.
       ToolbarItem(placement: .topBarTrailing) {
-        ShareLink(
-          item: YearShareImage(
-            year: year,
-            grids: grids,
-            region: settings.effectiveRegion,
-            colorScheme: colorScheme,
-            calendar: calendar
-          ),
-          preview: SharePreview(String(year))
-        ) {
-          Image(systemName: "square.and.arrow.up")
+        if isReviewable(summary) {
+          Menu {
+            yearShareLink {
+              Label("Share as a calendar", systemImage: "calendar")
+            }
+            ShareLink(
+              item: YearInReviewImage(
+                year: year,
+                grids: grids,
+                region: settings.effectiveRegion,
+                colorScheme: colorScheme,
+                calendar: calendar
+              ),
+              preview: SharePreview("\(String(year)) in review")
+            ) {
+              Label("Share as a year in review", systemImage: "chart.bar")
+            }
+          } label: {
+            Image(systemName: "square.and.arrow.up")
+          }
+          .accessibilityLabel("Share this year as an image")
+        } else {
+          yearShareLink {
+            Image(systemName: "square.and.arrow.up")
+          }
+          .accessibilityLabel("Share this year as an image")
         }
-        .accessibilityLabel("Share this year as an image")
       }
     }
     .onChange(of: scenePhase) { _, phase in
@@ -165,6 +185,31 @@ struct YearView: View {
 
   private var isCurrentYear: Bool {
     year >= calendar.component(.year, from: today)
+  }
+
+  // MARK: - Sharing
+
+  /// The year card's link, the same whichever control holds it.
+  private func yearShareLink<L: View>(@ViewBuilder label: () -> L) -> some View {
+    ShareLink(
+      item: YearShareImage(
+        year: year,
+        grids: grids,
+        region: settings.effectiveRegion,
+        colorScheme: colorScheme,
+        calendar: calendar
+      ),
+      preview: SharePreview(String(year)),
+      label: label
+    )
+  }
+
+  /// The review's gate (ADR-0029): the year has ended, and something was
+  /// recorded in it. Read off the summary the page already computed, so
+  /// the gate costs no second walk over the log.
+  private func isReviewable(_ summary: RecentSummary) -> Bool {
+    TrendSummary.isComplete(year: year, today: today, calendar: calendar)
+      && summary.daysUnlogged < summary.dayCount
   }
 }
 

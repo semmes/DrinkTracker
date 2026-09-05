@@ -128,8 +128,11 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-09-03:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
-**1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**
+**As of 2026-09-05:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
+**1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
+**the 1.3 train is open** — `MARKETING_VERSION` is 1.3 on main, and its first
+feature (the year-in-review share card, ADR-0029) has landed; see the last
+bullet of this section
 — the owner built main at 5563b74 (PRs #60–#62 merged 2026-09-03: ADR-0026
 summary window, ADR-0027 share cards, ADR-0028 Trends bar detail), ran the
 device pass the same day, and submitted build 23F81a. See the 2026-09-02 and 2026-09-03 bullets at the
@@ -471,3 +474,41 @@ Open items for v1.2:
   drink is logged from Today; the three zero-bar states; VoiceOver stepping
   and the "No bar selected" value; AX5 with four kinds logged; a ~10k-entry
   scrub for frame drops.
+- **ADR-0029 opened the 1.3 train (2026-09-05):** the owner's design bundle
+  (`docs/design/Share_cards/` — the claude.ai/design project *Share Card*,
+  dropped in by hand because `DesignSync` needs a one-time `/design-login`
+  from an interactive terminal, which the desktop Code tab cannot run)
+  confirmed the month and year cards as shipped and added a **year-in-review
+  card**: for a calendar year that has ended with something recorded in it,
+  the year view's share button becomes a two-item menu ("Share as a
+  calendar", "Share as a year in review"); the review card is the year card's
+  four figures over a chart of twelve monthly totals — each bar
+  `monthSummary`'s total for that month — with the Trends Year line's
+  average (`bucketAverage` over twelve complete months = total ÷ 12) dashed
+  across it, captioned "Standard drinks by month · the dashed line is your
+  average, N". Arithmetic is `YearInReview` in the core package (tier-1
+  tested: bars = month cards, sum = year, average rule, axis rounding with
+  a floating-noise shave, the completeness and on-record gates, the region
+  lens); the chart is hand-drawn to `ShareCardLayout`'s chart constants,
+  never Swift Charts under `ImageRenderer`. **The one departure from
+  ADR-0027's care, recorded rather than hidden:** the line divides by twelve
+  months whether or not a month has a record (Trends' own rule), unlike the
+  fourth figure; ADR-0029's reopen path is a months-with-a-record
+  denominator. The privacy policy is unchanged ("a month or a year as an
+  image" still holds); the listing carries What's New (1.3) and reviewer
+  notes (1.3); six app-catalog keys were added and synced. **No schema
+  change, no CloudKit step.** Verified at tier 3 on the simulator: the menu,
+  the share sheet, and the sheet's Preview opening the PNG rendered from a
+  seeded 2025 in the real store. **Tier 3/4 for the owner's pass:** the
+  chart in a Messages bubble, the dashed line over dark bars on a real
+  display, "Save to Files" naming both year images, the tmp directory after
+  a share, VoiceOver's reading of the menu. **Two lessons for the next
+  probe build:** a simulator build made with `CODE_SIGNING_ALLOWED=NO` has
+  no entitlements, and finishing onboarding then traps in
+  `CloudKitStatusProbe.refresh()` (`CKContainer(identifier:)` without the
+  iCloud entitlement) — build without that flag to drive the app; and the
+  share sheet's *Preview* on the simulator opens the real PNG, which is the
+  cheapest proof of the whole `Transferable` path. The platform-neutral
+  spec for Android lives in `semmes/tallyist-product` (`design/share-cards.md`
+  and the year-review vectors, PR opened the same day).
+

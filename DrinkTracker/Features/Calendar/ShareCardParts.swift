@@ -71,6 +71,23 @@ enum ShareCardLayout {
   static var miniGridHeight: CGFloat {
     6 * miniCell + 5 * miniSpacing
   }
+
+  /// Year-in-review chart (ADR-0029): an 88pt plot beside a 20pt axis
+  /// column with a 6pt gap, so the plot is 312 − 26 = 286pt; twelve bars
+  /// share it with 4pt gaps, (286 − 11 × 4) / 12 ≈ 20.2pt each. The three
+  /// axis ticks sit with their bottoms at 0, 38 and 80pt — the middle one
+  /// centred on the 44pt gridline — and the bars' top corners take the
+  /// legend swatch's 3pt radius.
+  static let chartPlotHeight: CGFloat = 88
+  static let chartAxisWidth: CGFloat = 20
+  static let chartAxisGap: CGFloat = 6
+  static let chartBarGap: CGFloat = 4
+  static let chartBarRadius: CGFloat = 3
+  static let chartMidTickBottom: CGFloat = 38
+  static let chartTopTickBottom: CGFloat = 80
+  static var chartPlotWidth: CGFloat {
+    contentWidth - chartAxisWidth - chartAxisGap
+  }
 }
 
 /// The card's outer shape, ending on the wordmark — text alone, never the

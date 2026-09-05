@@ -807,3 +807,29 @@ The new label is literally what is counted.
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
 
+
+## 1.3 — The year in review (ADR-0029)
+
+| Where | Copy |
+|---|---|
+| Year view share menu, first item (the shipped year card) | "Share as a calendar" |
+| Year view share menu, second item | "Share as a year in review" |
+| Share sheet preview title for the review (the year as text) | "2025 in review" |
+| Card chart caption, first phrase, per region | "Standard drinks by month" · "Units by month" |
+| Card chart caption, second phrase, after a middle dot (the value as every drink figure prints) | "the dashed line is your average, 41.7" |
+| Card header, figures, unlogged sentence (existing keys, unchanged) | "2025" · "365 days" · "days with drinks" · "days with none" · "standard drinks total" · "on days with drinks" · "49 days have nothing logged either way." |
+| Axis ticks and month initials (numbers and the calendar's own symbols, no key) | "0" · "34.5" · "69" · "J F M A M J J A S O N D" |
+| Menu VoiceOver label (existing key) | "Share this year as an image" |
+| What's New (1.3) and reviewer notes (1.3) | as in docs/app-store-listing.md |
+
+**Reviewed against 1.4.3.** Every line is a count, a total, the name of a
+period, or the name of a picture. "your average" is the Trends chart's own
+register for the same line (ADR-0028: described as an average, never as a
+target) and the only possessive on the card; the figure caption keeps
+ADR-0027's "on days with drinks". Nothing names the tallest month, ranks a
+month, or relates one bar to another or to the line — "above", "below",
+"more", "less", "up", "down" appear nowhere. The menu items name what each
+picture is, not what to do with it; no line invites the share. No
+exclamation marks.
+
+**House voice intact.** Factual, no celebration, no judgment.

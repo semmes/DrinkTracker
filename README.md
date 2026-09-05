@@ -470,7 +470,7 @@ not logged. Never its distance from the average line
   to change a recorded day and the VoiceOver path
   ([ADR-0011](docs/decisions/0011-bulk-fill-never-touches-a-recorded-day.md)).
 
-### Sharing a month or a year
+### Sharing a month, a year, or a year in review
 
 The calendar's share button renders the visible month, and the year view's
 renders the visible year, as an image — the period's name, where the record
@@ -485,6 +485,18 @@ share time from raw data (no temp file, nothing persisted, nothing recorded
 about whether or where it went), renders in the app's current appearance,
 and carries no identifying metadata (orientation, resolution, and pixel
 dimensions only — verified by chunk inspection). No comparison to anyone.
+
+A year that has ended, with something recorded in it, has a second picture:
+the **year in review**
+([ADR-0029](docs/decisions/0029-a-complete-year-shares-its-months-as-bars.md)).
+The year view's share button becomes a two-item menu — "Share as a
+calendar", "Share as a year in review" — and the review card carries the
+same four figures over a chart of the year's twelve monthly totals, each bar
+the month card's own total, with the Trends chart's monthly average (total
+÷ 12) as a dashed line. The year in progress keeps its one-tap calendar
+share; nothing prompts anyone to share. Arithmetic in `YearInReview`
+(`DrinkTrackerCore`), tier-1 tested; the design reference is
+`docs/design/Share_cards/`.
 
 ### Alcohol-free days are recorded, not inferred
 
