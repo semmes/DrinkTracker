@@ -554,3 +554,48 @@ Open items for v1.2:
   year comparison under the summary card, the weekday rows at AX sizes, and
   the three source notes reading in both appearances.
 
+- **ADR-0028's amendment landed on the 1.3 train (2026-09-05, PR #68):** the
+  owner's design pass (`docs/design/Bar chart hover states design/`) moved the
+  selected-bar readout from *under* the chart into the chart card's **header**,
+  above the plot — two states sharing one box over a scaled **84pt** floor, so
+  the card's height is identical selected or not and nothing appears under the
+  reading hand. The average line's label left the plot and became a legend
+  carrying the line's own value beside the range's own (two independent facts,
+  never a delta); all `AxisGridLine`s are gone and the zero baseline is emitted
+  explicitly, because it *is* a y grid line and the plot would otherwise have
+  no floor; a rail the width of the bucket's own pitch and a 1pt hairline mark
+  the touched bar. **Three things to know before touching this again.** (a)
+  Release-to-clear was never a change: a compiled probe showed iOS 26's
+  `chartXSelection` writes nil itself on lift and an *instantaneous tap does
+  not select at all* — ADR-0028's "sticky" was an error of record, and both
+  compositions that would make it explicit were measured to capture the
+  ScrollView's vertical pan, so the gesture line is untouched and the ✕ plus
+  the type breakdown narrow to the accessibility-*stepped* selection. (b) The
+  design's 76pt came from the idle state; measured, idle content is 76.2pt and
+  the scrub state's 81.4pt, so 76 bound neither and the card still moved 5pt —
+  hence 84, and a `minHeight`, never a fixed height. (c) Three deviations, all
+  recorded in the amendment: the fourth figure (a longest run without a drink)
+  is a **spec stop** — `docs/tallyist-1.2-spec.md`'s "streak counter or a
+  longest-gap record", named again by ADR-0027 — so the slot takes ADR-0006's
+  *days with none*; the live-figure tint is `.primary`, not the ramp's top
+  step, because that step is the *6+ drinks* fill and would make lightness
+  carry interaction state instead of magnitude (a costed one-commit route to
+  the tint is in the ADR); and the zero-bar outline is not built, since the
+  outline is ADR-0007's channel for *recorded as no alcohol*, a zero bucket can
+  be seven unlogged days, and at 3pt with a 1.5pt inset it renders solid.
+  Correctness catch worth remembering: the header's day count needed
+  `TrendSummary.rangeSummary`, because `daysWithoutDrinks`'s complement counts
+  zero-*total* days and would have contradicted the bar beneath it by exactly
+  the 0%-ABV days. One app key in, one out (283); the three "Your average" keys
+  are **re-homed, not retired**. **No schema change, no CloudKit step, no
+  setting.** Verified locally at every CI tier plus tier 3 on the simulator over
+  a seeded quarter (identical card height, rail/hairline tracking, the zero
+  baseline, both zero-day readouts, dark mode) — the first render caught a real
+  bug, a fixed 26pt rail being *narrower* than a Week bar. **This session had a
+  full Swift toolchain** (Xcode 26.6, a booted simulator): local sessions can
+  and should run all four CI gates and drive the app, rather than repeating the
+  remote-session "CI is the only check" caveat. **Tier 3/4 for the owner's
+  pass:** the scrub coexisting with the vertical pan on hardware, the box at
+  AX5 with a wrapped week title, Reduce Motion, the extra haptic tick on
+  release, VoiceOver stepping with the ✕ appearing only then, and a ~10k-entry
+  scrub.
