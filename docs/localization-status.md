@@ -68,7 +68,15 @@ standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
 Current: **348 keys** — 283 app, 34 widget, 27 core, 4 shortcuts (counted
-2026-09-05 after the reference cards' sync — ADR-0030/0031/0032 — added 22
+2026-09-05 after ADR-0028's amendment sync, which swapped one key for one:
+"Tip: tap or drag across the bars to see what each one holds" out, "Tip: drag
+across the bars to see what each one holds" in — a tap does not select on
+iOS 26. The three "Your average" / "Your weekly average" / "Your monthly
+average" keys were **re-homed, not retired**: they left the chart's
+`RuleMark.annotation` and became the header legend's noun, so they are still
+live and must not be cleaned up. Nothing reached the widget or the core
+package. The same count earlier that day followed the reference cards' sync —
+ADR-0030/0031/0032 — which added 22
 app keys and retired the one explainer key that ended "Your average covers
 your last 4 weeks.", now split into the explainer and a per-window sentence;
 earlier the same day ADR-0029's sync had added six app keys for the

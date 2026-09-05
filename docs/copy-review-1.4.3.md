@@ -872,3 +872,56 @@ together). No second-person imperative, no encouragement, no warning, no
 exclamation marks.
 
 **House voice intact.** Factual, no celebration, no judgment.
+
+---
+
+## 1.3 — The scrub readout moves into the chart card's header (ADR-0028 amendment)
+
+| Where | Copy |
+|---|---|
+| Trends chart card header, nothing scrubbed — the range name (existing keys) | "Last 7 days" · "Last 30 days" · "Last 13 weeks" · "Last 12 months" |
+| Header, average-line legend — the `RuleMark` annotation's own keys, moved out of the plot and joined to the line's value by a middle dot (existing keys, re-homed) | "Your average · 1.4" · "Your weekly average · 7.5" · "Your monthly average · 14.8" |
+| Header, the range's own total and its second clause (the noun from the package, the count from the calendar card's count-bearing key) | "97" · "standard drinks · 42 days with drinks" · "1 unit · 1 day with drinks" |
+| Header, discoverability line (one key for all four ranges, replacing the 1.2 line) | "Tip: drag across the bars to see what each one holds" |
+| Header while scrubbing, the bar's title (system date formats, no key) | "Aug 9 – 15, 2026" · "Wednesday, September 2" · "September 2026, through today" |
+| Header while scrubbing, the note beside the title — a bucket's day count, or "Today" on the day it is (existing keys; never suffixed "through today", which a month title already carries) | "7 days" · "4 days" · "1 day" · "Today" |
+| Header while scrubbing, a bar with drinks (the amount in the current unit) | "7" · "standard drinks" · "1" · "standard drink" |
+| Header while scrubbing, a day recorded as no alcohol; under it when Health's (existing keys) | "Recorded as no alcohol" · "From Apple Health" |
+| Header while scrubbing, a day with nothing recorded (the legend's own word) | "Not logged" |
+| Header while scrubbing, a day bar's entry count (existing keys) | "1 drink" · "3 drinks" |
+| Header while scrubbing, a week or month bar — three of the calendar card's four figures, in its own captions, unchanged | "3 days with drinks" · "2.3 on days you drank" · "2 days with none" · "— on days you drank" |
+| Header while scrubbing, spoken (composed from localized parts; carries the unlogged line the row has no room to print) | "Aug 9 – 15, 2026, 7 days, 7 standard drinks, 3 days with drinks, 2 days with none, 2 days have nothing logged either way." |
+| Below the chart, a stepped selection (the shipped block, all existing keys) | unchanged from 1.2 |
+| Reviewer notes (1.3), new bullet | as in docs/app-store-listing.md |
+| Retired | "Tip: tap or drag across the bars to see what each one holds" |
+
+**Reviewed against 1.4.3.** Every line is a count, a total, the name of a
+period, or the name of a gesture. The average line's label left the plot and
+became a legend, and it says exactly what it said inside the plot, with the
+line's own value added beside the range's own: two independent figures, one
+never subtracted from the other. It is not a delta, is never signed, and no
+direction word appears — "above", "below", "more", "less", "up", "down" are
+absent, as are "spike", "dip", "streak" and "record". Nothing ranks a bar or
+characterises one. "Not logged" is the legend's word, so a blank bar and a
+blank cell still read the same. The three compact facts reuse the calendar
+card's captions unmodified rather than abbreviating them, so one figure never
+carries two vocabularies on one screen. The tip line names the gesture and
+invites nothing; it loses "tap" because on iOS 26 a tap does not select.
+
+**Why "N none in a row" was not built.** The design's third scrub figure was a
+longest run without a drink. `docs/tallyist-1.2-spec.md` stops on "A streak
+counter or a longest-gap record", and ADR-0027 names a longest gap as a stop
+condition: a run is a number that can be protected, which is the under-logging
+incentive ADR-0006 exists to refuse. The slot takes ADR-0006's own second
+figure, days with none, in the calendar card's words.
+
+**What the 1.2 note now over-promises.** The 1.2 What's New says a *tap* on a
+bar shows what was logged by type. On iOS 26 an instantaneous tap does not
+select at all, and a touch selection ends when the finger lifts, so the type
+breakdown is reached through the stepped (accessibility) selection rather than
+a tap. 1.2 is submitted and frozen; the 1.3 reviewer note states the behaviour
+as it is, and no 1.3 What's New line is added, because a reader who never saw
+the old placement has nothing to be told.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

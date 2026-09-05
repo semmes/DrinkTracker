@@ -1,0 +1,44 @@
+<!-- @dsCard group="Components" viewport="700x340" name="Rows &amp; stat cards" subtitle="Value + noun; no deltas, no arrows, no progress bars" -->
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+.panel { box-sizing: border-box; height: 100%; padding: var(--sp-card) var(--sp-screen); display: flex; flex-direction: column; justify-content: space-evenly; gap: var(--sp-regular); }
+.demo { max-width: 420px; }
+.row { background: var(--surface-card); border-radius: var(--r-control); padding: 10px var(--sp-card); min-height: var(--touch); box-sizing: border-box; display: flex; align-items: center; gap: var(--sp-regular); box-shadow: inset 0 0 0 .5px var(--separator); }
+.name { font-size: 15px; font-weight: 500; }
+.sub { font-size: 11px; color: var(--label-secondary); margin-top: 1px; }
+.trail { margin-left: auto; text-align: right; }
+.trail .numeral { font-size: 17px; }
+.tick { color: var(--accent); font-size: 17px; }
+.cards { display: flex; gap: var(--sp-regular); }
+.stat { background: var(--surface-card); border-radius: var(--r-card); padding: var(--sp-card); width: 130px; box-shadow: inset 0 0 0 .5px var(--separator); }
+.stat .numeral { font-size: 28px; display: block; }
+.pair { display: flex; align-items: center; gap: var(--sp-section); }
+.pair .caption { flex: 1; }
+.fnote { font-size: 11px; color: var(--label-secondary); margin-top: 5px; padding: 0 2px; }
+</style></head><body>
+<div class="panel">
+  <div class="pair">
+    <div class="demo" style="flex:none;width:340px">
+      <div class="row">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="stroke:var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h10v16H6z"/><path d="M16 9h2.5a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5H16"/><path d="M6 8h10"/></svg>
+        <div><div class="name">Beer</div><div class="sub">12oz &middot; 5% ABV</div></div>
+        <div class="trail"><span class="numeral">1.0</span><div class="sub">standard drinks</div></div>
+      </div>
+    </div>
+    <div class="caption">Drink row &mdash; symbol, name, detail, per-region value. Swipe left removes, right edits: corrections must be as easy as logging.</div>
+  </div>
+  <div class="pair">
+    <div class="demo" style="flex:none;width:340px">
+      <div class="row"><span class="tick">&#10003;</span><span class="name" style="font-weight:400">Saving to Health</span></div>
+      <div class="fnote">Your log is written to Health as alcoholic beverages.</div>
+    </div>
+    <div class="caption">Status row &mdash; symbol + factual state + footnote. The template for any system-state UI; no alarm styling, the words carry it.</div>
+  </div>
+  <div class="pair">
+    <div class="cards" style="flex:none">
+      <div class="stat"><span class="numeral">1.6</span><span class="caption">drinks per day</span></div>
+      <div class="stat"><span class="numeral">4</span><span class="caption">days recorded</span></div>
+    </div>
+    <div class="caption">Stat card &mdash; value + noun. No deltas, no arrows, no progress bars (copy review F2).</div>
+  </div>
+</div>
+</body></html>

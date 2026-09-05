@@ -369,4 +369,65 @@ struct PeriodDetailTests {
     #expect(after?.shares.first?.count == 2)
     #expect(after.map { abs($0.standardDrinks - 2.0) < 0.0001 } == true)
   }
+
+  // MARK: - The range's own figures (ADR-0028 amendment)
+
+  @Test("The range's own figures use the same classifier as a bar's")
+  func rangeSummaryClassifier() {
+    let end = date(2026, 8, 30, 12)
+    let drinks = [beer(date(2026, 8, 28, 19)), beer(date(2026, 8, 27, 19), abv: 0)]
+    let free: Set<Date> = [date(2026, 8, 26)]
+    let summary = TrendSummary.rangeSummary(
+      range: .week, endingOn: end, drinks: drinks,
+      alcoholFreeDays: free, region: .unitedStates, calendar: calendar
+    )
+    // A 0%-ABV day is a day with drinks — the calendar's rule, and the bar's.
+    #expect(summary.daysWithDrinks == 2)
+    #expect(summary.daysAlcoholFree == 1)
+    #expect(summary.daysWithDrinks + summary.daysAlcoholFree + summary.daysUnlogged == summary.dayCount)
+    #expect(summary.dayCount == 7)
+
+    // The trap this function exists to avoid: `daysWithoutDrinks` counts
+    // zero-*total* days, so its complement is one short of the header's count.
+    let totals = TrendSummary.dailyTotals(
+      range: .week, endingOn: end, drinks: drinks, region: .unitedStates, calendar: calendar
+    )
+    #expect(totals.count - TrendSummary.daysWithoutDrinks(totals) == 1)
+  }
+
+  @Test("The range total the header prints equals the bars' own sum")
+  func rangeSummaryTotalAgreesWithBars() {
+    let end = date(2026, 8, 30, 12)
+    let drinks = [beer(date(2026, 8, 28, 19)), wine(date(2026, 8, 24, 20)), beer(date(2026, 8, 12, 18))]
+    for range in TrendRange.allCases {
+      for region in [Region.unitedStates, .unitedKingdom] {
+        let totals = TrendSummary.dailyTotals(
+          range: range, endingOn: end, drinks: drinks, region: region, calendar: calendar
+        )
+        let summary = TrendSummary.rangeSummary(
+          range: range, endingOn: end, drinks: drinks,
+          alcoholFreeDays: [], region: region, calendar: calendar
+        )
+        #expect(abs(summary.totalStandardDrinks - TrendSummary.sum(totals)) < 0.0001)
+        #expect(summary.dayCount == totals.count)
+      }
+    }
+  }
+
+  @Test("A region switch moves the range's amounts and never its day counts")
+  func rangeSummaryRegionLens() {
+    let end = date(2026, 8, 30, 12)
+    let drinks = [beer(date(2026, 8, 28, 19)), wine(date(2026, 8, 24, 20))]
+    let us = TrendSummary.rangeSummary(
+      range: .month, endingOn: end, drinks: drinks,
+      alcoholFreeDays: [], region: .unitedStates, calendar: calendar
+    )
+    let uk = TrendSummary.rangeSummary(
+      range: .month, endingOn: end, drinks: drinks,
+      alcoholFreeDays: [], region: .unitedKingdom, calendar: calendar
+    )
+    #expect(us.daysWithDrinks == uk.daysWithDrinks)
+    #expect(us.daysUnlogged == uk.daysUnlogged)
+    #expect(us.totalStandardDrinks != uk.totalStandardDrinks)
+  }
 }

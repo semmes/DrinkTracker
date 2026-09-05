@@ -131,6 +131,132 @@ four days rather than reading as a fall; a bucket bar carries ADR-0006's
 partitioned figures instead of a bare height; and the "Your average" line
 stays a line rather than becoming a sentence.
 
+## Amendment (2026-09-05): the readout moves above the plot, and a touch selection lasts the touch
+
+The owner's design pass (`docs/design/Bar chart hover states design/`) found
+that the placement fails the gesture it belongs to: the reading hand covers a
+block that sits under the chart, and the card grows as the block appears, so
+the figures move *toward* the hand at the moment they are wanted.
+
+**Decision.** The readout moves into the chart card's own header, above the
+plot, as two states sharing one box and crossfading between them: the range's
+own figures when nothing is being scrubbed, the touched bar's while a finger is
+down. The box has a floor rather than a fixed height, so the card's height does
+not change with the selection at the sizes the design was drawn at, and grows
+rather than clips above them — design-system §3 makes a fixed `height` a rule
+violation, and it is the fault that disqualified `SUSegmentedControl` in
+ADR-0026. Two of this record's Consequences are superseded: the card no longer
+grows on a scrub and the summary cards no longer move, and the hint line now
+lives inside the box and costs no extra height.
+
+The floor is **84 points, not the design's 76**, and the difference was
+measured rather than guessed. On a 402pt screen at the default text size the
+idle state's own content is 76.2pt — the design's number, taken from the idle
+state — but the scrub state's is 81.4pt, because its title is subheadline where
+the idle title is footnote. At 76 the floor bound neither state and the card
+moved 5pt on every selection: the exact fault this readout exists to remove. At
+84 it binds both and the two states render at identical height, verified by
+comparing the divider, the chart baseline and every card below it across the
+two renders.
+
+**The "sticky-until-dismissed" selection was an error of record.** On iOS 26
+`chartXSelection` writes nil itself the moment the finger lifts, and an
+instantaneous tap does not select at all — selection needs the short dwell that
+begins a scrub. Measured, not inferred, in a compiled probe. So release-to-clear
+is the shipped behaviour documented, not a behaviour changed, and the two
+compositions that would make it explicit (`.simultaneousGesture` with a
+zero-distance drag, and the WWDC23 `.chartGesture` idiom) were each measured to
+capture the ScrollView's vertical pan and are not used. The gesture line is
+untouched. Two clauses above are consequently dead: "tapping the selected bar
+again" is neither reliable nor unreliable, it is moot, and the hint's "tap or
+drag" was factually wrong on iOS 26 and is now "drag".
+
+**The ✕ narrows to the stepped selection.** With no touch path to a selection
+that persists, the ✕'s job belongs to the one that does: the selection the
+accessibility stepper puts there, reachable by VoiceOver, Switch Control and
+AssistiveTouch alike. A single `selectionIsHeld` flag, set only by `step()` and
+cleared by every framework write, gates it. `.accessibilityAction(.escape)` and
+the named "Clear selection" action are unchanged.
+
+**The drink-type share rows leave the scrub and keep their home.** Four figures
+read at a glance; four figures plus a type list does not, and the list is what
+forced the block to grow. `PeriodDetailView` is unchanged and still renders
+below the chart — title, "Today", day count, figure-or-phrase,
+`RecentSummaryFigures` with its named unlogged count, the composition rows, the
+✕ — for a stepped selection. **The honest cost, stated rather than hidden: a
+touch user can no longer reach the composition rows**, because iOS 26 offers no
+touch path to a persistent selection. The shipped 1.2 What's New describes a tap
+that shows them; 1.3's reviewer notes correct it. The composition that would
+restore a latching tap is in "How to reopen" and was measured to preserve
+vertical scrolling.
+
+**Inside the plot**, the change is: the `RuleMark` keeps its stroke and loses
+its `.annotation` — the label moved to the header, where it now also carries the
+line's own value as an independent fact beside the range's own. That is not a
+relaxation of this record's refusal: no delta, no sign, no direction word, the
+same three keys, and the two figures are the *range's*, never a bar's. All
+`AxisGridLine`s are dropped in both axes; the zero baseline is itself a y-axis
+grid line, so it is emitted explicitly at zero — dropping the axis wholesale
+leaves the plot with no floor at all. Two marks that encode nothing about the
+data are added: a translucent rail behind the selected bar, full plot height,
+and a 1pt hairline from the plot's top edge to the bar's top. Both are accent at
+low alpha, which design-system §2 already admits as a *selected state* — no new
+colour role, invariant 10 intact. The rail is positioned at the midpoint of its
+bucket's two edges: `position(forX:)` returns the instant, and a bar is centred
+on its bin, so the bucket start alone lands half a bucket to the left of the bar
+it names. Its width is the bucket's own pitch, not the design's literal 26
+points: that number was drawn against 13 weekly bars, where it is slightly
+*wider* than the 24.7pt pitch — the rail fills the slot, which is what makes it
+read as a column behind the bar. Fixed at 26 it was narrower than a Week bar and
+read as a stripe inside one, which the first simulator render showed.
+
+**What was refused, and why it is worth recording.** The design's third scrub
+figure was a longest run without a drink. `docs/tallyist-1.2-spec.md` stops on
+"A streak counter or a longest-gap record" and ADR-0027 names a longest gap as a
+stop condition: a run is a number that can be protected, which is the
+under-logging incentive ADR-0006 exists to refuse. The slot takes ADR-0006's own
+second figure, days with none. The design also asked for the live figure in the
+intensity ramp's top step; that step is the *6+ drinks* fill, where colour is
+the datum, so tinting whatever a bar happens to hold would print a 0.4-drink
+week in heaviest-day ink and make lightness carry interaction state instead of
+magnitude. The figure is `.primary`. Contrast was not the objection and was
+measured anyway: #0d366b 11.76:1 on white and 10.54:1 on a light card ground,
+#9ec5f4 9.51:1 on the dark ground. And the design's zero-bar outline is not
+built: the outline is ADR-0007's dedicated channel for *recorded as no alcohol*,
+a zero bucket can be seven unlogged days, Trends has no legend to name it, and
+at 3pt with a 1.5pt inset it renders solid — reading as "a very small amount",
+the one thing it was meant not to say.
+
+**Named consequences.** The average line is unlabelled for the duration of a
+touch, since the legend is idle-only; the state is transient, ends on release,
+and nothing on screen at any moment is phrased against the line. The range total
+appears twice on the screen — the header and the first StatCard — from the same
+fold; a figure repeated is not a figure contradicted. The header's day count
+needs ADR-0006's classifier, not `daysWithoutDrinks`'s complement, which differs
+by exactly the 0%-ABV days and would have made the header contradict the bar
+under it by one: `TrendSummary.rangeSummary` is the new fold and a tier-1 test
+pins its total equal to the bars' sum. The compact row prints three of the four
+figures and cannot print the named unlogged count; it is spoken instead, and the
+stepped selection's block still prints it. The three captions are the calendar
+card's own, unabbreviated, so one figure never carries two vocabularies on one
+screen — measured at ~330pt against a 330pt content width, which wrapped, so the
+row offers the design's 14pt gaps, then 8pt, and only then stacks: a wrapped row
+is the card growing on a selection. `.sensoryFeedback` now also ticks on the
+release write. Row 2 of the scrub is a numeral *or* a phrase by design, so the
+block's optical weight changes between bars — deliberate, and not to be "fixed"
+by printing 0 for a marker day.
+
+**No schema change, no CloudKit step, no setting, no App Group key, no widget
+change, no networking.** One app-catalog key in, one out. Pinned at tier 1
+(`rangeSummaryClassifier`, `rangeSummaryTotalAgreesWithBars`,
+`rangeSummaryRegionLens`). Verified at tier 3 on the simulator over a seeded
+quarter: the idle and scrub states at identical card height, the rail and
+hairline tracking the selected bar, the zero baseline present with the grid
+gone, both zero-day readouts ("Not logged" and "Recorded as no alcohol"), and
+dark mode. The gesture's coexistence with the ScrollView on hardware, the box at
+AX5, Reduce Motion, and the release tick remain tier 3/4 and are stated as such
+in the commit.
+
 ## How to reopen
 
 If users ask what a bar is *relative to*, the honest answer is more
@@ -150,3 +276,29 @@ can give way to per-mark elements. If the "Days with no drinks logged" card
 should instead split into the calendar's three counts now that Trends has
 the markers, that is a layout change to argue on its own, not a reopening
 of this one.
+
+If a latching tap is wanted back — so a touch user can reach the composition
+rows again — the composition below was measured to preserve the ScrollView's
+vertical pan (scrollY 548 on a vertical drag) *and* to scrub after the hold,
+clearing on release. Note that a `chartGesture` replaces the default gesture
+wholesale, including its own nil-on-release:
+
+    .chartXSelection(value: selectionBinding)
+    .chartGesture { proxy in
+      SpatialTapGesture()
+        .onEnded { proxy.selectXValue(at: $0.location.x) }
+        .exclusively(before:
+          LongPressGesture(minimumDuration: 0.25)
+            .sequenced(before: DragGesture(minimumDistance: 0))
+            .onChanged { value in
+              if case .second(true, let drag?) = value { proxy.selectXValue(at: drag.location.x) }
+            }
+            .onEnded { _ in clearSelection() }
+        )
+    }
+
+If the owner wants the design's live-figure tint after all, the route is a named
+colour set in the asset catalog (light `#0d366b`, dark `#9ec5f4`) — the
+`AccentFill` precedent from ADR-0029 — plus a design-system §2 roles row with
+the three measured contrast figures. Not a widening of `IntensityPalette`'s
+doc comment: that comment forbids styling uses specifically, and this is one.

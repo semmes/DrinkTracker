@@ -89,6 +89,15 @@ enum RecentSummaryCaptions {
     count == 1 ? Text("\(count) day with none") : Text("\(count) days with none")
   }
 
+  /// The same count-bearing key as `spokenDaysWithDrinks`, under a name that
+  /// does not claim to be spoken: the Trends chart card's header prints it
+  /// beside the range total, where the count sits inside the phrase rather
+  /// than 40 points above it — so it is the pluralisable form that is wanted
+  /// there, not the caption (ADR-0028 amendment).
+  static func daysWithDrinksPhrase(_ count: Int) -> Text {
+    spokenDaysWithDrinks(count)
+  }
+
   /// What the em dash says aloud: the absence, and why.
   static var spokenNoAverage: Text {
     Text("No days with drinks to average")

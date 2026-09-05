@@ -1,0 +1,137 @@
+<!-- @dsCard group="Components" viewport="820x470" name="Trends bar selection" subtitle="The card header becomes the readout; the card never grows under the hand" -->
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body { display: flex; flex-direction: column; }
+.split { flex: 1; display: flex; min-height: 0; }
+.panel { box-sizing: border-box; flex: 1; padding: var(--sp-card) var(--sp-screen); display: flex; flex-direction: column; gap: var(--sp-tight); min-width: 0; }
+.card { background: var(--surface-card); border-radius: var(--r-card); padding: var(--sp-card); box-shadow: inset 0 0 0 .5px var(--separator); }
+
+/* The readout block is a fixed height in both states, so a selection never
+   reflows the card and never pushes figures down toward the reading hand. */
+.readout { height: 62px; }
+.rtop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rlabel { font-size: 13px; color: var(--label-secondary); }
+.legend { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 11px; color: var(--label-secondary); }
+.swatch { width: 14px; height: 0; border-top: 1px dashed var(--accent); flex: none; }
+.rdate { font-size: 13px; font-weight: 600; color: var(--label); }
+.rnote { font-size: 11px; color: var(--label-secondary); white-space: nowrap; }
+.rfig { display: flex; align-items: baseline; gap: 5px; margin-top: 4px; }
+.rfig .numeral { font-size: 26px; line-height: 1.06; }
+.rfig .unit { font-size: 12px; color: var(--label-secondary); }
+.rfacts { display: flex; gap: 13px; margin-top: 5px; }
+.rfacts span { font-size: 11px; color: var(--label-secondary); }
+.rfacts .numeral { font-size: 11px; color: var(--label); }
+.sel .numeral { color: var(--data-high); }
+
+.rule { height: 1px; background: var(--separator); margin: 11px 0 12px; }
+
+.plotrow { display: flex; gap: 8px; }
+.ygut { width: 22px; height: 150px; position: relative; flex: none; }
+.ygut span { position: absolute; right: 0; font-size: 11px; color: var(--label-secondary); }
+.plot { flex: 1; position: relative; height: 150px; min-width: 0; }
+.base { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--label-tertiary); }
+.avg { position: absolute; left: 0; right: 0; bottom: 35px; height: 0; border-top: 1px dashed var(--accent); }
+.rail { position: absolute; top: 0; bottom: 0; width: 26px; border-radius: 9px 9px 0 0; background: linear-gradient(180deg, rgba(37,106,191,.14), rgba(37,106,191,.03)); }
+.dark .rail { background: linear-gradient(180deg, rgba(57,135,229,.22), rgba(57,135,229,.04)); }
+.tick { position: absolute; top: 0; width: 1px; background: linear-gradient(180deg, rgba(37,106,191,0), rgba(37,106,191,.5)); }
+.dark .tick { background: linear-gradient(180deg, rgba(57,135,229,0), rgba(57,135,229,.6)); }
+.bars { position: absolute; inset: 0; display: flex; align-items: flex-end; }
+.slot { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.bar { width: 11px; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, var(--data-medium) 0%, #1c5cab 100%); }
+.dark .bar { background: linear-gradient(180deg, var(--data-high) 0%, var(--data-medium) 100%); }
+/* Alcohol-free / nothing logged: off the ramp, outlined, never a short fill. */
+.bar.off { height: 3px; background: none; box-shadow: inset 0 0 0 1.5px var(--label-secondary); }
+.dim { opacity: .35; }
+
+.xaxis { display: flex; gap: 8px; margin-top: 6px; }
+.xaxis .plot { height: 14px; }
+.xaxis span { position: absolute; font-size: 11px; color: var(--label-secondary); }
+.tip { font-size: 11px; color: var(--label-tertiary); margin-top: 9px; }
+.state { font-size: 9px; line-height: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--label-secondary); }
+.foot { box-sizing: border-box; padding: 10px var(--sp-screen); background: var(--surface-card); border-top: 1px solid var(--separator); }
+</style></head><body>
+<div class="split">
+
+  <div class="panel">
+    <div class="state">Resting &mdash; the range&rsquo;s own figures</div>
+    <div class="card">
+      <div class="readout">
+        <div class="rtop">
+          <span class="rlabel">Last 13 weeks</span>
+          <span class="legend"><span class="swatch"></span>Your weekly average &middot; <span class="numeral" style="font-size:11px">3.5</span></span>
+        </div>
+        <div class="rfig"><span class="numeral">47.2</span><span class="unit">standard drinks &middot; 30 days with drinks</span></div>
+        <div class="tip" style="margin-top:5px">Tip: drag across the bars to read one week</div>
+      </div>
+      <div class="rule"></div>
+      <div class="plotrow">
+        <div class="ygut"><span style="top:-6px">15</span><span style="top:44px">10</span><span style="top:94px">5</span><span style="bottom:-6px">0</span></div>
+        <div class="plot">
+          <div class="base"></div>
+          <div class="avg"></div>
+          <div class="bars">
+            <div class="slot"><div class="bar" style="height:32px"></div></div>
+            <div class="slot"><div class="bar off"></div></div>
+            <div class="slot"><div class="bar" style="height:64px"></div></div>
+            <div class="slot"><div class="bar" style="height:21px"></div></div>
+            <div class="slot"><div class="bar" style="height:106px"></div></div>
+            <div class="slot"><div class="bar" style="height:48px"></div></div>
+            <div class="slot"><div class="bar off"></div></div>
+            <div class="slot"><div class="bar" style="height:16px"></div></div>
+            <div class="slot"><div class="bar" style="height:73px"></div></div>
+            <div class="slot"><div class="bar" style="height:8px"></div></div>
+            <div class="slot"><div class="bar" style="height:34px"></div></div>
+            <div class="slot"><div class="bar" style="height:20px"></div></div>
+            <div class="slot"><div class="bar" style="height:50px"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="xaxis"><div class="ygut" style="height:14px"></div><div class="plot"><span style="left:15.4%;transform:translateX(-50%)">Jun</span><span style="left:46.2%;transform:translateX(-50%)">Jul</span><span style="left:76.9%;transform:translateX(-50%)">Aug</span><span style="right:0">Sep</span></div></div>
+    </div>
+    <div class="caption">Idle: the range&rsquo;s figures and the average line&rsquo;s own value, stated as a legend rather than as a target.</div>
+  </div>
+
+  <div class="panel dark">
+    <div class="state">Scrubbing &mdash; the touched bar&rsquo;s own facts</div>
+    <div class="card sel">
+      <div class="readout">
+        <div class="rtop"><span class="rdate">Jul 5&ndash;11, 2026</span><span class="rnote">7 days</span></div>
+        <div class="rfig"><span class="numeral">10.6</span><span class="unit">standard drinks</span></div>
+        <div class="rfacts">
+          <span><span class="numeral">5</span> with drinks</span>
+          <span><span class="numeral">2.1</span> on those days</span>
+          <span><span class="numeral">0</span> none in a row</span>
+        </div>
+      </div>
+      <div class="rule"></div>
+      <div class="plotrow">
+        <div class="ygut"><span style="top:-6px">15</span><span style="top:44px">10</span><span style="top:94px">5</span><span style="bottom:-6px">0</span></div>
+        <div class="plot">
+          <div class="rail" style="left:calc(34.6% - 13px)"></div>
+          <div class="base"></div>
+          <div class="avg"></div>
+          <div class="bars">
+            <div class="slot"><div class="bar dim" style="height:32px"></div></div>
+            <div class="slot"><div class="bar off dim"></div></div>
+            <div class="slot"><div class="bar dim" style="height:64px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:21px"></div></div>
+            <div class="slot"><div class="bar" style="height:106px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:48px"></div></div>
+            <div class="slot"><div class="bar off dim"></div></div>
+            <div class="slot"><div class="bar dim" style="height:16px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:73px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:8px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:34px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:20px"></div></div>
+            <div class="slot"><div class="bar dim" style="height:50px"></div></div>
+          </div>
+          <div class="tick" style="left:34.6%;height:44px"></div>
+        </div>
+      </div>
+      <div class="xaxis"><div class="ygut" style="height:14px"></div><div class="plot"><span style="left:15.4%;transform:translateX(-50%)">Jun</span><span style="left:46.2%;transform:translateX(-50%)">Jul</span><span style="left:76.9%;transform:translateX(-50%)">Aug</span><span style="right:0">Sep</span></div></div>
+    </div>
+    <div class="caption">Scrubbing: same block, same height, four figures in fixed slots. A faint rail and a hairline to the bar top carry the link &mdash; no second colour.</div>
+  </div>
+
+</div>
+<div class="foot caption">The readout sits <strong>above</strong> the plot and reserves its space, so the reading hand never covers the figures and the card never grows mid-scrub (revising ADR-0028's under-chart block). Selection is continuous while the finger is down and reverts on release; the touched bar keeps the ramp and the rest drop to 35%. Only the baseline and the average rule are drawn behind the bars &mdash; no grid. A zero week keeps its outline instead of a figure &mdash; alcohol-free is the absence of the quantity, not the bottom of the ramp (ADR-0007). Nothing is phrased against the average line: the line's value is a legend beside the range's own, never a delta (ADR-0028).</div>
+</body></html>

@@ -167,6 +167,12 @@ while they change.
 | Value change | `.snappy` + `.contentTransition(.numericText)` | counter, totals, estimates |
 | Structure change | `.smooth(duration: 0.25)` + opacity/move | disclosures, undo bar, repeat row |
 | Confirmation | `.sensoryFeedback(.selection)` | stepper taps, including bound-hits |
+| Figure swap (one subject to another) | `.contentTransition(.opacity)` + `.smooth(duration: 0.22)`; the 6pt offset behind Reduce Motion | Trends bar readout, calendar summary window switch |
+
+A number that changes because the **subject** changed — a different bar, a
+different window — crossfades; only a number that changes because the **value**
+changed rolls. A roll between two bars would draw a direction the app does not
+assert (ADR-0026, ADR-0028).
 
 Never: springs with overshoot on numbers, looping or idle animation, motion that
 draws the eye to a "good" value. If an animation would make a rising number feel
@@ -187,7 +193,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` (`RecentSummaryFigures` + `RecentSummaryCaptions`) | Value + noun. No deltas, no arrows, no progress bars (copy review F2). The calendar card takes a window picker above it — native segmented control on interactive glass — and crossfades its figures on a switch, never rolls them (ADR-0026) |
-| **Bar detail** | `Trends/PeriodDetailView.swift` | Under the chart, in the same card: the period as a date, a figure, composition rows by kind, or the calendar's four figures for a bucket. The selected bar keeps its accent and the rest dim to 35%; no annotation inside the plot, no delta against the average line, 44pt ✕ to clear; the day figure crossfades between bars, never rolls (ADR-0028) |
+| **Bar readout** | `Trends/TrendsView.swift`, `Trends/PeriodDetailView.swift` (`PeriodReadout`) | A two-state block above the plot, in the same card, over a scaled 84pt floor so a selection never changes the card's height (76 was the idle state's own height; the scrub state's is 81.4 — measured, not drawn). Idle: the range name, the average line's own label and value as a legend, the range total with its noun and the count of days with drinks, then the scrub tip. Scrubbing: the period as a date, its day count or "Today", the bar's total — a numeral for a bar with drinks, the marker's or the legend's own words for a zero day — and three of the calendar card's figures in its own captions. Selection is live while touched and clears on release; the 44pt ✕ and the fuller block below the chart (composition rows, the named unlogged count) belong to the stepped selection. Unselected bars dim to 35%; an accent rail the width of the bucket's own pitch behind the selected bar and a 1pt hairline to its top are the only additions inside the plot — no annotation, no second hue, no delta against the average line, and no grid line but the zero baseline. Figures crossfade between bars, never roll (ADR-0026 §5; ADR-0028 and its 2026-09-05 amendment). Design reference: `docs/design/Bar chart hover states design/` |
 | **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring on every selected cell + 15% wash on blank cells only — the wash previews exactly which days a bulk action will touch |
 | **Selection action bar** | `Calendar/CalendarView.swift` (`selectionBar`) | Bottom-pinned glass bar (radius 22): live day count, one-tap "Mark no drinks" (AccentFill under white), "Log drinks…" to the bulk sheet, 32pt dismiss. From the prototype handoff, carrying ADR-0011 semantics |
 | **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | A staged batch counter — the model the day sheet had before it became a live log (ADR-0013) — applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
@@ -294,3 +300,8 @@ The claude.ai/design prototype *Tallyist iOS Prototype* delivered three changes
   check against ADR-0001/0006/0007 and the copy review.
 - The sync'd claude.ai/design project mirrors this document; update both in the
   same change or note the drift here.
+- **Drift (2026-09-05):** the Trends bar-readout card
+  (`docs/design/Bar chart hover states design/ds/components/trends-bar-selection.card.html`)
+  is not yet in the claude.ai/design project — `DesignSync` needs a one-time
+  `/design-login` from an interactive terminal, which the desktop Code tab
+  cannot run. §6 above is current; the synced bundle is one card behind.
