@@ -67,7 +67,14 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **321 keys** — 256 app, 34 widget, 27 core, 4 shortcuts (counted
+Current: **327 keys** — 262 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-05 after ADR-0029's sync added six app keys for the year-in-review
+card — "Share as a calendar", "Share as a year in review", "%@ in review",
+"Standard drinks by month", "Units by month", "the dashed line is your
+average, %@" — synced from a clean build with only the app target's
+`.stringsdata`: syncing the whole project's Objects-normal tree also pulls
+the widget's five keys into the app catalog, which is the trap to avoid).
+Before that, 321 — 256 app — counted
 2026-09-03 after ADR-0028's sync on top of ADR-0027's and ADR-0026's: the bar
 detail's five keys in — the tip line, "No type", "1 drink" / "%lld drinks",
 "No bar selected" — and "Days with nothing logged" relabelled "Days with no

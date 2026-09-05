@@ -4,7 +4,10 @@
 to reopen" (a summarising artifact, argued against ADR-0006) · **Supersedes
 in part:** 1.2 spec Feature D's content line ("average per week") ·
 **Relates to:** ADR-0006, ADR-0007 / invariant 10, ADR-0024 (the policy's
-three copies), ADR-0026 (the fold it draws from)
+three copies), ADR-0026 (the fold it draws from) · **Amended by:** ADR-0029
+(a third card, the year in review, for a complete year; the rule now reads
+"for that period or for a period nested in it", and admits the Trends
+chart's own average line)
 
 ## Context
 

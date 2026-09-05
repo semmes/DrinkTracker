@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/tallyist-design-system-a2a6b19a-c12c-47d8-9abe-c21e2c5a8671/styles.css">
+  <style>
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--t550); text-decoration: underline; }
+  </style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; background: var(--surface); padding: 48px 32px 64px; display: flex; flex-wrap: wrap; gap: 48px; justify-content: center; align-items: flex-start; font-family: var(--font-text); color: var(--label);">
+
+  <div style="flex: 1 1 100%; max-width: 768px; text-align: left;">
+    <div style="font-size: 22px; font-weight: 600;">Share a month or a year</div>
+    <div style="font-size: 13px; line-height: 18px; color: var(--label-secondary); margin-top: 4px; max-width: 560px; text-wrap: pretty;">A one-way image, built at share time from the user&rsquo;s own record. It carries the calendar summary card&rsquo;s four figures, the grid, the five-entry legend, and nothing the app does not already show &mdash; no comparison, no grade, no trend.</div>
+  </div>
+
+  <div>
+    <div style="font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--label-secondary); margin-bottom: 12px;">Month &middot; shared from the calendar</div>
+    <div style="width: 360px; box-sizing: border-box; padding: 24px; background: {{ink.ground}}; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 36px rgba(13, 54, 107, 0.16);">
+      <div>
+        <div style="font-size: 22px; font-weight: 600; color: {{ink.primary}};">{{m.title}}</div>
+        <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{m.headerSub}}</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <sc-for list="{{m.figTop}}" as="f" hint-placeholder-count="2">
+          <div>
+            <div class="numeral" style="font-size: 28px; line-height: 1.1; color: {{ink.primary}};">{{f.v}}</div>
+            <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{f.c}}</div>
+          </div>
+        </sc-for>
+        <div style="grid-column: 1 / -1; height: 1px; background: {{ink.hairline}};"></div>
+        <sc-for list="{{m.figBottom}}" as="f" hint-placeholder-count="2">
+          <div>
+            <div class="numeral" style="font-size: 28px; line-height: 1.1; color: {{ink.primary}};">{{f.v}}</div>
+            <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{f.c}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{m.unlogged}}" hint-placeholder-val="{{ true }}">
+        <div style="font-size: 12px; color: {{ink.secondary}};">{{m.unlogged}}</div>
+      </sc-if>
+      <div>
+        <div style="display: grid; grid-template-columns: repeat(7, 41px); gap: 4px; margin-bottom: 4px;">
+          <sc-for list="{{weekdays}}" as="w" hint-placeholder-count="7">
+            <div style="font-size: 11px; color: {{ink.secondary}}; text-align: center;">{{w}}</div>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, 41px); gap: 4px;">
+          <sc-for list="{{m.cells}}" as="c" hint-placeholder-count="35">
+            <div style="width: 41px; height: 41px; box-sizing: border-box; border-radius: 8px; background: {{c.fill}}; border: {{c.border}}; opacity: {{c.op}}; display: flex; align-items: center; justify-content: center; font-family: var(--font-rounded); font-weight: 500; font-size: 12px; color: {{c.ink}};">{{c.num}}</div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        <sc-for list="{{legend}}" as="l" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <div style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 3px; background: {{l.fill}}; border: {{l.border}};"></div>
+            <span style="font-size: 11px; color: {{ink.secondary}};">{{l.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; font-weight: 600; color: {{ink.secondary}}; text-align: right;">Tallyist</div>
+    </div>
+  </div>
+
+  <div>
+    <div style="font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--label-secondary); margin-bottom: 12px;">Year &middot; shared from the year view</div>
+    <div style="width: 360px; box-sizing: border-box; padding: 24px; background: {{ink.ground}}; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 36px rgba(13, 54, 107, 0.16);">
+      <div>
+        <div style="font-size: 22px; font-weight: 600; color: {{ink.primary}};">{{y.title}}</div>
+        <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{y.headerSub}}</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <sc-for list="{{y.figTop}}" as="f" hint-placeholder-count="2">
+          <div>
+            <div class="numeral" style="font-size: 28px; line-height: 1.1; color: {{ink.primary}};">{{f.v}}</div>
+            <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{f.c}}</div>
+          </div>
+        </sc-for>
+        <div style="grid-column: 1 / -1; height: 1px; background: {{ink.hairline}};"></div>
+        <sc-for list="{{y.figBottom}}" as="f" hint-placeholder-count="2">
+          <div>
+            <div class="numeral" style="font-size: 28px; line-height: 1.1; color: {{ink.primary}};">{{f.v}}</div>
+            <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{f.c}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{y.unlogged}}" hint-placeholder-val="{{ true }}">
+        <div style="font-size: 12px; color: {{ink.secondary}};">{{y.unlogged}}</div>
+      </sc-if>
+      <div style="display: grid; grid-template-columns: repeat(3, 96px); column-gap: 12px; row-gap: 16px;">
+        <sc-for list="{{y.minis}}" as="mm" hint-placeholder-count="12">
+          <div>
+            <div style="font-size: 11px; font-weight: 600; color: {{ink.secondary}}; margin-bottom: 4px;">{{mm.name}}</div>
+            <div style="display: grid; grid-template-columns: repeat(7, 12px); gap: 2px; height: 82px; align-content: start;">
+              <sc-for list="{{mm.cells}}" as="c" hint-placeholder-count="42">
+                <div style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 3px; background: {{c.fill}}; border: {{c.border}}; opacity: {{c.op}};"></div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+        <sc-for list="{{legend}}" as="l" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <div style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 3px; background: {{l.fill}}; border: {{l.border}};"></div>
+            <span style="font-size: 11px; color: {{ink.secondary}};">{{l.label}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size: 12px; font-weight: 600; color: {{ink.secondary}}; text-align: right;">Tallyist</div>
+    </div>
+  </div>
+
+  <div>
+    <div style="font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--label-secondary); margin-bottom: 12px;">Year in review &middot; each past year stays available</div>
+    <div style="width: 360px; box-sizing: border-box; padding: 24px; background: {{ink.ground}}; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 36px rgba(13, 54, 107, 0.16);">
+      <div>
+        <div style="font-size: 22px; font-weight: 600; color: {{ink.primary}};">{{h.title}}</div>
+        <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{h.headerSub}}</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <sc-for list="{{h.figTop}}" as="f" hint-placeholder-count="2">
+          <div>
+            <div class="numeral" style="font-size: 28px; line-height: 1.1; color: {{ink.primary}};">{{f.v}}</div>
+            <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{f.c}}</div>
+          </div>
+        </sc-for>
+        <div style="grid-column: 1 / -1; height: 1px; background: {{ink.hairline}};"></div>
+        <sc-for list="{{h.figBottom}}" as="f" hint-placeholder-count="2">
+          <div>
+            <div class="numeral" style="font-size: 28px; line-height: 1.1; color: {{ink.primary}};">{{f.v}}</div>
+            <div style="font-size: 12px; color: {{ink.secondary}}; margin-top: 2px;">{{f.c}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{h.unlogged}}" hint-placeholder-val="{{ true }}">
+        <div style="font-size: 12px; color: {{ink.secondary}};">{{h.unlogged}}</div>
+      </sc-if>
+      <div>
+        <div style="font-size: 12px; color: {{ink.secondary}}; margin-bottom: 8px;">Standard drinks by month &middot; the dashed line is your average, {{h.avgLabel}}</div>
+        <div style="display: flex; gap: 6px;">
+          <div style="position: relative; width: 20px; height: 88px; flex: none;">
+            <sc-for list="{{h.yTicks}}" as="t" hint-placeholder-count="3">
+              <div class="numeral" style="position: absolute; right: 0; bottom: {{t.b}}px; font-size: 9px; font-weight: 500; color: {{ink.secondary}};">{{t.v}}</div>
+            </sc-for>
+          </div>
+          <div style="position: relative; height: 88px; flex: 1;">
+            <div style="position: absolute; left: 0; right: 0; bottom: 44px; height: 1px; background: {{ink.hairline}};"></div>
+            <div style="position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 4px;">
+              <sc-for list="{{h.bars}}" as="b" hint-placeholder-count="12">
+                <div style="flex: 1; height: {{b.h}}px; background: #256abf; border-radius: 3px 3px 0 0;"></div>
+              </sc-for>
+            </div>
+            <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: {{ink.secondary}};"></div>
+            <div style="position: absolute; left: 0; right: 0; bottom: {{h.avgY}}px; border-top: 1px dashed {{ink.secondary}};"></div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 4px;">
+          <div style="width: 20px; flex: none;"></div>
+          <div style="display: flex; gap: 4px; flex: 1;">
+            <sc-for list="{{h.bars}}" as="b" hint-placeholder-count="12">
+              <div style="flex: 1; text-align: center; font-size: 9px; color: {{ink.secondary}};">{{b.m}}</div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="font-size: 12px; font-weight: 600; color: {{ink.secondary}}; text-align: right;">Tallyist</div>
+    </div>
+  </div>
+
+  <div style="flex: 1 1 100%; max-width: 768px; font-size: 12px; line-height: 17px; color: var(--label-secondary); text-wrap: pretty;">
+    <div style="max-width: 560px;">Fixed 360pt document rendered to PNG at 3&times; &mdash; never a screenshot of the live view. Figures come before the grid; the average divides by days with drinks only, and the unlogged sentence names the remainder so the two day-counts never look like they should sum to the period. Future days render faded; &ldquo;Through&rdquo; in the header marks where the record stops.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1440, &quot;height&quot;: 1120},
+ &quot;scheme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Appearance&quot;},
+ &quot;monthCard&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;August 2026&quot;, &quot;September 2026 (in progress)&quot;], &quot;default&quot;: &quot;August 2026&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Data&quot;},
+ &quot;reviewYear&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;2025&quot;, &quot;2024&quot;, &quot;2023&quot;], &quot;default&quot;: &quot;2025&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Data&quot;},
+ &quot;dataSeed&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 7, &quot;min&quot;: 1, &quot;max&quot;: 99, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Data&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const scheme = this.props.scheme ?? 'light';
+    const seed = this.props.dataSeed ?? 7;
+    const monthPick = this.props.monthCard ?? 'August 2026';
+    const dark = scheme === 'dark';
+    const ink = dark
+      ? { ground: '#1c1c1e', primary: '#ffffff', secondary: 'rgba(255,255,255,0.55)', hairline: 'rgba(255,255,255,0.17)' }
+      : { ground: '#ffffff', primary: '#000000', secondary: 'rgba(0,0,0,0.55)', hairline: 'rgba(0,0,0,0.17)' };
+    const fills = dark
+      ? { low: '#184f95', medium: '#3987e5', high: '#9ec5f4', af: 'rgba(255,255,255,0.16)' }
+      : { low: '#86b6ef', medium: '#2a78d6', high: '#0d366b', af: 'rgba(0,0,0,0.10)' };
+
+    const rnd = (yr, m, d, salt) => {
+      let t = (seed * 0x9e3779 + yr * 27077 + m * 1013 + d * 97 + (salt || 0) * 7919 + 0x6D2B79F5) >>> 0;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    // Day value: null = unlogged, 0 = alcohol-free, else standard drinks
+    const dayValue = (yr, m, d) => {
+      const r = rnd(yr, m, d, 0);
+      if (r < 0.16) return null;
+      if (r < 0.56) return 0;
+      const r2 = rnd(yr, m, d, 1);
+      if (r < 0.82) return 1 + Math.round(r2 * 2) / 2;          // 1–2
+      if (r < 0.96) return 3 + Math.round(r2 * 4) / 2;          // 3–5
+      return 6 + Math.round(r2 * 4) / 2;                        // 6+
+    };
+    const bucket = v => v === null ? 'unlogged' : v === 0 ? 'af' : v <= 2 ? 'low' : v <= 5 ? 'medium' : 'high';
+    const cellInkFor = b => b === 'unlogged' ? ink.secondary
+      : b === 'af' ? ink.primary
+      : b === 'low' ? (dark ? '#ffffff' : '#000000')
+      : (dark ? '#000000' : '#ffffff');
+    const fmt = n => Math.abs(n - Math.round(n)) < 0.05 ? String(Math.round(n)) : n.toFixed(1);
+
+    const YEAR = 2026, TODAY_M = 8, TODAY_D = 5; // September 5, 2026
+    const daysIn = (m, yr) => new Date(yr ?? YEAR, m + 1, 0).getDate();
+    const lead = m => new Date(YEAR, m, 1).getDay(); // Sunday-first
+    const isFuture = (m, d) => m > TODAY_M || (m === TODAY_M && d > TODAY_D);
+
+    const summarize = entries => {
+      let drinks = 0, af = 0, unlogged = 0, total = 0;
+      for (const v of entries) {
+        if (v === null) unlogged++;
+        else if (v === 0) af++;
+        else { drinks++; total += v; }
+      }
+      return { drinks, af, unlogged, total, avg: drinks ? total / drinks : 0, dayCount: entries.length };
+    };
+    const figures = s => ({
+      figTop: [
+        { v: String(s.drinks), c: s.drinks === 1 ? 'day with drinks' : 'days with drinks' },
+        { v: String(s.af), c: s.af === 1 ? 'day with none' : 'days with none' }
+      ],
+      figBottom: [
+        { v: fmt(s.total), c: Math.abs(s.total - 1) < 0.05 ? 'standard drink total' : 'standard drinks total' },
+        { v: s.drinks === 0 ? '\u2014' : fmt(s.avg), c: 'on days with drinks' }
+      ],
+      unlogged: s.unlogged > 0
+        ? (s.unlogged === 1 ? '1 day has nothing logged either way.' : s.unlogged + ' days have nothing logged either way.')
+        : null
+    });
+
+    // Month card
+    const inProgress = monthPick.indexOf('September') === 0;
+    const mIdx = inProgress ? 8 : 7;
+    const mDays = daysIn(mIdx);
+    const recorded = [];
+    const cells = [];
+    for (let i = 0; i < lead(mIdx); i++) cells.push({ num: '', fill: 'transparent', border: 'none', ink: 'transparent', op: 1 });
+    for (let d = 1; d <= mDays; d++) {
+      if (isFuture(mIdx, d)) {
+        cells.push({ num: String(d), fill: 'transparent', border: 'none', ink: ink.secondary, op: 0.3 });
+        continue;
+      }
+      const v = dayValue(YEAR, mIdx, d);
+      recorded.push(v);
+      const b = bucket(v);
+      cells.push({
+        num: String(d),
+        fill: b === 'unlogged' ? 'transparent' : fills[b],
+        border: b === 'af' ? '1.5px solid ' + ink.secondary : 'none',
+        ink: cellInkFor(b),
+        op: 1
+      });
+    }
+    const ms = summarize(recorded);
+    const mf = figures(ms);
+    const m = {
+      title: inProgress ? 'September 2026' : 'August 2026',
+      headerSub: (inProgress ? 'Through September 5 \u00b7 ' : '') + ms.dayCount + ' days',
+      cells, ...mf
+    };
+
+    // Year card
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const yEntries = [];
+    const minis = names.map((name, mi) => {
+      const n = daysIn(mi), off = lead(mi);
+      const cs = [];
+      for (let i = 0; i < 42; i++) {
+        const d = i - off + 1;
+        if (d < 1 || d > n) { cs.push({ fill: 'transparent', border: 'none', op: 1 }); continue; }
+        if (isFuture(mi, d)) { cs.push({ fill: 'transparent', border: 'none', op: 0.3 }); continue; }
+        const v = dayValue(YEAR, mi, d);
+        yEntries.push(v);
+        const b = bucket(v);
+        cs.push({
+          fill: b === 'unlogged' ? 'transparent' : fills[b],
+          border: b === 'af' ? '1px solid ' + ink.secondary : 'none',
+          op: 1
+        });
+      }
+      return { name, cells: cs };
+    });
+    const ys = summarize(yEntries);
+    const yf = figures(ys);
+    const y = {
+      title: '2026',
+      headerSub: 'Through September 5 \u00b7 ' + ys.dayCount + ' days',
+      minis, ...yf
+    };
+
+    // Year in review: one complete past year at a time; each stays available as history.
+    const reviewYr = Math.max(2020, Math.min(YEAR - 1, parseInt(this.props.reviewYear ?? '2025', 10) || YEAR - 1));
+    const hEntries = [];
+    const monthly = [];
+    for (let mi = 0; mi < 12; mi++) {
+      const n = daysIn(mi, reviewYr);
+      let t = 0;
+      for (let d = 1; d <= n; d++) {
+        const v = dayValue(reviewYr, mi, d);
+        hEntries.push(v);
+        if (v) t += v;
+      }
+      monthly.push(t);
+    }
+    const hs = summarize(hEntries);
+    const hf = figures(hs);
+    const niceMax = Math.max(1, Math.ceil(Math.max(...monthly)));
+    const hAvg = hs.total / 12;
+    const h = {
+      title: String(reviewYr),
+      headerSub: hs.dayCount + ' days',
+      bars: monthly.map((t, i) => ({ m: 'JFMAMJJASOND'[i], h: Math.round(t / niceMax * 88) })),
+      avgY: Math.round(hAvg / niceMax * 88),
+      avgLabel: fmt(hAvg),
+      yTicks: [
+        { v: '0', b: 0 },
+        { v: fmt(niceMax / 2), b: 38 },
+        { v: fmt(niceMax), b: 80 }
+      ],
+      ...hf
+    };
+
+    const legend = [
+      { label: 'No alcohol', fill: fills.af, border: '1px solid ' + ink.secondary },
+      { label: '1\u20132', fill: fills.low, border: 'none' },
+      { label: '3\u20135', fill: fills.medium, border: 'none' },
+      { label: '6+', fill: fills.high, border: 'none' },
+      { label: 'Not logged', fill: 'transparent', border: '1px solid ' + ink.secondary }
+    ];
+
+    return { ink, m, y, h, legend, weekdays: ['S', 'M', 'T', 'W', 'T', 'F', 'S'] };
+  }
+}
+</script>
+</body>
+</html>

@@ -76,7 +76,11 @@ re-validated, never eyeballed** (PRD invariant 10).
 | `data.low / .medium / .high` | 250 / 450 / 700 | 600 / 400 / 200 | per ADR-0007, validated both modes |
 
 **Where brand colour may appear — exhaustively:** interactive elements (buttons,
-links, selected states), the data ramp, the app icon, the widget's ＋. Everywhere
+links, selected states), the data ramp, the app icon, the widget's ＋, the bars
+of the Trends chart (`accentColor` with Swift Charts' gradient — 500 light, 400
+dark), and the bars of the year-in-review share card (`AccentFill`, 500 in both
+modes — a bar's height carries the value, not its colour, so bars take a brand
+token rather than a ramp step; ADR-0029). Everywhere
 else is system semantic colour (`primary`, `secondary`, `.fill` tiers), so
 surfaces, text, and materials keep Apple's automatic light/dark/vibrancy
 behaviour. `GlassTokens` still defines **no colours**; the brand layer lives in
@@ -85,6 +89,21 @@ the asset catalog (`AccentColor`) and `IntensityPalette` only. See ADR-0010.
 **What brand colour may never do:** grade a day, reward a number, or mark a
 "good" state. Status uses shape + words (checkmark symbol, factual copy), with
 colour as reinforcement only.
+
+### Exported images
+
+A share card has no host surface, so it paints its own ground and inks —
+`ShareCardInk`, the one literal-colour site beside `IntensityPalette`
+(ADR-0027). Measured on the card's own grounds, white and `#1C1C1F`:
+
+| Pair | Light | Dark |
+|---|---|---|
+| Secondary ink (primary at 55%) on the ground | 4.74:1 | 5.97:1 |
+| Year-in-review bars (`AccentFill` `#256ABF`) on the ground | 5.39:1 | 3.15:1 (graphics ≥ 3:1) |
+| The dashed average where it crosses a bar (a 55% stroke composited over `#256ABF`, against the bar) | 2.46:1 | 2.76:1 — under 3:1, so the line is read in the gaps and against the ground, as on Trends |
+
+Every day-cell fill and outline decision inside a card still comes from
+`IntensityPalette`; the review chart's bars are the `AccentFill` token.
 
 ### Neutrals
 
@@ -176,6 +195,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
+| **Share cards** | `Calendar/ShareCardParts.swift`, `MonthShareCard.swift`, `YearShareCard.swift`, `YearInReviewShareCard.swift` | 360pt documents rendered at 3× with type pinned to `.large`; ground and inks from `ShareCardInk`; figures before the grid or chart; the five-entry legend on the grid cards; the wordmark as text, never the mark. The year-in-review chart is hand-drawn to fixed geometry — 88pt plot beside a 20pt axis, one hairline at the middle, twelve `AccentFill` bars with 3pt top corners, a 1pt baseline, the Trends chart's dashed average — never Swift Charts under `ImageRenderer` (ADR-0027, ADR-0029). Design reference: `docs/design/Share_cards/` |
 
 Composition rules: one primary action per surface; controls on glass, never glass
 on glass; a screen leads with the user's number, never with chrome.

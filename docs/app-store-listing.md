@@ -198,6 +198,38 @@ Notes on what's new in 1.2:
   code. There are still no accounts and no servers of any kind.
 ```
 
+## What's New (1.3)
+
+```
+Share a year in review: from the year view, a year that has ended can be
+shared as an image of its twelve months — the same four figures the year
+view shows (days with drinks, days with none, the total, and the average
+on days with drinks), then standard drinks by month as a bar chart with
+your monthly average drawn across it. The calendar image of the year is
+still there; the share button offers both.
+```
+
+## Reviewer notes (1.3) — paste into App Review notes
+
+These restate the claims made in the 1.0 Resolution Center response and
+kept through 1.2 (see docs/tallyist-1.3-spec.md, "App Review consistency").
+
+```
+Notes on what's new in 1.3:
+
+- The year-in-review image is a user-initiated, one-way export of the
+  user's own data through the system share sheet, like the month and year
+  images in 1.2. It carries the same four figures the year view already
+  shows for that year, a bar per calendar month of the user's own totals,
+  and a "your average" line computed by the same rule as the Trends
+  screen's, all on the device by the same code. No comparison to other people
+  or to any guideline, no goal, no score, no identifier in the file, and
+  nothing recorded about whether or where it was shared. It is offered
+  only for a year that has ended; the app never prompts anyone to share.
+- No new permissions, no new privacy label categories, no new third-party
+  code. There are still no accounts and no servers of any kind.
+```
+
 ## Reminders for the version page
 
 - Age rating: answer the alcohol question honestly — "Alcohol, Tobacco, or
