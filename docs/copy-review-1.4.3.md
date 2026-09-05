@@ -833,3 +833,42 @@ picture is, not what to do with it; no line invites the share. No
 exclamation marks.
 
 **House voice intact.** Factual, no celebration, no judgment.
+
+## 1.3 — Reference cards: the window, the year, drinking days, weekdays (ADR-0030, ADR-0031, ADR-0032)
+
+| Where | Copy |
+|---|---|
+| Trends population card, first line, twelve-month window (existing key, unchanged) | "Your average is about 4 standard drinks a week." |
+| Trends population card, no drinks in the twelve-month window | "No drinks in the last 12 months." |
+| Note, which span the average covers | "Your average covers your last 4 weeks." · "Your average covers your last 12 months, the span the survey asked about." |
+| Trends population card, drinking days, the user's own | "You logged drinks on 9 of the last 28 days." · "You logged drinks on 96 of the last 364 days." |
+| Trends population card, drinking days, the reference (a mean, whole days) | "US adults who drink average about 7 in 28." · "US adults who drink average about 88 in 364." |
+| Trends population card, source line | "Sources: Alcohol Research Group, 2020 National Alcohol Survey · NIAAA, NESARC-III, 2012–13" |
+| Note, the drinking-days figure | "Drinking days come from NESARC-III, 2012–13: a published mean among US adults who drank in the past year, scaled to the same number of days." |
+| Year view comparison, first line (the year as text) | "In 2025, your average was about 4 standard drinks a week." · "In 2025, your average was about 1 unit a week." |
+| Year view comparison, a year with no drinks | "No drinks logged in 2025." |
+| Year view comparison, second line (existing key) | "That's lower than roughly 35% of US adults who drink." |
+| Year view note, the span | "Your average covers all of 2025." |
+| By weekday card, label | "By weekday" |
+| By weekday row (the calendar's name, the package's amount phrase, and the day count) | "Friday · 4 standard drinks · 4 of 4 days" · "Monday · 0 standard drinks · 0 of 1 day" |
+| By weekday card, the user's split on the paper's definition | "Friday to Sunday: 6 of 13 days with a drink." · "Monday to Thursday: 4 of 17 days." |
+| By weekday card, the published rate | "Among US adults, 31 of every 100 Friday-to-Sunday days include a drink, and 24 of every 100 other days." |
+| By weekday card, source line | "Source: Liang and Chikritzhs, 2015 (NHANES 2005–10)" |
+| By weekday note | "A published rate from a national dietary survey of US adults, 2005 to 2010, drinkers and non-drinkers together: days with a drink of 10 grams of alcohol or more, per 100 person-days, with the weekend as the study defined it. Not data from other Tallyist users." |
+| What's New (1.3) paragraph and reviewer notes (1.3) bullet | as in docs/app-store-listing.md |
+
+**Reviewed against 1.4.3.** Every sentence is a count of days, an average,
+a share of a population, or the name of a source with its year. "About"
+marks every published figure as approximate; "lower than" and "more than"
+are the only relations, and only against the distribution ADR-0018 already
+admits. No sentence names a busiest day, ranks a weekday, calls a count
+high or low, or relates the user's days to the published rate in words —
+the two figures sit one above the other and the reader does the reading.
+No threshold appears anywhere: the drinking-days figure is a mean, the
+weekend figure a rate, and the heavy-episode rate the paper also reports
+is not carried. Denominators are named in the notes (adults who drink;
+adults who drank in the past year; all adults, drinkers and non-drinkers
+together). No second-person imperative, no encouragement, no warning, no
+exclamation marks.
+
+**House voice intact.** Factual, no celebration, no judgment.

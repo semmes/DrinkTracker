@@ -207,6 +207,14 @@ view shows (days with drinks, days with none, the total, and the average
 on days with drinks), then standard drinks by month as a bar chart with
 your monthly average drawn across it. The calendar image of the year is
 still there; the share button offers both.
+
+Trends' population reference now covers your last 12 months once your
+record is a year old — the span the survey it cites asked about — and says
+which span it covers. It also shows how many days you logged drinks on,
+beside a published average for US adults who drink. A year that has ended
+gets the same comparison on the year view. And a new By weekday card lists
+what you logged on each day of the week, with your Friday-to-Sunday and
+Monday-to-Thursday days counted, beside a published rate for US adults.
 ```
 
 ## Reviewer notes (1.3) — paste into App Review notes
@@ -226,6 +234,18 @@ Notes on what's new in 1.3:
   or to any guideline, no goal, no score, no identifier in the file, and
   nothing recorded about whether or where it was shared. It is offered
   only for a year that has ended; the app never prompts anyone to share.
+- The population reference is unchanged in kind: a bundled, published
+  statistic, computed on the device, with no network request. Its window
+  now follows the length of the user's record (four weeks, then twelve
+  months, matching the survey's own twelve-month measure), and the same
+  comparison appears for a calendar year that has ended. Two further
+  bundled, published, dated statistics sit beside the user's own counts —
+  a mean number of drinking days (NESARC-III, 2012–13) and a weekend rate
+  of days with a drink (NHANES 2005–10) — each a descriptive figure, each
+  named with its source and year in the app. None is a guideline, a
+  limit, a risk figure, or a category; the app never classifies the user
+  and never compares to a threshold. The new By weekday card reports only
+  the user's own log by day of the week, with no ranking.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```

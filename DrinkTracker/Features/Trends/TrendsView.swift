@@ -57,6 +57,7 @@ struct TrendsView: View {
         rangePicker
         chartCard(snapshot)
         summaryCards(snapshot)
+        WeekdayCard(totals: snapshot.weekdays, region: settings.effectiveRegion, calendar: calendar)
         PopulationReferenceCard()
       }
       .screenMargin()
@@ -85,6 +86,8 @@ struct TrendsView: View {
     /// The selected bar's facts, or nil when nothing is selected or the
     /// selected date no longer falls on a bar (a rolling window has moved on).
     let selection: PeriodDetail?
+    /// The range by weekday (ADR-0032), seven rows in the calendar's order.
+    let weekdays: [WeekdayTotal]
 
     var average: Double { TrendSummary.dailyAverage(totals) }
     var sum: Double { TrendSummary.sum(totals) }
@@ -117,7 +120,10 @@ struct TrendsView: View {
       totals: totals,
       buckets: buckets,
       bucketAverage: TrendSummary.bucketAverage(buckets, unit: range.bucket, calendar: calendar),
-      selection: selection
+      selection: selection,
+      weekdays: TrendSummary.weekdayTotals(
+        range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
+      )
     )
   }
 

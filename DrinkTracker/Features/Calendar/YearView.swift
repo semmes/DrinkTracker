@@ -73,6 +73,15 @@ struct YearView: View {
           region: settings.effectiveRegion,
           heading: .year(year, isClipped: summary.dayCount < yearDayCount)
         )
+
+        // A year that has ended, with a record, is compared to the same
+        // published distribution as Trends, by the same rule, in the same
+        // words (ADR-0030). Never for the year in progress: its weekly
+        // average would be a partial year's, and Trends already covers the
+        // trailing window.
+        if isReviewable(summary) {
+          YearComparisonCard(year: year, summary: summary, region: settings.effectiveRegion)
+        }
       }
       .screenMargin()
       .padding(.vertical, GlassTokens.Spacing.section)

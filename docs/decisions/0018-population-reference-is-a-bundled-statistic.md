@@ -1,7 +1,10 @@
 # 0018 — The population reference is a bundled statistic, renormalized in the open
 
 **Status:** accepted · **Date:** 2026-08-27 · **Source:** `docs/tallyist-1.2-spec.md`
-Feature C · **Relates to:** ADR-0006, spec constraints 2, 4, 5
+Feature C · **Relates to:** ADR-0006, spec constraints 2, 4, 5 · **Amended by:**
+ADR-0030 (the window follows the record: twelve months once it can, the
+survey's own span; and a complete year is compared on the year view),
+ADR-0031 (a drinking-days mean beside the volume comparison)
 
 ## Context
 

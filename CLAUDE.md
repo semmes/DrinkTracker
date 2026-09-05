@@ -130,9 +130,10 @@ so keep them true.
 
 **As of 2026-09-05:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
-**the 1.3 train is open** — `MARKETING_VERSION` is 1.3 on main, and its first
-feature (the year-in-review share card, ADR-0029) has landed; see the last
-bullet of this section
+**the 1.3 train is open** — `MARKETING_VERSION` is 1.3 on main; its first
+feature (the year-in-review share card, ADR-0029) has landed, and the
+reference cards (ADR-0030/0031/0032) follow; see the last two bullets of
+this section
 — the owner built main at 5563b74 (PRs #60–#62 merged 2026-09-03: ADR-0026
 summary window, ADR-0027 share cards, ADR-0028 Trends bar detail), ran the
 device pass the same day, and submitted build 23F81a. See the 2026-09-02 and 2026-09-03 bullets at the
@@ -281,10 +282,11 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-03): **327 keys** across four
-  catalogs — 262 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **348 keys** across four
+  catalogs — 283 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
-  on 2026-09-05 (ADR-0029 added six app keys); count them
+  on 2026-09-05 (ADR-0029 added six app keys; ADR-0030/0031/0032 added 22
+  and retired the old explainer key); count them
   (`len(json['strings'])` per file) rather than trusting this number. See `docs/localization-status.md`.
   **How to populate them, because this repeatedly looked like "my build did
   nothing":** a command-line build does *not* write back into `.xcstrings` —
@@ -516,4 +518,39 @@ Open items for v1.2:
   is this repo's. Two rules the review added: the caption drops its "the
   dashed line…" phrase when the average is zero (no line is drawn then),
   and the axis ignores a non-finite month.
+- **ADR-0030/0031/0032 landed on the 1.3 train (2026-09-05):** the owner
+  reviewed `semmes/tallyist-product` PR #3 (sources) and asked for the five
+  usable items to be built under constraints 3 and 5, everything else
+  discarded. What shipped: the population card's window follows the record
+  (four weeks, then **twelve months** once the first recorded fact is 52
+  weeks old — the ARG table's own column is "per week on average in the
+  previous 12 months", verified on ARG's page and the N14 methods paper);
+  the same comparison for a **complete year** on the year view
+  (`PopulationReference.weeklyAverage(of:)`, total over `dayCount/7`); a
+  **drinking-days** line from NESARC-III's mean (87.9 days a year among
+  past-year drinkers; NSDUH 2023 corroborates at 87.6), scaled to the window
+  and stated as two counts, never a percentile — no published frequency
+  distribution exists; a **By weekday** card on Trends (seven rows, the
+  user's Friday-to-Sunday vs Monday-to-Thursday split, and the published
+  weekend rate from Liang and Chikritzhs 2015, whose full text defines the
+  weekend and whose heavy-episode rate is deliberately not bundled).
+  **Item 4, region-matched references, was researched and not found**: UK
+  and Australian surveys band weekly consumption only at their guideline
+  (14 / 35 / 50 units; 10 drinks), so a percentile on them would be a
+  guideline comparison in disguise — recorded as candidates in the contract.
+  Mechanics: the comparison arithmetic moved from the view into the package
+  (`PopulationWindow.swift`, `FrequencyReference.swift`,
+  `WeekdayTotals.swift`, `WeekendReference.swift`, two new bundled JSONs);
+  all comparison copy is `PopulationReferenceCopy` with a shared
+  `SourceDisclosure`, so the Trends card and the year view cannot drift.
+  The contract: PR #3 merged as **1.5.0** with the discards and the
+  `compare`/`context`/`candidate` split enforced by the verifier (a compare
+  figure must name a measure in `domain/aggregation.md`); the share-cards
+  spec merged as **1.6.0** (a scripted conflict resolution once merged with
+  markers left in — repaired in PR #5 the same hour; the lesson is `set -e`
+  and never piping a verifier into `tail`); the insight rules are 1.7.0.
+  **No schema change, no CloudKit step, no network.** **Tier 3/4 for the
+  owner's pass:** the twelve-month switch on a real year-old record, the
+  year comparison under the summary card, the weekday rows at AX sizes, and
+  the three source notes reading in both appearances.
 

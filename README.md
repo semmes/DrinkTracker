@@ -411,7 +411,7 @@ backdated entry can't resurrect one.
 ## The population reference
 
 Trends carries one comparison line once four weeks of history exist: the
-user's 4-week average against the Alcohol Research Group's **2020 National
+user's average against the Alcohol Research Group's **2020 National
 Alcohol Survey** distribution of weekly drinks — "That's lower than roughly
 30% of US adults who drink." A bundled JSON in the core package, no network
 call ever; the comparison runs in grams so the regional unit setting can't
@@ -419,6 +419,31 @@ skew it; the renormalization to adults-who-drink is stated in the file, the
 UI note, and pinned row-by-row in tier-1 tests. Source and year are always
 visible. No thresholds, no guidelines, no other users — see
 [ADR-0018](docs/decisions/0018-population-reference-is-a-bundled-statistic.md).
+
+**The window follows the record**
+([ADR-0030](docs/decisions/0030-the-population-comparison-covers-the-surveys-window-and-a-complete-year.md)):
+the survey's column is drinks per week averaged over the previous twelve
+months, so once the first recorded fact is a year old the card's average
+covers the trailing twelve months, and the note says which span it covers;
+before that it is the trailing four weeks as shipped. A year that has
+ended, with a record, gets the same comparison on the year view under its
+summary card, from the same summary and the same function — never on a
+share card. Beside the volume comparison sit two more published, dated
+statistics, each a descriptive figure and never a threshold: how many days
+the user logged drinks on against a mean for US adults who drink
+(NESARC-III, 2012–13; a mean, so two counts and never a percentile —
+[ADR-0031](docs/decisions/0031-a-drinking-days-reference-as-a-mean.md)),
+and, on a new **By weekday** card, what was logged on each day of the week
+with the user's Friday-to-Sunday and Monday-to-Thursday days counted beside
+a published rate of days with a drink (Liang and Chikritzhs, 2015, on NHANES
+2005–10, whose definition of the weekend the bundled file carries —
+[ADR-0032](docs/decisions/0032-trends-reports-the-log-by-weekday.md)). No
+rank, no busiest day, no verdict. Region-matched references for the UK and
+Australia were sought and not found: every published band is the national
+guideline, so those users stay compared against US adults, as the card
+says. The sources the app may draw on, and the rule that excludes
+guidelines, definitions and risk figures, live in the product contract
+(`semmes/tallyist-product`, `platform/sources.json`).
 
 ## Calendar and year view
 
