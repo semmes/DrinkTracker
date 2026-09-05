@@ -1,0 +1,10 @@
+{
+  "source": "NIAAA, National Epidemiologic Survey on Alcohol and Related Conditions III (NESARC-III), 2012–2013",
+  "source_url": "https://niaaa.nih.gov/news-events/research-update/niaaa-spectrum-nesarc-iii-adults-are-drinking-more-alcohol-decade-ago",
+  "year": 2013,
+  "region": "US",
+  "population": "US adults 18 and older who drank in the past year",
+  "unit": "drinking_days_per_year",
+  "drinking_days_per_year": 87.9,
+  "derivation": "The published mean number of days on which past-year drinkers drank, 87.9 a year (up from 83.5 in 2001–2002). Scaled to a window by days × 87.9 / 365: about 6.7 days in 28, about 87.7 in 364. A mean, not a distribution, so the app states both numbers and never a percentile."
+}

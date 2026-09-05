@@ -1,0 +1,12 @@
+{
+  "source": "Liang W, Chikritzhs T. Weekly and daily cycle of alcohol use among the U.S. general population. Injury 2015;46(5):898–901 (NHANES 2005–2006, 2007–2008, 2009–2010)",
+  "source_url": "https://curate.curtin.edu.au/articles/Weekly_and_daily_cycle_of_alcohol_use_among_the_U_S_general_population/31481416",
+  "year": 2010,
+  "region": "US",
+  "population": "US adults 18 and older, drinkers and non-drinkers together; 16,769 person-days from one 24-hour dietary recall each",
+  "unit": "drinking_episodes_per_100_person_days",
+  "weekend_episodes_per_100_person_days": 30.5,
+  "other_episodes_per_100_person_days": 24.4,
+  "weekend_weekdays": [6, 7, 1],
+  "derivation": "The paper's incidence of drinking episodes — a day with 10 grams of alcohol or more, the authors' analytic cutoff — per 100 person-days: 30.5 (95% CI 29.2 to 32.0) on the weekend, which the paper defines as Friday, Saturday and Sunday, and 24.4 (22.8 to 26.2) on Monday to Thursday. Transcribed from the accepted manuscript; no arithmetic. The heavy-episode rate (40 grams or more) is not carried: a cutoff of that kind is a threshold in all but name."
+}
