@@ -816,7 +816,7 @@ marks.
 | Year view share menu, second item | "Share as a year in review" |
 | Share sheet preview title for the review (the year as text) | "2025 in review" |
 | Card chart caption, first phrase, per region | "Standard drinks by month" · "Units by month" |
-| Card chart caption, second phrase, after a middle dot (the value as every drink figure prints) | "the dashed line is your average, 41.7" |
+| Card chart caption, second phrase, after a middle dot (the value as every drink figure prints); absent when the average is 0, since no line is drawn then | "the dashed line is your average, 41.7" |
 | Card header, figures, unlogged sentence (existing keys, unchanged) | "2025" · "365 days" · "days with drinks" · "days with none" · "standard drinks total" · "on days with drinks" · "49 days have nothing logged either way." |
 | Axis ticks and month initials (numbers and the calendar's own symbols, no key) | "0" · "34.5" · "69" · "J F M A M J J A S O N D" |
 | Menu VoiceOver label (existing key) | "Share this year as an image" |

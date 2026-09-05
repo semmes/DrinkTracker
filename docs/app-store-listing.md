@@ -221,8 +221,8 @@ Notes on what's new in 1.3:
   user's own data through the system share sheet, like the month and year
   images in 1.2. It carries the same four figures the year view already
   shows for that year, a bar per calendar month of the user's own totals,
-  and the same "your average" line the Trends screen already draws, all
-  computed on the device by the same code. No comparison to other people
+  and a "your average" line computed by the same rule as the Trends
+  screen's, all on the device by the same code. No comparison to other people
   or to any guideline, no goal, no score, no identifier in the file, and
   nothing recorded about whether or where it was shared. It is offered
   only for a year that has ended; the app never prompts anyone to share.

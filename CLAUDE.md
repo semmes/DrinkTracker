@@ -509,6 +509,11 @@ Open items for v1.2:
   iCloud entitlement) — build without that flag to drive the app; and the
   share sheet's *Preview* on the simulator opens the real PNG, which is the
   cheapest proof of the whole `Transferable` path. The platform-neutral
-  spec for Android lives in `semmes/tallyist-product` (`design/share-cards.md`
-  and the year-review vectors, PR opened the same day).
+  spec for Android lives in `semmes/tallyist-product` PR #4
+  (`design/share-cards.md`, `vectors/year-review.json` with a reference
+  implementation in `tools/verify_vectors.py`, the aggregation rules, the
+  copy deck) — a draft, not merged here: the standing merge authorization
+  is this repo's. Two rules the review added: the caption drops its "the
+  dashed line…" phrase when the average is zero (no line is drawn then),
+  and the axis ignores a non-finite month.
 

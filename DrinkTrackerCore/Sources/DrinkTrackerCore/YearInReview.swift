@@ -37,6 +37,12 @@ public struct YearInReview: Hashable, Sendable {
   /// nothing logged either way" would be a picture of the app's install
   /// date, not of a year.
   public var isOnRecord: Bool {
+    Self.isOnRecord(summary)
+  }
+
+  /// The same predicate over any window's summary, so a view that already
+  /// holds the year's summary can gate on it without building the review.
+  public static func isOnRecord(_ summary: RecentSummary) -> Bool {
     summary.daysUnlogged < summary.dayCount
   }
 
@@ -93,8 +99,11 @@ extension TrendSummary {
 
     // Rounded up from a hair below the value: a sum of tenths can land a
     // billionth above a whole number, and without the shave an exactly-12
-    // month would draw a 13 axis.
-    let tallest = totals.max() ?? 0
+    // month would draw a 13 axis. Over finite months only — a size field or
+    // a Shortcuts variable can deliver an infinite volume (the 1.2 review's
+    // population-reference trap), and an infinite axis would flatten every
+    // real month to nothing; the corrupt month draws at full height instead.
+    let tallest = totals.filter(\.isFinite).max() ?? 0
     let axisMaximum = max(1, (tallest - 1e-9).rounded(.up))
 
     return YearInReview(

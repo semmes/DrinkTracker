@@ -12,8 +12,9 @@ import SwiftUI
 /// paints its own light or dark pair. This is the one literal-colour site
 /// beside `IntensityPalette` (PRD invariant 10) — the pair the month card has
 /// always painted, moved here without changing a value so two cards share one
-/// site. Every fill and every outline decision still comes from
-/// `IntensityPalette`.
+/// site. Every day-cell fill and outline decision still comes from
+/// `IntensityPalette`; the review card's bars are the `AccentFill` token
+/// (ADR-0029), not a literal.
 struct ShareCardInk {
   let scheme: ColorScheme
 

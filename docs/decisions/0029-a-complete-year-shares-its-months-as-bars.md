@@ -1,7 +1,8 @@
 # 0029 — A complete year shares its twelve months as bars, under the year card's own figures
 
 **Status:** accepted · **Date:** 2026-09-05 · **Amends:** ADR-0027 (a third
-card, and one word in its rule) · **Relates to:** ADR-0006 (a summary, not a
+card, and two clauses added to its rule: nested periods, and the Trends
+average line) · **Relates to:** ADR-0006 (a summary, not a
 score), ADR-0026 (the fold), ADR-0028 (the average line's rule and register),
 ADR-0007 / ADR-0010 / invariant 10 (the fill token), ADR-0015 (a summarising
 artifact), ADR-0024 (the policy's copies — untouched, and why), spec
@@ -15,7 +16,13 @@ month and year cards as shipped in 1.2 — reference only, the bundle's README
 says so, and its geometry diffed against `ShareCardParts.swift` finds no
 change — and a **year-in-review card**: one complete past year, the four
 figures, and under them a bar chart of the year's twelve monthly totals with
-a dashed line at the year's monthly average. It opens the 1.3 train.
+a dashed line at the year's monthly average. It opens the 1.3 train. Two
+notes on the bundle for the next reader: its HTML is a claude.ai/design
+export that loads a `support.js` and a design-system stylesheet the bundle
+does not carry, so it is readable as source (the geometry, the copy and the
+sample-data generator), not as a render; and its README's dark ground
+`#1C1C1E` is the code's `#1C1C1F` (`Color(red: 0.11, green: 0.11, blue:
+0.12)`) — the code value is the one measured below.
 
 ADR-0027 made one rule law: a share image carries only a figure the in-app
 calendar surface for that period already shows, from the same function.
@@ -49,9 +56,12 @@ that is the one respect in which this card departs from ADR-0027's care: the
 fourth figure divides by days with drinks precisely so a stretch of unlogged
 days cannot pull it down (ADR-0006's under-logging test), while a month with
 nothing logged pulls this line down. Three things make it admissible. It is
-a figure the app already shows, on Trends, under the same rule, and the
-caption names it in Trends' own words ("your average") rather than inventing
-a second average. The card is only ever of a *complete* year, so the sag
+a rule the app already applies, on Trends — the same function over the
+trailing twelve months; the figure for a past calendar year itself appears
+on no screen, and is checkable from the twelve bars beneath it (their sum
+over twelve) — and the caption names it in Trends' own words ("your
+average") rather than inventing a second average. The card is only ever of
+a *complete* year, so the sag
 ADR-0028 kept off Trends — the trailing partial month — cannot occur. And the
 unlogged sentence sits directly above the chart, naming how many of the
 line's days have no record at all. The alternative — a mean over months with
@@ -88,8 +98,9 @@ hairline at the middle; twelve bars in the accent fill token (`AccentFill`,
 500 in both modes, design-system review R2), equal width, 4pt apart, 3pt
 top corners; a 1pt baseline; the average as the Trends chart's own dashed
 stroke, without a label of its own, omitted at zero exactly as Trends omits
-it; the calendar's one-letter month symbols under the bars; then the
-wordmark. Same ground and inks (`ShareCardInk`), same 360pt document, same
+it — and then the caption drops its second phrase, so no card names a line
+it does not draw; the calendar's one-letter month symbols under the bars;
+then the wordmark. Same ground and inks (`ShareCardInk`), same 360pt document, same
 renderer, same terms — built at share time, nothing persisted, nothing
 logged about the share. Filename `tallyist-2025-review.png`, distinct from
 the year card's so "Save to Files" never overwrites one with the other.
@@ -140,14 +151,24 @@ terms, so the claim stays true and checkable without a three-copy date bump
   pulled down by two empty months, with the unlogged sentence above naming
   the 59 days. If real use shows this reading as a verdict, the reopen path
   below is one function and one caption, not a new card.
-- The dashed line is secondary ink on both grounds; where it crosses a bar
-  it reads at about 1.1:1 in light and 1.9:1 in dark, so the line is read in
-  the gaps and against the ground, as on Trends. Measured, not eyeballed:
-  bars on the white ground 5.39:1 and on the dark ground 3.15:1 (WCAG
-  1.4.11's 3:1 for graphics); secondary ink 4.74:1 / 5.97:1 as before. No
-  new literal-colour site: the bars are the `AccentFill` asset, and
-  `ShareCardInk` remains the only site beside `IntensityPalette`
-  (invariant 10).
+- The dashed line is a 55% stroke in the card's ink; composited over a bar
+  it measures about 2.5:1 in light and 2.8:1 in dark against that bar —
+  under 3:1, so the line is read in the gaps and against the ground, as on
+  Trends. Measured, not eyeballed: bars on the white ground 5.39:1 and on
+  the dark ground 3.15:1 (WCAG 1.4.11's 3:1 for graphics); secondary ink
+  4.74:1 / 5.97:1 as before. No new literal-colour site: the bars are the
+  `AccentFill` asset, and `ShareCardInk` remains the only site beside
+  `IntensityPalette` (invariant 10). The Trends chart's own bars are
+  `accentColor` with a gradient (500 light, 400 dark) — the design-system's
+  colour inventory now names both, and matching them is a separate visible
+  change, not made here.
+- A year whose only record is markers or 0% drinks passes the gate and
+  averages zero: twelve empty bars, an axis of 1, no line, and a caption of
+  the first phrase alone.
+- A month whose total is non-finite (an infinite volume from a size field
+  or a Shortcuts variable — the 1.2 review's population-reference trap)
+  draws at full height and leaves the axis to the finite months; the
+  figures print it as the year card already would. Nothing traps.
 - "your average" and "on days with drinks" coexist on one card,
   deliberately: the caption is Trends' register for Trends' line (ADR-0028's
   "your average, never a target"), and the figure is ADR-0027's wording for

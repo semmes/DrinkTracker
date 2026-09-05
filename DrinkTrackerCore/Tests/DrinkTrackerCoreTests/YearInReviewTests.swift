@@ -132,12 +132,28 @@ struct YearInReviewTests {
     #expect(TrendSummary.isComplete(year: 2025, today: date(2026, 9, 5, 12), calendar: calendar))
     #expect(!TrendSummary.isComplete(year: 2026, today: date(2026, 12, 31, 23), calendar: calendar))
     #expect(!TrendSummary.isComplete(year: 2027, today: date(2026, 9, 5), calendar: calendar))
+
+    // The caller's calendar decides, not UTC: 03:00 UTC on January 1 is
+    // still December 31 in Honolulu, where 2025 is not over yet.
+    var honolulu = calendar
+    honolulu.timeZone = TimeZone(secondsFromGMT: -10 * 3600)!
+    #expect(!TrendSummary.isComplete(year: 2025, today: date(2026, 1, 1, 3), calendar: honolulu))
+    #expect(TrendSummary.isComplete(year: 2025, today: date(2026, 1, 1, 11), calendar: honolulu))
+  }
+
+  @Test("An infinite month leaves the axis to the finite months")
+  func infiniteMonthDoesNotFlattenTheYear() {
+    let totals = [date(2025, 3, 1): 4.0, date(2025, 6, 1): Double.infinity]
+    let review = TrendSummary.yearInReview(grids(2025, totals: totals), through: later, calendar: calendar)
+    #expect(review.axisMaximum == 4)
+    #expect(review.monthlyTotals[5] == .infinity)
   }
 
   @Test("A year is on record with one marker or one entry, and not otherwise")
   func onRecord() {
     let blank = TrendSummary.yearInReview(grids(2025, totals: [:]), through: later, calendar: calendar)
     #expect(!blank.isOnRecord)
+    #expect(YearInReview.isOnRecord(blank.summary) == blank.isOnRecord)
 
     let marked = TrendSummary.yearInReview(
       grids(2025, totals: [:], free: [date(2025, 5, 5)]), through: later, calendar: calendar

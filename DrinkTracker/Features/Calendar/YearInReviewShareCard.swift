@@ -128,14 +128,21 @@ struct ShareCardMonthlyChart: View {
   /// Two localized phrases around a middle dot, concatenated so the line
   /// wraps as one paragraph inside 312pt; never a joined key. "your
   /// average" is the Trends chart's own register for this line; the value
-  /// is printed here rather than on the line itself.
+  /// is printed here rather than on the line itself. When the average is
+  /// zero no line is drawn (see `plot`), so the caption must not name one:
+  /// it is the first phrase alone, and twelve empty bars say the rest.
   private var caption: some View {
-    (Text(unitsByMonth)
-      + Text(verbatim: " · ")
-      + Text("the dashed line is your average, \(StandardDrink.formatted(review.monthlyAverage))"))
+    captionText
       .font(.caption)
       .foregroundStyle(ink.secondary)
       .fixedSize(horizontal: false, vertical: true)
+  }
+
+  private var captionText: Text {
+    guard review.monthlyAverage > 0 else { return Text(unitsByMonth) }
+    return Text(unitsByMonth)
+      + Text(verbatim: " · ")
+      + Text("the dashed line is your average, \(StandardDrink.formatted(review.monthlyAverage))")
   }
 
   /// A whole phrase per region, like `RecentSummaryCaptions.total`: the
@@ -216,7 +223,7 @@ struct ShareCardMonthlyChart: View {
       // The Trends chart's own stroke ([4, 4] dashes, 1pt, secondary),
       // drawn last so it reads over the bars. At an average of zero the
       // line would lie on the baseline, so — as on Trends, which draws no
-      // line at zero — it is left out; the caption still states the figure.
+      // line at zero — it is left out, and the caption drops its clause.
       if review.monthlyAverage > 0 {
         Path { path in
           let y = height - min(height, review.monthlyAverage * scale)

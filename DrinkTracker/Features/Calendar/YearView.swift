@@ -92,7 +92,7 @@ struct YearView: View {
       ToolbarItem(placement: .topBarTrailing) {
         if isReviewable(summary) {
           Menu {
-            yearShareLink {
+            yearShareLink(grids: grids) {
               Label("Share as a calendar", systemImage: "calendar")
             }
             ShareLink(
@@ -112,7 +112,7 @@ struct YearView: View {
           }
           .accessibilityLabel("Share this year as an image")
         } else {
-          yearShareLink {
+          yearShareLink(grids: grids) {
             Image(systemName: "square.and.arrow.up")
           }
           .accessibilityLabel("Share this year as an image")
@@ -189,8 +189,10 @@ struct YearView: View {
 
   // MARK: - Sharing
 
-  /// The year card's link, the same whichever control holds it.
-  private func yearShareLink<L: View>(@ViewBuilder label: () -> L) -> some View {
+  /// The year card's link, the same whichever control holds it. `grids` is
+  /// the body's local, passed in: naming the computed property here would
+  /// walk the whole log a second time per render.
+  private func yearShareLink<L: View>(grids: [MonthGrid], @ViewBuilder label: () -> L) -> some View {
     ShareLink(
       item: YearShareImage(
         year: year,
@@ -205,11 +207,11 @@ struct YearView: View {
   }
 
   /// The review's gate (ADR-0029): the year has ended, and something was
-  /// recorded in it. Read off the summary the page already computed, so
-  /// the gate costs no second walk over the log.
+  /// recorded in it — the package's own predicate, read off the summary the
+  /// page already computed, so the gate costs no second walk over the log.
   private func isReviewable(_ summary: RecentSummary) -> Bool {
     TrendSummary.isComplete(year: year, today: today, calendar: calendar)
-      && summary.daysUnlogged < summary.dayCount
+      && YearInReview.isOnRecord(summary)
   }
 }
 

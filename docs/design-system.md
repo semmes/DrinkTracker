@@ -76,10 +76,11 @@ re-validated, never eyeballed** (PRD invariant 10).
 | `data.low / .medium / .high` | 250 / 450 / 700 | 600 / 400 / 200 | per ADR-0007, validated both modes |
 
 **Where brand colour may appear — exhaustively:** interactive elements (buttons,
-links, selected states), the data ramp, the app icon, the widget's ＋, and the
-bars of the Trends chart and of the year-in-review share card (`AccentFill`, 500
-in both modes — a bar's height carries the value, not its colour, so bars take
-the fill token rather than a ramp step; ADR-0029). Everywhere
+links, selected states), the data ramp, the app icon, the widget's ＋, the bars
+of the Trends chart (`accentColor` with Swift Charts' gradient — 500 light, 400
+dark), and the bars of the year-in-review share card (`AccentFill`, 500 in both
+modes — a bar's height carries the value, not its colour, so bars take a brand
+token rather than a ramp step; ADR-0029). Everywhere
 else is system semantic colour (`primary`, `secondary`, `.fill` tiers), so
 surfaces, text, and materials keep Apple's automatic light/dark/vibrancy
 behaviour. `GlassTokens` still defines **no colours**; the brand layer lives in
@@ -99,9 +100,10 @@ A share card has no host surface, so it paints its own ground and inks —
 |---|---|---|
 | Secondary ink (primary at 55%) on the ground | 4.74:1 | 5.97:1 |
 | Year-in-review bars (`AccentFill` `#256ABF`) on the ground | 5.39:1 | 3.15:1 (graphics ≥ 3:1) |
-| Secondary ink where the dashed average crosses a bar | 1.14:1 | 1.90:1 — read in the gaps, as on Trends |
+| The dashed average where it crosses a bar (a 55% stroke composited over `#256ABF`, against the bar) | 2.46:1 | 2.76:1 — under 3:1, so the line is read in the gaps and against the ground, as on Trends |
 
-Every fill and outline decision inside a card still comes from `IntensityPalette`.
+Every day-cell fill and outline decision inside a card still comes from
+`IntensityPalette`; the review chart's bars are the `AccentFill` token.
 
 ### Neutrals
 

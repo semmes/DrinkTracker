@@ -10,7 +10,9 @@ import SwiftUI
 /// than inherited. Nothing outside the calendar surfaces may draw from it.
 /// The one other literal-colour site is `ShareCardInk` — the ground and inks
 /// of an exported image, which has no host surface to inherit from — and it
-/// takes every fill and outline decision from here (ADR-0027, invariant 10).
+/// takes every day-cell fill and outline decision from here (ADR-0027,
+/// invariant 10); a share card's chart bars are the `AccentFill` token
+/// (ADR-0029), a named asset rather than a literal.
 ///
 /// ## Why one hue rather than a red-to-green scale
 ///
