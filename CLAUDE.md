@@ -281,11 +281,11 @@ Open items for v1.2:
   Health not at all.
 - Localization: **prep only (user decision 2026-08-26)**; language choice and
   translation still deferred, but **prep is finished and the catalogs are
-  populated** (2026-08-28, re-synced 2026-09-03): **321 keys** across four
-  catalogs — 256 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
+  populated** (2026-08-28, re-synced 2026-09-03): **327 keys** across four
+  catalogs — 262 app, 34 widget, 27 core, 4 in `AppShortcuts.xcstrings`.
   Extraction and the committed catalogs agree exactly as of the clean build
-  on 2026-09-03; count them (`len(json['strings'])` per file) rather than
-  trusting this number. See `docs/localization-status.md`.
+  on 2026-09-05 (ADR-0029 added six app keys); count them
+  (`len(json['strings'])` per file) rather than trusting this number. See `docs/localization-status.md`.
   **How to populate them, because this repeatedly looked like "my build did
   nothing":** a command-line build does *not* write back into `.xcstrings` —
   it emits `.stringsdata` and stops; write-back is Xcode-GUI behaviour. Use
