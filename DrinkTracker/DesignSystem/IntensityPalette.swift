@@ -7,7 +7,8 @@ import SwiftUI
 /// Glass's automatic light/dark and vibrancy behaviour. This is the documented
 /// exception, and it is narrow on purpose: a heatmap encodes magnitude *in* colour,
 /// so the colour is data rather than styling, and data has to be specified rather
-/// than inherited. Nothing outside the calendar surfaces may draw from it.
+/// than inherited. Nothing outside the calendar surfaces may draw from it, with
+/// one named exception below (`liveFigure(scheme:)`).
 /// The one other literal-colour site is `ShareCardInk` — the ground and inks
 /// of an exported image, which has no host surface to inherit from — and it
 /// takes every day-cell fill and outline decision from here (ADR-0027,
@@ -86,6 +87,34 @@ enum IntensityPalette {
     case .medium, .high:
       return scheme == .dark ? .black : .white
     }
+  }
+
+  /// The Trends readout figure while a bar is being touched — the deepest step
+  /// of the same hue, reached by name rather than by copy (ADR-0028's second
+  /// amendment).
+  ///
+  /// The owner's ruling (2026-09-05) is that this tint is **the interaction
+  /// pattern for the bar under your finger, not a reference to how many drinks
+  /// are logged**. That is what makes a ramp step legitimate here: nothing
+  /// teaches a reader to decode the colour of a numeral, the two readout states
+  /// never coexist, and the figure prints its own value in digits an inch high —
+  /// so the hue carries emphasis, while lightness still carries magnitude only
+  /// where a legend explains it.
+  ///
+  /// It is an accessor and not a second literal — and deliberately not a new
+  /// asset-catalog colour — because these values are *validated*, and a copy in
+  /// the asset catalog would decouple silently the next time the ramp is
+  /// re-validated: same colour, two homes, no compiler and no test between them.
+  /// Routed through here, PRD invariant 10's "only place in the app that defines
+  /// literal colours" stays literally true, and design-system.md's "the brand
+  /// layer lives in the asset catalog (`AccentColor`) and `IntensityPalette`
+  /// only" needs no edit.
+  ///
+  /// Measured, not eyeballed (invariant 10): light `#0d366b` is 11.95:1 on the
+  /// card's white and 10.71:1 on the grouped background; dark `#9ec5f4` is
+  /// 9.52:1 on `#1C1C1E` and 11.75:1 on black.
+  static func liveFigure(scheme: ColorScheme) -> Color {
+    scheme == .dark ? Self.darkHigh : Self.lightHigh
   }
 
   /// Whether this intensity carries a stroke instead of, or as well as, a fill.

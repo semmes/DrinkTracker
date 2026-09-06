@@ -67,8 +67,14 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **348 keys** — 283 app, 34 widget, 27 core, 4 shortcuts (counted
-2026-09-05 after ADR-0028's amendment sync, which swapped one key for one:
+Current: **351 keys** — 286 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-05 after ADR-0028's *second* amendment, the owner's review sync: three
+compact scrub captions in — "with drinks", "on those days", "with none", the
+design prototype's own nouns for the one row where the calendar card's full
+captions wrap — and nothing out. "Clear selection" is **kept** even though the
+44pt ✕ was removed: the chart's named accessibility action still uses the
+phrase, so it is live, not orphaned. Before that, 348 —
+283 app — counted the same day after ADR-0028's first amendment sync, which swapped one key for one:
 "Tip: tap or drag across the bars to see what each one holds" out, "Tip: drag
 across the bars to see what each one holds" in — a tap does not select on
 iOS 26. The three "Your average" / "Your weekly average" / "Your monthly

@@ -18,7 +18,6 @@ struct PeriodDetailView: View {
   let region: Region
   let isToday: Bool
   var calendar: Calendar = .current
-  let onClear: () -> Void
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -63,48 +62,33 @@ struct PeriodDetailView: View {
 
   // MARK: - Header
 
-  /// The wrapping text column first, the 44pt button second, aligned on the
-  /// title's first baseline so the ✕ sits on the title's own line — and stays
-  /// there when the title wraps at AX sizes, since the first line is the
-  /// anchor.
+  /// No dismiss control. A touch selection ends when the finger lifts, so there
+  /// is nothing to close; a stepped selection is cleared by the escape gesture
+  /// and by the chart's named "Clear selection" action, both of which every
+  /// assistive technology that can reach the stepper can also reach. The owner
+  /// ruled the ✕ out on 2026-09-05: *"You should not have another X or tap to
+  /// close the information."*
   private var header: some View {
-    HStack(alignment: .firstTextBaseline, spacing: GlassTokens.Spacing.tight) {
-      VStack(alignment: .leading, spacing: 2) {
-        titleText
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(.primary)
-        if isToday {
-          Text("Today")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-        // A bucket names its day count, as the calendar card does, so the
-        // three day-figures below stay checkable against it.
-        if detail.unit != .day {
-          Text(RecentSummaryCaptions.dayCount(detail.summary.dayCount))
-            .font(.caption)
-            .foregroundStyle(.secondary)
-        }
-      }
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .accessibilityElement(children: .combine)
-
-      // A real Button, the pattern PopulationReferenceCard proved receives
-      // taps on a card (an onTapGesture on an SUCard never fires).
-      Button(action: onClear) {
-        Image(systemName: "xmark")
-          .font(.caption.weight(.semibold))
+    VStack(alignment: .leading, spacing: 2) {
+      titleText
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(.primary)
+      if isToday {
+        Text("Today")
+          .font(.caption)
           .foregroundStyle(.secondary)
-          .frame(
-            width: GlassTokens.Layout.minimumTouchTarget,
-            height: GlassTokens.Layout.minimumTouchTarget
-          )
-          .contentShape(.rect)
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel("Clear selection")
+      // A bucket names its day count, as the calendar card does, so the
+      // three day-figures below stay checkable against it.
+      if detail.unit != .day {
+        Text(RecentSummaryCaptions.dayCount(detail.summary.dayCount))
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
     }
+    .fixedSize(horizontal: false, vertical: true)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .combine)
   }
 
   private var titleText: Text { Self.titleText(for: detail, calendar: calendar) }
@@ -257,6 +241,9 @@ struct PeriodReadout: View {
   let isToday: Bool
   var calendar: Calendar = .current
 
+  @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       titleRow
@@ -271,7 +258,12 @@ struct PeriodReadout: View {
   private var titleRow: some View {
     HStack(alignment: .firstTextBaseline, spacing: GlassTokens.Spacing.tight) {
       PeriodDetailView.titleText(for: detail, calendar: calendar)
-        .font(.subheadline.weight(.semibold))
+        // Footnote semibold, not subheadline: both prototypes set the period
+        // title at 13px/600 (`.rdate` in the design-system card, and the live
+        // row in `Trends Bar Selection.dc.html`). The handoff prose said
+        // "subheadline semibold" and the prototypes win — they are the design.
+        // It is also what lets the two readout states share one height.
+        .font(.footnote.weight(.semibold))
         .foregroundStyle(.primary)
         .fixedSize(horizontal: false, vertical: true)
       Spacer(minLength: 0)
@@ -299,25 +291,34 @@ struct PeriodReadout: View {
     }
   }
 
+  /// The figure, or — for a day with nothing recorded either way — the words
+  /// that say so.
+  ///
+  /// **A day recorded as no alcohol prints a zero; a day with nothing recorded
+  /// does not.** The owner's ruling (2026-09-05): *"0 is the same as alcohol
+  /// free where the user made the decision not to have alcohol and it should be
+  /// recognized vs. the user not interacting with the app and it's unknown to
+  /// us or not logged."* That is ADR-0006's distinction stated from the reader's
+  /// side, and it is why the zero is not simply given to every empty bar: a
+  /// marker is a decision the user recorded and the figure is the true count of
+  /// it, while an unlogged day has no count to print — printing 0 there would
+  /// claim a fact the log does not hold.
   @ViewBuilder
   private var figureRow: some View {
     switch detail.dayRecord {
-    case .alcoholFree?:
-      Label("Recorded as no alcohol", systemImage: "checkmark.circle")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
     case .unlogged?:
       // The calendar legend's word, so a blank bar and a blank cell read the
       // same. Not "no drinks": an unlogged day is not a day without alcohol.
       Text(DayIntensity.unlogged.legendKey)
-        .font(.subheadline)
+        .font(GlassTokens.Typography.cardValue)
         .foregroundStyle(.secondary)
-    case .drinks?, nil:
+        .contentTransition(.opacity)
+    case .alcoholFree?, .drinks?, nil:
       HStack(alignment: .firstTextBaseline, spacing: 5) {
         Text(StandardDrink.formatted(detail.standardDrinks))
           .font(GlassTokens.Typography.cardValue)
           .monospacedDigit()
-          .foregroundStyle(.primary)
+          .foregroundStyle(IntensityPalette.liveFigure(scheme: colorScheme))
           // The bar changed, not the value: a crossfade, never a roll that
           // would draw a direction between two bars (ADR-0026, design-system §5).
           .contentTransition(.opacity)
@@ -328,12 +329,16 @@ struct PeriodReadout: View {
     }
   }
 
-  /// A bucket carries three of ADR-0006's four figures — the fourth is the
-  /// total, already 28 points above. A day bar's three counts are always
-  /// (1,0,0), (0,1,0) or (0,0,1), so printing them would be noise; it prints
-  /// its entry count instead, which is the one fact the figure does not state,
-  /// and what tells a 0%-ABV day ("0 standard drinks", one drink) from a marker
-  /// day now that the composition rows are off the scrub.
+  /// The qualifying facts under the figure.
+  ///
+  /// A marker day names itself here rather than in place of its zero — the
+  /// zero is the count, this is which zero it is (ADR-0025/ADR-0028). A bucket
+  /// carries three of ADR-0006's four figures; the fourth is the total, already
+  /// 28 points above. A day bar's three counts are always (1,0,0), (0,1,0) or
+  /// (0,0,1), so printing them would be noise; it prints its entry count
+  /// instead, which is the one fact the figure does not state and what tells a
+  /// 0%-ABV day ("0 standard drinks", one drink) from a marker day now that the
+  /// composition rows are off the scrub.
   @ViewBuilder
   private var factsRow: some View {
     switch detail.dayRecord {
@@ -341,25 +346,39 @@ struct PeriodReadout: View {
       PeriodDetailView.countCaption(entryCount)
         .font(.caption2)
         .foregroundStyle(.secondary)
-    case .alcoholFree(let fromHealth)? where fromHealth:
+    case .alcoholFree(let fromHealth)?:
       // ADR-0025: every surface showing the marker says where it came from.
-      Text("From Apple Health")
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-    case nil:
-      // The design's 14pt gaps first, a tighter 8pt second, and only then a
-      // stack. Measured on a 402pt screen the three reviewed captions come to
-      // ~330pt at 14pt gaps — exactly the content width, so they wrapped, and a
-      // wrapped row is the card growing on a selection, which is the whole
-      // fault this readout exists to fix. Stacking stays the last resort for
-      // the accessibility sizes, where growing beats clipping.
-      ViewThatFits(in: .horizontal) {
-        HStack(alignment: .top, spacing: 14) { bucketFacts }
-        HStack(alignment: .top, spacing: GlassTokens.Spacing.tight) { bucketFacts }
-        VStack(alignment: .leading, spacing: 2) { bucketFacts }
+      HStack(spacing: 4) {
+        Label("Recorded as no alcohol", systemImage: "checkmark.circle")
+        if fromHealth {
+          Text(verbatim: "·")
+          Text("From Apple Health")
+        }
       }
-    default:
+      .font(.caption2)
+      .foregroundStyle(.secondary)
+    case .unlogged?:
       EmptyView()
+    case nil:
+      bucketFactsRow
+    }
+  }
+
+  /// The design's 14pt gaps, tightening to 8 before it ever wraps.
+  ///
+  /// Chosen from the type size rather than measured by `ViewThatFits`: the box
+  /// crossfades between two states, and a fitting container re-measures every
+  /// frame of that crossfade, which is what made the text jitter on release.
+  /// A deterministic choice animates cleanly. Measured on a 402pt screen the
+  /// three captions come to ~330pt at 14pt gaps — exactly the content width —
+  /// so the default already takes the 8pt gap, and a wrapped row is the card
+  /// growing on a selection.
+  @ViewBuilder
+  private var bucketFactsRow: some View {
+    if dynamicTypeSize.isAccessibilitySize {
+      VStack(alignment: .leading, spacing: 2) { bucketFacts }
+    } else {
+      HStack(alignment: .top, spacing: GlassTokens.Spacing.tight) { bucketFacts }
     }
   }
 
@@ -370,29 +389,23 @@ struct PeriodReadout: View {
   /// `averageValue` already prints "—" exactly when there is nothing to average.
   @ViewBuilder
   private var bucketFacts: some View {
-    fact(
-      "\(detail.summary.daysWithDrinks)",
-      RecentSummaryCaptions.daysWithDrinks(detail.summary.daysWithDrinks)
-    )
-    fact(
-      RecentSummaryCaptions.averageValue(detail.summary),
-      RecentSummaryCaptions.averageCaption
-    )
-    fact(
-      "\(detail.summary.daysAlcoholFree)",
-      RecentSummaryCaptions.daysWithNone(detail.summary.daysAlcoholFree)
-    )
+    fact("\(detail.summary.daysWithDrinks)", RecentSummaryCaptions.compactDaysWithDrinks)
+    fact(RecentSummaryCaptions.averageValue(detail.summary), RecentSummaryCaptions.compactAverageCaption)
+    fact("\(detail.summary.daysAlcoholFree)", RecentSummaryCaptions.compactDaysWithNone)
   }
 
   /// A rounded-semibold numeral and the calendar card's own noun for it, so one
-  /// figure never carries two vocabularies on one screen (ADR-0026).
+  /// figure never carries two vocabularies on one screen (ADR-0026). The
+  /// numeral sits a step darker than its noun, as both prototypes draw it
+  /// (`rgba(0,0,0,.78)` against the noun's `.6`): the number is the fact and
+  /// the word only names it.
   private func fact(_ value: String, _ caption: LocalizedStringKey) -> some View {
     (Text(verbatim: value)
       .font(.system(.caption2, design: .rounded, weight: .semibold))
       .monospacedDigit()
+      .foregroundStyle(.primary)
       + Text(verbatim: " ")
-      + Text(caption).font(.caption2))
-      .foregroundStyle(.secondary)
+      + Text(caption).font(.caption2).foregroundStyle(.secondary))
       .fixedSize(horizontal: false, vertical: true)
   }
 
@@ -409,9 +422,14 @@ struct PeriodReadout: View {
       label = label + Text(verbatim: ", ") + Text("Today")
     }
     switch detail.dayRecord {
-    case .alcoholFree?:
+    case .alcoholFree(let fromHealth)?:
+      // Spoken as the marker, not as a bare "0 standard drinks": the words are
+      // what carry the decision the zero stands for.
       label = label + Text(verbatim: ", ")
         + Text(verbatim: DayIntensity.alcoholFree.accessibilityDescription)
+      if fromHealth {
+        label = label + Text(verbatim: ", ") + Text("From Apple Health")
+      }
     case .unlogged?:
       label = label + Text(verbatim: ", ")
         + Text(verbatim: DayIntensity.unlogged.accessibilityDescription)

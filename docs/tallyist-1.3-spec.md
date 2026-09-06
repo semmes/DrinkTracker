@@ -103,6 +103,20 @@ ramp's 6+ drinks fill, which would make lightness carry interaction state
 instead of magnitude (PRD invariant 10); the figure is `.primary`, with a
 costed one-commit route in the ADR if the owner wants the tint.
 
+## Feature F: the longest run with none — **proposed, not built** (ADR-0033)
+
+The owner asked for the longest-gap figure the design proposed and ADR-0028's
+amendment refused, and asked that the record be opened first. It is:
+`docs/decisions/0033-a-run-of-no-alcohol-days-is-counted-from-the-record.md`,
+status **proposed**. Nothing is built until it is accepted.
+
+The figure counts **only days explicitly recorded as having no alcohol** — the
+owner's answer, and the only definition that survives ADR-0006. Counting
+zero-total days instead would mean not logging grows the number, which is the
+under-logging incentive the app exists to refuse. Accepting the ADR also means
+amending this document's inherited stop condition and ADR-0017's hard rule 2
+rather than quietly contradicting them.
+
 ## App Review consistency
 
 | Claim made in the 1.0 response, kept through 1.2 | 1.3 |

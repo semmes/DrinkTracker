@@ -46,20 +46,36 @@ struct TrendsView: View {
   /// reached, and the ✕ belongs to the selection that actually persists.
   @State private var selectionIsHeld = false
 
+  /// The last bar the readout showed, kept only so the outgoing half of the
+  /// crossfade still has something to draw.
+  ///
+  /// Without it the live readout is *removed* from the hierarchy the instant
+  /// the finger lifts, and a removal transition animates a view whose content
+  /// has already gone — which is what made the text jump and flicker on
+  /// release. Never read as truth: every figure comes from
+  /// `snapshot.selection`, and this only stands in while the old state fades.
+  @State private var fadingSelection: PeriodDetail?
+
   /// The readout's floor. A scaled metric, not a fixed height: the card must
   /// not change height with the selection, which this delivers at the sizes the
   /// design was drawn at — but a fixed height clips (design-system §3, and the
   /// fault that disqualified `SUSegmentedControl` in ADR-0026).
   ///
-  /// 84, not the design's 76. Measured on a 402pt screen at the default text
-  /// size the idle state's own content is 76.2pt — the design's number, drawn
-  /// from the idle state — but the scrub state's is 81.4pt, because its title
-  /// is subheadline where the idle title is footnote. At 76 the floor bound
-  /// neither, and the card moved 5pt on every selection: the exact fault this
-  /// readout exists to remove. At 84 the floor binds both and the height is
-  /// identical. Above the floor, at the accessibility sizes, the box grows
-  /// rather than clips and the two states may differ again.
-  @ScaledMetric(relativeTo: .footnote) private var readoutHeight: CGFloat = 84
+  /// 80: the measured height of the taller of the two states, not the design's
+  /// 76 and not a guess.
+  ///
+  /// The design's 76 is the *idle* state's own content height, and it was drawn
+  /// before the scrub row carried rounded numerals. Measured on a 402pt screen
+  /// at the default text size, by finding the card's bottom edge in a frame of
+  /// each state: idle 76.0pt, scrub 79.7pt. The 3.7pt is the facts row — a
+  /// rounded-semibold numeral concatenated into a caption2 line takes the
+  /// taller of the two fonts' metrics. At 76 the floor bound only the idle
+  /// state and the card grew 3.7pt on every selection; at 80 it binds both and
+  /// the card's height is identical, which is the property the design is
+  /// actually asking for. A floor, never a fixed height (design-system §3): at
+  /// the accessibility sizes the box grows rather than clipping, and there the
+  /// two states may differ again.
+  @ScaledMetric(relativeTo: .footnote) private var readoutHeight: CGFloat = 80
 
   /// The clock the chart is drawn against, refreshed on the day-change
   /// notification and on every foregrounding (the calendar's pattern,
@@ -69,6 +85,7 @@ struct TrendsView: View {
   @State private var today = Date()
 
   private var calendar: Calendar { .current }
+
 
   var body: some View {
     // Everything a render needs, derived once. The selection in particular
@@ -239,17 +256,19 @@ struct TrendsView: View {
 
         chart(snapshot)
 
-        // A stepped selection holds between actions, so it keeps the shipped
-        // block: composition rows, the named unlogged count, and the ✕ that
-        // clears it. A scrub never reaches here — it ends when the finger lifts.
+        // A stepped selection holds between actions, so it keeps the fuller
+        // block: composition rows by kind and the named unlogged count, neither
+        // of which fits the header's one line. It carries no dismiss control —
+        // the escape gesture and the chart's named "Clear selection" action are
+        // the way out, and both are reachable by anything that can reach the
+        // stepper. A touch never arrives here: it ends when the finger lifts.
         if selectionIsHeld, let selection = snapshot.selection {
           Divider().opacity(0.5)
           PeriodDetailView(
             detail: selection,
             region: settings.effectiveRegion,
             isToday: selection.unit == .day && calendar.isDate(selection.start, inSameDayAs: today),
-            calendar: calendar,
-            onClear: clearSelection
+            calendar: calendar
           )
           .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
         }
@@ -270,6 +289,9 @@ struct TrendsView: View {
   @ViewBuilder
   private func readout(_ snapshot: Snapshot) -> some View {
     let live = selectionIsHeld ? nil : snapshot.selection
+    // The bar to draw in the live half: the current one, or the one just
+    // released, so the fading half is never empty.
+    let drawn = live ?? fadingSelection
     let offset: CGFloat = reduceMotion ? 0 : 6
 
     ZStack(alignment: .topLeading) {
@@ -277,19 +299,38 @@ struct TrendsView: View {
         .opacity(live == nil ? 1 : 0)
         .offset(y: live == nil ? 0 : -offset)
         .accessibilityHidden(live != nil)
-        .allowsHitTesting(live == nil)
 
-      if let live {
+      if let drawn {
         PeriodReadout(
-          detail: live,
+          detail: drawn,
           region: settings.effectiveRegion,
-          isToday: live.unit == .day && calendar.isDate(live.start, inSameDayAs: today),
+          isToday: drawn.unit == .day && calendar.isDate(drawn.start, inSameDayAs: today),
           calendar: calendar
         )
-        .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: offset)))
+        .opacity(live == nil ? 0 : 1)
+        .offset(y: live == nil ? offset : 0)
+        .accessibilityHidden(live == nil)
       }
     }
+    // Both halves are laid out at all times and only their opacity moves, so
+    // nothing is inserted or removed mid-animation — the fault behind the text
+    // flickering on release.
+    .allowsHitTesting(false)
     .frame(maxWidth: .infinity, minHeight: readoutHeight, alignment: .topLeading)
+    // Held one animation past the fade so the outgoing half has content for its
+    // whole duration, then dropped: it must never outlive the crossfade and be
+    // mistaken for a selection.
+    .onChange(of: snapshot.selection) { _, new in
+      if let new {
+        fadingSelection = new
+      } else {
+        let released = fadingSelection
+        Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(260))
+          if selectedDate == nil, fadingSelection == released { fadingSelection = nil }
+        }
+      }
+    }
   }
 
   private func idleReadout(_ snapshot: Snapshot) -> some View {
