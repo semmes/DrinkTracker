@@ -86,4 +86,26 @@ public enum SessionPace {
       .filter { now.timeIntervalSince(min($0.loggedAt, now)) <= window }
       .reduce(0) { $0 + ($1.countedDrinks ?? 1) }
   }
+
+  /// The same window's total in standard drinks.
+  ///
+  /// `rollingCount` counts entries, which is the number the card *says*; this
+  /// is the number the card's colour reads (ADR-0034, amending ADR-0017). They
+  /// are deliberately different quantities: a count is what a person tracks
+  /// through an evening, and the ramp is the app's one scale for how much that
+  /// amounts to. Sharing the window rather than the arithmetic is what keeps
+  /// the chip's shade meaning exactly what a calendar cell's shade means.
+  ///
+  /// Region-lensed like every other total (ADR-0002), so the chip re-expresses
+  /// with the rest of the app rather than freezing a US reading.
+  public static func rollingStandardDrinks(
+    in drinks: [LoggedDrink],
+    now: Date,
+    region: Region,
+    window: TimeInterval = rollingWindow
+  ) -> Double {
+    drinks
+      .filter { now.timeIntervalSince(min($0.loggedAt, now)) <= window }
+      .reduce(0) { $0 + $1.standardDrinks(in: region) }
+  }
 }
