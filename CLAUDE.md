@@ -741,9 +741,8 @@ Open items for v1.2:
   `PlusModePill` whose two segments both *log*, with selection **derived** from
   `DrinkDraft.dayTemplate` and no stored mode, which is what keeps invariant 1
   true for the widget (a stored mode fails silently, days later, as "the widget
-  logged a beer when the app said standard drink"); `TodayDrinkRow` (ascending
-  order, time + chevron, no per-entry standard-drink column — that stays in the
-  spoken label); and **the typed disclosure, the four quick-add buttons, the
+  logged a beer when the app said standard drink"); `TodayDrinkRow` (time +
+  chevron, no per-entry standard-drink column — that stays in the spoken label); and **the typed disclosure, the four quick-add buttons, the
   repeat row and `AppSettings.prefersDetailedLogging` are all deleted**, replaced
   by one "Add specific" link. `DayLogSheet.countCaption` moved into a shared
   `CounterSeedCaption`, so Today and the day sheet cannot word ＋ differently.
@@ -764,5 +763,8 @@ Open items for v1.2:
   the ramp's weakest adjacent pair, and the one number in this change worth a
   human eye); a real Health import on Today staying read-only; VoiceOver over
   the hero (the band must add no focus stop), the legend and the pill; and
-  whether the ascending list plus the bottom-most recency tint reads right under
-  a thumb.
+  and the recency tint on the top row under a thumb. **Ascending order shipped
+  and was reverted the same day** on the owner's review — the just-logged row
+  belongs where the eye lands, not at the end of a list that grows all evening;
+  Today matches History and the day sheet, and ADR-0013's amendment records why
+  the original argument was wrong.

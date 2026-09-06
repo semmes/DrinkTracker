@@ -478,18 +478,24 @@ struct TodayView: View {
 
   // MARK: - Today's drinks
 
-  /// Today's entries, oldest first, each removable and editable in place.
+  /// Today's entries, newest first, each removable and editable in place.
   ///
   /// Logging by accident is a one-tap mistake — from the quick-add row or the
   /// widget — so undoing it should be visible on the same screen rather than
   /// buried in History.
   @ViewBuilder
   private var todaysDrinksSection: some View {
-    // Ascending, unlike History and the day sheet: this list is read while the
-    // evening is still happening, so it reads forward like a tab. The
-    // consequence is that − now takes the *last* row rather than the first,
-    // which is why that row carries the recency tint (ADR-0013, amended).
-    let drinks = todaysEntries.loggedDrinks.sorted { $0.loggedAt < $1.loggedAt }
+    // Newest first, like History and the day sheet. The drink you just logged
+    // is the one you look for, the one − takes back, and the one most likely to
+    // need correcting — so it belongs where the eye lands, not at the end of a
+    // list that grows all evening (ADR-0013's amendment, reverted on the
+    // owner's review).
+    //
+    // `recentEntries` is already reverse-sorted by the query descriptor, and
+    // `todaysEntries` only filters it, so this is stating the order rather than
+    // establishing it — kept explicit so the screen does not silently change
+    // direction if that descriptor ever does.
+    let drinks = todaysEntries.loggedDrinks.sorted { $0.loggedAt > $1.loggedAt }
     if !drinks.isEmpty {
       Section {
         // Deliberately a row rather than a `header:`. A plain list pins its
@@ -626,8 +632,8 @@ struct TodayView: View {
   ///
   /// `lastLogged`, not "whatever − would remove": the tint answers "where did
   /// the thing I just tapped go", which is why it is `@State` that a relaunch
-  /// clears rather than something derived from the log. On an ascending list
-  /// the two are usually the same row anyway — the bottom one.
+  /// clears rather than something derived from the log. On a newest-first list
+  /// the two are usually the same row anyway — the top one.
   private func row(_ drink: LoggedDrink, isTappable: Bool = true) -> some View {
     TodayDrinkRow(
       drink: drink,
