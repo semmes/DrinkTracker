@@ -700,3 +700,69 @@ Open items for v1.2:
   on a real display, the source row's 44pt target under a thumb, VoiceOver
   stepping the seven rows and hearing the comparison table as one element, and
   a UK region showing "UNITS" in the head.
+- **Home v2: the counter carries the day's colour (2026-09-06, ADR-0034).** The
+  owner dropped a new design bundle into `docs/design/today2/` — the *Tallyist
+  iOS Prototype* canvas, whose new "Home v2" screen (markup at lines 219–333,
+  bindings ~929–1000 and ~1085–1130) is the work; the nested
+  `design_handoff_tallyist_ui_updates/` is the **previous** copy of the same
+  prototype plus a stale README describing three changes that shipped in 1.0.
+  Diff the two `.dc.html` files to find what is actually new — that is the
+  reliable way to read one of these bundles. **The prototype runs**: serve the
+  directory over HTTP and open it (a `file://` open inlines it as a data URL and
+  the relative `support.js` never loads, so it renders as unbound
+  `{{placeholders}}`).
+  What shipped, and the two owner rulings that shaped it. Asked whether the hero
+  band should read drink *count* (as drawn, 1–2/3–5/6–9/10+) or standard drinks,
+  the owner's answer was **"nothing out of sync … colors and amount logged"**,
+  then, explicitly, **add `#05172e` and move the calendar onto the 4-band scale
+  too**. So `DayIntensity` gained `.veryHigh` and the buckets are now
+  1–2 / 3–5 / **6–9** / **10+** over the region-lensed standard-drink total —
+  on Today, the calendar, the year view and both share cards at once, because
+  all of them read `DayIntensity.legendOrder`/`legendKey`. **Every existing
+  user's calendar re-shades at the top end**; that cost is accepted and recorded.
+  The ramp's new light step 800 `#05172e` is validated (ΔL\* 0.153 from 700,
+  white ink 17.97:1, hue 278.1° inside the family); the **dark** fourth step is
+  the family's *existing* step 100 `#cde2fb`, because the obvious pick, 150
+  `#b7d3f6`, fails at ΔL 0.053. `#05172e` is the ramp's **floor** — L\* 7.6, no
+  room beneath it — so a future "20+" means re-spacing the family, not extending
+  it. Today's tile is `IntensityPalette` reached by name over
+  `DayIntensity.bucket`, the `liveFigure` precedent exactly, so invariant 10
+  stays literally true and the hero cannot drift from the calendar cell: they
+  are the same two calls.
+  Second ruling: the pace chip **gets the tint ADR-0017 refused by name**. Built
+  as the ramp itself (`SessionPace.rollingStandardDrinks` → `DayIntensity`), and
+  only from `.high` up — because the ramp's ink flips to white at `.medium` and
+  white on `#2a78d6` is 4.42:1, under AA for text that size, which a calendar
+  cell escapes only because a day numeral is large text. The drawn 16% wash was
+  measured and **not** built: adjacent tiers land at ΔL\* 0.034/0.016, so a
+  reader could not tell 6–9 from 10+.
+  The rest: `CountStepper` gained `.hero` (68pt buttons, a filled `AccentFill`
+  ＋ — the app's one filled circular control, and **no** drop shadow); a
+  `PlusModePill` whose two segments both *log*, with selection **derived** from
+  `DrinkDraft.dayTemplate` and no stored mode, which is what keeps invariant 1
+  true for the widget (a stored mode fails silently, days later, as "the widget
+  logged a beer when the app said standard drink"); `TodayDrinkRow` (ascending
+  order, time + chevron, no per-entry standard-drink column — that stays in the
+  spoken label); and **the typed disclosure, the four quick-add buttons, the
+  repeat row and `AppSettings.prefersDetailedLogging` are all deleted**, replaced
+  by one "Add specific" link. `DayLogSheet.countCaption` moved into a shared
+  `CounterSeedCaption`, so Today and the day sheet cannot word ＋ differently.
+  **No schema change, no CloudKit step, no new setting.** 300 app keys (13 in,
+  11 out); syncing surfaced a real bug worth remembering — **`unitLabel` was a
+  `String`, which binds `accessibilityLabel`'s `@_disfavoredOverload`, so
+  "Drinks today"/"Drinks on this day"/"Drinks per day" had never reached the
+  catalog at all**; and a helper returning `""` for an impossible branch writes
+  an *empty key*, so bind the optional at the call site. Verified locally at all
+  four CI gates plus tier 3 on a booted iPhone 17 Pro over every band, both
+  appearances and `accessibility-extra-large` — rendering found two defects that
+  reasoning had not: the pace chip clipped mid-word at AX5 (a capsule sized to
+  its own text overflows its card), and a pinned plain-list header draws on
+  nothing, so rows scrolled under "Add specific" (the heading is now a row, not
+  a `header:`). **Tier 3/4 for the owner's pass:** the band's crossfade on a real
+  display in both appearances; the `AccentFill` ＋ against real Liquid Glass with
+  no shadow; the 6–9 / 10+ swatches side by side on hardware (1.50:1 apart —
+  the ramp's weakest adjacent pair, and the one number in this change worth a
+  human eye); a real Health import on Today staying read-only; VoiceOver over
+  the hero (the band must add no focus stop), the legend and the pill; and
+  whether the ascending list plus the bottom-most recency tint reads right under
+  a thumb.

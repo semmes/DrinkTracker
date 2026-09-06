@@ -131,6 +131,61 @@ struct SessionPaceTests {
     #expect(SessionPace.rollingCount(in: drinks, now: now) == 2)
   }
 
+  /// The chip prints a count and is shaded by an amount (ADR-0034), so the two
+  /// have to share a window and nothing else. Same three drinks, same edge
+  /// behaviour, different quantity.
+  @Test("The rolling total shares the count's window but measures standard drinks")
+  func rollingStandardDrinksSharesTheWindow() {
+    let drinks = [
+      beer(at: -SessionPace.rollingWindow),          // exactly on the edge
+      beer(at: -SessionPace.rollingWindow - 1),      // one second outside
+      beer(at: -minutes(10)),
+    ]
+    // Two 12oz/5% beers inside the window: 12 × 0.05 = 0.6 fl oz of alcohol
+    // each, which is exactly one US standard drink apiece.
+    #expect(SessionPace.rollingCount(in: drinks, now: now) == 2)
+    let total = SessionPace.rollingStandardDrinks(in: drinks, now: now, region: .unitedStates)
+    #expect(abs(total - 2) < 0.0001)
+  }
+
+  /// The lens reaches the chip's colour like every other total (ADR-0002): the
+  /// same two beers are two US standard drinks and about 2.7 UK units, so the
+  /// shade can differ between regions for identical drinking. That is the
+  /// display-lens behaviour, not a bug.
+  @Test("The rolling total is region-lensed")
+  func rollingStandardDrinksFollowsRegion() {
+    let drinks = [beer(at: -minutes(30)), beer(at: -minutes(10))]
+    let us = SessionPace.rollingStandardDrinks(in: drinks, now: now, region: .unitedStates)
+    let uk = SessionPace.rollingStandardDrinks(in: drinks, now: now, region: .unitedKingdom)
+    #expect(abs(us - 2) < 0.0001)
+    #expect(uk > us)
+  }
+
+  /// A Health import's count *is* the whole fact, so it contributes the same
+  /// number to both figures and is the same number under every lens
+  /// (`LoggedDrink.standardDrinks(in:)`, ADR-0014). Worth pinning here because
+  /// it is the reason the chip's shade cannot be read as "how much alcohol" in
+  /// general — for an imported row it is "how many drinks the other app said".
+  @Test("An imported count contributes its count to both figures, unlensed")
+  func importedCountsAreUnlensed() {
+    let imported = LoggedDrink(
+      loggedAt: now.addingTimeInterval(-minutes(20)),
+      type: .other,
+      volumeOunces: 0,
+      abvPercent: 0,
+      countedDrinks: 2
+    )
+    let drinks = [beer(at: -minutes(10)), imported]
+    #expect(SessionPace.rollingCount(in: drinks, now: now) == 3)
+    for region in Region.allCases {
+      let total = SessionPace.rollingStandardDrinks(in: drinks, now: now, region: region)
+      let beerAlone = SessionPace.rollingStandardDrinks(
+        in: [beer(at: -minutes(10))], now: now, region: region
+      )
+      #expect(abs(total - (beerAlone + 2)) < 0.0001, "import re-expressed under \(region)")
+    }
+  }
+
   @Test("Chained drinks extend a session well past one threshold from now")
   func chainExtendsSession() {
     // Each drink within 4h of the previous; the run reaches back 9 hours even

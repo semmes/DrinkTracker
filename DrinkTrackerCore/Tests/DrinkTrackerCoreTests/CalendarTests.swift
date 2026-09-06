@@ -32,7 +32,40 @@ struct DayIntensityTests {
     #expect(bucket(3) == .medium)
     #expect(bucket(5) == .medium)
     #expect(bucket(6) == .high)
-    #expect(bucket(12) == .high)
+    #expect(bucket(9) == .high)
+    #expect(bucket(10) == .veryHigh)
+    #expect(bucket(12) == .veryHigh)
+  }
+
+  /// Every legend label is a literal claim about the bucket it sits under, and
+  /// the ramp is only honest if the two cannot drift. This walks the whole
+  /// range a day can reach and asserts the bucket's own label actually
+  /// contains the number — so renaming a label without moving its boundary, or
+  /// moving a boundary without renaming, fails here rather than on a device.
+  @Test("Every whole total lands under a label that describes it")
+  func labelsDescribeTheirRange() {
+    for drinks in 1...40 {
+      let intensity = DayIntensity.bucket(
+        standardDrinks: Double(drinks), isMarkedAlcoholFree: false, hasEntries: true
+      )
+      let expected: DayIntensity =
+        switch drinks {
+        case 1...2: .low
+        case 3...5: .medium
+        case 6...9: .high
+        default: .veryHigh
+        }
+      #expect(intensity == expected, "\(drinks) standard drinks bucketed as \(intensity)")
+    }
+  }
+
+  /// The ramp's order is what carries magnitude, so it is pinned rather than
+  /// left to declaration order surviving an edit. `allCases` is legend order:
+  /// the two non-quantities first, then the four drinking bands least to most.
+  @Test("The ramp is four drinking bands, least to most")
+  func rampOrder() {
+    #expect(DayIntensity.allCases == [.unlogged, .alcoholFree, .low, .medium, .high, .veryHigh])
+    #expect(DayIntensity.allCases.filter(\.isRecorded).count == 5)
   }
 
   /// Rounding to the nearest whole drink is what makes the labels literally true:

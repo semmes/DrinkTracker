@@ -62,7 +62,7 @@ period is in progress, and the window's day count beside it; the calendar
 card's four figures over the days through today, with the unlogged-days
 sentence whenever it is non-zero; the grid (twelve mini grids in three
 columns for a year, six rows reserved per month so the boxes align); the
-five-entry legend, "Not logged" included; and the wordmark. Figures come
+six-entry legend (five as accepted; the fourth drinking band arrived with ADR-0034), "Not logged" included; and the wordmark. Figures come
 before the grid: count is the hero, and the unlogged sentence has to sit
 under the counts it qualifies. The per-week average is removed, not moved.
 
@@ -155,3 +155,18 @@ next design, and the month share must keep its one tap. If real recipients
 to argue here again, not a widening of the year card. If localization
 arrives, the legend keys already live app-side and the cards follow the
 in-app legend automatically.
+
+
+---
+
+## Amendment (2026-09-06, ADR-0034) — the legend is six entries
+
+The ramp gained a fourth drinking band, so the share cards' legend went from
+five entries to six. No code changed here: `ShareCardLegend` iterates
+`DayIntensity.legendOrder`, which is exactly why it moved on its own.
+
+The rule this record actually decided is untouched — a share image may carry
+only a figure the in-app calendar surface for that period already shows, from
+the same function. A finer bucket is the same figure at higher resolution, not a
+new one. Cards exported before and after this build will shade 10+ days
+differently; that is the display lens, like a region change.

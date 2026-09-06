@@ -72,3 +72,60 @@ a 60-second `TimelineView` — no repeating `Timer`.
 - Any pressure toward notifications, persistence of gaps, or urgency styling
   reopens nothing: those are the three hard rules, and the spec's own stop
   conditions say a build heading there stops.
+
+---
+
+## Amendment (2026-09-06, ADR-0034) — the rolling count carries the ramp
+
+**The owner reversed one clause of this record, and it is the clause that
+mattered.** Reviewing the Home v2 design, they were shown that "styled with
+weight, never color, icon, or exclamation" — restated in `SessionPaceCard`'s doc
+comment and in `docs/tallyist-1.2-spec.md`'s constraint 3 — refused the drawn
+chip by name, and asked for the tint anyway.
+
+So the chip is now painted with the intensity ramp. What is *not* amended is the
+reasoning that made the original refusal right, and the implementation is shaped
+by it:
+
+- **The colour is not urgency styling invented for this card.** It is
+  `DayIntensity.bucket` over the rolling window's own standard drinks — the same
+  fold and the same palette as the calendar cell for the day the card sits
+  inside. A shade here means what that shade means everywhere: an amount, on one
+  scale. Nothing red, nothing pulsing, no icon, no exclamation.
+- **It says nothing the figure does not.** The chip prints its count in digits
+  beside the shade, and the ramp's boundaries are stated in a legend a few
+  points above it.
+- **It escalates from `.high` only.** Below that the chip keeps the neutral
+  capsule. That is a measured limit, not a cautious one: the ramp's ink flips to
+  white at `.medium`, and white on `#2a78d6` is 4.42:1 — under AA for text this
+  size, where a calendar cell gets away with the same pair only because a day
+  numeral is large text. `.high` and `.veryHigh` measure 11.95:1 and 17.97:1
+  light, 11.75:1 and 15.87:1 dark.
+
+Mechanics: `SessionPace.rollingStandardDrinks(in:now:region:)` shares
+`rollingCount`'s window and nothing else — a count is what a person tracks
+through an evening, the ramp is how much that amounts to, and the two are
+deliberately different quantities (an imported Health row is the case where they
+visibly coincide, since its count is unlensed).
+
+**The three hard rules are untouched.** Nothing is persisted, no notification
+exists, and a session still ends by ceasing to render. The rolling display
+minimum stays 3 and the gap threshold stays 4 hours — the prototype drew 4 and
+3h respectively, and both were read as prototype convenience rather than
+intent, since neither was raised.
+
+### What this costs
+
+The honest cost is that the sentence "the number is the signal, and whether it
+signals is the user's reading" is now half true: a deep fill is a second signal,
+and it is the app saying *this is a lot* in a channel the reader did not opt
+into. The defence is that it says exactly what the calendar already says about
+the same drinking, and that a measurement tool which colours a month but not an
+evening is drawing a distinction the user never asked for. Whether that holds is
+a question for real use, which is what the reopen clause below is for.
+
+### How to reopen this amendment
+
+If anyone reports the chip reading as a warning rather than a reading — or if it
+changes when they log — the cheapest revert is one line: drop `paceBand` to
+always return nil and the neutral capsule comes back with no other change.

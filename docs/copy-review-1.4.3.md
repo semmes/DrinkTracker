@@ -1045,3 +1045,77 @@ face reads as better.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+---
+
+## Home v2 — Today's redesign (ADR-0034, 2026-09-06)
+
+Six genuinely new strings, and a longer list of strings that were *not* written
+because a reviewed sentence already said the thing.
+
+| String | Where | Read |
+|---|---|---|
+| "Add specific" | Logged-today heading | The typed path. Factual, no verb aimed at the reader's habits. |
+| "Tap to say what it was" | An untyped row's subtitle | An affordance, in the slot every other row uses for a fact. See the note below — this one is not free. |
+| "Tap a drink to say what it was — left alone it counts as one standard drink." | Footer, when any row is untyped | States the consequence of doing nothing, which is the point: nothing is owed. |
+| "Tap a drink to change what it was." | Footer, otherwise | Same shape, no untyped rows to explain. |
+| "Add what it was" | An untyped row's VoiceOver hint | The spoken half of the subtitle above. Imperative because a hint is by convention the action, and the label still carries the fact ("no size or strength recorded") — so the hint adds the way in and nothing else. |
+| "Logs one now" | Both plus-pill segments' VoiceOver hint | Load-bearing: the selected segment carries `.isSelected`, which on its own reads as picking a mode. Both segments write, and this is the sentence that says so. |
+
+**Reused rather than written**: "counted as 1 drink" / "counted as %@ drinks"
+are `DrinkRow`'s shipped Health-import wording (reviewed 2026-08, ADR-0014),
+lifted out of the "time · …" sentence because Today's row prints the time in
+its own column. Same words, one fewer interpolation.
+
+**"Tap to say what it was" is the one that needed argument.** It sits where
+every other row prints a fact, and it is adjacent in kind to "Missing size" and
+"details needed" — both rejected earlier in this document as "a chore the app is
+nagging about". Three things separate it. It is not a deficiency label: it names
+an action the reader may take, not a state they are in. It appears only on rows
+the reader created *by choosing not to answer*, so it cannot accuse them of an
+omission they did not make deliberately. And the footer directly beneath it says
+the row is complete as it stands. The underlying fact survives verbatim in the
+accessibility label ("no size or strength recorded"), which is where a screen
+reader gets it. If it reads as nagging in use, the one-line revert is to show
+that fact visibly instead.
+
+**"Add specific" collides mildly with "Add details"**, which is the swipe action
+on the same screen for filling in an existing row. "Add" therefore means two
+things a few points apart: create a described drink, and describe an existing
+one. Recorded rather than resolved — the fallback name is the retiring "Log by
+type", which is longer and reads like a mode.
+
+### Strings deliberately not written
+
+- **"Or tap + — one tap is one standard drink."** (the drawn zero-state
+  caption). True only under `counterSeed == .standardDrink`; under the usual
+  drink seed ＋ logs a beer. Replaced by `DayLogSheet`'s already-reviewed,
+  seed-aware sentence — "Plus logs one standard drink, with no type — editable
+  afterwards." — now shared by both surfaces as `CounterSeedCaption`, so the two
+  cannot word the same rule differently.
+- **"+ adds a beer · 16 oz · 5.4%"** (the drawn pill caption). Same sentence,
+  same shared view. The drawing's version also welds an English article and
+  English casing onto a package-localized noun.
+- **"Standard"** (the drawn pill segment). The entity already has a name in the
+  catalog — "Standard drink" in Settings, "One standard drink" in the package —
+  and a third would be a third.
+- **"Removed a drink"** (the drawn undo text for an untyped row). The shipped
+  bar already reads "Removed one standard drink", because
+  `DrinkType.unspecified.displayName` is a whole sentence. A new key to say
+  strictly less.
+
+### Retired
+
+"Log by type — size and strength", "Log by drink type", "shown", "hidden",
+"Another %@", "Another standard drink", "Log another %@, same size and
+strength", "Log another standard drink". **"Record a standard drink instead"
+stays live** — the day sheet still uses it.
+
+The legend labels "1–2" / "3–5" are reused unchanged; "6+" becomes "6–9" and
+"10+" is new, on the calendar, the year view, the share cards and Today's hero
+legend at once, because all of them read `DayIntensity.legendKey`. En dashes,
+matching the existing keys — an ASCII hyphen would mint a duplicate key for a
+visually identical string.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

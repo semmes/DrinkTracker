@@ -67,8 +67,33 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **356 keys** — 291 app, 34 widget, 27 core, 4 shortcuts (counted
-2026-09-06 after ADR-0033's sync: five app keys in for the longest run with
+Current: **365 keys** — 300 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-06 after ADR-0034's sync — Home v2. The app catalog went 298 → 300: 13
+in, 11 out. In: the ramp's two new legend labels ("6–9", "10+"), four Today
+strings ("Add specific", "Tap to say what it was", and the two footer hints),
+two VoiceOver hints ("Add what it was" on an untyped row, "Logs one now" on
+both plus-pill segments — the second is load-bearing, because a segment carrying
+`.isSelected` otherwise reads as picking a mode when it actually writes), the two Health-import
+subtitle branches ("counted as 1 drink" / "counted as %@ drinks"), and — a real
+bug fixed in passing — **three counter labels that had never reached the catalog
+at all**: "Drinks today", "Drinks on this day", "Drinks per day". They were
+invisible because `CountStepper.unitLabel` was a `String`, which binds
+`accessibilityLabel`'s `@_disfavoredOverload` for `StringProtocol`; typed as
+`LocalizedStringKey` they extract. Same family as the `Text(String)` trap below,
+and worth checking wherever a view takes a caller-supplied label. Out: "6+" (now
+"6–9"), and the nine strings retired with the typed disclosure and repeat row —
+"Log by type — size and strength", "Log by drink type", "shown", "hidden",
+"Another %@", "Another standard drink", "Log another %@, same size and
+strength", "Log another standard drink", "Log %@" (the quick-add button's
+label), plus "%@oz · %@%%" (the repeat row's detail; Today's new row prints the
+same figures through `Text(verbatim:)`, because a key made only of "%@" and
+punctuation is the trap two paragraphs down). Nothing reached the widget or the
+core package. One thing the first sync caught that a later session should watch
+for: a helper returning `""` for an impossible branch writes an **empty key**
+into the catalog — bind the optional at the call site instead. Before that, 363 — 298 app —
+counted 2026-09-06 after the ADR-0032 amendment's sync, which added seven
+visible-only keys for the By weekday tables and retired none. Before *that*, 356
+— 291 app — counted 2026-09-06 after ADR-0033's sync: five app keys in for the longest run with
 none — "none in a row" (the scrub fact), "Longest run with none" (the card
 label), "None recorded" (its zero), and the spoken pair "longest run of 1 day
 with none" / "longest run of %lld days with none". The card's non-zero values

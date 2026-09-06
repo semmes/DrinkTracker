@@ -78,15 +78,27 @@ struct AppSettingsTests {
     #expect(AppSettings.storedRegion(defaults: defaults) == .unitedStates)
   }
 
-  // MARK: - Detailed logging
+  // MARK: - Retired keys
 
-  @Test("The detailed-logging preference starts off and round-trips")
-  func detailedLoggingRoundTrips() {
+  /// `prefersDetailedLogging` was Today's typed-disclosure preference and is
+  /// gone (ADR-0034); the typed path is now the always-present "Add specific"
+  /// link, so there is nothing left to remember.
+  ///
+  /// The key stays in every existing install's App Group defaults, and the
+  /// only failure this removal can produce is an initialiser that trips over
+  /// it. Nothing reads it, so this asserts the one thing that matters: a
+  /// defaults dictionary carrying the retired key still yields a settings
+  /// object with its real values intact.
+  @Test("A defaults store still holding the retired key initialises cleanly")
+  func retiredDetailedLoggingKeyIsHarmless() {
+    defaults.set(true, forKey: "prefersDetailedLogging")
+    defaults.set(Region.unitedKingdom.rawValue, forKey: "region")
+
     let settings = AppSettings(defaults: defaults)
-    #expect(settings.prefersDetailedLogging == false)
 
-    settings.prefersDetailedLogging = true
-    #expect(AppSettings(defaults: defaults).prefersDetailedLogging)
+    #expect(settings.region == .unitedKingdom)
+    #expect(settings.counterSeed == .standardDrink)
+    #expect(settings.showsSessionPace == false)
   }
 
   // MARK: - Calendar summary window

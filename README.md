@@ -318,10 +318,12 @@ the type you log most often, at the size and strength you last logged it
 use, shared code). Every entry is a real, individually editable drink with its own
 HealthKit sample, per ADR-0003.
 
-**The typed path didn't go anywhere.** "Log by type — size and strength" discloses
-the beer/wine/spirit/other row and the repeat control, and the preference persists,
-so granular users set their Today once. See
-[ADR-0009](docs/decisions/0009-count-first-logging.md).
+**The typed path is one link.** "Add specific", beside "Logged today", opens the
+drink sheet on an untyped standard drink — so it asks what it was, then offers
+size and strength. The "Log by type" disclosure, its four quick-add buttons and
+the `prefersDetailedLogging` preference were retired in 1.3; see
+[ADR-0009](docs/decisions/0009-count-first-logging.md) and
+[ADR-0034](docs/decisions/0034-the-counter-carries-the-days-colour.md).
 
 A drink saved onto a day marked alcohol-free clears the marker — evidence beats
 assertion, enforced in `DrinkRepository.saveOrThrow` so the app, calendar, and
@@ -335,8 +337,10 @@ touching any of this copy.
 
 - **The counter.** Repeated taps on Today's ＋ are the primary way to log several —
   each tap is its own entry.
-- **One-tap repeat.** Under "Log by type", a row reading "Another beer · 12oz · 5%"
-  logs an identical drink at the current time. A *new entry*, not an edit.
+- **One-tap repeat.** Once you describe a drink, Today's pill shows two log
+  buttons — "Standard drink" and that drink's own name, with the one ＋ is
+  following marked. Tapping either logs it: a *new entry*, not an edit, and no
+  stored mode, since the highlight is derived from the day's newest entry.
 - **Backfilling a count.** The calendar's day sheet carries the same live counter
   as Today: plus logs a drink dated that day, minus removes the day's most recent
   (undoable) — see [ADR-0013](docs/decisions/0013-the-day-sheet-counter-is-the-days-log.md).
@@ -502,7 +506,7 @@ renders the visible year, as an image — the period's name, where the record
 stops ("Through September 2") and how many days it covers, the calendar's
 four figures (days with drinks, days with none, total, average on days with
 drinks) with unlogged days named, the grid (twelve mini grids for a year),
-the five-entry legend, a small wordmark — through the system share sheet
+the six-entry legend, a small wordmark — through the system share sheet
 ([ADR-0027](docs/decisions/0027-the-calendar-shares-a-month-or-a-year-as-its-own-figures.md)).
 Every figure is one the calendar already shows for that period, from the
 same function; the old per-week average is gone. One-way and user-initiated every time: the PNG is built at
@@ -563,10 +567,14 @@ the tone rules and `QuickLogWidget` both rule out.
 A single blue hue stepped light→dark fixes both. Lightness survives every form of
 colour vision deficiency **and** greyscale, and darker reads as *more*, not *worse*.
 
-| | 1–2 | 3–5 | 6+ |
-|---|---|---|---|
-| Light | `#86b6ef` | `#2a78d6` | `#0d366b` |
-| Dark | `#184f95` | `#3987e5` | `#9ec5f4` |
+| | 1–2 | 3–5 | 6–9 | 10+ |
+|---|---|---|---|---|
+| Light | `#86b6ef` | `#2a78d6` | `#0d366b` | `#05172e` |
+| Dark | `#184f95` | `#3987e5` | `#9ec5f4` | `#cde2fb` |
+
+The fourth band arrived in 1.3 (ADR-0034). Light `#05172e` is the family's
+**floor** — no room for a step beneath it — so a fifth band would mean
+re-spacing the ramp rather than extending it.
 
 Both modes pass monotone lightness, adjacent ΔL ≥ 0.06, light-end contrast ≥ 2:1,
 and single-hue checks. Dark is stepped independently against the dark surface rather

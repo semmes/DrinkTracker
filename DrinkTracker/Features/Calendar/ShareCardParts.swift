@@ -40,7 +40,7 @@ struct ShareCardInk {
     case .unlogged: secondary
     case .alcoholFree: primary
     case .low: scheme == .dark ? .white : .black
-    case .medium, .high: scheme == .dark ? .black : .white
+    case .medium, .high, .veryHigh: scheme == .dark ? .black : .white
     }
   }
 }
@@ -274,8 +274,10 @@ struct ShareCardDayGrid: View {
   }
 }
 
-/// The five-entry legend, "Not logged" included: a blank cell with a
-/// four-entry legend reads as zero to anyone who did not make the card.
+/// The six-entry legend, "Not logged" included: a blank cell with a
+/// five-entry legend reads as zero to anyone who did not make the card.
+/// (Six since ADR-0034's fourth drinking band; it wraps, because the row is a
+/// `FlowLayout` rather than fixed columns.)
 /// Iterates the same list and keys as the in-app legend.
 struct ShareCardLegend: View {
   let ink: ShareCardInk

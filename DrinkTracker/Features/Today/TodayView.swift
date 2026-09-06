@@ -6,8 +6,10 @@ import SwiftUI
 
 /// Screen 4 — Today. Home surface and the entry point for every log.
 ///
-/// Tapping a quick-add button opens the drink-detail sheet already seeded with
-/// that type's defaults, so the common case is two taps: type, then Log.
+/// One tap of ＋ logs a drink. Everything else on the screen exists to say what
+/// that tap just did: the band behind the number is the day's own amount on the
+/// calendar's scale, the pill says which drink ＋ is following, and the list
+/// below is the same data the number counts (ADR-0034).
 struct TodayView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(HealthKitService.self) private var health
@@ -58,6 +60,7 @@ struct TodayView: View {
   @State private var foregroundSweep: Task<Void, Never>?
 
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   init() {
     let startOfDay = Calendar.current.startOfDay(for: Date())
@@ -67,14 +70,13 @@ struct TodayView: View {
   var body: some View {
     NavigationStack {
       // A List rather than a ScrollView so today's entries get native
-      // swipe-to-delete. The metric and quick-add row sit in a chrome-less first
-      // section so the screen still reads as the original design.
+      // swipe-to-delete. The counter sits in a chrome-less first section so the
+      // screen still reads as one surface rather than a form.
       List {
         Section {
           VStack(spacing: GlassTokens.Spacing.block) {
             counterHero
             SessionPaceCard()
-            detailedSection
           }
           .padding(.top, GlassTokens.Spacing.tight)
         }
@@ -226,8 +228,9 @@ struct TodayView: View {
       CountStepper(
         value: liveCount,
         range: 0...max(12, todaysEntries.count + 1),
-        style: .prominent,
-        unitLabel: "Drinks today"
+        style: .hero,
+        unitLabel: "Drinks today",
+        band: todayIntensity
       )
 
       Text(todaysEntries.count == 1 ? "drink today" : "drinks today")
@@ -237,28 +240,93 @@ struct TodayView: View {
 
       // The precise figure, one line down. Reads "≈ 2.6 standard drinks" — or
       // "≈ 4.5 units" under the UK lens, where count and measure diverge most.
+      //
+      // It also names the quantity the band above is keyed to, which is what
+      // makes the colour checkable rather than atmospheric (ADR-0034).
       if total > 0 {
         Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
           .foregroundStyle(.secondary)
       }
 
+      HeroBandLegend(active: todayIntensity)
+        .padding(.top, 2)
+
+      if let template = typedDayTemplate {
+        PlusModePill(
+          template: template,
+          seed: counterSeed,
+          onRecordStandardDrink: recordStandardDrink,
+          onRepeatTemplate: { repeatDrink(template) }
+        )
+        .padding(.top, GlassTokens.Spacing.tight)
+      }
+
       lastLoggedLine
 
       if todaysEntries.isEmpty {
-        Group {
+        VStack(spacing: GlassTokens.Spacing.tight) {
           if isTodayMarkedAlcoholFree {
             markedTodayState
           } else {
             SUButton(model: .primary("Record no alcohol today")) {
               store.markAlcoholFree(Date())
             }
+            // The drawing's "Or tap + — one tap is one standard drink." is
+            // true only under the standard-drink seed; this is the same point
+            // in a sentence that stays true under both (ADR-0034).
+            Group {
+              if settings.counterSeed == .standardDrink {
+                CounterSeedCaption(seed: counterSeed)
+              } else {
+                UsualDrinkSeedCaption()
+              }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
           }
+
+          // The typed path has to exist on an empty day too — it is the day
+          // with the least to go on. The Logged-today heading that normally
+          // carries it does not render until there is a row.
+          addSpecificButton
         }
         .padding(.top, GlassTokens.Spacing.regular)
       }
     }
     .frame(maxWidth: .infinity)
+  }
+
+  /// Today's own band — the same fold and the same palette as the calendar
+  /// cell for this day, so the two can never disagree about one day (ADR-0034).
+  ///
+  /// `total` is already region-lensed, so a UK reader's tile re-expresses along
+  /// with every other figure (invariant 3).
+  private var todayIntensity: DayIntensity {
+    DayIntensity.bucket(
+      standardDrinks: total,
+      isMarkedAlcoholFree: isTodayMarkedAlcoholFree,
+      hasEntries: !todaysEntries.isEmpty
+    )
+  }
+
+  /// The drink ＋ would log right now, under the standard-drink seed. Built by
+  /// the write path's own function, so a caption describing it cannot drift
+  /// from what the button does.
+  ///
+  /// Today's entries are the whole input, and that is exact rather than a
+  /// shortcut: `quickCount`'s standard-drink branch reads only `dayTemplate`,
+  /// which filters to the day. The usual-drink seed *does* need the whole log,
+  /// and it gets it in `UsualDrinkSeedCaption`, which owns that fetch — so the
+  /// default configuration never runs an unbounded query for a caption.
+  private var counterSeed: LoggedDrink {
+    DrinkDraft.countSeedPreview(
+      from: todaysEntries.loggedDrinks,
+      seed: .standardDrink,
+      region: settings.effectiveRegion
+    )
   }
 
   /// The counter's binding writes straight to the log: an increment saves a
@@ -388,158 +456,51 @@ struct TodayView: View {
     .frame(maxWidth: .infinity)
   }
 
-  // MARK: - Detailed logging
-
-  /// The typed path, one disclosure down: beer/wine/spirit/other with size and
-  /// strength, plus the repeat row. Persisted, so opening it once keeps it open —
-  /// a preference for granularity, not a mode to re-enter every day.
-  @ViewBuilder
-  private var detailedSection: some View {
-    VStack(spacing: GlassTokens.Spacing.tight) {
-      Button {
-        withAnimation(.snappy) {
-          settings.prefersDetailedLogging.toggle()
-        }
-      } label: {
-        HStack(spacing: GlassTokens.Spacing.tight) {
-          Text("Log by type — size and strength")
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-          Image(systemName: "chevron.down")
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(.secondary)
-            .rotationEffect(.degrees(settings.prefersDetailedLogging ? 180 : 0))
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 32)
-        .contentShape(.rect)
-      }
-      .buttonStyle(.plain)
-      .accessibilityLabel("Log by drink type")
-      .accessibilityValue(settings.prefersDetailedLogging ? "shown" : "hidden")
-
-      if settings.prefersDetailedLogging {
-        VStack(spacing: GlassTokens.Spacing.tight) {
-          quickAddRow
-          repeatControl
-          standardDrinkControl
-        }
-        .transition(.opacity.combined(with: .move(edge: .top)))
-      }
-    }
-  }
-
   // MARK: - Repeat
-
-  /// One tap logs another of whatever was logged most recently today.
-  ///
-  /// The common case for a second drink is the same as the first, and going back
-  /// through type → size → confirm to say "the same again" is friction that shows
-  /// up as under-logging. Only appears once something has been logged today, so it
-  /// never occupies space it hasn't earned.
-  ///
-  /// Skips past anything with no size to repeat, the same rule `quickCount` and
-  /// `removeMostRecent` follow — an imported Health entry is a count and a time,
-  /// so "another one of those" has no answer (ADR-0014, ADR-0022). Without this
-  /// the row read "Another other · 0oz · 0%" and one tap wrote exactly that.
-  @ViewBuilder
-  private var repeatControl: some View {
-    if let recent = todaysEntries.lazy.map(\.logged).first(where: { $0.isRepeatable }) {
-      Button {
-        repeatDrink(recent)
-      } label: {
-        HStack(spacing: GlassTokens.Spacing.tight) {
-          Image(systemName: "arrow.trianglehead.clockwise")
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
-          // An untyped drink gets its own sentence rather than being fed
-          // through the noun slot — "Another one standard drink" is not a
-          // phrase — and shows no size or strength, because the 0.6oz/100% it
-          // stores is the definition it was logged against (ADR-0023).
-          if recent.isTypeUnspecified {
-            Text("Another standard drink")
-              .font(.subheadline)
-              .foregroundStyle(.primary)
-          } else {
-            Text("Another \(recent.type.displayName.lowercased())")
-              .font(.subheadline)
-              .foregroundStyle(.primary)
-            Text("\(LoggedDrink.displayOunces(recent.volumeOunces))oz · \(LoggedDrink.displayPercent(recent.abvPercent))%")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-          Spacer()
-        }
-        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
-        .contentShape(.rect)
-      }
-      .buttonStyle(.plain)
-      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-      .accessibilityLabel(
-        recent.isTypeUnspecified
-          ? Text("Log another standard drink")
-          : Text("Log another \(recent.type.displayName.lowercased()), same size and strength")
-      )
-      .transition(.opacity.combined(with: .move(edge: .top)))
-      .animation(.smooth(duration: 0.25), value: recent)
-    }
-  }
-
-  /// The way back to plain standard drinks, shown only while ＋ is following a
-  /// described drink (ADR-0023 revision). Lives in the disclosure with the
-  /// other type-level controls — the owner's call, keeping the counter area
-  /// clear of a tap target beside the last-logged line's Edit. The follow
-  /// state itself stays visible above: the last-logged line shows the drink
-  /// ＋ will repeat.
-  @ViewBuilder
-  private var standardDrinkControl: some View {
-    if typedDayTemplate != nil {
-      Button {
-        recordStandardDrink()
-      } label: {
-        HStack(spacing: GlassTokens.Spacing.tight) {
-          Image(systemName: DrinkType.unspecified.symbolName)
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(Color.accentColor)
-          Text("Record a standard drink instead")
-            .font(.subheadline)
-            .foregroundStyle(.primary)
-          Spacer()
-        }
-        .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
-        .contentShape(.rect)
-      }
-      .buttonStyle(.plain)
-      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-      .transition(.opacity.combined(with: .move(edge: .top)))
-    }
-  }
 
   /// Logs an identical drink at the current time — a new entry, not an edit, so the
   /// original stays exactly where it was.
   private func repeatDrink(_ drink: LoggedDrink) {
+    let store = store
     let region = settings.effectiveRegion
     let copy = DrinkDraft.repeating(drink, region: region).makeLoggedDrink(region: region)
-    Task {
-      let saved = await store.save(copy)
-      lastLogged = saved
+    // Enqueued like every other ± now that this is the pill's right segment,
+    // a thumb's width from −. `DrinkStore.save` awaits the HealthKit write
+    // *before* the row reaches the store, so an unchained repeat left a window
+    // in which − fetched the log, could not see the new drink, and deleted the
+    // previous one instead — right count, wrong entry, and a retired Health
+    // sample the user never asked to remove. `copy.loggedAt` is fixed at tap
+    // time, so waiting its turn does not move the drink.
+    enqueueCounterOp {
+      lastLogged = await store.save(copy)
     }
   }
 
   // MARK: - Today's drinks
 
-  /// Today's entries, newest first, each removable and editable in place.
+  /// Today's entries, oldest first, each removable and editable in place.
   ///
   /// Logging by accident is a one-tap mistake — from the quick-add row or the
   /// widget — so undoing it should be visible on the same screen rather than
   /// buried in History.
   @ViewBuilder
   private var todaysDrinksSection: some View {
-    let drinks = todaysEntries.loggedDrinks
+    // Ascending, unlike History and the day sheet: this list is read while the
+    // evening is still happening, so it reads forward like a tab. The
+    // consequence is that − now takes the *last* row rather than the first,
+    // which is why that row carries the recency tint (ADR-0013, amended).
+    let drinks = todaysEntries.loggedDrinks.sorted { $0.loggedAt < $1.loggedAt }
     if !drinks.isEmpty {
       Section {
+        // Deliberately a row rather than a `header:`. A plain list pins its
+        // headers and draws them on nothing, so at accessibility sizes the
+        // first row scrolled underneath "Add specific" and the two overlapped.
+        // The heading has nothing to gain from following the scroll — it
+        // labels a list that is a handful of rows long.
+        listHeader
+          .listRowSeparator(.hidden)
+          .listRowBackground(Color.clear)
+
         ForEach(drinks) { drink in
           // Imported Health entries are read-only mirrors, exactly as they are
           // in History (ADR-0014): no edit, because there is no size or strength
@@ -548,7 +509,7 @@ struct TodayView: View {
           // it. Adoption is the one door out (ADR-0016).
           if drink.isImportedFromHealth {
             if drink.isAdoptable {
-              DrinkRow(drink: drink, region: settings.effectiveRegion)
+              row(drink)
                 .contentShape(.rect)
                 .onTapGesture { adopting = drink }
                 .swipeActions(edge: .leading) {
@@ -560,10 +521,12 @@ struct TodayView: View {
                   .tint(.accentColor)
                 }
             } else {
-              DrinkRow(drink: drink, region: settings.effectiveRegion)
+              // No tap, no chevron, no swipe: Remove would reach
+              // `health.deleteSample` on another app's UUID.
+              row(drink, isTappable: false)
             }
           } else {
-            DrinkRow(drink: drink, region: settings.effectiveRegion)
+            row(drink)
               .contentShape(.rect)
               .onTapGesture { draft = DrinkDraft(editing: drink) }
               .swipeActions(edge: .trailing) {
@@ -589,12 +552,89 @@ struct TodayView: View {
               }
           }
         }
-      } header: {
-        Text("Logged today")
+
+        // Under the rows rather than over them: it describes what tapping one
+        // does, and a hint above a list is read before there is anything to
+        // apply it to.
+        //
+        // The condition is `isTypeUnspecified`, not the broader
+        // `!recordsSizeAndStrength` — that one is also false for a Health
+        // import, and an import is not a drink whose type the reader declined
+        // to give. Promising "left alone it counts as one standard drink"
+        // over a day of imported rows would describe a choice nobody made,
+        // and a multi-count import cannot be tapped at all.
+        Text(drinks.contains(where: \.isTypeUnspecified)
+          ? "Tap a drink to say what it was — left alone it counts as one standard drink."
+          : "Tap a drink to change what it was.")
           .font(.caption)
           .foregroundStyle(.secondary)
+          .listRowSeparator(.hidden)
+          .listRowBackground(Color.clear)
       }
     }
+  }
+
+  /// "Logged today" and the way into the typed path.
+  @ViewBuilder
+  private var listHeader: some View {
+    let stack = dynamicTypeSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(alignment: .leading, spacing: GlassTokens.Spacing.tight))
+      : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
+
+    stack {
+      Text("Logged today")
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        // Explicit, because this is a row rather than a `header:` — see the
+        // note where it is placed. A plain `Text` in a list carries no header
+        // trait, so rotor navigation would lose the only landmark on Today.
+        .accessibilityAddTraits(.isHeader)
+
+      if !dynamicTypeSize.isAccessibilitySize { Spacer() }
+
+      // The typed path, now one always-available link rather than a persisted
+      // disclosure holding four buttons (ADR-0009's own reopen clause). The
+      // sheet opens on an untyped standard drink, so it asks "what was it?"
+      // first and only then offers size and strength — and with no time
+      // control, because this is a new entry, not a retroactive one
+      // (invariant 2).
+      addSpecificButton
+    }
+  }
+
+  /// The way into the typed path, rendered in the Logged-today heading and —
+  /// on an empty day, which has no heading — under the counter.
+  ///
+  /// The 44pt floor and the hit shape are inside the label, not on the Button:
+  /// a `Button`'s tap gesture is attached to its label, so a frame applied
+  /// outside it grows the layout without growing the target. Same shape as
+  /// `SizePill` and the Settings rows.
+  private var addSpecificButton: some View {
+    Button {
+      draft = DrinkDraft.standardDrink(region: settings.effectiveRegion)
+    } label: {
+      Text("Add specific")
+        .font(.footnote.weight(.medium))
+        .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+        .contentShape(.rect)
+    }
+    .buttonStyle(.plain)
+    .foregroundStyle(Color.accentColor)
+  }
+
+  /// One row, with the entry this session just logged marked.
+  ///
+  /// `lastLogged`, not "whatever − would remove": the tint answers "where did
+  /// the thing I just tapped go", which is why it is `@State` that a relaunch
+  /// clears rather than something derived from the log. On an ascending list
+  /// the two are usually the same row anyway — the bottom one.
+  private func row(_ drink: LoggedDrink, isTappable: Bool = true) -> some View {
+    TodayDrinkRow(
+      drink: drink,
+      region: settings.effectiveRegion,
+      isTappable: isTappable,
+      isMostRecent: drink.id == lastLogged?.id
+    )
   }
 
   // MARK: - Supporting figures
@@ -628,45 +668,6 @@ struct TodayView: View {
     }
   }
 
-  // MARK: - Quick add
-
-  private var quickAddRow: some View {
-    GlassEffectContainer(spacing: GlassTokens.Spacing.tight) {
-      HStack(spacing: GlassTokens.Spacing.tight) {
-        ForEach(DrinkType.selectableCases) { type in
-          QuickAddButton(type: type) {
-            draft = DrinkDraft(type: type)
-          }
-        }
-      }
-    }
-  }
-}
-
-/// One of the four quick-add buttons. Tapping opens the sheet; it does not log
-/// directly, because the sheet is where the live standard-drink figure lives.
-private struct QuickAddButton: View {
-  let type: DrinkType
-  var onTap: () -> Void
-
-  var body: some View {
-    Button(action: onTap) {
-      VStack(spacing: GlassTokens.Spacing.tight) {
-        Image(systemName: type.symbolName)
-          .font(.title2)
-          .foregroundStyle(Color.accentColor)
-        Text(type.displayName)
-          .font(.caption)
-          .foregroundStyle(.primary)
-      }
-      .frame(maxWidth: .infinity)
-      .frame(height: GlassTokens.Layout.quickAddHeight)
-      .contentShape(.rect)
-    }
-    .buttonStyle(.plain)
-    .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-    .accessibilityLabel("Log \(type.displayName.lowercased())")
-  }
 }
 
 // `DrinkDraft`'s `Identifiable` conformance (which `.sheet(item:)` relies on)

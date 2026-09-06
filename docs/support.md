@@ -23,8 +23,8 @@ standard drink with no type; you can add the type, size, and strength
 afterwards, or leave them out and it still counts. Once you describe a drink,
 the next taps that day record another of it, and each day starts back at a
 standard drink. If you'd rather **+** always repeated the drink you log most,
-choose that under Settings → What the counter logs. The disclosure underneath
-("Log by type") opens the type, size, and strength controls when you want them.
+choose that under Settings → What the counter logs. **Add specific**, beside
+"Logged today", opens the type, size, and strength controls when you want them.
 The home-screen widget logs one drink without opening the app, the same way.
 
 **How do I fix a mistake?**

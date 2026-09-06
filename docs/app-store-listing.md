@@ -215,6 +215,14 @@ beside a published average for US adults who drink. A year that has ended
 gets the same comparison on the year view. And a new By weekday card lists
 what you logged on each day of the week, with your Friday-to-Sunday and
 Monday-to-Thursday days counted, beside a published rate for US adults.
+
+The Today screen is rebuilt around the counter. The number now sits on the
+same colour scale the calendar uses, so a day reads the same on both, and a
+legend names the bands. The calendar's scale gains a step: heavy days split
+into 6-9 and 10+ instead of one open-ended 6+. Under the counter, a control
+shows which drink plus is repeating and logs a plain standard drink instead
+in one tap. Today's list runs in the order you logged, and Add specific
+opens the full drink sheet whenever you want it.
 ```
 
 ## Reviewer notes (1.3) — paste into App Review notes

@@ -107,3 +107,28 @@ If real usage shows granular users buried (the disclosure tap resented daily) or
 count users confused about what a count records, the split — not the counter —
 is the thing to revisit. The seed rule is domain-level and tested; it survives any
 UI rearrangement.
+
+---
+
+## Amendment (2026-09-06, ADR-0034) — the typed disclosure is retired
+
+This record's own reopen clause said "the split — not the counter — is the thing
+to revisit". Home v2 revisits it.
+
+The persisted "Log by type — size and strength" disclosure, the four quick-add
+buttons inside it, the repeat row and `AppSettings.prefersDetailedLogging` are
+all deleted. The typed path is now a single "Add specific" link — in the
+Logged-today heading, and under the counter on an empty day, which is the day
+with the least to go on and no heading to carry it — opening the detail sheet on
+an untyped standard drink — so the sheet asks for a type first and only then offers size and
+strength, with no time control (invariant 2).
+
+**The counter is unchanged.** Everything this record decided about count-first
+logging still holds; what changed is that the granular path stopped occupying
+the screen permanently in exchange for saving a tap on the days it is used.
+
+The honest cost, restated from ADR-0034: four one-tap typed buttons became one
+link into a sheet where the type is still chosen. That is a step *added* to the
+typed path. If typed logging measurably drops, this is the amendment to undo,
+and undoing it means restoring a disclosure — not restoring the preference,
+which nothing else read.

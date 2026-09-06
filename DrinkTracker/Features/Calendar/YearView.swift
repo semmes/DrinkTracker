@@ -269,11 +269,27 @@ private struct MiniMonth: View {
     // so the only key it could produce is "%@: %@" — punctuation with nothing
     // to translate. Making this properly translatable means building the list
     // differently, which is a copy change rather than a type change.
+    //
+    // Driven off `legendOrder` with an exhaustive switch rather than a list of
+    // `if let counts[...]` lookups. The lookups were a dictionary subscript, so
+    // when the ramp gained `.veryHigh` (ADR-0034) nothing warned and this label
+    // silently dropped every 10+ day — a month of nothing but heavy days read
+    // "January: " and stopped. A switch makes the next band a build error here,
+    // which is the same argument `legendOrder` already makes for the legends.
     var parts: [String] = []
-    if let free = counts[.alcoholFree], free > 0 { parts.append("\(free) with no alcohol") }
-    if let low = counts[.low], low > 0 { parts.append("\(low) with 1 to 2 drinks") }
-    if let medium = counts[.medium], medium > 0 { parts.append("\(medium) with 3 to 5") }
-    if let high = counts[.high], high > 0 { parts.append("\(high) with 6 or more") }
+    for intensity in DayIntensity.legendOrder where intensity.isRecorded {
+      guard let count = counts[intensity], count > 0 else { continue }
+      let phrase: String
+      switch intensity {
+      case .alcoholFree: phrase = "with no alcohol"
+      case .low: phrase = "with 1 to 2 drinks"
+      case .medium: phrase = "with 3 to 5"
+      case .high: phrase = "with 6 to 9"
+      case .veryHigh: phrase = "with 10 or more"
+      case .unlogged: continue
+      }
+      parts.append("\(count) \(phrase)")
+    }
     return "\(name): \(parts.joined(separator: ", "))"
   }
 }

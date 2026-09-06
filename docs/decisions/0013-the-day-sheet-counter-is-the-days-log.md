@@ -84,3 +84,19 @@ week may want to state "8" once rather than tap eight times), the counter can
 regain a staged mode without touching the domain — `quickCount` still accepts
 any count. The evidence to watch is calendar sessions with many consecutive
 plus taps on one day.
+
+---
+
+## Amendment (2026-09-06, ADR-0034) — Today's list runs forward
+
+This record reasons that the day sheet lists newest-first "so the tap removes
+what the user sees". Today's list is now the other way round: oldest first, like
+a tab being added to through an evening.
+
+The two surfaces therefore order oppositely, on purpose. Today is read while the
+evening is still happening; the day sheet is read afterwards, about a day that
+is over. The consequence is that − takes the *last* row on Today rather than the
+first, so the recency tint marks that row — and it sits at the bottom of the
+list, nearest the thumb, with the counter directly above it.
+
+Nothing about the counter-is-the-log mechanism changes.

@@ -8,7 +8,8 @@ import WidgetKit
 ///
 /// Mirrors Today's primary control: the count of drinks, and a ＋ that logs one
 /// seeded drink in a single tap. The typed quick-add buttons this widget used to
-/// carry moved behind the app's "Log by type" disclosure, and the widget follows
+/// carry are retired; the app's typed path is the "Add specific" link on Today
+/// (ADR-0009's amendment, ADR-0034), and the widget follows
 /// the same count-first model — one mental model on both surfaces.
 ///
 /// There is deliberately no − here. Removing an entry must retire its HealthKit

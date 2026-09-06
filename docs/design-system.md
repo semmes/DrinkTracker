@@ -55,7 +55,7 @@ The verbal identity is already settled law — ADR-0001 (no celebration), ADR-00
 
 ### The Tallyist Blue ramp
 
-One hue family, twelve steps, shared with the data layer (`IntensityPalette`).
+One hue family, fourteen steps, shared with the data layer (`IntensityPalette`).
 Validated — monotone lightness, CVD-safe as used; see ADR-0007. **Changes are
 re-validated, never eyeballed** (PRD invariant 10).
 
@@ -65,6 +65,12 @@ re-validated, never eyeballed** (PRD invariant 10).
 | 150 | `#b7d3f6` | 300 | `#6da7ec` | 450 | `#2a78d6` | 600 | `#184f95` |
 | 200 | `#9ec5f4` | 350 | `#5598e7` | 500 | `#256abf` | 650 | `#104281` |
 | | | | | | | 700 | `#0d366b` |
+| | | | | | | 800 | `#05172e` |
+
+Step 800 was added on 2026-09-06 for the ramp's fourth data band (ADR-0007's
+amendment). It is the family's **floor** — L\* 7.6, with no room for a step
+beneath it — so a fifth band would mean re-spacing the family rather than
+extending it.
 
 ### Roles
 
@@ -73,14 +79,16 @@ re-validated, never eyeballed** (PRD invariant 10).
 | `accent` (interactive text, glyphs, fills) | **500** `#256abf` | **400** `#3987e5` | text: 5.26:1 light / 4.79:1 dark — AA normal, both modes |
 | `accent.onFill` (label on accent fill) | white | white | 5.39:1 on 500 — AA normal. On dark, fills stay **500** (see review R2) |
 | `brand.deep` (icon field) | 650 `#104281` | 650 | 9.66:1 vs white mark |
-| `data.low / .medium / .high` | 250 / 450 / 700 | 600 / 400 / 200 | per ADR-0007, validated both modes |
-| `liveFigure` (the touched bar's figure) | 700 (`#0d366b`) | 200 (`#9ec5f4`) | the ramp's deepest step reached by name, not copied — `IntensityPalette.liveFigure(scheme:)`. Interaction state, not magnitude (ADR-0028's second amendment). 11.95:1 on card white, 10.71:1 on the grouped ground; 9.52:1 on `#1C1C1E`, 11.75:1 on black |
+| `data.low / .medium / .high / .veryHigh` | 250 / 450 / 700 / **800** `#05172e` | 600 / 400 / 200 / **100** | per ADR-0007 and its 2026-09-06 amendment, validated both modes. Step 800 is new to the family and is the ramp's floor (L\* 7.6); the dark fourth step is the family's existing 100 |
+| `liveFigure` (the touched bar's figure) | 700 (`#0d366b`) | 200 (`#9ec5f4`) | step 700/200 reached by name, not copied — deliberately *not* moved to the ramp's new floor when `.veryHigh` arrived (ADR-0034), because this is interaction state, not magnitude — `IntensityPalette.liveFigure(scheme:)`. Interaction state, not magnitude (ADR-0028's second amendment). 11.95:1 on card white, 10.71:1 on the grouped ground; 9.52:1 on `#1C1C1E`, 11.75:1 on black |
 
 **Where brand colour may appear — exhaustively:** interactive elements (buttons,
 links, selected states), the data ramp, the readout figure for the Trends bar
-under your finger (the ramp's deepest step, by name — the one place a ramp value
+under your finger (step 700/200, by name — the one place a ramp value
 does a non-ramp job, and only because nothing decodes the colour of a numeral),
-the app icon, the widget's ＋, the bars
+the app icon, the widget's ＋, Today's hero band and
+its legend (the ramp by name, over the same fold the calendar uses — ADR-0034),
+the session-pace chip from `.high` upward (ADR-0017's amendment), the bars
 of the Trends chart (`accentColor` with Swift Charts' gradient — 500 light, 400
 dark), and the bars of the year-in-review share card (`AccentFill`, 500 in both
 modes — a bar's height carries the value, not its colour, so bars take a brand
@@ -131,7 +139,7 @@ Type behaviour.
 
 | Role | Spec | Code |
 |---|---|---|
-| Hero count | 76 semibold rounded (68 in the stepper) | `GlassTokens.Typography.metric`, `CountStepper` |
+| Hero count | 68 semibold rounded inside the band, 84 without one | `CountStepper` (`.hero`). `GlassTokens.Typography.metric` (76) has no call sites |
 | Card value | title, semibold, rounded | `.cardValue` |
 | Sheet title | title2 semibold | `.sheetTitle` |
 | Onboarding headline | largeTitle bold | `.onboardingHeadline` |
@@ -197,11 +205,13 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 
 | Component | File | Notes |
 |---|---|---|
-| **Count stepper** | `DesignSystem/CountStepper.swift` | Hero (64pt targets) and inline styles; one VoiceOver-adjustable element; the product's signature control |
+| **Count stepper** | `DesignSystem/CountStepper.swift` | `.hero` (68pt targets, filled ＋, optional intensity band), `.prominent` (64pt), `.inline` (44pt); one VoiceOver-adjustable element; the product's signature control |
+| **Hero band + legend** | `CountStepper.bandTile`, `Today/HeroBandLegend.swift` | The day's `DayIntensity` behind the counter, and the four bands named. `IntensityPalette` by name — one of its three non-calendar surfaces, with `liveFigure` and the pace chip (ADR-0034) |
+| **Plus-mode pill** | `Today/PlusModePill.swift` | Two log buttons in a capsule track; selection derived from the day template, never stored |
+| **Today drink row** | `Today/TodayDrinkRow.swift` | Symbol, name, size/strength or "Tap to say what it was", time, chevron. No per-region value column — that is History's and the day sheet's |
 | **Primary button** | ComponentsKit `SUButton` via `AppTheme` | Accent fill, one per surface, always a verb phrase |
-| **Quick-add button** | `TodayView.QuickAddButton` | Glass surface, symbol + label, inside `GlassEffectContainer` |
 | **Size pill** | `DrinkDetailSheet.SizePill` | Selected = accent capsule; wraps via `FlowLayout` |
-| **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove |
+| **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove. History and the day sheet only |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` (`RecentSummaryFigures` + `RecentSummaryCaptions`) | Value + noun. No deltas, no arrows, no progress bars (copy review F2). Trends adds a "Longest run with none" card in the same shape as its day-count card, reading "None recorded" at zero — a maximum over the picked range, built only from days explicitly recorded as alcohol-free, never a current run (ADR-0033). The calendar card takes a window picker above it — native segmented control on interactive glass — and crossfades its figures on a switch, never rolls them (ADR-0026) |
 | **Bar readout** | `Trends/TrendsView.swift`, `Trends/PeriodDetailView.swift` (`PeriodReadout`) | A two-state block above the plot, in the same card, over a scaled **80pt** floor — the measured height of the taller state, so a selection never changes the card's height (idle 76.0pt, scrub 79.7pt, measured from the card's bottom edge in a frame of each). Idle: the range name, the average line's own label and value as a legend, the range total with its noun and the count of days with drinks, then the scrub tip. Scrubbing: the period as a date at footnote semibold (the prototypes' 13px, not the handoff's subheadline), its day count or "Today", the bar's total in `liveFigure` tint, and three compact facts. **A day recorded as no alcohol prints a 0** with "Recorded as no alcohol" naming which zero it is; **a day with nothing recorded prints "Not logged" and no numeral** (ADR-0006's distinction, ADR-0028's second amendment). Selection lasts the touch and clears on release; there is **no dismiss control** — escape and the chart's named action clear a stepped selection, and the fuller block below the chart (composition rows, the named unlogged count) belongs to that path. Unselected bars dim to 35%; an accent rail the width of the bucket's own pitch and a 1pt hairline to the bar's top are the only additions inside the plot — no annotation, no delta against the average line, no grid line but the zero baseline. Both halves stay laid out and crossfade by opacity over a retained selection, so nothing is inserted or removed mid-animation. Design reference: `docs/design/Bar chart hover states design/` |
@@ -214,7 +224,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
 | **Reference cards** | `Trends/PopulationReferenceCard.swift`, `Calendar/YearComparisonCard.swift`, `Trends/PopulationReferenceCopy.swift` (`SourceDisclosure`) | Body-text sentences on glass, one figure each, no chart, no colour, no delta; a 44pt tappable source line opens a caption note that says what the figure is and is not. The comparison surfaces share one copy set so they cannot drift (ADR-0018, ADR-0030, ADR-0031, ADR-0032) |
 | **Weekday insights** | `Trends/WeekdayCard.swift` | Two small tables in one card. Seven weekday rows over two right-aligned numeric columns, the unit noun stated once in the column head instead of once per row; then the user's Friday-to-Sunday / Monday-to-Thursday split beside the published rate, rows being the source's own definition of the weekend and columns being whose figure it is. **Alignment does the comparing the copy refuses to do** — still no rank, no "most", and no chart of seven bars (ADR-0032). Column widths are `@ScaledMetric` so a two-word head wraps to two lines and still grows with Dynamic Type; at accessibility sizes the tables fold back to stacked rows and the three reviewed sentences. The user's counts are rounded and tabular, the published rates default SF — the numeral carries the "your fact / published fact" distinction that no second hue is allowed to (invariant 10). Design reference: `docs/design/Bar chart hover states design/ds/components/weekday-insights.card.html` |
-| **Share cards** | `Calendar/ShareCardParts.swift`, `MonthShareCard.swift`, `YearShareCard.swift`, `YearInReviewShareCard.swift` | 360pt documents rendered at 3× with type pinned to `.large`; ground and inks from `ShareCardInk`; figures before the grid or chart; the five-entry legend on the grid cards; the wordmark as text, never the mark. The year-in-review chart is hand-drawn to fixed geometry — 88pt plot beside a 20pt axis, one hairline at the middle, twelve `AccentFill` bars with 3pt top corners, a 1pt baseline, the Trends chart's dashed average — never Swift Charts under `ImageRenderer` (ADR-0027, ADR-0029). Design reference: `docs/design/Share_cards/` |
+| **Share cards** | `Calendar/ShareCardParts.swift`, `MonthShareCard.swift`, `YearShareCard.swift`, `YearInReviewShareCard.swift` | 360pt documents rendered at 3× with type pinned to `.large`; ground and inks from `ShareCardInk`; figures before the grid or chart; the six-entry legend on the grid cards (four drinking bands since ADR-0034); the wordmark as text, never the mark. The year-in-review chart is hand-drawn to fixed geometry — 88pt plot beside a 20pt axis, one hairline at the middle, twelve `AccentFill` bars with 3pt top corners, a 1pt baseline, the Trends chart's dashed average — never Swift Charts under `ImageRenderer` (ADR-0027, ADR-0029). Design reference: `docs/design/Share_cards/` |
 
 Composition rules: one primary action per surface; controls on glass, never glass
 on glass; a screen leads with the user's number, never with chrome.
@@ -223,7 +233,7 @@ on glass; a screen leads with the user's number, never with chrome.
 
 ## 7. Accessibility (non-negotiable layer)
 
-- 44pt targets everywhere; the hero stepper uses 64pt.
+- 44pt targets everywhere; the hero stepper uses 68pt.
 - Dynamic Type: relative styles + `minHeight` wrapping; `FlowLayout` where pills
   can wrap; year grid is read as twelve month summaries, not 365 stops.
 - Colour never carries meaning alone: the ramp is lightness-ordered (survives all

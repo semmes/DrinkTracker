@@ -23,8 +23,17 @@ public enum DayIntensity: String, CaseIterable, Sendable, Hashable {
   /// 3–5 standard drinks.
   case medium
 
-  /// 6 or more standard drinks.
+  /// 6–9 standard drinks.
   case high
+
+  /// 10 or more standard drinks.
+  ///
+  /// Added in 1.3 (ADR-0034). The three-step ramp put every heavy day in one
+  /// bucket: a six-drink evening and a fourteen-drink one drew the same cell,
+  /// so the top of the range said "6+" and then stopped describing anything.
+  /// Splitting it is a resolution change, not a verdict — the ramp still runs
+  /// light-to-dark on one hue, and "10+" is as flat a phrase as "1–2".
+  case veryHigh
 
   /// The label shown in the calendar legend.
   public var legendLabel: String {
@@ -33,7 +42,8 @@ public enum DayIntensity: String, CaseIterable, Sendable, Hashable {
     case .alcoholFree: "No alcohol"
     case .low: "1–2"
     case .medium: "3–5"
-    case .high: "6+"
+    case .high: "6–9"
+    case .veryHigh: "10+"
     }
   }
 
@@ -47,7 +57,8 @@ public enum DayIntensity: String, CaseIterable, Sendable, Hashable {
     case .alcoholFree: "no alcohol"
     case .low: "1 to 2 standard drinks"
     case .medium: "3 to 5 standard drinks"
-    case .high: "6 or more standard drinks"
+    case .high: "6 to 9 standard drinks"
+    case .veryHigh: "10 or more standard drinks"
     }
   }
 
@@ -74,6 +85,7 @@ public enum DayIntensity: String, CaseIterable, Sendable, Hashable {
       // day is a day something was drunk, and showing it as alcohol-free would be
       // wrong in the one direction that matters.
       let rounded = standardDrinks.rounded()
+      if rounded >= 10 { return .veryHigh }
       if rounded >= 6 { return .high }
       if rounded >= 3 { return .medium }
       return .low
