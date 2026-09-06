@@ -89,6 +89,26 @@ enum RecentSummaryCaptions {
     count == 1 ? Text("\(count) day with none") : Text("\(count) days with none")
   }
 
+  // MARK: - Compact
+
+  /// The Trends scrub row's own nouns, from the design prototype: three facts
+  /// on one line under a 28pt figure, where the full captions come to the whole
+  /// content width and wrap — and a wrapped row is the card growing under the
+  /// reading hand (ADR-0028's second amendment).
+  ///
+  /// A deliberate, bounded exception to ADR-0026's one-vocabulary rule. The
+  /// register is different because the geometry is: these read as a single
+  /// sentence across the row, with "those days" pointing back at "with drinks"
+  /// beside it, which is why they do not stand alone as captions under a
+  /// figure. The calendar card, the year view and the block below the chart all
+  /// keep the full captions; nothing reads both at once.
+  /// Constants, not count-switched: these carry no count, so — as the note at
+  /// the top of this file explains — no plural rule can select on them anyway,
+  /// and English does not inflect them.
+  static let compactDaysWithDrinks: LocalizedStringKey = "with drinks"
+  static let compactAverageCaption: LocalizedStringKey = "on those days"
+  static let compactDaysWithNone: LocalizedStringKey = "with none"
+
   /// The same count-bearing key as `spokenDaysWithDrinks`, under a name that
   /// does not claim to be spoken: the Trends chart card's header prints it
   /// beside the range total, where the count sits inside the phrase rather

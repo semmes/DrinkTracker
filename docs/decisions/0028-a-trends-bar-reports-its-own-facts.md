@@ -257,6 +257,91 @@ dark mode. The gesture's coexistence with the ScrollView on hardware, the box at
 AX5, Reduce Motion, and the release tick remain tier 3/4 and are stated as such
 in the commit.
 
+## Second amendment (2026-09-05): the owner's review of the shipped readout
+
+Four findings from the owner, and what each settled.
+
+**The ✕ is gone.** *"It should be tap and hold to view, when you release it
+deselects. You should not have another X or tap to close the information."* The
+first half is what the app already does and what the first amendment recorded;
+the second retires the control this record originally called the contract. With
+release-to-clear there is nothing on the touch path to close, and the stepped
+selection is cleared by `.accessibilityAction(.escape)` and by the chart's named
+"Clear selection" action — both reachable by anything that can reach the stepper,
+so nothing is stranded. `PeriodDetailView` keeps its title, day count,
+composition rows and named unlogged count, and loses its button.
+
+**A day recorded as no alcohol prints a zero; a day with nothing recorded does
+not.** *"It would be blank or not logged, which the user would have to log as no
+drinks or drinks. 0 is the same as alcohol free where the user made the decision
+not to have alcohol and it should be recognized vs. the user not interacting
+with the app and it's unknown to us or not logged."* That is ADR-0006's
+distinction stated from the reader's side, and it resolves the first amendment's
+open question in the direction that keeps the distinction: a marker is a
+decision the user recorded, and 0 is the true count of it, so it takes the 28pt
+figure with "Recorded as no alcohol" (and "From Apple Health" where the marker
+is Health's) naming *which* zero it is beneath. An unlogged day has no count to
+print — a bare 0 there would claim a fact the log does not hold — so it keeps
+the legend's own word, "Not logged", and no numeral.
+
+**The live figure takes the tint after all**, reversing the first amendment's
+`.primary`. *"The tint is the interaction pattern when your tapping and holding
+on a specific bar, not a reference to how many drinks are logged."* That answers
+the objection on its own terms: the first amendment refused the colour because
+the ramp's deepest step means *6+ drinks* and would make lightness carry
+interaction state instead of magnitude. Under the owner's reading the tint is
+not on the magnitude channel at all — nothing teaches a reader to decode the
+colour of a numeral, the two readout states never coexist, and the figure prints
+its value in digits an inch high. Mechanically it is
+`IntensityPalette.liveFigure(scheme:)`, an accessor returning the existing
+constants — **not** a new asset-catalog colour. A copy in the asset catalog
+would be a second, uncontrolled home for a *validated* value: change the ramp
+and the copy stays behind, with no compiler and no test between them, which is
+invariant 10's own failure mode. Routed through the accessor there is one
+definition, PRD invariant 10's "only place in the app that defines literal
+colours" stays literally true, and design-system.md's "the brand layer lives in
+the asset catalog (`AccentColor`) and `IntensityPalette` only" needs no edit.
+Measured, not eyeballed: light `#0d366b` is 11.95:1 on the card's white and
+10.71:1 on the grouped background; dark `#9ec5f4` is 9.52:1 on `#1C1C1E` and
+11.75:1 on black.
+
+**The formatting did not match the prototypes, and the release animation
+glitched.** Three real faults, all measured on a running build:
+
+- *The period title was one step too large.* Both prototypes draw it at 13px
+  semibold — `.rdate` in the design-system card and the live row in
+  `Trends Bar Selection.dc.html` — while the handoff prose said "subheadline
+  semibold". The prototypes are the design; it is now footnote semibold.
+- *The card still grew on a selection.* The first amendment set the floor to 84
+  after measuring the scrub state at 81.4pt against the idle state's 76.2pt.
+  With the title corrected both states shrank, and re-measuring by locating the
+  card's bottom edge in a frame of each state gave idle 76.0pt and scrub
+  79.7pt — the 3.7pt being the facts row, where a rounded-semibold numeral
+  concatenated into a caption2 line takes the taller of the two fonts' metrics.
+  The floor is **80**, the measured height of the taller state, and the two now
+  render at an identical 595.67pt card bottom, frame for frame.
+- *The text flickered on release.* Two causes, both structural. The live half
+  was *removed* from the hierarchy the instant the selection cleared, so a
+  removal transition animated a view whose content had already gone; it is now
+  always laid out, over a retained `fadingSelection`, with only opacity and a
+  6pt offset moving. And the facts row used `ViewThatFits`, which re-measures
+  every frame of a crossfade; the horizontal-or-stacked choice now comes from
+  `dynamicTypeSize` instead. Verified by filming the transition and reading the
+  card's bottom edge in every frame: it holds at 595.67pt throughout.
+
+The three compact fact captions ("with drinks", "on those days", "with none")
+are the prototype's own and a bounded exception to ADR-0026's one-vocabulary
+rule, recorded in `RecentSummaryCaptions`: the register differs because the
+geometry does, and no surface shows both sets at once.
+
+**Not verified here, and stated plainly:** synthetic touches do not drive
+`chartXSelection` on the simulator — the same reason `SUSegmentedControl`
+ignores them — so the press-and-hold gesture itself, and the haptic on release,
+remain tier 3 on hardware. What was verified is everything the gesture leads to:
+both readout states, both zero-day states, the identical card height, the
+crossfade, and dark mode, by driving the selection programmatically and filming
+the result.
+
 ## How to reopen
 
 If users ask what a bar is *relative to*, the honest answer is more

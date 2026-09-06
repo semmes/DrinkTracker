@@ -925,3 +925,37 @@ the old placement has nothing to be told.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+---
+
+## 1.3 — The owner's review of the bar readout (ADR-0028's second amendment)
+
+| Where | Copy |
+|---|---|
+| Scrub facts row — the prototype's own compact nouns, replacing the calendar card's full captions in this row only | "3 with drinks" · "2.3 on those days" · "2 with none" · "— on those days" |
+| Scrub figure, a day recorded as no alcohol (new: the zero is printed, the words name which zero it is) | "0" · "standard drinks" · "Recorded as no alcohol" |
+| …when the marker came from another app (existing key, now beside the zero rather than instead of it) | "Recorded as no alcohol · From Apple Health" |
+| Scrub figure, a day with nothing recorded either way — unchanged, and deliberately still no numeral | "Not logged" |
+| Retired from the screen | the 44pt ✕ and its "Clear selection" button label (the chart's named action keeps the phrase) |
+
+**Reviewed against 1.4.3.** The three compact nouns are counts and a
+prepositional phrase; none characterises a day. Printing "0 standard drinks" for
+a day the user recorded as alcohol-free is factual — it is the true total of a
+day they described — and it is paired with the words that say the day was
+recorded, so it can never be read as the app assuming abstinence on a day it
+knows nothing about. That is the distinction the owner drew: *"0 is the same as
+alcohol free where the user made the decision not to have alcohol… vs. the user
+not interacting with the app and it's unknown to us or not logged."* An unlogged
+day still says only "Not logged". No superlative, no direction word, nothing
+phrased against the average line, no exclamation marks.
+
+**A bounded exception, recorded rather than assumed.** ADR-0026 requires one
+vocabulary per figure across summarising surfaces. The scrub row now says "with
+drinks" where the calendar card says "days with drinks". The register differs
+because the geometry does — three facts on one line under a 28pt figure, read
+while a finger is moving, where the full captions come to the whole content
+width and wrap — and no surface shows both sets at once. The full captions
+remain on the calendar card, the year view, and the block below the chart.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
