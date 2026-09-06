@@ -313,7 +313,8 @@ struct ShareCardLegend: View {
 /// accessibility sizes, so the render pins `.large` and the in-app card and
 /// cells remain the Dynamic Type and VoiceOver surface. PNG data from
 /// `pngData()` carries no EXIF beyond orientation, colour space,
-/// resolution, and pixel size — verified by chunk inspection on both cards.
+/// resolution, and pixel size — verified by chunk inspection on all three
+/// cards (the review card's chunks are recorded in ADR-0029).
 enum ShareCardRenderer {
   @MainActor
   static func png(_ content: some View, scheme: ColorScheme) -> Data? {

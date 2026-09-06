@@ -172,8 +172,12 @@ struct ShareCardMonthlyChart: View {
     .frame(width: ShareCardLayout.chartAxisWidth, height: ShareCardLayout.chartPlotHeight)
   }
 
-  /// `fixedSize`: a half-drink tick ("34.5") is wider than the 20pt column
-  /// and must overflow leftward into the card's padding, never wrap.
+  /// `fixedSize`: a half-drink tick ("34.5" is 21.12pt) is wider than the
+  /// 20pt column and must overflow it, never wrap. The overflow splits —
+  /// `.frame(width:)` centres an oversized child — so ~0.56pt hangs into
+  /// the padding and ~0.56pt into the plot's 6pt gap; the ticks keep the
+  /// common right edge `.bottomTrailing` gives them, which is what the
+  /// axis being "right-aligned" actually buys.
   private func tick(_ value: Double) -> some View {
     Text(verbatim: StandardDrink.formatted(value))
       .font(.system(size: 9, weight: .medium, design: .rounded))

@@ -175,10 +175,15 @@ terms, so the claim stays true and checkable without a three-copy date bump
   ADR-0006's figure. The owner's design chose both; ADR-0027's reasoning
   ("the reader is not the subject") would argue for "the dashed line is the
   monthly average, N". One key changes it.
-- A half-drink axis tick ("34.5") is wider than the 20pt axis column and
-  overflows leftward into the card's padding, as it does in the design; it
-  is `fixedSize`, so it never wraps. "120.5" still fits inside the 24pt
-  padding.
+- A half-drink axis tick ("34.5" measures 21.12pt) is wider than the 20pt
+  axis column; it is `fixedSize`, so it never wraps. The overflow splits
+  rather than running leftward — `.frame(width:)` centres an oversized
+  child — so ~0.56pt hangs into the card's padding and ~0.56pt into the
+  plot's 6pt gap, clipping neither, and the three ticks keep the common
+  right edge the ZStack's `.bottomTrailing` gives them. "120.5" still fits
+  inside the 24pt padding. (Measured 2026-09-06 by rendering the axis at
+  3x and reading the inked columns; the first version of this bullet
+  asserted the leftward direction without measuring it.)
 - The year share loses its one tap for past years — a menu with two named
   items, ADR-0027's own next design. The month share and the current year
   keep theirs.
