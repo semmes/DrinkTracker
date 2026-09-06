@@ -72,6 +72,10 @@ public struct PeriodDetail: Hashable, Sendable {
   public let dayRecord: DayRecord?
   /// What was logged, by kind, in a stable order. Empty when nothing was.
   public let shares: [DrinkShare]
+  /// The longest run of consecutive days inside this bar recorded as having no
+  /// alcohol (ADR-0033) — markers only, never days with nothing recorded, and
+  /// clipped to the bar's own days.
+  public let longestAlcoholFreeRun: Int
 
   /// True while the period runs past the range — the trailing bucket.
   public var isPartial: Bool { summary.dayCount < periodLength }
@@ -87,7 +91,8 @@ public struct PeriodDetail: Hashable, Sendable {
     periodLength: Int,
     summary: RecentSummary,
     dayRecord: DayRecord?,
-    shares: [DrinkShare]
+    shares: [DrinkShare],
+    longestAlcoholFreeRun: Int = 0
   ) {
     self.unit = unit
     self.start = start
@@ -96,6 +101,7 @@ public struct PeriodDetail: Hashable, Sendable {
     self.summary = summary
     self.dayRecord = dayRecord
     self.shares = shares
+    self.longestAlcoholFreeRun = longestAlcoholFreeRun
   }
 }
 
@@ -127,11 +133,28 @@ extension TrendSummary {
     region: Region,
     calendar: Calendar = .current
   ) -> RecentSummary {
+    summary(of: rangeDays(
+      range: range, endingOn: endDate, drinks: drinks,
+      alcoholFreeDays: alcoholFreeDays, region: region, calendar: calendar
+    ))
+  }
+
+  /// The range's days, classified — the one walk both range-level folds share,
+  /// so a caller that wants the summary *and* the longest run pays for one pass
+  /// rather than two (ADR-0033).
+  public static func rangeDays(
+    range: TrendRange,
+    endingOn endDate: Date,
+    drinks: [LoggedDrink],
+    alcoholFreeDays: Set<Date>,
+    region: Region,
+    calendar: Calendar = .current
+  ) -> [CalendarDay] {
     let keys = days(in: range, endingOn: endDate, calendar: calendar)
     let keySet = Set(keys)
     let inRange = drinks.filter { keySet.contains(calendar.startOfDay(for: $0.loggedAt)) }
     let totals = totalsByDay(inRange, region: region, calendar: calendar)
-    return summary(of: calendarDays(keys, totalsByDay: totals, alcoholFreeDays: alcoholFreeDays))
+    return calendarDays(keys, totalsByDay: totals, alcoholFreeDays: alcoholFreeDays)
   }
 
   /// The distinct bar keys of a range, oldest first: the day keys themselves
@@ -233,9 +256,10 @@ extension TrendSummary {
     let bucketSet = Set(bucketDays)
     let inBucket = drinks.filter { bucketSet.contains(calendar.startOfDay(for: $0.loggedAt)) }
     let totalsByDay = totalsByDay(inBucket, region: region, calendar: calendar)
-    let summary = summary(
-      of: calendarDays(bucketDays, totalsByDay: totalsByDay, alcoholFreeDays: alcoholFreeDays)
-    )
+    // One classification of the bucket's days, folded twice — the counts and
+    // the longest run cannot disagree about what a day is (ADR-0033).
+    let classified = calendarDays(bucketDays, totalsByDay: totalsByDay, alcoholFreeDays: alcoholFreeDays)
+    let summary = summary(of: classified)
 
     var dayRecord: DayRecord?
     if unit == .day {
@@ -255,7 +279,8 @@ extension TrendSummary {
       periodLength: periodLength,
       summary: summary,
       dayRecord: dayRecord,
-      shares: shares(of: inBucket, region: region)
+      shares: shares(of: inBucket, region: region),
+      longestAlcoholFreeRun: longestAlcoholFreeRun(of: classified)
     )
   }
 

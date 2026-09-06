@@ -109,6 +109,11 @@ enum RecentSummaryCaptions {
   static let compactAverageCaption: LocalizedStringKey = "on those days"
   static let compactDaysWithNone: LocalizedStringKey = "with none"
 
+  /// The longest run of days recorded as no alcohol, in the scrub row
+  /// (ADR-0033). "in a row", never "best" or "record": it names the statistic
+  /// and praises nothing.
+  static let compactNoneInARow: LocalizedStringKey = "none in a row"
+
   /// The same count-bearing key as `spokenDaysWithDrinks`, under a name that
   /// does not claim to be spoken: the Trends chart card's header prints it
   /// beside the range total, where the count sits inside the phrase rather
@@ -116,6 +121,14 @@ enum RecentSummaryCaptions {
   /// there, not the caption (ADR-0028 amendment).
   static func daysWithDrinksPhrase(_ count: Int) -> Text {
     spokenDaysWithDrinks(count)
+  }
+
+  /// The run, spoken with its count inside the phrase so a plural rule can
+  /// select on it (ADR-0033).
+  static func spokenNoneInARow(_ count: Int) -> Text {
+    count == 1
+      ? Text("longest run of 1 day with none")
+      : Text("longest run of \(count) days with none")
   }
 
   /// What the em dash says aloud: the absence, and why.

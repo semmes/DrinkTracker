@@ -67,7 +67,14 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **351 keys** — 286 app, 34 widget, 27 core, 4 shortcuts (counted
+Current: **356 keys** — 291 app, 34 widget, 27 core, 4 shortcuts (counted
+2026-09-06 after ADR-0033's sync: five app keys in for the longest run with
+none — "none in a row" (the scrub fact), "Longest run with none" (the card
+label), "None recorded" (its zero), and the spoken pair "longest run of 1 day
+with none" / "longest run of %lld days with none". The card's non-zero values
+reuse the existing "1 day" / "%lld days" keys, so the run figure and a bucket's
+day count cannot drift apart. Nothing reached the widget or the core package.
+Before that, 351 — 286 app — counted
 2026-09-05 after ADR-0028's *second* amendment, the owner's review sync: three
 compact scrub captions in — "with drinks", "on those days", "with none", the
 design prototype's own nouns for the one row where the calendar card's full

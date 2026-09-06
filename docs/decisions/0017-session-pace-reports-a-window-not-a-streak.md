@@ -34,6 +34,15 @@ color, icon, or exclamation.
 2. **Nothing about gaps is ever persisted or displayed as a record.** No
    longest-gap, nothing in SwiftData or UserDefaults. A session ending is
    the absence of a value, not an event.
+   *(Amended 2026-09-05 by ADR-0033, and only in its display clause. The
+   persistence half stands absolutely: nothing about gaps goes into SwiftData or
+   UserDefaults, and ADR-0033's figure is derived per render like every other.
+   What is now permitted is displaying the longest run of days the user
+   **explicitly recorded as having no alcohol**, inside a chosen window — a
+   maximum over the past, built from affirmative records. The silence-based gap
+   this rule was written about — a run counted from days with nothing recorded —
+   stays refused, because there not logging is what grows the number. Rules 1
+   and 3 are untouched.)*
 3. **No notifications.** None, not behind a toggle.
 
 Mechanics: `SessionPace` in `DrinkTrackerCore` — pure, calendar-free

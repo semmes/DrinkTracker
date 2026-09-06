@@ -134,6 +134,9 @@ struct TrendsView: View {
     /// only for `daysWithDrinks`: the printed total stays `sum`, the fold the
     /// StatCard below already prints, so one number has one source.
     let rangeSummary: RecentSummary
+    /// The longest run of days recorded as no alcohol across the whole range
+    /// (ADR-0033) — folded from the same classified days as `rangeSummary`.
+    let longestAlcoholFreeRun: Int
 
     var average: Double { TrendSummary.dailyAverage(totals) }
     var sum: Double { TrendSummary.sum(totals) }
@@ -147,6 +150,12 @@ struct TrendsView: View {
       range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
     )
     let buckets = TrendSummary.bucketed(totals, by: range.bucket, calendar: calendar)
+    // One classification of the range's days, folded twice, so the header's
+    // count and the longest run cannot disagree about what a day is.
+    let rangeDays = TrendSummary.rangeDays(
+      range: range, endingOn: today, drinks: drinks,
+      alcoholFreeDays: markedDays, region: region, calendar: calendar
+    )
     // Derived, never stored: a drink logged from Today, a marker arriving
     // over CloudKit, an undo, or a region change all re-express it on the
     // next render.
@@ -170,10 +179,8 @@ struct TrendsView: View {
       weekdays: TrendSummary.weekdayTotals(
         range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
       ),
-      rangeSummary: TrendSummary.rangeSummary(
-        range: range, endingOn: today, drinks: drinks,
-        alcoholFreeDays: markedDays, region: region, calendar: calendar
-      )
+      rangeSummary: TrendSummary.summary(of: rangeDays),
+      longestAlcoholFreeRun: TrendSummary.longestAlcoholFreeRun(of: rangeDays)
     )
   }
 
@@ -717,6 +724,39 @@ struct TrendsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
       }
+
+      // ADR-0033. Counted from the record and not from silence: only days
+      // explicitly recorded as having no alcohol extend it, so the figure rises
+      // when the user logs more, never when they stop. It takes the shape of
+      // the card above rather than a StatCard so the two figures about days
+      // without drinks read as a pair — and it names the statistic ("longest
+      // run") with no verb that praises it and no comparison to another window.
+      SUCard(model: .glass) {
+        VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+          Text("Longest run with none")
+            .font(GlassTokens.Typography.cardLabel)
+            .foregroundStyle(.secondary)
+
+          runFigure(snapshot.longestAlcoholFreeRun)
+            .font(GlassTokens.Typography.cardValue)
+            .foregroundStyle(.primary)
+            .contentTransition(.opacity)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+      }
+    }
+  }
+
+  /// "9 days", or "None recorded" at zero — never a bare 0, which would read as
+  /// a run of length nothing rather than as an absence of records. A user who
+  /// marks no days sees the second, and that is the honest reading: the figure
+  /// counts what was recorded (ADR-0033).
+  private func runFigure(_ run: Int) -> Text {
+    switch run {
+    case 0: Text("None recorded")
+    case 1: Text("1 day")
+    default: Text("\(run) days")
     }
   }
 

@@ -391,7 +391,12 @@ struct PeriodReadout: View {
   private var bucketFacts: some View {
     fact("\(detail.summary.daysWithDrinks)", RecentSummaryCaptions.compactDaysWithDrinks)
     fact(RecentSummaryCaptions.averageValue(detail.summary), RecentSummaryCaptions.compactAverageCaption)
-    fact("\(detail.summary.daysAlcoholFree)", RecentSummaryCaptions.compactDaysWithNone)
+    // The prototype's third fact, and ADR-0033's figure: the longest run of
+    // days *recorded* as no alcohol inside this bar. It takes the slot the
+    // count of marked days held, which is the design as drawn; that count is
+    // still spoken below and still printed in full by the block a stepped
+    // selection shows.
+    fact("\(detail.longestAlcoholFreeRun)", RecentSummaryCaptions.compactNoneInARow)
   }
 
   /// A rounded-semibold numeral and the calendar card's own noun for it, so one
@@ -442,6 +447,8 @@ struct PeriodReadout: View {
       + RecentSummaryCaptions.spokenDaysWithDrinks(detail.summary.daysWithDrinks)
       + Text(verbatim: ", ")
       + RecentSummaryCaptions.spokenDaysWithNone(detail.summary.daysAlcoholFree)
+      + Text(verbatim: ", ")
+      + RecentSummaryCaptions.spokenNoneInARow(detail.longestAlcoholFreeRun)
     if let unlogged = RecentSummaryCaptions.unlogged(detail.summary.daysUnlogged) {
       label = label + Text(verbatim: ", ") + Text(unlogged)
     }

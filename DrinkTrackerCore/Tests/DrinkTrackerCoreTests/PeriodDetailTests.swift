@@ -430,4 +430,107 @@ struct PeriodDetailTests {
     #expect(us.daysUnlogged == uk.daysUnlogged)
     #expect(us.totalStandardDrinks != uk.totalStandardDrinks)
   }
+
+  // MARK: - The longest run with none (ADR-0033)
+
+  private func day(_ n: Int, entries: Bool, marked: Bool) -> CalendarDay {
+    CalendarDay(
+      date: date(2026, 3, n), standardDrinks: entries ? 1 : 0,
+      isMarkedAlcoholFree: marked, hasEntries: entries
+    )
+  }
+
+  @Test("A run counts marked days only, and anything else breaks it")
+  func longestRunCountsRecordsOnly() {
+    // marked, marked, unlogged, marked, marked, marked, drinks
+    let days = [
+      day(1, entries: false, marked: true),
+      day(2, entries: false, marked: true),
+      day(3, entries: false, marked: false),
+      day(4, entries: false, marked: true),
+      day(5, entries: false, marked: true),
+      day(6, entries: false, marked: true),
+      day(7, entries: true, marked: false),
+    ]
+    #expect(TrendSummary.longestAlcoholFreeRun(of: days) == 3)
+
+    // Evidence beats assertion: a day holding both is a day with drinks, so it
+    // breaks the run rather than extending it.
+    let contradicted = [
+      day(1, entries: false, marked: true),
+      day(2, entries: true, marked: true),
+      day(3, entries: false, marked: true),
+    ]
+    #expect(TrendSummary.longestAlcoholFreeRun(of: contradicted) == 1)
+
+    #expect(TrendSummary.longestAlcoholFreeRun(of: []) == 0)
+    #expect(TrendSummary.longestAlcoholFreeRun(of: [day(1, entries: false, marked: false)]) == 0)
+    #expect(TrendSummary.longestAlcoholFreeRun(of: [day(1, entries: true, marked: false)]) == 0)
+
+    let allMarked = (1...5).map { day($0, entries: false, marked: true) }
+    #expect(TrendSummary.longestAlcoholFreeRun(of: allMarked) == 5)
+  }
+
+  /// ADR-0033's whole safety argument, checked exhaustively rather than
+  /// asserted: over every window of every three-state day up to length 9,
+  /// turning any one day into "nothing recorded either way" — which is what
+  /// *not logging* produces — can never raise the figure.
+  ///
+  /// This is the property the refused definition fails: counting zero-total
+  /// days would make omission the cheapest way to lengthen a run.
+  @Test("No omission can lengthen a run")
+  func omissionNeverLengthensARun() {
+    // 0 = nothing recorded, 1 = marked no alcohol, 2 = has drinks
+    for length in 1...9 {
+      var counters = [Int](repeating: 0, count: length)
+      while true {
+        let days = counters.enumerated().map { index, state in
+          day(index + 1, entries: state == 2, marked: state == 1)
+        }
+        let base = TrendSummary.longestAlcoholFreeRun(of: days)
+
+        for index in 0..<length where counters[index] != 0 {
+          var omitted = days
+          omitted[index] = day(index + 1, entries: false, marked: false)
+          #expect(TrendSummary.longestAlcoholFreeRun(of: omitted) <= base)
+        }
+
+        var position = length - 1
+        while position >= 0, counters[position] == 2 { counters[position] = 0; position -= 1 }
+        if position < 0 { break }
+        counters[position] += 1
+      }
+    }
+  }
+
+  @Test("A bar's run is clipped to the bar's own days")
+  func longestRunClippedToTheBucket() {
+    // A marked stretch that straddles two weeks: neither week may claim it all.
+    let end = date(2026, 3, 14, 12)
+    let free = Set((5...11).map { date(2026, 3, $0) })
+    let first = detail(date(2026, 3, 5), range: .quarter, endingOn: end, free: free)
+    let second = detail(date(2026, 3, 12), range: .quarter, endingOn: end, free: free)
+    #expect(first?.longestAlcoholFreeRun == 3)   // Thu-Sat of the week starting Sunday Mar 1
+    #expect(second?.longestAlcoholFreeRun == 4)  // Sun-Wed of the next
+    #expect((first?.longestAlcoholFreeRun ?? 0) + (second?.longestAlcoholFreeRun ?? 0) == 7)
+  }
+
+  @Test("The run never exceeds the days with none, and a day bar is 0 or 1")
+  func longestRunIsBounded() {
+    let end = date(2026, 8, 30, 12)
+    let drinks = [beer(date(2026, 8, 28, 19)), wine(date(2026, 8, 24, 20))]
+    let free: Set<Date> = [date(2026, 8, 25), date(2026, 8, 26), date(2026, 8, 29)]
+    for range in TrendRange.allCases {
+      let days = TrendSummary.rangeDays(
+        range: range, endingOn: end, drinks: drinks,
+        alcoholFreeDays: free, region: .unitedStates, calendar: calendar
+      )
+      let summary = TrendSummary.summary(of: days)
+      let run = TrendSummary.longestAlcoholFreeRun(of: days)
+      #expect(run <= summary.daysAlcoholFree)
+      #expect(run >= (summary.daysAlcoholFree > 0 ? 1 : 0))
+    }
+    #expect(detail(date(2026, 8, 25), range: .week, endingOn: end, drinks: drinks, free: free)?.longestAlcoholFreeRun == 1)
+    #expect(detail(date(2026, 8, 27), range: .week, endingOn: end, drinks: drinks, free: free)?.longestAlcoholFreeRun == 0)
+  }
 }
