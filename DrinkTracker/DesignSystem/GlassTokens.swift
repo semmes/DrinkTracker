@@ -15,7 +15,7 @@ enum GlassTokens {
     static let regular: CGFloat = 12
     /// Gap between distinct groups on a screen.
     static let section: CGFloat = 24
-    /// Gap between major blocks, e.g. metric and quick-add row.
+    /// Gap between major blocks, e.g. the counter and the pace card.
     static let block: CGFloat = 32
     /// Horizontal screen margin.
     static let screenMargin: CGFloat = 20
@@ -33,8 +33,6 @@ enum GlassTokens {
   enum Layout {
     /// Minimum hit target, per Apple's accessibility guidance.
     static let minimumTouchTarget: CGFloat = 44
-    /// Height of the quick-add buttons on Today.
-    static let quickAddHeight: CGFloat = 88
     /// Height of the trend chart.
     static let chartHeight: CGFloat = 200
   }

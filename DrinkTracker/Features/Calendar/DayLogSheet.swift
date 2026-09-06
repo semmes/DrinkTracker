@@ -111,7 +111,7 @@ struct DayLogSheet: View {
           .foregroundStyle(.secondary)
       }
 
-      countCaption
+      CounterSeedCaption(seed: seed, includesMinus: !existingDrinks.isEmpty)
         .font(.caption)
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
@@ -152,31 +152,6 @@ struct DayLogSheet: View {
 
   private var total: Double {
     existingDrinks.reduce(0) { $0 + $1.standardDrinks(in: settings.effectiveRegion) }
-  }
-
-  /// `Text`, not `String`: a `String` would reach `Text` through the verbatim
-  /// initializer and never enter the string catalog. Each sentence is its own
-  /// literal, so translators get whole sentences rather than glued fragments.
-  private var countCaption: Text {
-    let adds: Text
-    // An untyped seed says what it logs and stops: printing its stored
-    // 0.6oz/100% would hand the standard-drink definition back as a serving
-    // (ADR-0023).
-    if let seed, seed.isTypeUnspecified {
-      adds = Text("Plus logs one standard drink, with no type — editable afterwards.")
-    // "a other" is not a sentence; Other falls back to the generic noun.
-    } else if let seed, seed.type != .other {
-      adds = Text("Plus logs a \(seed.type.displayName.lowercased()), \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")
-    } else if let seed {
-      adds = Text("Plus logs a drink, \(LoggedDrink.displayOunces(seed.volumeOunces))oz at \(LoggedDrink.displayPercent(seed.abvPercent))% — editable afterwards.")
-    } else {
-      adds = Text("Plus logs a drink at the default size and strength — editable afterwards.")
-    }
-    guard !existingDrinks.isEmpty else { return adds }
-    // Interpolation rather than `+`: concatenating would leave the second
-    // sentence in the catalog with a leading space, which a translator will
-    // silently drop. (`+` is also deprecated in iOS 26.)
-    return Text("\(adds) Minus removes the day's most recent drink.")
   }
 
   // MARK: - The empty day

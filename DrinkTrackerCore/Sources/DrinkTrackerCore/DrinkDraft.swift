@@ -292,6 +292,25 @@ public struct DrinkDraft: Equatable, Sendable {
     return draft
   }
 
+  /// The drink ＋ would log right now, materialised so a caption can describe
+  /// it.
+  ///
+  /// Deliberately `quickCount` itself rather than a parallel reimplementation
+  /// of the seed rule. The day sheet's hand-rolled version drifted once
+  /// already — it described a zero-volume row as "0oz at 0%" while ＋ wrote the
+  /// type's defaults — and the only structural cure for a caption disagreeing
+  /// with the write is for both to be the same function.
+  public static func countSeedPreview(
+    from history: [LoggedDrink],
+    seed: CountSeed,
+    region: Region,
+    at date: Date = Date(),
+    calendar: Calendar = .current
+  ) -> LoggedDrink {
+    quickCount(1, from: history, seed: seed, region: region, at: date, calendar: calendar)
+      .makeLoggedDrink(region: region)
+  }
+
   public var volumeOunces: Double {
     selectedSize.volumeOunces ?? customVolumeOunces
   }
