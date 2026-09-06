@@ -959,3 +959,38 @@ remain on the calendar card, the year view, and the block below the chart.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+---
+
+## 1.3 — The longest run with none (ADR-0033)
+
+| Where | Copy |
+|---|---|
+| Scrub readout, third fact — the design prototype's own, taking the slot the count of marked days held | "1 none in a row" · "0 none in a row" |
+| Scrub readout, spoken (the displaced count is still spoken, so nothing is lost on that path) | "…, 4 days with drinks, 2 days with none, longest run of 1 day with none" |
+| Trends summary card, label | "Longest run with none" |
+| Trends summary card, value | "9 days" · "1 day" · "None recorded" |
+
+**Reviewed against 1.4.3.** "Longest" names the statistic — it is a maximum —
+and nothing else in the phrase evaluates it. Deliberately absent: "best",
+"record", "streak", "personal best", "so far", any comparison with another
+window, any reaction when the figure moves, and any current or ongoing run. It
+never counts forward from today; an ever-growing "time since last drink" is
+ADR-0017's rule 1 and stays refused. The figure does not celebrate when it rises
+and says nothing when it falls; it sits in the same type as the counts beside
+it.
+
+**Why zero says "None recorded".** A bare 0 reads as a run of length nothing,
+which invites the reader to think the app knows they drank every day. The figure
+counts what was *recorded*, so its zero states the absence of records, not the
+absence of abstinence. A user who never marks a day sees it permanently, and
+that is the honest reading rather than a fault to paper over.
+
+**Why it counts only marked days, in one sentence for the reviewer.** The
+alternative — counting every day with no drinks logged — would mean the cheapest
+way to grow the number is to stop using the app. This definition can only be
+grown by recording more, which is the direction the app wants and the test
+suite pins exhaustively.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

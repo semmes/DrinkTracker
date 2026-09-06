@@ -154,7 +154,7 @@ The card disappears when the session ends.
 **Three hard rules. Do not violate these, they are the difference between a measurement tool and a shame mechanic:**
 
 - It never shows a running count of time without a drink outside an active session. An ever increasing "time since last drink" is a streak, and a streak that resets to zero punishes the user at the exact moment they are least able to handle it.
-- It never persists or displays a longest gap record. Nothing about gaps goes into SwiftData or UserDefaults.
+- It never persists a longest gap record, and nothing about gaps goes into SwiftData or UserDefaults. *(The display half is amended 2026-09-05 by ADR-0033, for a run built from days the user explicitly recorded as alcohol-free — a maximum over a chosen window, never a count forward from today. The persistence half is unchanged, and the silence-based gap stays refused.)*
 - It sends no notifications. None. Not in 1.2, not behind a toggle.
 
 ### Display
@@ -385,7 +385,7 @@ If implementation starts heading toward any of the following, stop and reconside
 - A friend graph or contact import
 - Shared or public CloudKit databases
 - Push notifications about drinking
-- A streak counter or a longest-gap record
+- A streak counter or a longest-gap record *(amended 2026-09-05 by ADR-0033: a longest run of days **explicitly recorded as having no alcohol**, over a chosen window, is permitted — it can only be lengthened by logging more. A run counted over days with nothing recorded stays stopped, because there the cheapest way to grow it is to stop logging.)*
 - Any ranking against other people
 - Comparison against clinical thresholds presented as limits
 

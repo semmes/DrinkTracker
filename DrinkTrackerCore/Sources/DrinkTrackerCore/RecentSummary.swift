@@ -112,6 +112,40 @@ extension TrendSummary {
     )
   }
 
+  /// The longest run of consecutive days **recorded** as having no alcohol
+  /// (ADR-0033).
+  ///
+  /// Counted from the record, never from silence. A day with entries breaks
+  /// the run — evidence beats assertion, the rule `summary(of:)` and
+  /// `DayIntensity.bucket` already apply — and **a day with nothing recorded
+  /// either way breaks it too**. That second clause is the whole safety
+  /// argument, and it is why the obvious definition was refused: counting
+  /// zero-*total* days would mean the cheapest way to lengthen a run is to
+  /// record nothing, which is the under-logging incentive ADR-0006 exists to
+  /// refuse. Here the only edit that lengthens a run is an affirmative record,
+  /// so the figure grows when you log more. A tier-1 test walks every
+  /// three-state window up to length 9 and pins that no day can be turned into
+  /// "nothing recorded" and raise the result.
+  ///
+  /// The run is clipped to the days it is handed and never extends past them:
+  /// a run crossing the window's edge is an artefact of the window, not a fact
+  /// about the user. It is a maximum over a bounded stretch of the past, never
+  /// a count forward from today — that would be ADR-0017's streak, which stands
+  /// refused.
+  public static func longestAlcoholFreeRun(of days: [CalendarDay]) -> Int {
+    var longest = 0
+    var current = 0
+    for day in days {
+      if !day.hasEntries, day.isMarkedAlcoholFree {
+        current += 1
+        longest = max(longest, current)
+      } else {
+        current = 0
+      }
+    }
+    return longest
+  }
+
   /// One `CalendarDay` per start-of-day key — the construction `monthGrid`
   /// already uses, with the same predicate for "has entries": a key present
   /// in `totalsByDay`, whatever its total. Every window that is not a grid

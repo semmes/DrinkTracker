@@ -1,6 +1,6 @@
 # 0033 — A run of days with no alcohol is counted from the record, never from silence
 
-**Status:** proposed · **Date:** 2026-09-05 · **Reopens:**
+**Status:** accepted · **Date:** 2026-09-05 · **Reopens:**
 `docs/tallyist-1.2-spec.md`'s stop condition "A streak counter or a
 longest-gap record", ADR-0017 hard rule 2, and ADR-0027's stop-condition list ·
 **Relates to:** ADR-0006 (a summary, not a score — its under-logging test is
@@ -71,17 +71,21 @@ alcohol that nobody marked reads as 0. That is the honest reading — the app do
 not know about it — and it is the same rule the calendar already applies, where
 an unmarked day is blank rather than green.
 
-**A known hole in (b), and it must be closed in the same change.**
+**A hazard checked and found already closed, recorded so it is not re-raised.**
 `CalendarDay` carries `hasEntries` and `isMarkedAlcoholFree` independently, and
-the store can hold a day with both: `DrinkRepository.saveOrThrow` deletes
-markers on a drink's day and `markAlcoholFreeOrThrow` refuses a day with
-entries, but neither guard re-runs on a row CloudKit's mirroring inserted — the
-repository's own comment concedes "two devices writing before CloudKit merges
-can leave two". `summary(of:)` classifies such a day as `.drinks`; delete the
-entry and the dormant marker is revealed and can join two runs. That is an
-omission lengthening the figure, i.e. definition (a)'s failure re-entering
-through the back door. It is closed in the repository (reconcile on read, so the
-dormant marker is dropped when its day has entries), not in the fold.
+CloudKit can merge a marker onto a day that has entries, so the worry was: delete
+the entry, and a dormant marker surfaces and joins two runs — an omission
+lengthening the figure. Two things close it. `DrinkRepository.saveOrThrow`
+already deletes **every** marker on a drink's day, and its comment names this
+exact case: *"Leaving it dormant would be worse than a visible contradiction —
+it would resurrect the moment the entries were deleted"*, and *"Every marker on
+the day, not the first: two can land on one day when two devices act before
+CloudKit merges."* And the fold makes entries beat markers regardless, so while
+the entry exists the day is `.drinks` and cannot extend a run. The residue — a
+marker mirrored in *after* the save and never reconciled — does not breach the
+safety property either: the run still cannot be lengthened by *failing to
+record*, only by a marker the user affirmatively made. No repository change is
+needed, and an earlier draft of this record claiming otherwise was wrong.
 
 ## Decision
 
@@ -106,19 +110,32 @@ having no alcohol*, over the picked Trends range.
   no comparison between windows, no celebration when it grows, and no separate
   line when it falls. It is one figure among ADR-0006's others, in the same
   type, with a noun that describes it and no verb that praises it.
-- **Where it appears** is deliberately narrow, and is the part most worth
-  arguing with: the scrub readout's facts row already carries three figures
-  measured at the full content width, so a fourth needs the row to earn its
-  space or the design to give something up. Proposed: the range-level figure on
-  the Trends summary cards (where "longest run with none" is checkable against
-  the log), and the per-bar figure only if the row still fits at the default
-  text size — measured, not assumed, exactly as the 3.7pt facts-row measurement
-  in ADR-0028's amendment was.
+- **Where it appears**, as built: both places the design pass drew it. In the
+  scrub readout's facts row it is the **third** fact — "1 none in a row" — which
+  is the design's own third fact, and it takes the slot the count of marked days
+  held rather than adding a fourth. That is the design as drawn, and it is what
+  keeps the row on one line: the row measured at the full content width with
+  three facts, so a fourth would have wrapped, and a wrapped row is the card
+  growing under the reading hand. The count it displaces is still spoken in the
+  readout's accessibility label and still printed in full by the block a stepped
+  selection shows, so no ADR-0006 figure is lost from the screen. At range level
+  it is a card of its own beneath "Days with no drinks logged", in that card's
+  shape so the two figures about days without drinks read as a pair. Verified by
+  measurement: the card's chart baseline and bottom edge sit at 562.00pt and
+  595.67pt in **both** readout states, unchanged by the new fact.
+- **At zero the range card says "None recorded", not 0.** A bare 0 reads as a
+  run of length nothing; the honest reading is that there is nothing of this
+  kind in the record. A user who marks no days sees that, permanently, and it
+  must never be "fixed" by falling back to (a).
 - **Arithmetic in `DrinkTrackerCore`**, tier-1 tested, over `[CalendarDay]` —
   the same input `summary(of:)` folds, so the run and the counts beside it
-  cannot disagree about what a day is. The lemma the suite pins: *no omission
-  over that input can raise the figure* — deleting entries never creates a
-  marker — plus clipping, empty windows, and the all-marked window.
+  cannot disagree about what a day is. The lemma the suite pins is checked
+  **exhaustively rather than asserted**: over every window of every three-state
+  day up to length 9, turning any one day into "nothing recorded either way" —
+  which is what not logging produces — never raises the figure. Plus clipping at
+  the window's edge (a marked stretch straddling two weeks is 3 and 4, never 7
+  twice), empty windows, the all-marked window, and the bound
+  `run <= daysAlcoholFree`.
 
 ## Consequences
 

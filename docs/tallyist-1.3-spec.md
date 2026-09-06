@@ -103,19 +103,26 @@ ramp's 6+ drinks fill, which would make lightness carry interaction state
 instead of magnitude (PRD invariant 10); the figure is `.primary`, with a
 costed one-commit route in the ADR if the owner wants the tint.
 
-## Feature F: the longest run with none — **proposed, not built** (ADR-0033)
+## Feature F: the longest run with none — done (ADR-0033)
 
 The owner asked for the longest-gap figure the design proposed and ADR-0028's
-amendment refused, and asked that the record be opened first. It is:
-`docs/decisions/0033-a-run-of-no-alcohol-days-is-counted-from-the-record.md`,
-status **proposed**. Nothing is built until it is accepted.
+amendment refused, and asked that the record be opened first. It was, and then
+accepted: `docs/decisions/0033-a-run-of-no-alcohol-days-is-counted-from-the-record.md`.
 
 The figure counts **only days explicitly recorded as having no alcohol** — the
 owner's answer, and the only definition that survives ADR-0006. Counting
 zero-total days instead would mean not logging grows the number, which is the
-under-logging incentive the app exists to refuse. Accepting the ADR also means
-amending this document's inherited stop condition and ADR-0017's hard rule 2
-rather than quietly contradicting them.
+under-logging incentive the app exists to refuse; here the figure rises only
+when the user logs more. A tier-1 test checks that exhaustively over every
+three-state window up to length 9 rather than asserting it.
+
+It appears in both places the design drew it: the third fact in the scrub
+readout (taking the slot the count of marked days held, so the row stays on one
+line), and a card of its own under "Days with no drinks logged" at range level,
+reading "None recorded" rather than 0 when there is nothing of the kind in the
+log. Accepting it amended `docs/tallyist-1.2-spec.md`'s stop condition and
+ADR-0017's hard rule 2 — the display clause only; the persistence clause and
+the refusal of a silence-based gap both stand.
 
 ## App Review consistency
 
