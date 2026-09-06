@@ -49,6 +49,27 @@ enum GlassTokens {
     static let cardValue = Font.system(.title, design: .rounded, weight: .semibold)
     static let cardLabel = Font.system(.footnote, weight: .regular)
     static let supporting = Font.system(.subheadline)
+
+    /// A heading *inside* a card, for a card that holds more than one table.
+    /// Uppercase with tracking at the call site, so the step down from the
+    /// card's own content comes from case and letterspacing rather than from
+    /// a smaller size or thinner ink.
+    static let sectionLabel = Font.system(.footnote, weight: .medium)
+
+    /// The head over a numeric column. It carries the noun the rows below it
+    /// no longer repeat, so it is set in `.primary` ink, never `.secondary`:
+    /// at this size secondary lands near 3.4:1, and hierarchy here comes from
+    /// size, case and tracking rather than from thinning the ink (invariant 10).
+    static let columnHead = Font.system(.caption2, weight: .medium)
+
+    /// A figure the user's own logging produced: rounded and tabular, so it
+    /// aligns down a column and reads apart from a published figure, which
+    /// stays in default SF. The numeral carries that distinction because the
+    /// design system allows no second hue for it.
+    static let rowFigure = Font.system(.callout, design: .rounded, weight: .semibold)
+
+    /// The same rule one step down, for a secondary count beside a figure.
+    static let rowCount = Font.system(.footnote, design: .rounded, weight: .semibold)
   }
 }
 

@@ -71,3 +71,81 @@ published as numbers, the card can carry a rate beside each row — still a
 rate, never a rank. A drinker-only rate would replace the all-adults one.
 If the seven rows read as a league table in real use, the split alone
 stays and the rows go.
+
+---
+
+## Amendment (2026-09-06) — the card becomes two tables
+
+**Status:** accepted. The decision above is unchanged: same figures, same
+sources, same refusals. This is a layout change only, from the owner's design
+pass (`docs/design/Bar chart hover states design/`, screenshot
+`05-weekday-insights.png`, DS card `ds/components/weekday-insights.card.html`).
+
+Three problems in the shipped card, three fixes, **no new figures**:
+
+1. **The unit noun printed seven times.** "3 standard drinks / 1 standard drink
+   / 4 standard drinks…" down the card is a wall. The noun now becomes a
+   two-line column head stated once, and each row carries only the numeral.
+   `StandardDrink.amountPhrase` still supplies the digits and still drives
+   VoiceOver — only the *visible* noun moved. The head reads the region's own
+   plural (`Region.unitNamePlural`), so a UK reader gets "UNITS": the head is
+   the one place the unit is named, so it has to follow the lens (ADR-0002).
+2. **The two figures were stacked, not aligned.** The day count sat as a
+   caption under the amount, so nothing lined up down the card. Two
+   right-aligned numeric columns now do the comparing that the copy is
+   forbidden to do — the reader sees the shape of their own week without a
+   sentence naming a largest day.
+3. **Three prose sentences carried three different denominators** — `20 of 39`,
+   `10 of 52`, `31 of every 100` in running text, where the reader has to hold
+   each one to notice they are not the same base. One small table instead:
+   rows are the paper's own weekend definition, columns are **whose figure it
+   is**. Nothing is recomputed, normalised, subtracted or ranked.
+
+**Still refused, for the reason already given:** the seven weekdays are not
+charted. A chart of seven bars invites "which is highest", and the tallest bar
+named is a rank. If this card ever gains a per-row visual it must be a
+published *rate* per row, never a bar whose height ranks the user's own days.
+
+### The numeral rule is the only channel available
+
+The user's own counts are rounded and tabular; the published rates stay in
+default SF. Colour cannot carry that distinction — a second hue here would be a
+new colour role, which PRD invariant 10 does not allow — so the numeral face
+carries it alone, and softening it would merge two kinds of fact into one.
+**Do not round the survey figures.**
+
+### What accessibility sizes do
+
+Three columns cannot hold their alignment at accessibility sizes, and a column
+head that has scrolled away from its rows carries nothing. So the card folds
+back to exactly the form this ADR first shipped: stacked rows with the noun
+returned to each one, and the three reviewed sentences. The figures are
+identical either way; only their arrangement changes. Verified on the simulator
+at `accessibility-extra-large`.
+
+### Consequences
+
+- Seven new app-catalog keys, all visible-only: the two head pairs
+  (`Days with a drink`, `Your log`, `US adults`), the two row labels
+  (`Friday to Sunday`, `Monday to Thursday`), and the two ratio cells
+  (`%@ of %lld`, `%lld of every 100`). 291 → 298.
+- **No key is retired.** `weekendLine`, `weekdaysLine` and
+  `weekendReferenceLine` are the *spoken* label of the comparison table and the
+  *visible* text at accessibility sizes, so every 1.4.3-reviewed sentence
+  survives verbatim on both paths. The table is a compact way to show them, not
+  a rewording of them.
+- The numeric columns are `@ScaledMetric` (88 / 74 / 100 at default type). They
+  are what make a two-word head break onto two lines instead of running the
+  width of the card and pushing its neighbour into it; a natural-width `Grid`
+  leaves the head on one line, which was the first render's real defect.
+- `GlassTokens.Typography` gains `sectionLabel`, `columnHead`, `rowFigure` and
+  `rowCount`. `SectionLabel` was already named in `docs/design-system.md`'s type
+  table without existing in code; it exists now.
+- No schema change, no CloudKit step, no network, no new permission, no setting.
+
+### How to reopen
+
+Unchanged from above. Additionally: if the two-line column heads read as noise
+at default type in real use, the heads can drop to one line by shortening
+"Days with a drink" to "Days" — but the unit head cannot shorten, because a
+bare "Drinks" would stop being the region's own word.

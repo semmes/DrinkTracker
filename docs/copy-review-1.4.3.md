@@ -994,3 +994,54 @@ suite pins exhaustively.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+---
+
+## 1.3 — The By weekday card becomes two tables (ADR-0032 amendment)
+
+Seven new strings, all of them **labels for figures that already shipped**. No
+figure is new, no denominator changed, and no sentence was reworded.
+
+| Where | Copy |
+|---|---|
+| Column head over the amounts | the region's own plural, uppercased — "STANDARD DRINKS" / "UNITS" |
+| Column head over the day counts | "Days with a drink" |
+| Section label, second table | "Days with a drink" (the same key) |
+| Column heads, second table | "Your log" · "US adults" |
+| Row labels, second table | "Friday to Sunday" · "Monday to Thursday" |
+| Ratio cell — the user's own | "5 of 13" · "18 of 37" |
+| Ratio cell — the published rate | "31 of every 100" · "24 of every 100" |
+
+**Reviewed against 1.4.3.** Every string is a noun phrase naming a column or a
+span of days. Nothing evaluates, compares, ranks or reacts. Deliberately absent:
+"most", "least", "highest", "biggest", "peak", "heaviest", any weekday named as
+a maximum, any word placing the user's figure against the published one, and any
+label that would make the two columns read as a score against a target. "Your
+log" and "US adults" name *whose figure it is* — the columns are two facts side
+by side, not a bracket the user falls inside.
+
+**Why the reviewed sentences are still here.** The three prose lines this table
+replaces visually — "Friday to Sunday: 20 of 39 days with a drink.",
+"Monday to Thursday: 10 of 52 days.", "Among US adults, 31 of every 100
+Friday-to-Sunday days include a drink, and 24 of every 100 other days." — are
+now the comparison table's spoken label, and they are what the card prints at
+accessibility sizes. A screen reader hears the sentences exactly as reviewed;
+the table is a way of showing them, not a rewording. No reviewed string was
+retired.
+
+**Why alignment instead of a sentence.** ADR-0032 forbids the copy from naming a
+busiest day. Two aligned numeric columns let the reader see the shape of their
+own week without any string doing the comparing — the layout carries what the
+words are not allowed to say, which is the inverse of finding 2 above, where a
+picture said something the words had been careful not to. Checked in that light:
+the columns encode no target and have no full state, the rows are in the
+calendar's order rather than sorted by size, and no row is emphasised over
+another.
+
+**One typographic distinction, and it is factual.** The user's counts are
+rounded numerals; the published rates are default SF. That says "you made this
+one, a survey made that one" and nothing else — it is not emphasis, and neither
+face reads as better.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

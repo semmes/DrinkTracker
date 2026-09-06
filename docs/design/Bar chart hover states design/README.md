@@ -1,5 +1,16 @@
 # Handoff: Trends bar selection — scrub readout in the card header
 
+## How to use this bundle (no tooling required)
+
+This folder is self-contained. Nothing here needs a login, a server, an account, or an MCP connection — if Claude Code cannot reach the design tool, it does not need to:
+
+1. `open standalone/Trends-Bar-Selection.html` — one file, no dependencies, works offline in any browser. Drag across the bars to see the interaction.
+2. Point Claude Code at this folder and give it the README. Suggested opening prompt:
+   > Read `design_handoff_trends_bar_selection/README.md`. It specifies a redesign of the Trends screen in this repo. Implement it in SwiftUI using the existing `GlassTokens`, `SUCard(model: .glass)`, `chartXSelection` and `TrendSummary` — do not port any CSS. Start with the file list under "Repo files to change" and show me a plan before editing.
+3. `screenshots/` are the visual reference; `.dc.html` files are the interactive reference. Both are **design references**, not source to copy.
+
+Everything a developer needs is in this README — the prototypes are for checking feel, not for reading code out of.
+
 ## Overview
 
 `TrendsView` already lets the user tap or drag across the bars to select one (ADR-0028), and reports that bar's own facts in a block **under** the chart. In use, that placement fails the gesture it belongs to: the reading hand covers the block, and the card grows when a bar is selected — so the figures the user is reaching for move down toward the hand as they appear.
@@ -61,6 +72,29 @@ The files in this bundle are **design references created in HTML** — prototype
 
 **Summary cards below** — unchanged in structure; the two shown in the prototype are `longest run with none` (9) and `on days you drank` (2.1), `.cardValue` 26pt rounded semibold over `.cardLabel` `.secondary`. Wire these to the range figures the screen already computes; they are the permanent home of the two figures the scrub row abbreviates.
 
+### By weekday — insights card (below the summary cards)
+
+**Purpose.** "When do drinks happen" as a fact about the user's own log, with the one published weekend rate beside it as context. Source: `WeekdayCard.swift` + `PopulationReferenceCopy.swift`, ADR-0032.
+
+**What was wrong with it, and what the redesign changes** — three problems, three fixes, no new figures:
+
+1. *The unit noun printed seven times.* "3 standard drinks / 1 standard drink / 4 standard drinks…" down the card. **Fix:** the noun becomes a two-line column head stated once (`Standard / drinks`), and each row carries only the numeral. `StandardDrink.amountPhrase` still supplies the digits and still drives VoiceOver — only the *visible* noun moves to the head.
+2. *The two figures were stacked, not aligned.* The day count sat as a caption under the amount, so nothing lined up down the card. **Fix:** two right-aligned numeric columns (`1fr 88 88`, 10pt gap), tabular numerals, hairline `rgba(60,60,67,.10)` between rows and `--separator` above the first. Alignment does the comparing that ADR-0032 forbids the copy from doing.
+3. *Three prose sentences carried three different denominators* — `20 of 39`, `10 of 52`, `31 of every 100` in running text. **Fix:** one small table. Rows are the paper's own weekend definition (`Friday to Sunday`, `Monday to Thursday`); columns are **`Your log`** and **`US adults`**. Every string is the reviewed one, unchanged — no rate is recomputed, normalised, subtracted or ranked.
+
+**Type and colour:**
+- Section labels (`By weekday`, `Days with a drink`) — footnote medium, uppercase, `.06em` tracking, `.secondary`. The `SectionLabel` role.
+- Column heads — the **caption role, 11pt**, uppercase, `.06em` tracking, right-aligned, wrapping to two lines, in **`--label`** (`rgba(0,0,0,.88)`) — not `--label-secondary`. The heads now carry the meaning of both numeric columns (they *were* the repeated noun), so they must not be the least legible text on the card: secondary ink at this size lands near 3.4:1. Hierarchy comes from size, uppercase and tracking — never from thinning the ink. A relative style, so Dynamic Type scales it; no fixed point size.
+- Weekday name 15pt `.primary`; amount 16pt **rounded semibold tabular**; day count 13pt `.secondary` with its leading integer rounded semibold at `.label` 78%.
+- **The one detail to get right:** the user's counts are **rounded** numerals; the published rates (`31 of every 100`) are **default SF**. The numeral rule carries the distinction between "your fact" and "a published fact" — the system forbids a second hue for it, so this is the only channel available. Do not round the survey figures.
+- No colour anywhere in this card beyond `.primary`/`.secondary`. No accent, no ramp: nothing here is a magnitude to encode.
+
+**Source disclosure.** `SourceDisclosure` unchanged, but given a real row: source text on its own flexible line, chevron in a 20pt box at the trailing edge, row `minHeight: 44`. The chevron rotates 180° over **250ms `cubic-bezier(.32,.72,0,1)`** (`.smooth(duration: 0.25)`), and the note expands beneath at 12/17pt `.secondary`.
+
+**Explicitly not done:** the seven weekdays are **not** charted. ADR-0032 rejects that by name — "a chart of seven bars invites 'which is highest', and the tallest bar named is a rank." If this card ever gains a per-row visual, it must be a published *rate* per row, never a bar whose height ranks the user's own days.
+
+**Scrolling.** The card sits below the two summary cards in the existing `ScrollView`; the prototype's phone scrolls for the same reason. Nothing about it is sticky or pinned.
+
 ## Interactions & behaviour
 
 - **Gesture:** `chartXSelection` as today. Tap selects; drag scrubs continuously, snapping to the bar whose x-band is under the finger. On macOS/Catalyst or with a pointer, hover previews the same selection.
@@ -99,6 +133,8 @@ Everything below already exists in `GlassTokens` / `styles.css` — no new token
 | Zero baseline | `rgba(60,60,67,.3)` | `--label-tertiary` |
 | Card surface | `#ffffff` | `--surface-card` (use `.glassSurface()`) |
 | Dim (unselected bars) | `0.35` | ADR-0028 |
+| Column-head ink | `rgba(0,0,0,.88)` | `--label` |
+| Row hairline (weekday rows) | `rgba(60,60,67,.10)` | lighter step of `--separator` |
 | Spacing | 8 / 12 / 24 / 32; screen 20; card 16 | `GlassTokens.Spacing` |
 | Radius | control 14 · pill 22 · card 26 · sheet 34 | `GlassTokens.Radius` |
 | Readout block height | 76pt fixed | — new constant |
@@ -142,6 +178,7 @@ ADR-0028 stands, with two of its stated consequences superseded:
 | `screenshots/02-final-scrubbing.png` | Final design, finger on the Jul 5–11 spike — readout swapped, other bars at 35%, rail + hairline |
 | `screenshots/03-ds-card.png` | The design-system card: light resting / dark scrubbing |
 | `screenshots/04-options-explored.png` | All three explored options with the rationale column |
+| `screenshots/05-weekday-insights.png` | The redesigned By weekday card, both modes |
 
 ## Assets
 
@@ -154,6 +191,8 @@ None. No images, no new SF Symbols. The status bar, back chevron and dynamic isl
 | `Trends Bar Selection.dc.html` | **The final design.** Live prototype — drag or hover across the bars. Has tweaks for dim amount, Reduce Motion and the tip line. |
 | `Trends Bar Interaction.dc.html` | The three explored options (`1a` floating callout, `1b` **chosen**, `1c` reserved grid + neighbour lens), with the design rationale in the left-hand column. Useful for the "why not that instead" question. |
 | `ds/components/trends-bar-selection.card.html` | Design-system card for the Tallyist system — light/dark, resting/scrubbing. Drop into `components/` in the design-system project (its `../styles.css` link resolves there as-is), and mirror it into `docs/design-system.md` per the sync contract. |
+| `ds/components/weekday-insights.card.html` | Design-system card for the redesigned By weekday card — the log table light, the comparison table + open source note dark. Same drop-in path. |
+| `standalone/Trends-Bar-Selection.html` | The final design as one self-contained offline file. No login, no server, no dependencies. |
 | `ds/styles.css` | The Tallyist token sheet the prototypes and card are built on. Reference only — the app's source of truth is `GlassTokens.swift` + the system semantic colours. |
 
 ## Repo files to change
@@ -162,5 +201,8 @@ None. No images, no new SF Symbols. The status bar, back chevron and dynamic isl
 | --- | --- |
 | `DrinkTracker/Features/Trends/TrendsView.swift` | Move the detail block into the card header as a fixed-height two-state readout; drop the `RuleMark.annotation` in favour of the header legend; add the rail + hairline; clear the selection on gesture end. |
 | `DrinkTracker/Features/Trends/PeriodDetailView.swift` | Split: a compact header variant (title + note + total + three facts) for the scrub; keep the full version, share rows included, for the persistent/VoiceOver selection. |
-| `docs/design-system.md` | Add the "Trends bar selection" component card. |
+| `DrinkTracker/Features/Trends/WeekdayCard.swift` | Rebuild the seven rows as an aligned two-column grid with column heads; replace the three trailing `Text` lines with the two-row `Your log` / `US adults` table; give `SourceDisclosure` its own 44pt row. |
+| `DrinkTracker/Features/Trends/PopulationReferenceCopy.swift` | No string changes needed — the table reuses `weekendLine`, `weekdaysLine` and `weekendReferenceLine` figures verbatim. If the table's cells are built from parts instead, add keys for the column heads only. |
+| `docs/decisions/0032-trends-reports-the-log-by-weekday.md` | Note the layout change and that the no-chart decision still holds. |
+| `docs/design-system.md` | Add the "Trends bar selection" and "Weekday insights" component cards. |
 | `docs/decisions/0028-a-trends-bar-reports-its-own-facts.md` | Amend the consequences listed under **ADR impact**. |

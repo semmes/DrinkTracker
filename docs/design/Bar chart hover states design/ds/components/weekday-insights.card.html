@@ -1,0 +1,71 @@
+<!-- @dsCard group="Components" viewport="900x510" name="Weekday insights" subtitle="The noun in the column head, the numerals in the rows, the published rate beside your own" -->
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css"><style>
+body { display: flex; flex-direction: column; }
+.split { flex: 1; display: flex; min-height: 0; }
+.panel { box-sizing: border-box; flex: 1; padding: var(--sp-card) var(--sp-screen); display: flex; flex-direction: column; gap: var(--sp-tight); min-width: 0; }
+.card { background: var(--surface-card); border-radius: var(--r-card); padding: var(--sp-card); box-shadow: inset 0 0 0 .5px var(--separator); }
+.sect { font-size: 13px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--label-secondary); }
+
+/* Two aligned numeric columns. The unit noun is stated once, in the head,
+   instead of once per row — seven rows of "N standard drinks" is a wall. */
+.r3 { display: grid; grid-template-columns: 1fr 84px 84px; gap: 0 10px; align-items: baseline; padding: 7px 0; }
+.heads { align-items: end; padding-bottom: 6px; margin-top: 12px; }
+.head { font-size: 11px; line-height: 13px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--label); text-align: right; }
+.day { font-size: 15px; }
+.amt { text-align: right; font-size: 16px; }
+.cnt { text-align: right; font-size: 13px; color: var(--label-secondary); }
+.cnt .numeral { font-size: 13px; color: var(--label); }
+.sep { border-top: 1px solid var(--separator); }
+.hair { border-top: 1px solid rgba(60,60,67,.10); }
+.dark .hair { border-top-color: rgba(235,235,245,.10); }
+
+.c3 { display: grid; grid-template-columns: 1fr 72px 98px; gap: 0 8px; align-items: baseline; padding: 7px 0; }
+.c3 .lbl { font-size: 13px; }
+.mine { text-align: right; font-size: 13px; color: var(--label-secondary); }
+.mine .numeral { font-size: 13px; color: var(--label); }
+/* Default SF, deliberately: a published rate is not a numeral the user made. */
+.pub { text-align: right; font-size: 12px; color: var(--label-secondary); }
+
+.srcrow { min-height: 44px; display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.src { flex: 1; font-size: 12px; line-height: 16px; color: var(--label-secondary); }
+.note { font-size: 12px; line-height: 17px; color: var(--label-secondary); }
+.state { font-size: 9px; line-height: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--label-secondary); }
+.foot { box-sizing: border-box; padding: 10px var(--sp-screen); background: var(--surface-card); border-top: 1px solid var(--separator); }
+</style></head><body>
+<div class="split">
+
+  <div class="panel">
+    <div class="state">The log by weekday</div>
+    <div class="card">
+      <div class="sect">By weekday</div>
+      <div class="r3 heads"><span></span><span class="head">Standard<br>drinks</span><span class="head">Days with<br>a drink</span></div>
+      <div class="r3 sep"><span class="day">Sunday</span><span class="amt numeral">7.4</span><span class="cnt"><span class="numeral">5</span> of 13</span></div>
+      <div class="r3 hair"><span class="day">Monday</span><span class="amt numeral">2.6</span><span class="cnt"><span class="numeral">2</span> of 13</span></div>
+      <div class="r3 hair"><span class="day">Tuesday</span><span class="amt numeral">2.8</span><span class="cnt"><span class="numeral">2</span> of 13</span></div>
+      <div class="r3 hair"><span class="day">Wednesday</span><span class="amt numeral">4.1</span><span class="cnt"><span class="numeral">3</span> of 13</span></div>
+      <div class="r3 hair"><span class="day">Thursday</span><span class="amt numeral">4.6</span><span class="cnt"><span class="numeral">3</span> of 13</span></div>
+      <div class="r3 hair"><span class="day">Friday</span><span class="amt numeral">12.8</span><span class="cnt"><span class="numeral">7</span> of 13</span></div>
+      <div class="r3 hair"><span class="day">Saturday</span><span class="amt numeral">12.9</span><span class="cnt"><span class="numeral">8</span> of 13</span></div>
+    </div>
+    <div class="caption">Seven rows in the calendar&rsquo;s order, no rank and no &ldquo;most&rdquo; &mdash; a chart of seven bars would name a tallest one (ADR-0032). Alignment does the comparing the copy refuses to.</div>
+  </div>
+
+  <div class="panel dark">
+    <div class="state">Your split, beside the published rate</div>
+    <div class="card">
+      <div class="sect">Days with a drink</div>
+      <div class="c3 heads"><span></span><span class="head">Your log</span><span class="head">US adults</span></div>
+      <div class="c3 sep"><span class="lbl">Friday to Sunday</span><span class="mine"><span class="numeral">20</span> of 39</span><span class="pub">31 of every 100</span></div>
+      <div class="c3 hair"><span class="lbl">Monday to Thursday</span><span class="mine"><span class="numeral">10</span> of 52</span><span class="pub">24 of every 100</span></div>
+      <div class="srcrow">
+        <span class="src">Source: Liang and Chikritzhs, 2015 (NHANES 2005&ndash;10)</span>
+        <svg width="11" height="7" viewBox="0 0 11 7" fill="none" style="transform:rotate(180deg)"><path d="M1 1l4.5 4.5L10 1" stroke="currentColor" stroke-opacity=".6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="note">A published rate from a national dietary survey of US adults, 2005 to 2010, drinkers and non-drinkers together: days with a drink of 10&nbsp;grams of alcohol or more, per 100 person-days, with the weekend as the study defined it. Not data from other Tallyist users.</div>
+    </div>
+    <div class="caption">Two denominators, both named. The rate is context for the user&rsquo;s own split &mdash; never a bracket the split falls inside.</div>
+  </div>
+
+</div>
+<div class="foot caption">Three prose sentences with three different denominators became one table: rows are the source&rsquo;s own definition of the weekend, columns are whose figure it is. <strong>The numeral rule carries the distinction colour is not allowed to</strong> &mdash; the user&rsquo;s counts are rounded, the published rates are default SF, so the two kinds of fact read apart without a second hue. Nothing is ranked, nothing is subtracted, and the unit noun is stated once per column rather than once per row.</div>
+</body></html>
