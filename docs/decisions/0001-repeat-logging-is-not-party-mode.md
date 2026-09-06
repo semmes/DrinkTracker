@@ -45,3 +45,18 @@ that reads as a reward for volume, anywhere in the app.
 Guideline 1.4.3 would have to change, or the feature would have to move somewhere the
 guideline demonstrably doesn't reach. Neither is likely. A better *neutral* name is
 always welcome; a celebratory one is not.
+
+---
+
+## Amendment (2026-09-06, ADR-0034) — the repeat control moved
+
+This record's Consequences named `TodayView.repeatControl` as the home for the
+constrained strings ("Another beer"). That view is deleted; repeating is now the
+typed segment of Today's plus-mode pill, which logs one more of the drink the
+day is following.
+
+Whoever edits that pill inherits this decision: **one tap, one drink.** There is
+still no multiplier, no "×3", and no party mode. The pill shows what ＋ will log;
+it does not offer to log several.
+
+"Another %@" and "Another standard drink" retire with the row.

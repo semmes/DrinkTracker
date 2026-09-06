@@ -79,3 +79,66 @@ If the calendar ever needs to encode something genuinely *diverging* — two
 directions from a meaningful midpoint — a single sequential hue would be the wrong
 form and this should be revisited. Nothing about "how much was logged" is diverging:
 it starts at none and goes up.
+
+---
+
+## Amendment (2026-09-06, ADR-0034) — a fourth step, and a second surface
+
+Two changes, both requested by the owner while reviewing the Home v2 design.
+
+**The ramp gains a fourth drinking step.** `6+` was open-ended, so a six-drink
+evening and a fourteen-drink one drew the same cell and the top of the scale
+stopped describing anything. `DayIntensity` now buckets 1–2 / 3–5 / **6–9** /
+**10+**, and the new `.veryHigh` step is:
+
+| | 1–2 | 3–5 | 6–9 | 10+ |
+|---|---|---|---|---|
+| Light | `#86b6ef` (250) | `#2a78d6` (450) | `#0d366b` (700) | `#05172e` (**800**) |
+| Dark | `#184f95` (600) | `#3987e5` (400) | `#9ec5f4` (200) | `#cde2fb` (**100**) |
+
+Re-validated, not eyeballed. CIE L\* from sRGB; contrast by WCAG relative
+luminance:
+
+- **Monotone** — light 72.73 → 50.43 → 22.95 → 7.61; dark 33.89 → 55.94 →
+  78.30 → 89.08.
+- **Adjacent ΔL ≥ 0.06** — light 0.223 / 0.275 / **0.153**; dark 0.221 / 0.224 /
+  **0.108**.
+- **Light-end ≥ 2:1 against the surface** — unchanged at both ends of the
+  scale that touches a surface (`#86b6ef` 2.11:1 on card white; `#184f95`
+  2.10:1 on `#1C1C1E`), because neither pale end moved.
+- **Single hue** — light 800 sits at 278.1°, inside the family's own
+  262.6–283.0° span.
+- **Ink** — white on `#05172e` is 17.97:1; black on `#cde2fb` is 15.87:1. Both
+  follow the existing flip rule, so `.veryHigh` joins `.medium, .high` in
+  `IntensityPalette.ink`.
+
+Two things a later session should know. The **dark** step is step 100 of the
+documented family rather than a new value — step 150 `#b7d3f6` was the obvious
+pick and fails, at ΔL 0.053. And `#05172e` is the ramp's **floor**: at L\* 7.6
+there is no room for a fifth step beneath it, so a future "20+" bucket would
+mean re-spacing the whole ramp, not extending it. Luminance contrast between
+the two deepest fills is 1.50:1 light and 1.35:1 dark, below the 2.04–2.71 of
+the pairs above them — luminance compresses at both ends of a lightness ramp,
+which is why the stated gate is the perceptual one. The outline channel that
+separates "recorded as none" from "not logged" is untouched.
+
+**Everything that shows the ramp moves together, deliberately.** The legend goes
+from five entries to six, on the calendar, the year view and both share cards,
+because all three iterate `DayIntensity.legendOrder`. The cost is real and is
+accepted: a day that drew `#0d366b` yesterday now needs 6–9 rather than 6+, so
+every existing user's calendar and every future share card re-shade at the top
+end. Nothing about the underlying record changes — this is a resolution change
+in the display lens, like a region change (ADR-0002).
+
+**The scope sentence in Consequences now has a second named surface.** Today's
+hero band paints the counter with `fill`/`ink`/`isOutlined`, unchanged, over
+`DayIntensity.bucket` of the same region-lensed total the calendar cell for that
+day uses. It is reached by name — an accessor over existing constants, the
+`liveFigure(scheme:)` precedent exactly — so no value is copied and
+`IntensityPalette` stays the only place the app defines literal colours. The
+argument for allowing it is the one that makes the ramp legitimate anywhere: the
+colour *is* the data, the legend states the boundaries, and the figure it
+qualifies is printed in digits directly beneath it.
+
+The third consumer is the session-pace chip — see ADR-0017's amendment, which is
+where the harder argument lives.

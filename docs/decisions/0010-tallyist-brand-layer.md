@@ -24,7 +24,7 @@ named and assigned exactly one job.**
 |---|---|---|
 | Interactive accent (text/glyphs) | 500 light / 400 dark | `AccentColor` asset, both targets |
 | Interactive fills | 500, both modes | `AppTheme` (ComponentsKit) |
-| Data (intensity ramp) | 250/450/700 light · 600/400/200 dark | `IntensityPalette` |
+| Data (intensity ramp) | 250/450/700/**800** light · 600/400/200/**100** dark | `IntensityPalette` |
 | Icon field | 650 | `scripts/make-app-icon.py` |
 
 Chosen by measurement, not eye: 450 — the draft accent — fails AA as normal text
@@ -57,5 +57,17 @@ or Dynamic Type risk.
 
 If Apple's accessibility guidance or a future surface (watch, dark widgets on
 tinted home screens) pushes a role below AA, re-run the measurements and move
-that role to an adjacent step — the ramp has twelve. A new hue, as opposed to a
+that role to an adjacent step — the ramp has fourteen. (The one exception is the data ramp's deepest step, light 800 `#05172e`, which is the family's floor: it has no step below it, so re-spacing the ramp is the only route there.) A new hue, as opposed to a
 new step, reopens ADR-0007's reasoning, not just this document.
+
+
+---
+
+## Amendment (2026-09-06, ADR-0034)
+
+The ramp gained a fourth data band, so the table's data row is now
+250/450/700/**800** light and 600/400/200/**100** dark, and the family itself
+grew to fourteen steps with the new light 800 `#05172e`. The dark fourth step is
+the family's existing 100 `#cde2fb` — no new dark value was invented. Validated
+arithmetic is in ADR-0007's amendment; nothing about the brand/data separation
+this record draws changes.

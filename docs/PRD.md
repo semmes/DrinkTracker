@@ -47,9 +47,16 @@ them fail *silently* — that is precisely why they are written down.
 
 **1. The fast path is one tap in the app, one from the widget.**
 `TodayView`'s counter acts on the log directly: plus records a seeded drink, minus
-removes the most recent (undoable). The typed path (`quickAddRow` →
-`DrinkDetailSheet` → Log) sits one persisted disclosure deeper for those who want
-size and strength — see [ADR-0009](decisions/0009-count-first-logging.md).
+removes the most recent (undoable). The typed path is one "Add specific" link —
+in the Logged-today heading, or under the counter on a day with nothing in it
+yet — which opens `DrinkDetailSheet`
+on an untyped standard drink so it asks for a type first — the persisted
+disclosure and its four quick-add buttons were retired in 1.3, see
+[ADR-0009](decisions/0009-count-first-logging.md) and its amendment.
+Today's plus-mode pill shows which drink ＋ is following and offers the other in
+one tap; **both of its segments log, and neither stores a mode** — the selection
+is derived from the day's own newest repeatable entry, which is what keeps this
+invariant true for the widget (ADR-0034).
 `QuickLogWidget`'s ＋ runs `LogOneDrinkIntent`, the counter's mirror: the same seed
 rule, read from the App Group, so one tap cannot mean different things in the
 widget and the app ([ADR-0023](decisions/0023-the-counter-can-log-an-untyped-standard-drink.md)).
@@ -95,9 +102,10 @@ sample for several drinks, and makes history dishonest.
 See [ADR-0003](decisions/0003-quantity-saves-separate-entries.md).
 
 **8. Copy stays factual and countable.**
-"Another beer", "drinks today", "Record no alcohol today". No encouragement to
-reach a number, nothing that reads as a reward for volume. The strings that carry this
-live in `TodayView`'s counter area, `TodayView.repeatControl`, `DayLogSheet`, and
+"drinks today", "Record no alcohol today", "Tap a drink to say what it was". No
+encouragement to reach a number, nothing that reads as a reward for volume. The
+strings that carry this live in `TodayView`'s counter area, `PlusModePill` and
+`CounterSeedCaption` (what ＋ will log), `TodayDrinkRow`, `DayLogSheet`, and
 `PeriodDetailView` (a Trends bar's facts, never its distance from the average line).
 *Failure mode:* guideline 1.4.3, applied by a reviewer rather than by us.
 

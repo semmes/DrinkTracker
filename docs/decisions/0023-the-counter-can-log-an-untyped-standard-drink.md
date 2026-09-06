@@ -221,3 +221,31 @@ If a second `DrinkType` case is ever proposed for a *real* category, note that
 this one is deliberately not a category, and the exclusion from
 `selectableCases` is what keeps "unspecified" from appearing in a list of
 beverages.
+
+---
+
+## Amendment to the revision (2026-09-06, ADR-0034) — the way back is a pill
+
+The 2026-08-31 call put "Record a standard drink instead" inside the "Log by
+type" disclosure, to keep "the counter area clear of a tap target beside the
+last-logged line's Edit". Home v2 removes that disclosure entirely, so the
+stated reason no longer applies — and the day sheet's recorded exception ("which
+has no such neighbour") now describes Today as well.
+
+The way back becomes the **left segment of Today's plus-mode pill**, sitting
+directly under the counter with the drink ＋ is following in the right segment
+and a caption naming it in words.
+
+**The mechanism is unchanged, and that is the whole point.** Both segments log.
+Selection is *derived* from `DrinkDraft.dayTemplate` — the day's own most recent
+repeatable entry — so there is still **no stored mode**, midnight still resets,
+deleting the drink still undoes it, and the widget's `LogOneDrinkIntent` stays a
+true mirror of the app's ＋ because there is no app-local state for it to be out
+of step with (PRD invariant 1). The prototype held a `plusMode` in state; that
+was not built, and a future session should treat any tap that changes what ＋
+does *without writing an entry* as the thing this record refuses. It would not
+fail CI and would not fail a simulator pass — it fails days later, on a device,
+as "the widget logged a beer when the app said standard drink".
+
+The pill does not appear under `counterSeed == .usualDrink`, because that mode
+has no day memory. ADR-0034 records what that costs.
