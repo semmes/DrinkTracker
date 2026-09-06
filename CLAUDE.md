@@ -599,3 +599,55 @@ Open items for v1.2:
   AX5 with a wrapped week title, Reduce Motion, the extra haptic tick on
   release, VoiceOver stepping with the ✕ appearing only then, and a ~10k-entry
   scrub.
+- **The owner's review of the bar readout, then ADR-0033 (2026-09-05/06, PRs
+  #69 and #70).** Four answers on #68, then the gap figure.
+  **(a) No ✕.** *"tap and hold to view, when you release it deselects. You
+  should not have another X or tap to close the information."* Press-and-hold
+  with release-to-clear was already the behaviour; the control ADR-0028 called
+  the contract is retired. Escape and the chart's named "Clear selection" action
+  still clear a stepped selection, so nothing is stranded — and the key is kept,
+  not orphaned. **(b) A marked day prints a 0; an unlogged day does not** —
+  *"0 is the same as alcohol free where the user made the decision not to have
+  alcohol… vs. the user not interacting with the app and it's unknown to us"*.
+  A marker gets the 28pt figure with "Recorded as no alcohol" naming which zero
+  it is; an unlogged day keeps "Not logged" and no numeral. **(c) The tint went
+  in after all**, reversing the first amendment: the owner ruled it an
+  interaction state, not a quantity. Mechanically it is
+  `IntensityPalette.liveFigure(scheme:)`, an **accessor** over the existing
+  constants — *not* a new asset colour, because a copy of a validated value in
+  the asset catalog is a second uncontrolled home for it and that is invariant
+  10's own failure mode; routed through the accessor, the PRD's "only place that
+  defines literal colours" and design-system's "AccentColor and IntensityPalette
+  only" both stay literally true. **(d) Formatting and animation, all measured
+  on a running build:** the period title is footnote semibold, not subheadline
+  (both prototypes draw 13px — the handoff *prose* was the error); the readout
+  floor is **80**, the measured height of the taller state (idle 76.0pt, scrub
+  79.7pt — a rounded-semibold numeral inside a caption2 line takes the taller
+  font's metrics), and the two now render at an identical 595.67pt card bottom;
+  and the release flicker had two structural causes — the live half was
+  *removed* from the hierarchy so a removal transition animated content already
+  gone, and `ViewThatFits` re-measured every frame of the crossfade. Both halves
+  now stay laid out over a retained `fadingSelection` with only opacity moving,
+  and the facts row picks its layout from `dynamicTypeSize`.
+  **ADR-0033 is accepted and built (PR #70):** the longest run of days
+  *recorded* as having no alcohol. **The definition is the whole safety
+  argument** — a day with nothing recorded breaks the run, because counting
+  zero-total days would make the cheapest way to lengthen one *stop logging*
+  (two six-day stretches split by one drinking day become 13 the moment that
+  drink goes unlogged). A tier-1 test proves it exhaustively over every
+  three-state window to length 9. It is the scrub row's **third** fact (taking
+  the slot the marked-day count held — a fourth would wrap, and a wrapped row is
+  the card growing) and a range card reading **"None recorded"** at zero, never
+  0. Accepting it amended ADR-0017 hard rule 2 and the 1.2 stop list **in their
+  display clause only**; persistence and the silence-based gap stay refused.
+  One claim of mine was wrong and is corrected in the record: the CloudKit
+  dormant-marker "hole" is already closed by `DrinkRepository.saveOrThrow`,
+  which deletes every marker on a drink's day and names the two-device case.
+  **Two tooling lessons.** Synthetic touches do **not** drive
+  `chartXSelection` (same reason `SUSegmentedControl` ignores taps), so the
+  gesture itself is untestable here — drive the selection programmatically
+  instead and film it. And to see anything that only exists mid-gesture, record
+  with `simctl io recordVideo` and pull frames with a small AVFoundation
+  binary; there is no ffmpeg on this Mac, and reading a card's bottom edge out
+  of frames is how the height claims above were actually measured, rather than
+  eyeballed. 291 app keys.
