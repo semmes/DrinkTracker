@@ -3,7 +3,8 @@
 **Status:** accepted · **Date:** 2026-09-06 ·
 **Amends:** ADR-0001 (the repeat control's home), ADR-0007 (a fourth ramp step;
 the hero band as a named surface), ADR-0009 (the typed disclosure is retired),
-ADR-0013 (Today's list runs forward), ADR-0017 (the pace chip carries the ramp),
+ADR-0013 (Today's list order — shipped ascending, reverted to newest-first the
+same day), ADR-0017 (the pace chip carries the ramp),
 ADR-0023 revision (where the way back to a standard drink lives)
 
 ## Context
@@ -119,8 +120,11 @@ the argument and the measurements.
   bites, is to show the pill under that seed too with
   `TrendSummary.mostRecentDrink(ofType:)` as the template — but that resurrects
   the seed asymmetry ADR-0023 removed, so it is recorded rather than built.
-- **Today's list runs forward while History and the day sheet run backward.**
-  See ADR-0013's amendment.
+- ~~**Today's list runs forward while History and the day sheet run
+  backward.**~~ Shipped that way from the drawing and reverted the same day on
+  the owner's review: the just-logged row belongs where the eye lands, not at
+  the end of a list that grows all evening. Today matches the other two
+  surfaces. See ADR-0013's amendment for why the original argument was wrong.
 - **The two deepest fills are 1.50:1 apart** (1.35:1 dark). That is the ramp's
   floor behaving like a ramp's floor; the perceptual gate still passes with room
   (ΔL\* 0.153 / 0.108).

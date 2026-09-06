@@ -221,8 +221,7 @@ same colour scale the calendar uses, so a day reads the same on both, and a
 legend names the bands. The calendar's scale gains a step: heavy days split
 into 6-9 and 10+ instead of one open-ended 6+. Under the counter, a control
 shows which drink plus is repeating and logs a plain standard drink instead
-in one tap. Today's list runs in the order you logged, and Add specific
-opens the full drink sheet whenever you want it.
+in one tap. Add specific opens the full drink sheet whenever you want it.
 ```
 
 ## Reviewer notes (1.3) — paste into App Review notes

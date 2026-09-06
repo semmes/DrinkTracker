@@ -87,16 +87,29 @@ plus taps on one day.
 
 ---
 
-## Amendment (2026-09-06, ADR-0034) — Today's list runs forward
+## Amendment (2026-09-06, ADR-0034) — Today's list order, and its reversal
 
-This record reasons that the day sheet lists newest-first "so the tap removes
-what the user sees". Today's list is now the other way round: oldest first, like
-a tab being added to through an evening.
+Home v2 shipped Today's list **ascending**, following the design bundle, on the
+argument that a screen read while the evening is still happening should read
+forward like a tab.
 
-The two surfaces therefore order oppositely, on purpose. Today is read while the
-evening is still happening; the day sheet is read afterwards, about a day that
-is over. The consequence is that − takes the *last* row on Today rather than the
-first, so the recency tint marks that row — and it sits at the bottom of the
-list, nearest the thumb, with the counter directly above it.
+**The owner reversed it the same day, and they were right.** Reviewing it in
+use: *"I logged a drink at 6:25PM it should appear at the top, and older drinks
+logged at 6:05pm would appear at the bottom."*
 
-Nothing about the counter-is-the-log mechanism changes.
+The argument for ascending was about the list as a *record* of an evening. But
+Today's list is not read that way. The row that matters is the one just
+written — it is what the user looks for after tapping ＋, what − takes back,
+and the one most likely to need correcting. Ascending puts it at the far end of
+a list that grows all evening, and pushes it further away with every tap. That
+is the wrong end.
+
+So Today matches History and the day sheet after all, and this record's
+original reasoning — "so the tap removes what the user sees" — turns out to
+cover all three surfaces rather than needing an exception. The recency tint
+still marks the row ＋ just wrote; on a newest-first list that is the top one.
+
+**The lesson worth keeping:** the design bundle drew ascending, and building it
+faithfully was the right call, but "faithful to the drawing" is not the same as
+"right in the hand" — and a list's direction is exactly the kind of thing that
+only declares itself once you are tapping ＋ repeatedly on a real screen.
