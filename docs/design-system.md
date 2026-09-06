@@ -135,8 +135,15 @@ Type behaviour.
 | Card value | title, semibold, rounded | `.cardValue` |
 | Sheet title | title2 semibold | `.sheetTitle` |
 | Onboarding headline | largeTitle bold | `.onboardingHeadline` |
-| Section label | footnote medium, uppercase | `SectionLabel` |
+| Section label | footnote medium, uppercase, tracked | `.sectionLabel` |
+| Column head | caption2 medium, uppercase, tracked, **`.primary`** | `.columnHead` |
+| Row figure / row count | callout / footnote, semibold rounded, tabular | `.rowFigure`, `.rowCount` |
 | Card label / captions | footnote / caption, secondary | `.cardLabel`, `.supporting` |
+
+A **column head takes `.primary` ink**, not `.secondary`. It is the one place a
+table names its unit, so it carries the meaning the rows dropped; at caption2 a
+secondary head lands near 3.4:1. Hierarchy there comes from size, case and
+tracking — never from thinning the ink (invariant 10).
 
 All roles are relative text styles (Dynamic Type scales them); fixed sizes appear
 only in the two hero numerals and the widget, where layout is width-driven.
@@ -205,7 +212,8 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
-| **Reference cards** | `Trends/PopulationReferenceCard.swift`, `Calendar/YearComparisonCard.swift`, `Trends/WeekdayCard.swift`, `Trends/PopulationReferenceCopy.swift` (`SourceDisclosure`) | Body-text sentences on glass, one figure each, no chart, no colour, no delta; a 44pt tappable source line opens a caption note that says what the figure is and is not. The comparison surfaces share one copy set so they cannot drift (ADR-0018, ADR-0030, ADR-0031, ADR-0032) |
+| **Reference cards** | `Trends/PopulationReferenceCard.swift`, `Calendar/YearComparisonCard.swift`, `Trends/PopulationReferenceCopy.swift` (`SourceDisclosure`) | Body-text sentences on glass, one figure each, no chart, no colour, no delta; a 44pt tappable source line opens a caption note that says what the figure is and is not. The comparison surfaces share one copy set so they cannot drift (ADR-0018, ADR-0030, ADR-0031, ADR-0032) |
+| **Weekday insights** | `Trends/WeekdayCard.swift` | Two small tables in one card. Seven weekday rows over two right-aligned numeric columns, the unit noun stated once in the column head instead of once per row; then the user's Friday-to-Sunday / Monday-to-Thursday split beside the published rate, rows being the source's own definition of the weekend and columns being whose figure it is. **Alignment does the comparing the copy refuses to do** — still no rank, no "most", and no chart of seven bars (ADR-0032). Column widths are `@ScaledMetric` so a two-word head wraps to two lines and still grows with Dynamic Type; at accessibility sizes the tables fold back to stacked rows and the three reviewed sentences. The user's counts are rounded and tabular, the published rates default SF — the numeral carries the "your fact / published fact" distinction that no second hue is allowed to (invariant 10). Design reference: `docs/design/Bar chart hover states design/ds/components/weekday-insights.card.html` |
 | **Share cards** | `Calendar/ShareCardParts.swift`, `MonthShareCard.swift`, `YearShareCard.swift`, `YearInReviewShareCard.swift` | 360pt documents rendered at 3× with type pinned to `.large`; ground and inks from `ShareCardInk`; figures before the grid or chart; the five-entry legend on the grid cards; the wordmark as text, never the mark. The year-in-review chart is hand-drawn to fixed geometry — 88pt plot beside a 20pt axis, one hairline at the middle, twelve `AccentFill` bars with 3pt top corners, a 1pt baseline, the Trends chart's dashed average — never Swift Charts under `ImageRenderer` (ADR-0027, ADR-0029). Design reference: `docs/design/Share_cards/` |
 
 Composition rules: one primary action per surface; controls on glass, never glass

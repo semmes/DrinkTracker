@@ -651,3 +651,52 @@ Open items for v1.2:
   binary; there is no ffmpeg on this Mac, and reading a card's bottom edge out
   of frames is how the height claims above were actually measured, rather than
   eyeballed. 291 app keys.
+- **The By weekday card becomes two tables (2026-09-06, ADR-0032 amendment).**
+  The owner updated the design project and, because `/design-login` is not
+  available in the desktop Code tab *or* in an interactive terminal here,
+  dropped the refreshed bundle into `docs/design/Bar chart hover states
+  design/` by hand — **that drop is now the reliable route; do not plan on
+  DesignSync in this environment.** The bundle's own README says so in its
+  first section, and it carries `standalone/Trends-Bar-Selection.html`, one
+  offline file that needs no login. Only the *By weekday* section of that
+  README is new work; the chart-card half describes what PRs #68/#70 already
+  shipped, and two of its numbers are stale against the owner's own later
+  review (the readout floor is **80**, not 76, and the period title is
+  footnote semibold, not subheadline) — read the ADR-0028 amendment, not the
+  bundle, for those. What shipped: the unit noun moves out of the seven rows
+  into a **column head stated once** (and it reads `Region.unitNamePlural`, so
+  a UK reader gets "UNITS" — the head is the one place the unit is named, so
+  it has to follow the lens); the two figures become **two right-aligned
+  numeric columns**, because alignment does the comparing ADR-0032 forbids the
+  copy from doing; and the three trailing sentences become a **two-row table**
+  whose rows are the paper's weekend definition and whose columns are whose
+  figure it is. No new figures, no rank, and the seven weekdays are still not
+  charted. **Three things worth keeping.** (a) *No reviewed string was
+  retired*: `weekendLine`/`weekdaysLine`/`weekendReferenceLine` are now the
+  comparison table's **spoken** label and the **visible** text at accessibility
+  sizes, so 1.4.3's sentences survive verbatim on both paths and the table is a
+  way of showing them rather than a rewording — seven new keys are all
+  visible-only (291 → **298**). (b) The numeric columns are `@ScaledMetric`
+  (88/74/100), and that is not a ported pixel: a natural-width `Grid` leaves
+  "DAYS WITH A DRINK" on one line, which runs the width of the card and pushes
+  its neighbour into it — the first simulator render's real defect, caught
+  because it was rendered rather than reasoned about. (c) The **numeral rule**
+  is load-bearing: the user's counts are rounded and tabular, the published
+  rates default SF, and colour may not carry that distinction (invariant 10),
+  so do not round the survey figures. `GlassTokens.Typography` gained
+  `sectionLabel`/`columnHead`/`rowFigure`/`rowCount` — `SectionLabel` had been
+  named in `docs/design-system.md`'s type table for months without existing in
+  code. A column head takes **`.primary`** ink, never `.secondary`: it carries
+  the noun the rows dropped, and secondary at caption2 lands near 3.4:1. **No
+  schema change, no CloudKit step, no setting.** Verified locally at every CI
+  tier plus tier 3 on the simulator over a seeded quarter: both tables in light
+  and dark, the source note expanded, and the accessibility-size fold-back at
+  `accessibility-extra-large` (set with `xcrun simctl ui booted content_size` —
+  that works headlessly and makes AX layouts checkable here, which the earlier
+  "AX stays tier 3 for the owner" note assumed they were not). The stale
+  duplicate `design_handoff_trends_bar_selection/` was removed: four
+  byte-identical screenshots and a subset README, superseded by the bundle's
+  own top-level copies. **Tier 3/4 for the owner's pass:** the two-line heads
+  on a real display, the source row's 44pt target under a thumb, VoiceOver
+  stepping the seven rows and hearing the comparison table as one element, and
+  a UK region showing "UNITS" in the head.
