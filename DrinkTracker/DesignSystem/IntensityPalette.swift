@@ -8,7 +8,15 @@ import SwiftUI
 /// exception, and it is narrow on purpose: a heatmap encodes magnitude *in* colour,
 /// so the colour is data rather than styling, and data has to be specified rather
 /// than inherited. Nothing outside the calendar surfaces may draw from it, with
-/// one named exception below (`liveFigure(scheme:)`).
+/// three named exceptions: `liveFigure(scheme:)` below, **Today's hero band**
+/// (ADR-0034), which paints the day's own count behind the counter using
+/// `fill`/`ink`/`isOutlined` unchanged. The band is the same quantity through
+/// the same fold — `DayIntensity.bucket` over the region-lensed total — so a day
+/// can never read one amount on Today and another on the calendar. Reached by
+/// name, exactly as `liveFigure` is; no value is copied. The third is the
+/// **session-pace chip**, from `.high` upward, which paints the rolling
+/// window's own bucket the same way — the argument for that one lives in
+/// ADR-0017's amendment, because it is the one that reverses a refusal.
 /// The one other literal-colour site is `ShareCardInk` — the ground and inks
 /// of an exported image, which has no host surface to inherit from — and it
 /// takes every day-cell fill and outline decision from here (ADR-0027,
@@ -49,6 +57,34 @@ import SwiftUI
 /// the dark surface rather than being an inversion of light, because an inverted
 /// ramp lands outside the band at both ends.
 ///
+/// ### The fourth step (1.3, ADR-0034)
+///
+/// `.veryHigh` splits the old open-ended "6+" into 6–9 and 10+. Re-validated,
+/// not eyeballed — CIE L\* computed from sRGB, contrast by WCAG relative
+/// luminance:
+///
+/// | | L\* | ΔL\*/100 from the step below | ink | ink contrast |
+/// |---|---|---|---|---|
+/// | light 700 `#0d366b` | 22.95 | 0.275 | white | 11.95:1 |
+/// | light 800 `#05172e` | 7.61 | **0.153** | white | **17.97:1** |
+/// | dark 200 `#9ec5f4` | 78.30 | 0.224 | black | 11.75:1 |
+/// | dark 100 `#cde2fb` | 89.08 | **0.108** | black | **15.87:1** |
+///
+/// Hue stays inside the family (light 800 sits at 278.1°, within the ramp's own
+/// 262.6–283.0° span), lightness stays monotone, and the pale end is unchanged
+/// so the ≥ 2:1 surface gate is inherited.
+///
+/// Two things worth knowing before touching this again. The **dark** step is
+/// step 100 of the documented family, not a new value: step 150 `#b7d3f6` was
+/// the obvious choice and fails, at ΔL 0.053. And `#05172e` is the ramp's
+/// **floor** — at L\* 7.6 there is no room for a fifth step below it, so a
+/// future "20+" bucket would have to re-space the whole ramp rather than extend
+/// it. Luminance contrast between the two deepest fills is 1.50:1 (light) and
+/// 1.35:1 (dark), lower than the 2.04–2.71 of the pairs above them, because
+/// luminance compresses at both ends of a lightness ramp; the gate the ADR
+/// states is the perceptual one, ΔL\*, and the outline channel that separates
+/// "recorded as none" from "not logged" is untouched.
+///
 /// **Any change to these values must be re-validated, not eyeballed.**
 enum IntensityPalette {
 
@@ -68,6 +104,8 @@ enum IntensityPalette {
       return scheme == .dark ? Self.darkMedium : Self.lightMedium
     case .high:
       return scheme == .dark ? Self.darkHigh : Self.lightHigh
+    case .veryHigh:
+      return scheme == .dark ? Self.darkVeryHigh : Self.lightVeryHigh
     }
   }
 
@@ -84,14 +122,16 @@ enum IntensityPalette {
       return .primary
     case .low:
       return scheme == .dark ? .white : .black
-    case .medium, .high:
+    case .medium, .high, .veryHigh:
       return scheme == .dark ? .black : .white
     }
   }
 
-  /// The Trends readout figure while a bar is being touched — the deepest step
-  /// of the same hue, reached by name rather than by copy (ADR-0028's second
-  /// amendment).
+  /// The Trends readout figure while a bar is being touched — step 700 / 200 of
+  /// the same hue, reached by name rather than by copy (ADR-0028's second
+  /// amendment). Deliberately *not* moved to the ramp's new floor when
+  /// `.veryHigh` arrived: this is interaction state, not magnitude, so it has
+  /// no reason to track the deepest data step.
   ///
   /// The owner's ruling (2026-09-05) is that this tint is **the interaction
   /// pattern for the bar under your finger, not a reference to how many drinks
@@ -126,13 +166,15 @@ enum IntensityPalette {
     intensity == .alcoholFree
   }
 
-  // Light mode — steps 250 / 450 / 700.
+  // Light mode — steps 250 / 450 / 700 / 800.
   private static let lightLow = Color(red: 0.525, green: 0.714, blue: 0.937)     // #86b6ef
   private static let lightMedium = Color(red: 0.165, green: 0.471, blue: 0.839)  // #2a78d6
   private static let lightHigh = Color(red: 0.051, green: 0.212, blue: 0.420)    // #0d366b
+  private static let lightVeryHigh = Color(red: 0.020, green: 0.090, blue: 0.180) // #05172e
 
-  // Dark mode — steps 600 / 400 / 200, stepped against the dark surface.
+  // Dark mode — steps 600 / 400 / 200 / 100, stepped against the dark surface.
   private static let darkLow = Color(red: 0.094, green: 0.310, blue: 0.584)      // #184f95
   private static let darkMedium = Color(red: 0.224, green: 0.529, blue: 0.898)   // #3987e5
   private static let darkHigh = Color(red: 0.620, green: 0.773, blue: 0.957)     // #9ec5f4
+  private static let darkVeryHigh = Color(red: 0.804, green: 0.886, blue: 0.984) // #cde2fb
 }
