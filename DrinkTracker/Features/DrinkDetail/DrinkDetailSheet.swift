@@ -29,6 +29,22 @@ struct DrinkDetailSheet: View {
   /// Set when this presentation adopts an imported Health drink (ADR-0016):
   /// the entry whose typed-in facts the sheet is collecting.
   private let adopting: LoggedDrink?
+  /// Whether this presentation asks which drink it was.
+  ///
+  /// Decided once, when the sheet opens, and deliberately *not* re-derived from
+  /// the draft while it is open. The condition used to be `draft.needsType`,
+  /// which stops being true the instant the question is answered: on Today's
+  /// "Add specific" path the four types disappeared as the user's own tap
+  /// landed, size and strength took their place, and the sheet read as having
+  /// pushed a second page — with no way back to a different type short of
+  /// closing it and starting over (owner's report, 2026-09-07).
+  ///
+  /// The two paths that already behaved correctly were held open by something
+  /// that *cannot* change mid-presentation — `showsTimeControl` on an edit,
+  /// `adopting` on a Health import — so this is their rule, not a new one:
+  /// what the sheet asks for is a property of the presentation, and the
+  /// answer must never be able to withdraw the question.
+  private let asksType: Bool
 
   init(
     draft: DrinkDraft,
@@ -41,7 +57,12 @@ struct DrinkDetailSheet: View {
       initialValue: LoggedDrink.displayOunces(draft.customVolumeOunces)
     )
     // Editing an existing entry always exposes the time, however it was opened.
-    self.showsTimeControl = showsTimeControl || draft.editingEntryID != nil
+    let editsExistingEntry = draft.editingEntryID != nil
+    self.showsTimeControl = showsTimeControl || editsExistingEntry
+    // A form over a drink that already exists always offers the type, and so
+    // does a draft that arrives without one — Today's "Add specific" opens on
+    // an untyped standard drink (ADR-0023), which is the whole of that path.
+    self.asksType = showsTimeControl || editsExistingEntry || draft.needsType
     self.adopting = nil
     self.onLogged = onLogged
     self.onCancel = onCancel
@@ -64,6 +85,8 @@ struct DrinkDetailSheet: View {
       initialValue: LoggedDrink.displayOunces(draft.customVolumeOunces)
     )
     self.showsTimeControl = false
+    // The import doesn't know the type; asking for it is the point of adopting.
+    self.asksType = true
     self.adopting = imported
     self.onLogged = onLogged
     self.onCancel = onCancel
@@ -143,15 +166,20 @@ struct DrinkDetailSheet: View {
 
   // MARK: - Type
 
-  /// Only shown alongside the time control — in the quick-add path the type came
-  /// from the button that opened the sheet, and a picker there would be a second
-  /// way to do something already done.
+  /// Shown whenever the presentation asks which drink it was, and then shown
+  /// for as long as the sheet is open — the four types stay in place, so a
+  /// reader who picks Wine can still change their mind to Spirit without
+  /// leaving. Picking one adds size and strength *below* it rather than
+  /// replacing it.
+  ///
+  /// The gate is `asksType` rather than a live read of the draft; that
+  /// property carries the reasoning. It is presently true for every caller,
+  /// and the flag is what keeps that a decision rather than an accident: a
+  /// future presentation that opens on a type the user already chose by
+  /// another route would offer a second way to do something already done.
   @ViewBuilder
   private var typeSection: some View {
-    // Adoption must ask the type — the import doesn't know it. So must an
-    // untyped standard drink, which is the same situation reached from the
-    // other side: an amount on the record, no kind (ADR-0023).
-    if showsTimeControl || adopting != nil || draft.needsType {
+    if asksType {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Drink")
         Picker("Drink", selection: typeBinding) {
@@ -328,9 +356,19 @@ struct DrinkDetailSheet: View {
 
   private var logButtonTitle: String {
     if adopting != nil { return "Save details" }
-    // Adding a type to an untyped drink is the same act as adoption, and says
-    // so — "Save changes" would imply something was there to change.
-    if draft.needsType { return "Save details" }
+    // Adding a type to an untyped drink *that is already on the record* is the
+    // same act as adoption, and says so — "Save changes" would imply something
+    // was there to change (ADR-0016's vocabulary, borrowed by ADR-0023).
+    //
+    // `editingEntryID` is what makes it that act, so it is part of the test. A
+    // new untyped draft is the other situation entirely: "Add specific" opens
+    // on one, and pressing the button before naming a type writes a row that
+    // does not exist yet — the same row ＋ writes. Calling that "Save details"
+    // named details nobody had given, and it is a log, so it says "Log drink"
+    // (owner's call, 2026-09-07). The title is now fixed for the whole of that
+    // presentation rather than changing under the first tap, which is the same
+    // fault `asksType` exists to prevent.
+    if draft.needsType && draft.editingEntryID != nil { return "Save details" }
     return draft.editingEntryID == nil ? "Log drink" : "Save changes"
   }
 

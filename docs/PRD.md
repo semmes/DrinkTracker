@@ -64,10 +64,15 @@ widget and the app ([ADR-0023](decisions/0023-the-counter-can-log-an-untyped-sta
 defeats the north star.
 
 **2. Edit-after, not gate-before.**
-The type picker and time control appear only when editing an existing entry or adding
-one retroactively — `DrinkDetailSheet.showsTimeControl`.
+The time control appears only when editing an existing entry or adding one
+retroactively — `DrinkDetailSheet.showsTimeControl`. The type picker appears when the
+presentation opens without a type — "Add specific" opens on an untyped standard drink
+(ADR-0034) — and then **stays for the whole presentation**: `DrinkDetailSheet.asksType`
+is decided once at init, never re-read from the draft.
 *Failure mode:* a control added "just for completeness" to the quick-add path is a tax
-on the most common action in the app.
+on the most common action in the app. And a question gated on live state withdraws
+itself the moment it is answered — the sheet reads as having pushed a second page, with
+no way back to a different answer (the "Add specific" report, 2026-09-07).
 
 **3. Region is a display lens, never frozen onto an entry.**
 Entries record the region they were logged under as provenance, but totals are always

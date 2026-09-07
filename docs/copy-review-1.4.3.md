@@ -502,7 +502,7 @@ recording behaviours without recommending either.
 | Footnote, usual-drink setting | "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it." |
 | Drink type name, and the summary line (row title, CSV entry, Siri reply, "last logged") | "One standard drink" |
 | Row detail | "8:15 PM · no size or strength recorded" |
-| Sheet button, adding a type to an untyped drink | "Save details" |
+| Sheet button, adding a type to an untyped drink **already on the record** | "Save details" |
 | Shortcuts intent description | "Logs one drink, the same way the app's counter does." |
 | Today's repeat control, untyped | "Another standard drink" (VoiceOver: "Log another standard drink") |
 | Day sheet caption, untyped seed | "Plus logs one standard drink, with no type — editable afterwards." |
@@ -1119,3 +1119,47 @@ visually identical string.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.3 — The Add-specific sheet's primary action (ADR-0034 amendment, 2026-09-07)
+
+No new string. One existing reviewed string moves off one path, and another
+existing reviewed string takes it — which is a copy change even though no words
+were written, because it changes what a button tells the reader it is about to
+do.
+
+**What was wrong.** `logButtonTitle` returned "Save details" for *any* untyped
+draft. Today's "Add specific" opens on one, so the button said "Save details"
+before the reader had given any detail — over a drink that is not on the record
+yet, and whose button writes exactly what ＋ writes. The word named something
+nobody had done.
+
+| Path | Was | Now |
+| --- | --- | --- |
+| "Add specific", before a type is picked | "Save details" | **"Log drink"** |
+| "Add specific", after a type is picked | "Log drink" | "Log drink" |
+| Untyped row → "Tap to say what it was" | "Save details" | "Save details" |
+| Health import → "Add details" (adoption) | "Save details" | "Save details" |
+| Editing any typed entry | "Save changes" | "Save changes" |
+
+**Why "Save details" is right where it stays.** ADR-0016 fixed it as adoption's
+primary action, and ADR-0023 borrowed it for the untyped row on purpose: there is
+nothing recorded to correct, only facts to add, and "Save changes" would imply
+something was there to change. Both of those are rows that already exist. A new
+drink is not, so it takes the verb the app already uses for writing one.
+
+**A second thing this fixes.** The title used to change mid-sheet — "Save
+details" until the first tap on a type, "Log drink" after — so the button
+restated itself while the reader was still deciding. It is now fixed for the
+whole presentation, the same discipline `asksType` applies to the picker above
+it.
+
+**Reviewed against 1.4.3.** "Log drink" is factual and already in use on this
+button; it sets no target, grades nothing, and reads the same for a first drink
+and a tenth. Nothing here celebrates, judges, or counts up to anything.
+
+**Not in any catalog, and knowingly so.** These three titles are
+`ComponentsKit.ButtonVM.title` literals, which demand a `String` — the gap
+`docs/localization-status.md` already records ("A few strings are still
+unreachable"). The app catalog stays at 300 keys; this change adds and retires
+none. All eight `SUButton(model: .primary(…))` titles in the app share that gap
+and want one pass, not a one-off here.
