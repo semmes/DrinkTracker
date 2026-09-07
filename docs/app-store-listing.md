@@ -1,9 +1,10 @@
 # App Store listing — paste-ready metadata
 
-**Status:** 1.0 and 1.1 live; 1.2 material ready to paste (reviewed
-2026-09-02) · **Owner:** Shawn · App Store Connect →
-App Information / the version page. Everything here has been through the same
-1.4.3 tone review as the app's own copy: factual, no celebration, no verdicts.
+**Status:** 1.0 and 1.1 live; 1.2 submitted 2026-09-03 and awaiting App
+Review; 1.3 material ready to paste (reviewed 2026-09-07) · **Owner:** Shawn ·
+App Store Connect → App Information / the version page. Everything here has
+been through the same 1.4.3 tone review as the app's own copy: factual, no
+celebration, no verdicts.
 
 ## App Information
 
@@ -215,13 +216,17 @@ beside a published average for US adults who drink. A year that has ended
 gets the same comparison on the year view. And a new By weekday card lists
 what you logged on each day of the week, with your Friday-to-Sunday and
 Monday-to-Thursday days counted, beside a published rate for US adults.
+Trends also gains a card for the longest run of days recorded as no alcohol
+in the range shown; it counts only days marked that way, so a day with
+nothing logged does not extend it.
 
 The Today screen is rebuilt around the counter. The number now sits on the
 same colour scale the calendar uses, so a day reads the same on both, and a
-legend names the bands. The calendar's scale gains a step: heavy days split
-into 6-9 and 10+ instead of one open-ended 6+. Under the counter, a control
-shows which drink plus is repeating and logs a plain standard drink instead
-in one tap. Add specific opens the full drink sheet whenever you want it.
+legend names the bands. The calendar's scale gains a step: the top band
+splits into 6–9 and 10+ instead of one open-ended 6+. Under the counter, a
+control shows which drink plus is repeating and logs a plain standard drink
+instead in one tap. Add specific opens the full drink sheet whenever you
+want it.
 ```
 
 ## Reviewer notes (1.3) — paste into App Review notes
@@ -251,19 +256,41 @@ Notes on what's new in 1.3:
   of days with a drink (NHANES 2005–10) — each a descriptive figure, each
   named with its source and year in the app. None is a guideline, a
   limit, a risk figure, or a category; the app never classifies the user
-  and never compares to a threshold. The new By weekday card reports only
-  the user's own log by day of the week, with no ranking.
+  and never compares to a threshold. The new By weekday card lists the
+  user's own log by day of the week, with no ranking, and beside the user's
+  Friday-to-Sunday and Monday-to-Thursday counts prints the weekend rate
+  named above (Liang and Chikritzhs, 2015) — the same bundled figure, a
+  rate and never a threshold.
 - On the Trends screen, dragging across the bars reads one bar at a time in
   the chart card's header — the period's dates, its total, and for a week or
-  month bar three of the four figures the calendar's summary card already
-  shows, computed over that bar's own days by the same code. The selection
-  lasts the touch and clears when the finger lifts. A selection reached with
+  month bar two of the four figures the calendar's summary card already
+  shows (days with drinks, and the average on those days) and the longest
+  run of days recorded as no alcohol inside that bar, all computed over the
+  bar's own days by the same code. The selection lasts the touch and clears
+  when the finger lifts. A selection reached with
   VoiceOver holds between steps and shows a fuller block below the chart with
   what was logged by type. Nothing is compared to a target, to the average
   line, or to other people; nothing about the selection is stored, and nothing
   leaves the device. (This corrects one line in the 1.2 notes: a *tap* does
   not open the type breakdown on iOS 26 — a held, accessibility-stepped
   selection does.)
+- Trends adds one figure: the longest run of days recorded as no alcohol,
+  as a card for the range shown and as the third fact in the bar readout.
+  It counts only days the user explicitly recorded as alcohol-free (in the
+  app, or as another app's Health zero), as a maximum over the chosen
+  range, recomputed from the log each time: never a current count, never
+  stored, no target, no reaction when it changes, "None recorded" at zero.
+  It cannot grow by not logging — a day with nothing recorded ends a
+  run, so only recording more lengthens it. It is not a streak but a count
+  of the days the user has or has not had drinks, so their pattern can be
+  read; the app keeps no streak and sets no goal.
+- The Today screen's redesign is a display change: the counter takes the
+  calendar's colour scale (the same bands, from the same code), that scale
+  gains a step at the top (6–9 and 10+ where 6+ was), and one preference
+  was removed. The optional, off-by-default session pace figure carries the
+  same calendar colour from 6 standard drinks up — an amount on the app's
+  one scale, not a warning; nothing red, no icon, no notification. No new
+  data is recorded, nothing is inferred, and nothing leaves the device.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```
@@ -277,8 +304,10 @@ Notes on what's new in 1.3:
   docs/privacy-policy.md for the reasoning App Review can follow).
 - Screenshots: Today (counter), Calendar (with a drag selection), Trends,
   the widget. Nothing staged with high counts — the numbers in screenshots
-  are part of the tone. For 1.2, existing screenshots remain valid;
-  optionally refresh Trends (the four-range picker) or add a dark-mode
-  shot now that appearance is a setting.
+  are part of the tone. For 1.3, retake Today (the counter now carries the
+  day's colour, with the legend and the plus pill), Calendar (the four-band
+  legend) and Trends (the chart card's header readout and the By weekday
+  card) — both the iPhone and the iPad sets — keeping the counts low per the
+  note above; the widget shot is unchanged.
 - The tip-jar IAPs must be submitted for review with the first version that
   contains them (select all three products on the version page).

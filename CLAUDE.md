@@ -128,12 +128,12 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-09-05:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
+**As of 2026-09-07:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
 **the 1.3 train is open** — `MARKETING_VERSION` is 1.3 on main; its first
 feature (the year-in-review share card, ADR-0029) has landed, and the
 reference cards (ADR-0030/0031/0032) follow; see the last two bullets of
-this section
+this section; **the 1.3 review fix batch is landing (PRs #77–#80)**
 — the owner built main at 5563b74 (PRs #60–#62 merged 2026-09-03: ADR-0026
 summary window, ADR-0027 share cards, ADR-0028 Trends bar detail), ran the
 device pass the same day, and submitted build 23F81a. See the 2026-09-02 and 2026-09-03 bullets at the
@@ -168,8 +168,11 @@ its "Project constraints" and "App Review consistency" sections before any
 1.2 feature work; they restate the App Review claims as hard rules. Build
 order A→B→C→D. **Feature A (appearance setting) is done** — the color audit
 found nothing to move: `IntensityPalette` and `AppTheme` are the documented
-dual-mode exceptions (invariant 10 / ADR-0007), and both `.white` uses are
-R2-measured labels on AccentFill. **Feature B (session pace) is done**
+dual-mode exceptions (invariant 10 / ADR-0007), and the `.white` uses were then
+two R2-measured labels on AccentFill (recounted 2026-09-07: **nine** at HEAD
+across five files — those two, the hero ＋ glyph `CountStepper` paints on
+`AccentFill` since ADR-0034, and six inside the two documented literal-colour
+sites, `IntensityPalette`'s ink and `ShareCardInk`). **Feature B (session pace) is done**
 (ADR-0017) — gap threshold fixed at 4h (the 3/4/6 setting deliberately not
 built; reopen path in the ADR). Gotcha discovered: a Toggle on
 non-interactive `glassSurface` loses taps (drags still land) — every

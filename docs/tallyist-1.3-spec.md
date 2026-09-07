@@ -124,10 +124,64 @@ log. Accepting it amended `docs/tallyist-1.2-spec.md`'s stop condition and
 ADR-0017's hard rule 2 — the display clause only; the persistence clause and
 the refusal of a silence-based gap both stand.
 
+## Feature G: Home v2 — the counter carries the day's colour — done (ADR-0034, amended 2026-09-07)
+
+From the owner's Home v2 design (`docs/design/today2/`). Today is rebuilt
+around the counter: the number sits in a tile painted by `DayIntensity.bucket`
+over the day's region-lensed standard-drink total — the calendar cell's own two
+calls, reached by name — with a legend naming the bands; the ramp gains a fourth
+step (`#05172e` light, the family's existing step 100 `#cde2fb` dark) and its
+buckets become 1–2 / 3–5 / 6–9 / 10+ on Today, the calendar, the year view and
+both share cards at once; a two-segment pill under the counter shows which
+drink ＋ is following and logs the other in one tap, its selection derived from
+`DrinkDraft.dayTemplate`; the typed path is one "Add specific" link into the
+drink sheet, which asks for the type and keeps asking for the whole
+presentation (the 2026-09-07 amendment: `asksType` is a stored constant, and the
+button reads "Log drink" throughout); the typed disclosure, the four quick-add
+buttons, the repeat row and `AppSettings.prefersDetailedLogging` are deleted.
+The session pace chip carries the same ramp from `.high` up (ADR-0017's
+amendment). `CountStepper.hero`'s filled ＋ is the app's one filled circular
+control, with no shadow.
+
+**What it must not become.** No count-band reading: the tile bands by standard
+drinks like every other ramp surface, never by number of entries, so it can
+never say 3–5 where the calendar says 6–9 for the same day. No stored plus
+mode: both pill segments log, and the highlighted one is read from the day's
+own newest repeatable entry, which is what keeps invariant 1 true for the
+widget. No fifth band without re-spacing the ramp: `#05172e` is the family's
+floor (L\* 7.6), so a "20+" means re-validating every step, not appending one.
+No wash on the pace chip: the drawn 16% tint measured ΔL\* 0.034/0.016 between
+adjacent tiers and was not built; and no tint below `.high`, where the ramp's
+white ink is under AA at chip size.
+
+**Recorded costs.** Every existing calendar re-shades at the top end — a
+10-drink day moves from `#0d366b` to `#05172e`, and share images made before
+and after this build differ. A `counterSeed == .usualDrink` user loses the
+typed one-tap: the pill is withheld under that seed because ＋ follows the
+day-blind plurality rule there, so the deleted repeat row's one tap becomes
+the "Add specific" link (the mitigation is costed in ADR-0034 and not built).
+The neutral contract (`semmes/tallyist-product` v1.7.0) still pins the
+three-bucket ramp and is bumped separately.
+
+**Acceptance.** The tile's colour equals the calendar cell's for the same day
+in both appearances and at every band; the legend is the calendar's five
+entries; ＋ on Today and on the widget log the same drink under both seeds;
+the pill's selection follows the day's newest repeatable entry and resets at
+midnight with nothing stored; "Add specific" keeps its type picker for the
+whole presentation; the pace chip is neutral below `.high`; nothing in
+`AppSettings` is new. The four-band fold is pinned at tier 1
+(`CalendarTests`); the ramp's contrast arithmetic is measured and recorded in
+`IntensityPalette`'s doc comment and ADR-0007's amendment, not tested; tier 3
+on the simulator over every band, both appearances and
+`accessibility-extra-large`; the remaining tier-3/4 items are listed in
+ADR-0034.
+
 ## App Review consistency
 
 | Claim made in the 1.0 response, kept through 1.2 | 1.3 |
 |---|---|
+| "no goals, streaks, scores, or advice" | Preserved, with the one figure that took an argument. The longest run with none (ADR-0033) counts only days the user explicitly recorded as alcohol-free, as a maximum over the chosen range, recomputed per render — ADR-0017 rule 2's persistence clause stands absolutely: nothing about gaps goes into SwiftData or UserDefaults — and a run over days with nothing recorded (the silence-based gap rule 2 was written about) stays refused, because there the cheapest way to grow it is to stop logging. No superlative, no comparison between windows, no reaction when it changes, "None recorded" at zero. The owner's framing, 2026-09-07: not a streak but data on how many days the user has or has not had drinks, to read their own pattern. The About sentence, the description's "no streaks" and the support page stay as written. |
+| The same claim, on the session pace card — whose rolling count ADR-0017 settled as "styled with weight, never color, icon, or exclamation", and the 1.2 reviewer notes as "not a goal, a streak, or a timer to beat" | Amended by ADR-0034 (ADR-0017's amendment holds the measurements): the rolling count's chip carries the intensity ramp from 6 standard drinks up. That is calendar-scale colour, not urgency styling — `DayIntensity.bucket` over the window's own standard drinks, the same fold and palette as the calendar cell for the day the card sits in, so a shade means an amount on the app's one scale and nothing else; nothing red, no icon, no exclamation, no notification, and the card stays optional and off by default. The reopen path is ADR-0017's one-line revert: `paceBand` returning nil restores the neutral capsule with no other change. |
 | "No user-generated content is shared between users" | Preserved. The year-in-review image is a user-initiated one-way export through the system share sheet, carrying only the user's own figures and monthly totals. |
 | "No goals, no scores, no comparison" | Preserved. The card's average is the Trends chart's own line, described as "your average" and never as a target; no bar is compared to another, ranked, or related to any guideline. |
 | "Nothing leaves the device unless the user sends it" | Preserved. Built at share time, no temp file, no log of the share. |

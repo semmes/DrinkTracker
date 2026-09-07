@@ -5,11 +5,15 @@ to make localizing it possible rather than about having done it.**
 
 ## What's in place
 
-**String Catalogs exist.** `Localizable.xcstrings` ships in both targets, currently
-empty. `SWIFT_EMIT_LOC_STRINGS` was already `YES` on every configuration, so
-`Text("…")` literals are already emitted as localizable strings — **the next Xcode
-build populates both catalogs automatically.** That step needs Xcode; it cannot be
-done from a machine without it, which is why the files are committed empty.
+**String Catalogs exist, and they are populated.** `Localizable.xcstrings` ships
+in the app, the widget and the core package, with `AppShortcuts.xcstrings` beside
+the app's — 365 keys in all as of 2026-09-06 (the count's history is under
+"Progress" below). `SWIFT_EMIT_LOC_STRINGS` was already `YES` on every
+configuration, so `Text("…")` literals are emitted as localizable strings; the
+catalogs were filled from a clean build's `.stringsdata` with `xcstringstool sync`
+(the recipe is under "How the catalogs get populated"). An earlier version of this
+paragraph, written while the files were committed empty, said the next Xcode
+build would fill them; it is superseded.
 
 **Plural forms are declared, not derived.** Six call sites used to build a plural by
 appending `"s"` to `Region.unitName`. `Region` now declares `unitNamePlural` and

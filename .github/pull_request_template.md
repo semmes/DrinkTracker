@@ -13,7 +13,7 @@
 
 ## Invariants
 
-<!-- docs/PRD.md §2. A new surface reviews all nine; a fix reviews the ones it touches. -->
+<!-- docs/PRD.md §2. A new surface reviews all ten; a fix reviews the ones it touches. -->
 
 - [ ] Checked this change against the invariants it touches, and none are weakened
 

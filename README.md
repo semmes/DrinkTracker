@@ -459,13 +459,23 @@ the current month in the year calendar. The dashed average line matches the
 bars' scale (per day, per week, per month) and, on bucketed charts, averages
 *completed* periods only, so it never sags just because a new week started.
 Totals are always expressed in the current region, a year of history included
-(invariant 3). Same three stats everywhere; still no deltas, no targets.
-Tap a bar, or drag across the bars, and a block under the chart reports that
-bar's own facts — the day, week, or month, its total, what was logged by
-type, and for a week or month the calendar card's four figures with unlogged
-days named; a zero bar says whether it was recorded as no alcohol or simply
-not logged. Never its distance from the average line
-([ADR-0028](docs/decisions/0028-a-trends-bar-reports-its-own-facts.md)).
+(invariant 3). The same figures everywhere; still no deltas, no targets.
+Drag across the bars and the chart card's header reads one bar at a time —
+the day, week, or month, its total, and for a week or month its days with
+drinks, the average on those days, and the longest run of days recorded as
+no alcohol inside it; a zero bar says whether it was recorded as no alcohol
+or simply not logged, and a selection held with VoiceOver shows a fuller
+block with what was logged by type. The average line's own value sits in a
+legend beside the range's — two facts, never a delta — and a bar is never
+reported by its distance from that line
+([ADR-0028](docs/decisions/0028-a-trends-bar-reports-its-own-facts.md) and
+its amendments). Under the chart, the range's own cards — its total, its
+per-day average, days with no drinks logged, and the **longest run with
+none**, counted only from days recorded as alcohol-free, so a day with
+nothing logged ends it, and the card reads "None recorded" at zero, never 0
+([ADR-0033](docs/decisions/0033-a-run-of-no-alcohol-days-is-counted-from-the-record.md))
+— then the **By weekday** card and the population reference's lines
+described above.
 
 - **Month view** — every day shaded by how much was logged. Tap any past day to
   record it. Future days are dimmed and inert; a calendar you can scroll forward
@@ -663,7 +673,8 @@ two links — paste-ready metadata lives in
 
 **The app is not localized yet, but the catalogs are populated.** Four string
 catalogs (app, widget, the core package's own, and `AppShortcuts.xcstrings`) hold
-304 keys, kept in exact agreement with extraction by running
+365 keys — 300, 34, 27 and 4, counted 2026-09-07 — kept in exact agreement with
+extraction by running
 `xcrun xcstringstool sync <Catalog>.xcstrings --stringsdata …` against a clean
 build's `.stringsdata` files — a command-line build emits those but never writes
 back into a catalog; only the Xcode GUI does. Language choice and translation are
