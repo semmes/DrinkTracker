@@ -164,8 +164,12 @@ The neutral contract (`semmes/tallyist-product` v1.7.0) still pins the
 three-bucket ramp and is bumped separately.
 
 **Acceptance.** The tile's colour equals the calendar cell's for the same day
-in both appearances and at every band; the legend is the calendar's five
-entries; ＋ on Today and on the widget log the same drink under both seeds;
+in both appearances and at every band; the legend under the counter names
+the four drinking bands (1–2 / 3–5 / 6–9 / 10+) in the calendar legend's
+order and words, with the alcohol-free and unlogged states stated in words
+beneath the tile rather than as swatches (`HeroBandLegend`'s documented
+rule — the calendar legend itself carries six entries); ＋ on Today and on
+the widget log the same drink under both seeds;
 the pill's selection follows the day's newest repeatable entry and resets at
 midnight with nothing stored; "Add specific" keeps its type picker for the
 whole presentation; the pace chip is neutral below `.high`; nothing in

@@ -263,17 +263,16 @@ Notes on what's new in 1.3:
   rate and never a threshold.
 - On the Trends screen, dragging across the bars reads one bar at a time in
   the chart card's header — the period's dates, its total, and for a week or
-  month bar two of the four figures the calendar's summary card already
-  shows (days with drinks, and the average on those days) and the longest
-  run of days recorded as no alcohol inside that bar, all computed over the
-  bar's own days by the same code. The selection lasts the touch and clears
-  when the finger lifts. A selection reached with
-  VoiceOver holds between steps and shows a fuller block below the chart with
-  what was logged by type. Nothing is compared to a target, to the average
-  line, or to other people; nothing about the selection is stored, and nothing
-  leaves the device. (This corrects one line in the 1.2 notes: a *tap* does
-  not open the type breakdown on iOS 26 — a held, accessibility-stepped
-  selection does.)
+  month bar two of the four figures the calendar's summary card already shows
+  (days with drinks, and the average on those days) and the longest run of
+  days recorded as no alcohol inside that bar, all computed over the bar's
+  own days by the same code. The selection lasts the touch and clears when
+  the finger lifts. A selection reached with VoiceOver holds between steps
+  and shows a fuller block below the chart with what was logged by type.
+  Nothing is compared to a target, to the average line, or to other people;
+  nothing about the selection is stored, and nothing leaves the device. (This
+  corrects one line in the 1.2 notes: a *tap* does not open the type
+  breakdown on iOS 26 — a held, accessibility-stepped selection does.)
 - Trends adds one figure: the longest run of days recorded as no alcohol,
   as a card for the range shown and as the third fact in the bar readout.
   It counts only days the user explicitly recorded as alcohol-free (in the
