@@ -201,3 +201,84 @@ so rows scrolled underneath "Add specific" — the heading is now a row, not a
   reopen path is ADR-0009's own: the split is the thing to revisit, not the
   counter.
 - **The pill under `.usualDrink`** — see the cost above.
+
+## Amendment (2026-09-07) — the type question is the presentation's, not the draft's
+
+The owner used the shipped path and reported it: *"when I tap 'add specfic' the
+behavior changes incorrectly and moves me to another page within that sheet
+menu. It should leave the toggle options 'beer, wine, spirit, other' in place as
+items I can scroll through rather than buttons."* They named the fix themselves —
+the sheet reached by an untyped row's "Tap to say what it was" *"is rendering
+correctly and you can use that as a reference."*
+
+**Reproduced on a booted iPhone 17 Pro.** Tapping Beer in the Add-specific sheet
+removed the whole DRINK section and put SIZE and STRENGTH in its place, inside
+`withAnimation(.snappy)`, while the title changed from "One standard drink" to
+"Beer" — every element in the scroll area replaced at once, with no way back to
+Wine short of closing the sheet. The reference path, opened one tap away on the
+same screen, kept its picker and appended size and strength below it.
+
+**One term caused it.** `typeSection` was gated on
+`showsTimeControl || adopting != nil || draft.needsType`, and `needsType` is
+`type == .unspecified` — a value the picker itself writes. Every other
+presentation satisfied that gate by a term fixed at init, so only "Add specific"
+— the app's one `DrinkDetailSheet(draft:)` call site that passes no
+`showsTimeControl` — was gated on the answer to its own question.
+
+**The rule, stated once:** *what a sheet asks for is a property of the
+presentation; the answer must never be able to withdraw the question.* This is
+not new — ADR-0016's adoption picker persists because `adopting` cannot change
+mid-presentation, and the edit path's because `showsTimeControl` cannot. It is
+those two paths' rule, applied at the top instead of re-derived per frame:
+`DrinkDetailSheet.asksType`, a stored `let` computed once in each initialiser.
+The old doc comment's reasoning — "a picker there would be a second way to do
+something already done" — was written for the retired four quick-add buttons and
+is what drifted; the flag keeps its intent available to a future presentation
+that really does open on a type the user already chose elsewhere.
+
+**Size and strength stay a live read** of `draft.needsType`, deliberately.
+ADR-0023 forbids rendering the stored 0.6 oz at 100% as a pill and a slider,
+which is exactly what freezing both gates together would do. Only the type
+question is a presentation property.
+
+**The primary action follows** (owner's call, same report). `logButtonTitle`
+returned "Save details" for any untyped draft, so Add specific said it before a
+type was named — over a row that does not exist yet, whose button writes what ＋
+writes. That branch now also requires `editingEntryID`, so adding facts to a row
+already on the record keeps ADR-0016's word and a new drink says "Log drink" for
+the whole presentation, rather than flipping under the first tap. No string is
+new or retired; the three sheet button titles are `ButtonVM.title` literals and
+remain outside the catalogs, which `docs/localization-status.md` already tracks.
+
+**PRD invariant 2's wording is corrected in the same commit.** It claimed the
+type picker appears "only when editing an existing entry", which stopped being
+true when this ADR shipped "Add specific"; the time-control half is unchanged and
+still hard.
+
+### Not built, and why
+
+- **A "no type" segment.** ADR-0023 keeps `.unspecified` out of
+  `selectableCases` on purpose; the way back to an untyped drink is closing the
+  sheet, not picking "none" from a list of beverages.
+- **Remembering the last type chosen.** A stored mode, which this ADR refuses by
+  name — the widget's `LogOneDrinkIntent` mirrors the app through the log, and a
+  mode fails days later as "the widget logged a beer".
+- **A tier-1 guard.** The honest shape would be a pure `DrinkSheetForm` value in
+  the core package, and it was declined: the fault was *where the read happened*,
+  not what the boolean computes, so a test would pin the rule while leaving the
+  reading discipline — the thing that actually broke — uncovered, and would put a
+  presentation type in a package invariant 9 keeps free of UI. The structural
+  guard is that `asksType` is a stored constant, which cannot be re-derived, and
+  a doc comment naming the failure mode. Verification is tier 3, stated in the
+  commit.
+
+### Verified here
+
+All four CI gates locally (policy dates, 226 domain tests, simulator build, 80
+integration tests) plus tier 3 on a booted iPhone 17 Pro, both paths, before and
+after: the picker staying with the chosen segment marked, size and strength
+appearing beneath it, Beer → Spirit switching in place with the pills and the
+slider re-seeding, the estimate holding at "≈ 1 standard drink", "Log drink" on
+the new-entry path and "Save details" still on the untyped-row path. The taller
+content is reachable by the gesture the report names — an upward drag grows the
+sheet to its large detent — which is what the reference path has always done.
