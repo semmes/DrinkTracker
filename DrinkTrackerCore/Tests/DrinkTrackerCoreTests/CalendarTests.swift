@@ -68,10 +68,16 @@ struct DayIntensityTests {
     #expect(DayIntensity.allCases.filter(\.isRecorded).count == 5)
   }
 
-  /// Rounding to the nearest whole drink is what makes the labels literally true:
-  /// 2.5 reads as 3, so it belongs under "3–5" rather than being shown as "1–2".
-  @Test("Fractional totals round before bucketing")
-  func fractionalTotalsRound() {
+  /// The band follows the digits the reader sees. `StandardDrink.formatted`
+  /// prints a total to one decimal, and the band is decided on that same value,
+  /// so the edges are the half-steps between the labels: 2.5 prints as "2.5"
+  /// and belongs under "3–5" rather than "1–2". Rounding to a whole drink first
+  /// (the rule until 2026-09-07) put a 9.4583-drink day in "6–9" and a 9.5-drink
+  /// day in "10+" while both printed "≈ 9.5 standard drinks" — two colours for
+  /// one figure, and the same pair at 5.5 and at 2.5 (ADR-0034's amendment).
+  /// Those probe pairs are pinned here by value.
+  @Test("Fractional totals band on the digits they print")
+  func fractionalTotalsBandOnThePrintedDigits() {
     func bucket(_ drinks: Double) -> DayIntensity {
       DayIntensity.bucket(
         standardDrinks: drinks, isMarkedAlcoholFree: false, hasEntries: true
@@ -81,6 +87,71 @@ struct DayIntensityTests {
     #expect(bucket(2.5) == .medium)
     #expect(bucket(5.4) == .medium)
     #expect(bucket(5.5) == .high)
+    #expect(bucket(9.4) == .high)
+    #expect(bucket(9.5) == .veryHigh)
+
+    // The probe pairs: each prints one figure, so each draws one colour.
+    #expect(StandardDrink.formatted(9.4583) == "9.5")
+    #expect(bucket(9.4583) == .veryHigh)
+    #expect(bucket(9.4583) == bucket(9.5))
+    #expect(StandardDrink.formatted(5.4583) == "5.5")
+    #expect(bucket(5.4583) == .high)
+    #expect(bucket(5.4583) == bucket(5.5))
+    #expect(StandardDrink.formatted(2.4583) == "2.5")
+    #expect(bucket(2.4583) == .medium)
+    #expect(bucket(2.4583) == bucket(2.5))
+    // A figure that prints below an edge stays below it.
+    #expect(StandardDrink.formatted(9.4499) == "9.4")
+    #expect(bucket(9.4499) == .high)
+  }
+
+  /// The band is a function of the printed figure and nothing else: over every
+  /// total a day can plausibly reach, two totals that `StandardDrink.formatted`
+  /// prints the same must bucket the same. A finer rounding in either place —
+  /// the formatter to two decimals, the band back to a whole drink — fails
+  /// here. The sweep also pins that the band never falls as the total rises.
+  @Test("Two totals that print the same figure draw the same colour")
+  func bandIsAFunctionOfThePrintedDigits() {
+    func rank(_ band: DayIntensity) -> Int { DayIntensity.allCases.firstIndex(of: band)! }
+    var bandByFigure: [String: DayIntensity] = [:]
+    var previous = DayIntensity.low
+    for thousandths in 0...15_000 {
+      let total = Double(thousandths) / 1000
+      let band = DayIntensity.bucket(standardDrinks: total, isMarkedAlcoholFree: false, hasEntries: true)
+      let figure = StandardDrink.formatted(total)
+      if let seen = bandByFigure[figure] {
+        #expect(seen == band, "\(total) prints \(figure) and bucketed as \(band), not \(seen)")
+      } else {
+        bandByFigure[figure] = band
+      }
+      #expect(rank(band) >= rank(previous), "\(total) fell to \(band) from \(previous)")
+      previous = band
+    }
+    #expect(bandByFigure["0"] == .low)
+    #expect(bandByFigure["2.4"] == .low)
+    #expect(bandByFigure["2.5"] == .medium)
+    #expect(bandByFigure["5.4"] == .medium)
+    #expect(bandByFigure["5.5"] == .high)
+    #expect(bandByFigure["9.4"] == .high)
+    #expect(bandByFigure["9.5"] == .veryHigh)
+    #expect(bandByFigure["15"] == .veryHigh)
+  }
+
+  /// A total that is not a number cannot trap the calendar. NaN fails every
+  /// comparison and lands on the floor a logged day always has, −∞ likewise,
+  /// and +∞ is the top — what the whole-drink rule did, kept when the edges
+  /// moved to the printed digits.
+  @Test("A non-finite total takes the floor or the top, never a trap")
+  func nonFiniteTotalsDoNotTrap() {
+    func bucket(_ drinks: Double) -> DayIntensity {
+      DayIntensity.bucket(
+        standardDrinks: drinks, isMarkedAlcoholFree: false, hasEntries: true
+      )
+    }
+    #expect(bucket(.nan) == .low)
+    #expect(bucket(-.infinity) == .low)
+    #expect(bucket(.infinity) == .veryHigh)
+    #expect(DayIntensity.bucket(standardDrinks: .nan, isMarkedAlcoholFree: true, hasEntries: false) == .alcoholFree)
   }
 
   /// The one direction that would actually mislead: a small drink rounding to zero

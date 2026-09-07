@@ -282,3 +282,71 @@ slider re-seeding, the estimate holding at "≈ 1 standard drink", "Log drink" o
 the new-entry path and "Save details" still on the untyped-row path. The taller
 content is reachable by the gesture the report names — an upward drag grows the
 sheet to its large detent — which is what the reference path has always done.
+
+## Amendment (2026-09-07) — band edges follow the printed digits
+
+**Status:** accepted · **Date:** 2026-09-07 · **Amends:** the Decision's
+bucketing rule ("1–2 / 3–5 / 6–9 / 10+ over the region-lensed standard-drink
+total") in its rounding step only · **Relates to:** ADR-0007 (the ramp),
+`StandardDrink.formatted` (every printed total), the contract's
+`vectors/measurement.json`
+
+### Context
+
+The 1.3 release review probed `DayIntensity.bucket` against the figure a day
+prints. The band rounded the raw total to a whole drink (`.rounded()`, the
+rule since 1.0) and compared it against 10, 6 and 3; every surface that prints
+a total — Today's hero and its spoken label, the day sheet, the calendar cell's
+description, the summary cards, the share cards — rounds to one decimal through
+`StandardDrink.formatted`. The two roundings disagree in a band 0.05 wide under
+each edge: 9.4583 rounds to 9 and 9.5000 to 10, while both print
+"≈ 9.5 standard drinks". Probe-verified: 9.4583 → `.high`, 9.5 → `.veryHigh`;
+the same pair at 5.5 (`.medium` / `.high`) and at 2.5 (`.low` / `.medium`). Two
+days a reader cannot tell apart by their figure drew two colours — on the one
+surface, Today's tile beside its own number, that this ADR built so the colour
+and the amount could never be out of step.
+
+**The owner ruled (2026-09-07): bucket on the one-decimal displayed value.**
+
+### Decision
+
+`DayIntensity.bucket` decides on `StandardDrink.displayed(total)` — the
+`(total × 10).rounded() / 10` that `formatted` prints, now one named function
+that the formatter, `readsAsOne` and the band all call — and the edges are the
+half-steps between the labels: **9.5 and up is 10+, 5.5 and up 6–9, 2.5 and up
+3–5, anything else logged 1–2.** `hasEntries` still forces at least 1–2.
+Non-finite input is unchanged and does not trap: NaN and −∞ fail every
+comparison and take the floor, +∞ the top, exactly as the whole-drink rule
+behaved (`.rounded()` passes all three through).
+
+The band is therefore a pure function of the printed digits, and the tests say
+so: over a sweep of 15,001 totals from 0 to 15, `formatted(x) == formatted(y)`
+implies `bucket(x) == bucket(y)`, and the band never falls as the total rises.
+The probe pairs are pinned by value, and so is the non-finite behaviour.
+
+### Consequences
+
+- **Which days move, and which way.** A total in [x.45, x.5) at each edge —
+  2.45–2.4999, 5.45–5.4999, 9.45–9.4999 — moves *up* one band, because it
+  prints as "2.5", "5.5" or "9.5". No day moves down. Every surface that reads
+  `DayIntensity.bucket` moves together — Today's hero, the calendar, the year
+  view, both share cards, the pace chip — because they are the same call; that
+  is the property this ADR bought, now holding against the printed figure too.
+- The legend words are unchanged; "6–9" still contains every whole total it
+  sits under (`labelsDescribeTheirRange` is untouched).
+- **The neutral contract still pins the three-band, whole-drink rule.**
+  `semmes/tallyist-product`'s `vectors/measurement.json` (`intensity_thresholds`
+  with no `very_high_at_or_above`) and `domain/aggregation.md`'s
+  calendar-intensity pseudocode describe neither the fourth band (this ADR) nor
+  the one-decimal edge (this amendment). Both are one contract bump, raised
+  rather than assumed — the standing merge authorization is this repo's — and
+  not touched here.
+- No schema change, no CloudKit step, no setting, no copy change, no catalog
+  change.
+
+### How to reopen
+
+If the edges ever go back to the whole drink, the change is one line back to
+`.rounded()` — but then `formatted` has to round the same way, or the probe
+pairs return. The rule underneath is the one worth keeping: *a band and the
+figure it sits beside must round through one function.*
