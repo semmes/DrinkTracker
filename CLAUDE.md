@@ -768,3 +768,47 @@ Open items for v1.2:
   belongs where the eye lands, not at the end of a list that grows all evening;
   Today matches History and the day sheet, and ADR-0013's amendment records why
   the original argument was wrong.
+- **The Add-specific sheet keeps its type question (2026-09-07, PR #75, ADR-0034
+  amendment).** The owner used Home v2 and reported that tapping "Add specific"
+  then a drink type "moves me to another page within that sheet menu" — and named
+  the fix themselves, the sheet an untyped row's "Tap to say what it was" opens.
+  **One term:** `typeSection` was gated on `showsTimeControl || adopting != nil ||
+  draft.needsType`, and `needsType` is `type == .unspecified` — *a value the
+  picker itself writes*. Every other presentation satisfies that gate by a term
+  fixed at init, so only "Add specific" (the app's one `DrinkDetailSheet(draft:)`
+  call site passing no `showsTimeControl`) was gated on the answer to its own
+  question, and the user's tap deleted the DRINK section under
+  `withAnimation(.snappy)`. **The rule now, worth generalising:** *what a sheet
+  asks for is a property of the presentation; the answer must never withdraw the
+  question* — `asksType`, a stored `let` per initialiser. **Size and strength
+  stay a live read** of `needsType` on purpose (ADR-0023 forbids drawing the
+  stored 0.6oz/100% as a pill and slider), so do not "tidy" both gates into one
+  flag. **Two repairs that look obvious and are worse than the bug:** passing
+  `showsTimeControl: true` also puts a DatePicker on a brand-new entry (invariant
+  2), and hoisting the draft into a `Binding` changes `DrinkDraft.id`, so
+  `.sheet(item:)` dismisses and re-presents — the perceived page change becomes a
+  literal one. The owner also approved the copy fix the review turned up:
+  `logButtonTitle` said "Save details" on a *new* untyped draft, so that branch
+  now also requires `editingEntryID` — "Log drink" for the whole Add-specific
+  presentation (no more mid-sheet flip), "Save details" untouched where ADR-0016
+  fixed it. No catalog change (300 app keys); these three `ButtonVM.title`
+  literals are outside the catalogs, and **all eight `SUButton` primary titles
+  share that gap and want one pass, not a one-off**. PRD invariant 2's wording
+  was corrected in the same commit — it claimed the type picker appears "only
+  when editing an existing entry", stale since ADR-0034 shipped "Add specific".
+  **Two things worth keeping.** (a) `docs/design/today2` settled the question:
+  both paths open the same sheet state and the chooser is a persistent
+  four-segment control — and that block is byte-identical to the previous bundle
+  copy, so **diffing the bundles tells you what is intent versus what is drift**.
+  (b) **No test tier can reach `DrinkDetailSheet`** — app target, and
+  `DrinkTrackerTests` has no `TEST_HOST` — so CI green proves compilation and
+  nothing about the behaviour; say so rather than implying otherwise. A pure
+  `DrinkSheetForm` in the core package was considered and **declined**: the fault
+  was *where the read happened*, not what the boolean computes, so a test would
+  pin the rule and leave the reading discipline uncovered, while putting a
+  presentation type in a package invariant 9 keeps free of UI. The structural
+  guard is that `asksType` is a stored constant. Verified at all four gates plus
+  tier 3 on a booted iPhone 17 Pro, both paths, before and after. **Tier 3/4 for
+  the owner's pass:** the picker under a thumb on real Liquid Glass, both
+  appearances, four segments at accessibility sizes, and VoiceOver moving between
+  the segments and the size pills below them.
