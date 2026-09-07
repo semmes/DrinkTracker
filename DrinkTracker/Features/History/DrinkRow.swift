@@ -116,6 +116,10 @@ struct UndoDeleteBar: View {
       Text("Removed \(drink.type.displayName.lowercased())")
         .font(.subheadline)
         .foregroundStyle(.primary)
+        // The sentence wraps rather than truncating: "Removed one standard
+        // drink" is four words, and at accessibility sizes a bar held to one
+        // line printed "Removed o…" (the 1.3 release review).
+        .fixedSize(horizontal: false, vertical: true)
       Spacer()
       Button("Undo", action: onUndo)
         .font(.subheadline.weight(.semibold))
@@ -123,7 +127,10 @@ struct UndoDeleteBar: View {
         .foregroundStyle(Color.accentColor)
     }
     .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-    .frame(height: 48)
+    .padding(.vertical, GlassTokens.Spacing.tight)
+    // A floor, never a fixed height (design-system §3): the bar is 48pt at the
+    // sizes it was drawn at and grows with the text above them.
+    .frame(minHeight: 48)
     .glassSurface(cornerRadius: GlassTokens.Radius.control)
     .screenMargin()
     .transition(.move(edge: .bottom).combined(with: .opacity))
