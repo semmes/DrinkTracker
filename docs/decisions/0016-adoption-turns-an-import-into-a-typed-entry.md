@@ -87,6 +87,18 @@ count-based mirror next to the typed entry: a duplicate in Tallyist, which
 the consequences above say never happens. Remove-then-Undo took the same
 path.
 
+*Correction (2026-09-07):* it did not. `DeletionCoordinator.undo` re-saves
+the deleted `LoggedDrink` *after* the hard delete, so `save` found no row
+under its id and the retire switch below never ran — the undo took the
+fresh-sample branch instead, wrote a Tallyist sample beside the other app's,
+and overwrote the foreign id (or set it nil when unauthorized, queuing a
+backfill). The 1.3 release review found it. `save` now decides which sample
+to retire from the stored row's id *or, when the row is gone, the value's
+own* — `HealthSampleRetirement` in the core package, every branch pinned at
+tier 1 — so an undone adoption takes the same `foreign` → keep-the-id path
+as an edit. The HealthKit half stays tier 4: adopt an import on a device,
+Remove, Undo, and count the samples in the Health app.
+
 **Decision.** `HealthKitService.deleteSample` now reports what it did:
 `retired` (gone, or never there), `foreign` (another app's sample, which
 Health would refuse and the app must not want to delete), or `kept`

@@ -122,17 +122,12 @@ final class HealthKitService {
   }
 
   /// What became of a sample the app asked to retire.
-  enum RetireOutcome: Equatable {
-    /// Gone from Health, or never there — the slot is free for a new sample.
-    case retired
-    /// Another app wrote it (an adopted import, ADR-0016). Health would refuse
-    /// the delete, and the app must not want it: that sample is the other
-    /// app's record, and its id is the row's dedup key.
-    case foreign
-    /// Not authorized right now, or the delete failed. The sample is still
-    /// there and the row should keep pointing at it.
-    case kept
-  }
+  ///
+  /// Defined in the core package so the decision `DrinkStore.save` makes on
+  /// it — which sample to retire, and what the row keeps afterwards — is a
+  /// pure value pinned at tier 1 (`HealthSampleRetirement`). This service is
+  /// the only thing that produces one.
+  typealias RetireOutcome = HealthSampleRetirement.Outcome
 
   /// Removes a previously written sample, used when an entry is edited or
   /// deleted, and says whether it did.

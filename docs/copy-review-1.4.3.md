@@ -1153,6 +1153,13 @@ restated itself while the reader was still deciding. It is now fixed for the
 whole presentation, the same discipline `asksType` applies to the picker above
 it.
 
+*2026-09-07, ruling B of the 1.3 release review:* the untyped-row path had the
+same flip one row down — "Save details" until the first type tap, "Save
+changes" after — so the title is now decided once per presentation (a stored
+`let` in the sheet's initialiser) and "Save details" holds for the whole of
+that path, as the table above already claimed. Same three literals, still
+outside the catalogs.
+
 **Reviewed against 1.4.3.** "Log drink" is factual and already in use on this
 button; it sets no target, grades nothing, and reads the same for a first drink
 and a tenth. Nothing here celebrates, judges, or counts up to anything.

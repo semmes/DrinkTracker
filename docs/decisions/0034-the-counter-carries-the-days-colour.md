@@ -160,6 +160,12 @@ the argument and the measurements.
 - **The prototype's 3-hour session gap and 4-drink chip threshold.** Both
   contradict ADR-0017's shipped constants and neither was raised; read as
   prototype convenience.
+- **The list hint's two-way ternary** (`unspecified ? … : 'Tap a drink to
+  change what it was.'`), added 2026-09-07: the shipped hint also requires a
+  tappable row — one that is not a Health import, or is an adoptable one —
+  because a day whose only rows are multi-count imports renders them
+  read-only, and the prototype's second sentence over those answers no tap.
+  No new copy; the third case shows nothing.
 
 ### Measured, not eyeballed
 
@@ -249,6 +255,16 @@ already on the record keeps ADR-0016's word and a new drink says "Log drink" for
 the whole presentation, rather than flipping under the first tap. No string is
 new or retired; the three sheet button titles are `ButtonVM.title` literals and
 remain outside the catalogs, which `docs/localization-status.md` already tracks.
+
+*Ruling B, 2026-09-07 (1.3 release review).* The fix above still read
+`draft.needsType` live, so the untyped row's own path — "Tap to say what it
+was" — said "Save details" until the first type tap and "Save changes" after
+it: the same mid-presentation change, one row lower. The owner ruled that
+**"Save details" holds for the whole presentation.** `logButtonTitle` now reads
+a stored `let`, `savesDetails`, decided in `init(draft:)` as
+`editingEntryID != nil && needsType` (adoption's initialiser sets it true);
+everything else is unchanged. No test tier reaches this view, so the
+structural guard is the stored constant, as with `asksType`.
 
 **PRD invariant 2's wording is corrected in the same commit.** It claimed the
 type picker appears "only when editing an existing entry", which stopped being
