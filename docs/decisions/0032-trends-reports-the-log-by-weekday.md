@@ -161,11 +161,12 @@ the refusals above are unchanged; this corrects *when* the tables give way and
 ### What was wrong
 
 The 2026-09-06 amendment folded the tables only at accessibility sizes and
-computed, from the HIG's caption2 table, that the label column would hold the
-weekday names through xLarge on a 402pt screen. Rendering says otherwise, and
-this decision was rendered rather than reasoned. Measured from frames of the
-shipped card on the iPhone 17 Pro simulator (402pt; content width 328pt), by
-the numeric columns' trailing edges:
+verified that fold at accessibility-extra-large alone; the 1.3 release review
+then computed from the HIG's caption2 table that the label column would starve
+from xLarge on a 375pt screen and from xxLarge on a 402pt one. Rendering found
+it worse still, and this decision was rendered rather than reasoned. Measured
+from frames of the shipped card on the iPhone 17 Pro simulator (402pt; content
+width 328pt), by the numeric columns' trailing edges:
 
 | Content size | Each numeric column | Label column | Widest name (subheadline) | Rendered |
 |---|---|---|---|---|

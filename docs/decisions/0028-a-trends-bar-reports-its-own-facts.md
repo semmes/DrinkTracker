@@ -257,10 +257,14 @@ title over legend — the same `isAccessibilitySize` fold `PeriodReadout`'s fact
 row, `WeekdayCard` and `PlusModePill` make. The 80pt floor is untouched and
 still binds both states at the sizes the design was drawn at; at accessibility
 sizes the box grows past it, as a floor allows and a fixed height would not —
-the case this amendment's "floor, never a fixed height" clause was written for.
-In the same pass the rail and hairline's slide between bars went behind Reduce
-Motion, as the readout's 6pt offset already was: with it on they jump to the
-touched bar and only fade.
+the case this amendment's floor rather than a fixed height was chosen for.
+Below the accessibility threshold the row stays a row and the legend yields:
+rendered at xxxLarge with the Year range on the 402pt screen, "Last 12 months"
+holds its line and "Your monthly average · 6.4" wraps once, after "average",
+with the value on a second line — wrap, never clip, as design-system §3 asks.
+A 375pt screen reaches the same wrap by arithmetic. In the same pass the rail
+and hairline's slide between bars went behind Reduce Motion, as the readout's
+6pt offset already was: with it on they jump to the touched bar and only fade.
 
 **No schema change, no CloudKit step, no setting, no App Group key, no widget
 change, no networking.** One app-catalog key in, one out. Pinned at tier 1
