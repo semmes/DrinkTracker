@@ -220,7 +220,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | A staged batch counter — the model the day sheet had before it became a live log (ADR-0013) — applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
 | **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom drawing beside the icon); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
-| **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll |
+| **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll. The pinned header and footer are held to their wrapped height (`fixedSize(horizontal: false, vertical: true)`) so the ScrollView between them is the only child that yields — the outer VStack otherwise proposes the chrome a fair share and its `Text` truncates rather than pushing back (the figure reached the screen as "≈ 1 standard dr…" at AX5). At accessibility sizes the sheet offers only the large detent: the medium one is ~459pt at AX5 and the chrome takes ~400pt of it |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
 | **Reference cards** | `Trends/PopulationReferenceCard.swift`, `Calendar/YearComparisonCard.swift`, `Trends/PopulationReferenceCopy.swift` (`SourceDisclosure`) | Body-text sentences on glass, one figure each, no chart, no colour, no delta; a 44pt tappable source line opens a caption note that says what the figure is and is not. The comparison surfaces share one copy set so they cannot drift (ADR-0018, ADR-0030, ADR-0031, ADR-0032) |
 | **Weekday insights** | `Trends/WeekdayCard.swift` | Two small tables in one card. Seven weekday rows over two right-aligned numeric columns, the unit noun stated once in the column head instead of once per row; then the user's Friday-to-Sunday / Monday-to-Thursday split beside the published rate, rows being the source's own definition of the weekend and columns being whose figure it is. **Alignment does the comparing the copy refuses to do** — still no rank, no "most", and no chart of seven bars (ADR-0032). Column widths are `@ScaledMetric` so a two-word head wraps to two lines and still grows with Dynamic Type; at accessibility sizes the tables fold back to stacked rows and the three reviewed sentences. The user's counts are rounded and tabular, the published rates default SF — the numeral carries the "your fact / published fact" distinction that no second hue is allowed to (invariant 10). Design reference: `docs/design/Bar chart hover states design/ds/components/weekday-insights.card.html` |
@@ -235,7 +235,10 @@ on glass; a screen leads with the user's number, never with chrome.
 
 - 44pt targets everywhere; the hero stepper uses 68pt.
 - Dynamic Type: relative styles + `minHeight` wrapping; `FlowLayout` where pills
-  can wrap; year grid is read as twelve month summaries, not 365 stops.
+  can wrap; year grid is read as twelve month summaries, not 365 stops. Text
+  pinned beside a ScrollView (a sheet's header and footer) takes
+  `fixedSize(horizontal: false, vertical: true)`, or the stack squeezes it and
+  it truncates while the scroll area keeps space it has no content for.
 - Colour never carries meaning alone: the ramp is lightness-ordered (survives all
   CVD + greyscale), alcohol-free adds an outline, status adds symbol + words.
 - VoiceOver: counters are adjustable elements; cells speak date + amount in
