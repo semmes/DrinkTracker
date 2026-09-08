@@ -12,6 +12,7 @@ struct DrinkDetailSheet: View {
   @Environment(AppSettings.self) private var settings
   @Environment(HealthKitService.self) private var health
   @Environment(\.modelContext) private var context
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   @State private var draft: DrinkDraft
   @State private var customVolumeText: String
@@ -127,7 +128,16 @@ struct DrinkDetailSheet: View {
       .padding(.top, GlassTokens.Spacing.regular)
       .padding(.bottom, GlassTokens.Spacing.section)
     }
-    .presentationDetents([.medium, .large])
+    // Large only at accessibility sizes. Measured at AX5 on an iPhone 17 Pro,
+    // the medium detent is ~459pt and the sheet's pinned chrome — a two-line
+    // title above, a two-line figure and the button below — takes ~400pt of
+    // it, leaving the form one row of viewport with nothing of the next
+    // section showing to say there is more (the "When" report). Adoption's
+    // header adds a wrapped "From Apple Health, …" caption and exceeds the
+    // detent outright, and a VStack that outgrows its sheet clips at both
+    // ends. The large detent holds every path with room to scroll; what the
+    // medium one showed of Today behind it at these sizes was the counter.
+    .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
     .presentationDragIndicator(.visible)
     .presentationCornerRadius(GlassTokens.Radius.sheet)
     .presentationBackground(.regularMaterial)
@@ -155,6 +165,10 @@ struct DrinkDetailSheet: View {
             .foregroundStyle(.secondary)
         }
       }
+      // Wraps, never truncates — see `liveEstimate` for the squeeze this
+      // guards against. Rendered with only the figure held rigid, the squeeze
+      // simply moved up here and cut the title to "One standard…".
+      .fixedSize(horizontal: false, vertical: true)
       Spacer()
       Button(action: onCancel) {
         Image(systemName: "xmark")
@@ -339,12 +353,26 @@ struct DrinkDetailSheet: View {
 
   /// Updates on any size or ABV change. Approximate by design — the "≈" is doing
   /// real work here, since ABV is almost always an estimate.
+  ///
+  /// Held to its wrapped height, because this is the number the sheet exists
+  /// to produce and it was reaching the screen as "≈ 1 standard dr…" at
+  /// accessibility sizes. The roll was suspected and is innocent — the same
+  /// text wrapped cleanly at the large detent with `.numericText` in place.
+  /// The squeeze is the sheet's own outer `VStack`: at the medium detent it
+  /// proposes this pinned footer a share of the height rather than what it
+  /// asks for, and a `Text` answers a short proposal by truncating instead of
+  /// pushing back, so the ScrollView above kept space it had no content for
+  /// while the figure lost its second line. `fixedSize` makes the footer (and
+  /// the header, which the squeeze otherwise moves to) refuse the proposal;
+  /// the ScrollView is then the only child that yields, which is the layout
+  /// the pinning was meant to express.
   private var liveEstimate: some View {
     Text(StandardDrink.liveEstimate(currentCount, region: settings.effectiveRegion))
       .font(GlassTokens.Typography.cardValue)
       .foregroundStyle(.primary)
       .contentTransition(.numericText(value: currentCount))
       .animation(.snappy, value: currentCount)
+      .fixedSize(horizontal: false, vertical: true)
       .frame(maxWidth: .infinity, alignment: .leading)
       // Composed verbatim because the package already translated it. Built by
       // hand this label appended a literal "s" to a localized noun, so a French

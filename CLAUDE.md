@@ -812,6 +812,41 @@ Open items for v1.2:
   the owner's pass:** the picker under a thumb on real Liquid Glass, both
   appearances, four segments at accessibility sizes, and VoiceOver moving between
   the segments and the size pills below them.
+- **The drink sheet's figure wraps instead of truncating (2026-09-07).** At
+  accessibility sizes the pinned estimate reached the screen as "≈ 1 standard
+  dr…" on every path into `DrinkDetailSheet`. **The roll was suspected and is
+  innocent** — the baseline build, dragged to the large detent, wrapped the same
+  text onto two lines with `.numericText` in place. The squeeze is the sheet's
+  outer `VStack`: at the medium detent it proposes the pinned footer a fair
+  share of the height rather than what it asks for, and a `Text` answers a short
+  proposal by truncating instead of pushing back, so the ScrollView kept space it
+  had no content for while the figure lost its second line. Held rigid alone,
+  the footer only moved the squeeze — the *title* then truncated to "One
+  standard…" — so both the header block and `liveEstimate` take
+  `fixedSize(horizontal: false, vertical: true)`, and the ScrollView is the
+  only child that yields. **The "When" report is the same squeeze seen from the
+  scroll area, and its answer is a detent rule, not a fix to the section:**
+  measured at AX5 on an iPhone 17 Pro the medium detent is ~459pt and the
+  chrome (two-line title, two-line figure, button) takes ~400pt of it, leaving
+  one row of viewport with nothing of the next section showing; adoption's
+  header adds a wrapped "From Apple Health, …" caption and would exceed the
+  detent outright, and a VStack that outgrows its sheet clips at both ends. So
+  **at accessibility sizes the sheet offers only `.large`** — recorded as a
+  fold, not a redesign (ADR-0026's precedent), one line to reverse. Rules
+  worth keeping: no `minimumScaleFactor` on the figure (at AX5 it would need
+  ~0.55 and the number the sheet exists to produce would become its smallest
+  text); `ViewThatFits` was not used for the reason ADR-0028's amendment
+  records. No catalog, schema, setting or copy change; the VoiceOver label is
+  untouched. **No test tier reaches this view** (app target, no `TEST_HOST`),
+  so CI proves compilation only; the proof is the tier-3 pass on a booted
+  iPhone 17 Pro at `accessibility-extra-large` and `medium`, both paths,
+  before and after — what each render showed is in the commit message, and
+  the screenshots went to the owner in the session. **Tier 3/4 for the
+  owner's pass:** the roll over a wrapped figure on a real display (end states
+  were checked, not frames), the adoption path's header at AX5 (needs a real
+  Health import), drag-to-dismiss with a single detent, VoiceOver over the
+  wrapped figure, and both appearances (layout-only change, dark not
+  rendered).
 - **The drink glyphs, a Cocktail type, and the 40 oz (2026-09-07, ADR-0035 and
   ADR-0036).** The owner dropped `docs/design/icons/` (the *Drink Icons* canvas:
   eight 24×24 SVGs plus a README mapping `tally.*` names to the SF Symbols they
