@@ -27,6 +27,7 @@ struct TrendsView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   @State private var range: TrendRange = .week
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
@@ -342,13 +343,7 @@ struct TrendsView: View {
 
   private func idleReadout(_ snapshot: Snapshot) -> some View {
     VStack(alignment: .leading, spacing: 0) {
-      HStack(alignment: .firstTextBaseline) {
-        Text(chartTitle)
-          .font(GlassTokens.Typography.cardLabel)
-          .foregroundStyle(.secondary)
-        Spacer(minLength: GlassTokens.Spacing.tight)
-        if let line = averageLineValue(snapshot) { averageLegend(line) }
-      }
+      idleTitleRow(snapshot)
 
       HStack(alignment: .firstTextBaseline, spacing: 5) {
         Text(StandardDrink.formatted(snapshot.sum))
@@ -377,6 +372,40 @@ struct TrendsView: View {
     .accessibilityElement(children: .combine)
   }
 
+  /// The range name with the average legend beside it — or under it at
+  /// accessibility sizes, where the two no longer share a line.
+  ///
+  /// The legend used to be `fixedSize()` in both axes, so it took its whole
+  /// width first and left the title whatever remained: at accessibility sizes
+  /// that was a column some 60pt wide, and "Last 7 days" reached the screen as
+  /// three lines of one word each (the 1.3 release review). Now the title has
+  /// the layout priority, the legend may wrap, and above the accessibility
+  /// threshold the row folds into a stack — the fold `PeriodReadout`'s facts
+  /// row, `WeekdayCard` and `PlusModePill` already make. The box keeps its
+  /// floor: a taller header only makes it grow, which is what a floor allows
+  /// and a fixed height would not (ADR-0028 amendment, "named consequences").
+  @ViewBuilder
+  private func idleTitleRow(_ snapshot: Snapshot) -> some View {
+    let title = Text(chartTitle)
+      .font(GlassTokens.Typography.cardLabel)
+      .foregroundStyle(.secondary)
+      .fixedSize(horizontal: false, vertical: true)
+      .layoutPriority(1)
+
+    if dynamicTypeSize.isAccessibilitySize {
+      VStack(alignment: .leading, spacing: 2) {
+        title
+        if let line = averageLineValue(snapshot) { averageLegend(line) }
+      }
+    } else {
+      HStack(alignment: .firstTextBaseline) {
+        title
+        Spacer(minLength: GlassTokens.Spacing.tight)
+        if let line = averageLineValue(snapshot) { averageLegend(line) }
+      }
+    }
+  }
+
   /// "standard drinks · 30 days with drinks" — the noun from the package and
   /// the count from the calendar card's own count-bearing key, joined as
   /// separate `Text` values. A key made of a placeholder and punctuation is
@@ -403,7 +432,9 @@ struct TrendsView: View {
         .font(.caption2)
         .foregroundStyle(.secondary)
     }
-    .fixedSize()
+    // Vertical only: the legend yields width to the title beside it and wraps
+    // rather than taking its full width first (see `idleTitleRow`).
+    .fixedSize(horizontal: false, vertical: true)
     .accessibilityElement(children: .combine)
   }
 
@@ -471,7 +502,9 @@ struct TrendsView: View {
     // that say where the finger is. Neither encodes anything about the data,
     // which is why they are a selected state (design-system §2) rather than a
     // second colour role, and why no annotation, no second rule and no colour
-    // on the bars themselves is needed (invariant 10).
+    // on the bars themselves is needed (invariant 10). Their slide from bar
+    // to bar is movement, so it is behind Reduce Motion like the readout's
+    // 6pt offset: with it on they jump to the touched bar and only fade.
     .chartBackground { proxy in
       GeometryReader { geo in
         if let selection = snapshot.selection,
@@ -497,7 +530,7 @@ struct TrendsView: View {
           )
           .frame(width: slot.width, height: plot.height)
           .position(x: plot.minX + slot.centre, y: plot.midY)
-          .animation(.smooth(duration: 0.16), value: selection.start)
+          .animation(reduceMotion ? nil : .smooth(duration: 0.16), value: selection.start)
         }
       }
       .allowsHitTesting(false)
@@ -520,7 +553,7 @@ struct TrendsView: View {
             )
             .frame(width: 1, height: height)
             .position(x: plot.minX + slot.centre, y: plot.minY + height / 2)
-            .animation(.smooth(duration: 0.16), value: selection.start)
+            .animation(reduceMotion ? nil : .smooth(duration: 0.16), value: selection.start)
         }
       }
       // Mandatory: without it the overlay's content intercepts the touch that

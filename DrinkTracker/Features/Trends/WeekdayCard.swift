@@ -39,20 +39,31 @@ struct WeekdayCard: View {
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-  /// The numeric columns' widths. They are what make a two-word column head
-  /// wrap onto two lines instead of running the width of the card and pushing
-  /// its neighbour into it — the head has to be narrow enough to break. Scaled
-  /// rather than fixed, so the columns grow with the type they hold.
+  /// The weekday table's numeric column width. It is what makes a two-word
+  /// column head wrap onto two lines instead of running the width of the card
+  /// and pushing its neighbour into it — the head has to be narrow enough to
+  /// break. Scaled rather than fixed, so the columns grow with the type they
+  /// hold. The comparison table below carries no such width: its heads are
+  /// one line each, so its columns size to their own content and the label
+  /// column keeps whatever is left (the 2026-09-07 amendment to ADR-0032).
   @ScaledMetric(relativeTo: .caption2) private var figureColumn: CGFloat = 88
-  @ScaledMetric(relativeTo: .caption2) private var mineColumn: CGFloat = 74
-  @ScaledMetric(relativeTo: .caption2) private var publishedColumn: CGFloat = 100
 
-  /// At accessibility sizes three columns cannot hold their alignment, and a
-  /// column head that has scrolled away from its rows carries nothing. So the
-  /// table folds back to the stacked rows and the three reviewed sentences —
-  /// the form the card had before, which reads correctly at any width. The
-  /// figures are identical either way; only their arrangement changes.
-  private var isStacked: Bool { dynamicTypeSize.isAccessibilitySize }
+  /// Above the default size the tables fold back to the stacked rows and the
+  /// three reviewed sentences — the form the card had before, which reads
+  /// correctly at any width. The figures are identical either way; only their
+  /// arrangement changes.
+  ///
+  /// `xLarge`, not `isAccessibilitySize`, and the threshold was rendered rather
+  /// than reasoned about (ADR-0032's 2026-09-07 amendment). The label column
+  /// is what the numeric columns leave, and that shrinks faster than the
+  /// names grow: on a 402pt screen the shipped table already broke
+  /// "Wednesday" and "Thursday" mid-word at xLarge, and at xxLarge every
+  /// weekday hyphenated ("Sat-/ur-/day"). A 375pt screen has 27pt less, so
+  /// no width for the numeric columns holds the widest weekday name at xLarge
+  /// on both screens without squeezing the two-line heads into three. The
+  /// fold therefore happens at the first size above the default, before
+  /// anything fragments; xSmall through large keep the table on every screen.
+  private var isStacked: Bool { dynamicTypeSize >= .xLarge }
 
   var body: some View {
     SUCard(model: .glass) {
@@ -114,29 +125,38 @@ struct WeekdayCard: View {
         // step of it, so the block reads as one table rather than seven bands.
         Divider().opacity(index == 0 ? 1 : 0.7)
 
+        // One VoiceOver stop per row, and the modifiers that make it one sit
+        // on the *cells*, never on the `GridRow`: a modifier on a GridRow is
+        // applied to each of its cells in turn, so an element-and-label pair
+        // there produced three identical stops per weekday (measured: six
+        // elements for two rows). The name cell carries the whole row's
+        // sentence and the two figures are hidden, because the sentence
+        // already speaks them.
         GridRow(alignment: .firstTextBaseline) {
           Text(verbatim: calendar.weekdaySymbols[total.weekday - 1])
             .font(.subheadline)
             .foregroundStyle(.primary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .gridColumnAlignment(.leading)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(weekdayLabel(total))
 
           Text(verbatim: StandardDrink.formatted(total.standardDrinks))
             .font(GlassTokens.Typography.rowFigure)
             .monospacedDigit()
             .foregroundStyle(.primary)
+            .accessibilityHidden(true)
 
           ratioCell(total.daysWithDrinks, of: total.dayCount)
+            .accessibilityHidden(true)
         }
         .padding(.vertical, GlassTokens.Spacing.tight)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(weekdayLabel(total))
       }
     }
   }
 
-  /// The pre-table form, kept for accessibility sizes: the noun returns to the
-  /// row because there is no head above it to carry it.
+  /// The pre-table form, kept for the sizes above the default: the noun returns
+  /// to the row because there is no head above it to carry it.
   private var stackedWeekdays: some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
       ForEach(totals) { total in
@@ -166,12 +186,18 @@ struct WeekdayCard: View {
   /// whose figure it is. Nothing is recomputed, normalised, subtracted or
   /// ranked — the table only puts two published denominators where they can
   /// be seen to be different ones.
+  ///
+  /// The two numeric columns take their own content's width — the head or the
+  /// widest cell, whichever is wider — rather than a fixed one. A fixed width
+  /// here bought nothing (both heads are one line) and cost the label column
+  /// the room "Monday to Thursday" needs: at 74 and 100 the label had 113pt on
+  /// a 375pt screen at the default size, and the phrase is 125.
   private func comparisonTable(_ split: WeekendSplit, _ reference: WeekendReference) -> some View {
     Grid(alignment: .trailing, horizontalSpacing: GlassTokens.Spacing.tight, verticalSpacing: 0) {
       GridRow(alignment: .bottom) {
         emptyHeadCell
-        columnHead(Text("Your log"), width: mineColumn)
-        columnHead(Text("US adults"), width: publishedColumn)
+        columnHead(Text("Your log"))
+        columnHead(Text("US adults"))
       }
       .padding(.bottom, 7)
 
@@ -216,7 +242,7 @@ struct WeekdayCard: View {
     .padding(.vertical, GlassTokens.Spacing.tight)
   }
 
-  /// The three sentences as they were reviewed, for accessibility sizes.
+  /// The three sentences as they were reviewed, for the sizes above the default.
   private func stackedComparison(_ split: WeekendSplit, _ reference: WeekendReference) -> some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
       Text(PopulationReferenceCopy.weekendLine(split))
@@ -239,7 +265,10 @@ struct WeekdayCard: View {
       .foregroundStyle(.secondary)
   }
 
-  private func columnHead(_ text: Text, width: CGFloat) -> some View {
+  /// A head over a numeric column. With a `width` it is held to that width so
+  /// a two-word head breaks onto two lines; without one it sizes to its text
+  /// and the column follows.
+  private func columnHead(_ text: Text, width: CGFloat? = nil) -> some View {
     text
       .font(GlassTokens.Typography.columnHead)
       .textCase(.uppercase)
@@ -275,8 +304,11 @@ struct WeekdayCard: View {
 
   // MARK: - Spoken
 
-  /// The weekday row as one element: the noun the column head carries visually
-  /// is spoken here, so nothing is lost by moving it out of the row.
+  /// The weekday row's one sentence: the noun the column head carries visually
+  /// is spoken here, so nothing is lost by moving it out of the row. In the
+  /// table it is the label of the name cell — the row's single element, the
+  /// two figure cells being hidden — and in the stacked form the label of the
+  /// whole row.
   private func weekdayLabel(_ total: WeekdayTotal) -> Text {
     Text(verbatim: calendar.weekdaySymbols[total.weekday - 1])
       + Text(verbatim: ", ")
