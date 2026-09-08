@@ -366,3 +366,94 @@ If the edges ever go back to the whole drink, the change is one line back to
 `.rounded()` — but then `formatted` has to round the same way, or the probe
 pairs return. The rule underneath is the one worth keeping: *a band and the
 figure it sits beside must round through one function.*
+
+## Amendment (2026-09-08) — the empty day says less
+
+**Source:** the owner's review of Today, 2026-09-08: *"under the 'Record no
+alcohol today' button, we don't need the microcopy that says 'Plus logs one
+standard drink, with no type, editable afterwards' — you can delete that. Then
+when someone taps 'Record no alcohol today' we don't need the 'Remove that
+record' link text. If a user taps the plus they can remove that record. We
+should keep the text 'Recorded as no alcohol today. Tap the plus sign to change
+that.' You can keep other microcopy when logging drinks and specifying
+categories."*
+
+### Context
+
+Home v2 left two explanatory pieces on the empty day. The first was the
+`CounterSeedCaption` under "Record no alcohol today" — the reviewed, seed-aware
+replacement for the drawing's "Or tap + — one tap is one standard drink." (this
+record's not-built list) — with a `UsualDrinkSeedCaption` wrapper owning the
+whole-log fetch the usual-drink seed needs, so `TodayView` never ran an
+unbounded query for a sentence. The second predates Home v2: the marked state's
+"Remove that record" link, the user-set marker's way back, which ADR-0025
+withheld only for a Health-mirrored marker.
+
+The owner used the screen and ruled both unnecessary on Today. Their reasoning
+for the link is one this repository already relies on: a logged drink clears
+the day's marker (`DrinkRepository.saveOrThrow` deletes every marker on a
+drink's day, and names the two-device case), so ＋ is a way back that already
+exists, and − then removes the drink if the tap was only a correction — two
+taps to a blank day, and no second control. The caption's case is the owner's:
+the empty day is the state with the least to explain, the pill says what ＋
+repeats once a described drink exists, and the drink sheet says the rest.
+
+### Decision
+
+- **No caption under "Record no alcohol today".** The empty day shows the
+  button and "Add specific" and nothing between them. `UsualDrinkSeedCaption`
+  is deleted — it fed only that site. `CounterSeedCaption` itself stands,
+  still shared by the pill on Today and by the day sheet, so wherever the
+  sentence *is* shown it is still the same sentence.
+- **No "Remove that record" on Today.** The user-set marked state reads
+  "Recorded as no alcohol today" over a footnote, **"Tap the plus sign to
+  change that."** — the owner's own wording, one new app key. The
+  Health-marked state is untouched ("From Apple Health", ADR-0025).
+  `DrinkStore.unmarkAlcoholFree` stays; the day sheet still calls it.
+- **The day sheet keeps both** — its counter caption (with the − sentence) and
+  its "Remove that record". The owner scoped the ruling to the home screen,
+  and the day sheet is the surface for editing the record after the fact,
+  where a removal control earns its place. Today and the day sheet now differ
+  in *what* they show, not in how they word it, so this record's "cannot word
+  ＋ differently" holds as stated.
+
+### Consequences
+
+- Two fewer things on the empty day; one sentence where a control was. **No
+  schema change, no CloudKit step, no setting.** App catalog: one key in
+  ("Tap the plus sign to change that."), none out — both removed strings are
+  still used by the day sheet.
+- **Removing an accidental marker on Today now takes two taps and passes
+  through a logged drink**: ＋ writes a standard drink, which clears the marker
+  and is for a moment a real row (Health receives it if writing is on); −
+  deletes it and retires the sample. The end state is the same blank day; the
+  transient is new. A user who wants the marker gone *without* logging anything
+  has the day sheet.
+- A user on the usual-drink seed no longer sees on Today what ＋ will write on
+  an empty day — the pill does not exist until a described drink does. The
+  setting's own description in Settings still says it, and the first tap shows
+  it in the row.
+- 1.4.3: "Tap the plus sign to change that." is an instruction about a
+  control, not about drinking; it sets no target and grades nothing (copy
+  review, 2026-09-08).
+
+### Verified here
+
+No test tier reaches `TodayView` (app target, no `TEST_HOST`), so CI proves
+compilation only. Tier 3 on a booted iPhone 17 Pro, before and
+after: the empty day shows the button and "Add specific" with nothing between
+them; "Record no alcohol today" turns the tile to the outline and prints
+"Recorded as no alcohol today" over "Tap the plus sign to change that.", with
+no link; ＋ then clears the marker and logs one standard drink — the tile moves
+to the 1–2 band and the row appears — which is the way back the sentence
+promises. All four CI gates green locally (245 domain tests, the generic
+build, 81 integration tests, the glyph generator clean); the app catalog went
+302 → 303 with exactly the new sentence in.
+
+### How to reopen
+
+A field report of markers users cannot find their way out of on Today — someone
+who does not read ＋ as the way back — is the case for the sentence to become a
+control again, and the copy would be "Remove that record" as before; the day
+sheet's link is the model. The caption's return has a lower bar: it is one
+line, and the sentence is still reviewed and still in the catalog.

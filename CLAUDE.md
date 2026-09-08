@@ -952,6 +952,40 @@ Open items for v1.2:
   display; "Log a 6 oz cocktail" landing on the pill and a spoken 1.5 on Custom
   at 0.4; the CSV's 4 and 15; both appearances (not rendered — copy and numbers
   over existing controls).
+- **The empty day says less (2026-09-08, ADR-0034 amendment, PR #83).** The
+  owner's review of Today: *"under the 'Record no alcohol today' button, we
+  don't need the microcopy that says 'Plus logs one standard drink, with no
+  type, editable afterwards' … when someone taps 'Record no alcohol today' we
+  don't need the 'Remove that record' link text. If a user taps the plus they
+  can remove that record. We should keep the text 'Recorded as no alcohol
+  today. Tap the plus sign to change that.' You can keep other microcopy when
+  logging drinks and specifying categories."* What shipped: the empty day shows
+  the button and "Add specific" and nothing between them — `UsualDrinkSeedCaption`
+  (the wrapper that owned the whole-log fetch for the usual-drink caption) is
+  deleted, since that site was its only caller; `CounterSeedCaption` itself
+  stands and is still shared by the pill on Today and by the day sheet, so where
+  the sentence *is* shown it is unchanged. Today's user-set marked state reads
+  "Recorded as no alcohol today" over a new footnote, **"Tap the plus sign to
+  change that."** (the owner's wording; one new app key, 302 → **303**), and no
+  link; the Health-marked state is untouched ("From Apple Health", ADR-0025).
+  **The day sheet keeps both** — its caption with the − sentence and its "Remove
+  that record" — because the owner scoped the ruling to the home screen and the
+  day sheet is where the record is edited after the fact; Today and the day
+  sheet now differ in *what* they show, not in wording, so ADR-0034's "cannot
+  word ＋ differently" still holds. The cost, recorded in the amendment:
+  removing an accidental marker on Today is now ＋ then − (the logged standard
+  drink clears the marker, its deletion retires it), passing through a real row
+  for a moment; the day sheet is the way to remove one without logging. **No
+  schema change, no CloudKit step, no setting.** No test tier reaches
+  `TodayView` (app target, no `TEST_HOST`) — CI proves compilation; the proof is
+  tier 3 on a booted iPhone 17 Pro: the empty day (no caption), the marked
+  state (label + sentence, no link), and ＋ clearing the marker into one logged
+  standard drink with the row beneath. All four gates green locally (245 domain
+  tests, the generic build, 81 integration tests on a second simulator, the
+  glyph generator clean). **Tier 3/4 for the owner's pass:** the marked state
+  at accessibility sizes (the footnote wraps under the label), VoiceOver reading
+  the label then the sentence as two elements, both appearances, and a
+  Health-marked day still reading "From Apple Health" with no sentence.
 - **The comparisons are the reader's to show, and the weekly average can read
   the survey's men's or women's column (2026-09-08, ADR-0038 and ADR-0039).**
   The owner asked whether Trends' insights could be *cycled* or *chosen from
@@ -985,8 +1019,8 @@ Open items for v1.2:
   Total's figures, one key, and a note saying so (ADR-0039 records the cost).
   **No schema change, no CloudKit step, no network.** Four device-local
   settings (`AppSettings.storedFlag`: "never set" reads as shown, because
-  `bool(forKey:)` cannot tell never-set from off). 322 app keys (21 in, the
-  fixed "72%" note out); 389 in all. The contract is a **draft PR**,
+  `bool(forKey:)` cannot tell never-set from off). 323 app keys (21 in against
+  main's 303, the fixed "72%" note out); 390 in all. The contract is a **draft PR**,
   `semmes/tallyist-product` #7 (1.8.0): the reference file byte-identical
   again, the sources entry's `columns` note, the compare measure's column, a
   Comparison-settings rule, the copy deck, the verifier recomputing both new

@@ -7,7 +7,7 @@ to make localizing it possible rather than about having done it.**
 
 **String Catalogs exist, and they are populated.** `Localizable.xcstrings` ships
 in the app, the widget and the core package, with `AppShortcuts.xcstrings` beside
-the app's — 389 keys in all as of 2026-09-08 (the count's history is under
+the app's — 390 keys in all as of 2026-09-08 (the count's history is under
 "Progress" below). `SWIFT_EMIT_LOC_STRINGS` was already `YES` on every
 configuration, so `Text("…")` literals are emitted as localizable strings; the
 catalogs were filled from a clean build's `.stringsdata` with `xcstringstool sync`
@@ -71,9 +71,9 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
+Current: **390 keys** — 323 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-08 after ADR-0038/0039's sync — the comparison switches and the
-survey's column). The app catalog went 302 → 322: 21 in, one out. In: the
+survey's column). The app catalog went 303 → 323: 21 in, one out. In: the
 Settings section's title, its three switch titles and three source captions,
 the footnote's two forms, "Compare with" and its three segments, the four
 column sentences (lower / more × US men / US women), the note's two column
@@ -82,8 +82,14 @@ its drinkers share interpolated (`%lld%%`, read from the bundled file), which
 is what retired the fixed "72%" key. Nothing reached the widget or the core
 package: `PopulationReference.Column` carries no display name (the segments
 are Settings' own keys, the `CountSeed` pattern). The previous count was
-369 — 302 app, 35 widget, 28 core, 4 shortcuts, counted
-2026-09-08 after ADR-0037's sync — the cocktail measured as the whole drink.
+370 — 303 app, 35 widget, 28 core, 4 shortcuts, counted 2026-09-08 after the
+ADR-0034 amendment's sync — the empty day says less, PR #83: the app catalog
+went 302 → 303, one in, none out — "Tap the plus sign to change that.",
+Today's marked-state footnote where the "Remove that record" link was; the
+link's key and the seed caption's keys stay, still used by the day sheet and
+the pill; nothing reached the widget or the core package. Before that,
+**369** — 302 app, 35 widget, 28 core, 4 shortcuts, counted earlier the same
+day after ADR-0037's sync — the cocktail measured as the whole drink.
 The app catalog went 303 → 302: two in, three out. In: "Ounces in the glass"
 (the cocktail Custom field's placeholder, the one place the model's noun is
 spoken) and the Export footnote's 2026-09-02 wording, restored one-for-one.
