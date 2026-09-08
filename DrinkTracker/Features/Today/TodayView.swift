@@ -279,23 +279,15 @@ struct TodayView: View {
           if isTodayMarkedAlcoholFree {
             markedTodayState
           } else {
+            // No caption under the button (owner's review, 2026-09-08 —
+            // ADR-0034 amendment): the empty day used to explain what ＋ logs
+            // here, and the owner ruled the sentence unnecessary. The rule it
+            // stated is unchanged — ＋ writes `counterSeed` — and the pill
+            // still says it once a described drink exists, as does the day
+            // sheet.
             SUButton(model: .primary("Record no alcohol today")) {
               store.markAlcoholFree(Date())
             }
-            // The drawing's "Or tap + — one tap is one standard drink." is
-            // true only under the standard-drink seed; this is the same point
-            // in a sentence that stays true under both (ADR-0034).
-            Group {
-              if settings.counterSeed == .standardDrink {
-                CounterSeedCaption(seed: counterSeed)
-              } else {
-                UsualDrinkSeedCaption()
-              }
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
           }
 
           // The typed path has to exist on an empty day too — it is the day
@@ -328,9 +320,11 @@ struct TodayView: View {
   ///
   /// Today's entries are the whole input, and that is exact rather than a
   /// shortcut: `quickCount`'s standard-drink branch reads only `dayTemplate`,
-  /// which filters to the day. The usual-drink seed *does* need the whole log,
-  /// and it gets it in `UsualDrinkSeedCaption`, which owns that fetch — so the
-  /// default configuration never runs an unbounded query for a caption.
+  /// which filters to the day. The usual-drink seed would need the whole log,
+  /// and since the owner's 2026-09-08 review nothing on Today describes it —
+  /// the empty day's caption, the one site that did (through a wrapper that
+  /// owned that fetch), is gone — so Today never runs an unbounded query for
+  /// a caption.
   private var counterSeed: LoggedDrink {
     DrinkDraft.countSeedPreview(
       from: todaysEntries.loggedDrinks,
@@ -457,10 +451,15 @@ struct TodayView: View {
           .font(.footnote)
           .foregroundStyle(.secondary)
       } else {
-        Button("Remove that record") {
-          store.unmarkAlcoholFree(Date())
-        }
-        .font(.footnote)
+        // No "Remove that record" here (owner's review, 2026-09-08 —
+        // ADR-0034 amendment): ＋ is the way back. A logged drink clears the
+        // marker (`DrinkRepository.saveOrThrow`), and − then removes that
+        // drink if the tap was only a correction, leaving the day blank. The
+        // sentence says so rather than offering a second control; the day
+        // sheet keeps its link.
+        Text("Tap the plus sign to change that.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
       }
     }
     .frame(maxWidth: .infinity)

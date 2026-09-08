@@ -1238,3 +1238,19 @@ recorded in ADR-0037; the placeholder is the copy that answers it.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.3 — The empty day says less (ADR-0034 amendment, 2026-09-08)
+
+The owner's review of Today: the caption under "Record no alcohol today" and
+the marked state's "Remove that record" link are gone from the home screen, and
+one sentence replaces the link. The drink sheet and the day sheet keep their
+microcopy.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Tap the plus sign to change that." | Today, under "Recorded as no alcohol today", for a marker the user set (a Health-mirrored marker still reads "From Apple Health") | The owner's wording. An instruction about a control, not about drinking: it says how to change the record, sets no target, grades nothing, and does not celebrate the marker. One new app key. |
+| "Plus logs one standard drink, with no type — editable afterwards." and its seed variants | *Removed from* Today's empty day. Still shown by the pill on Today once a described drink exists, and by the day sheet, through the same `CounterSeedCaption` | No copy change — the sentence is unchanged where it still appears, and the key stays in the catalog. |
+| "Remove that record" | *Removed from* Today's marked state. Still the day sheet's control | No copy change; the key stays in the catalog. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

@@ -1,5 +1,4 @@
 import DrinkTrackerCore
-import SwiftData
 import SwiftUI
 
 /// One sentence saying what ＋ will log.
@@ -16,8 +15,9 @@ struct CounterSeedCaption: View {
   /// `DrinkDraft.countSeedPreview`, never by hand, so this cannot drift from
   /// what the write actually does.
   let seed: LoggedDrink?
-  /// The day sheet's counter also removes; Today's zero state has nothing to
-  /// remove and says so by omission.
+  /// The day sheet's counter caption also describes −; Today's pill caption
+  /// leaves − unexplained by design (ADR-0034). Today's empty day shows no
+  /// caption at all since the owner's 2026-09-08 review.
   var includesMinus: Bool = false
 
   var body: some View {
@@ -47,30 +47,5 @@ struct CounterSeedCaption: View {
     // sentence in the catalog with a leading space, which a translator will
     // silently drop. (`+` is also deprecated in iOS 26.)
     return Text("\(adds) Minus removes the day's most recent drink.")
-  }
-}
-
-/// The same caption, for the usual-drink seed — which is the one case that
-/// cannot be answered from today alone.
-///
-/// It owns the wide fetch rather than `TodayView`, so the default
-/// configuration never reads the whole log to print a sentence: under
-/// `.standardDrink` this view is not instantiated, and its `@Query` therefore
-/// never runs. `quickCount`'s usual-drink branch walks all history to find the
-/// most-logged type, so the caption has to walk the same thing or describe a
-/// drink ＋ will not log.
-struct UsualDrinkSeedCaption: View {
-  @Environment(AppSettings.self) private var settings
-
-  @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
-
-  var body: some View {
-    CounterSeedCaption(
-      seed: DrinkDraft.countSeedPreview(
-        from: allEntries.loggedDrinks,
-        seed: .usualDrink,
-        region: settings.effectiveRegion
-      )
-    )
   }
 }
