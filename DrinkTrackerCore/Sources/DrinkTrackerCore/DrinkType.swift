@@ -24,7 +24,8 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
   case beer
   case wine
   case spirit
-  /// A mixed drink, measured by the spirit in it (ADR-0035).
+  /// A mixed drink, measured as the whole drink in the glass (ADR-0037,
+  /// which reversed ADR-0035's spirit-pour model on the owner's ruling).
   ///
   /// Sits between spirit and other in every ordered list because that is
   /// where it sits in the picker. Its raw value is new to the store: a build
@@ -62,7 +63,7 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .beer: localized("Beer", comment: "Drink type")
     case .wine: localized("Wine", comment: "Drink type")
     case .spirit: localized("Spirit", comment: "Drink type: distilled spirits")
-    case .cocktail: localized("Cocktail", comment: "Drink type: a mixed drink, measured by the spirit in it")
+    case .cocktail: localized("Cocktail", comment: "Drink type: a mixed drink, measured as the whole drink")
     case .other: localized("Other", comment: "Drink type: anything not beer, wine, spirits, or a cocktail")
     // Not "Standard drink": `xcstringstool` derives a Swift symbol per key and
     // folds case, so that key collides with the region unit name "standard
@@ -147,15 +148,16 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
         .init(label: "2 oz double", volumeOunces: 2),
         .custom
       ]
-    // A cocktail's size is the spirit in it, and the labels say so: the one
-    // number a drinker knows about a mixed drink is how much was poured, not
-    // the glass's volume or the mix's strength (ADR-0035). The 1.5 oz pour is
-    // the bar standard, 2 oz the usual stirred-cocktail recipe, 3 oz a double.
+    // A cocktail's size is the whole drink in the glass (ADR-0037): a short
+    // stirred drink, a shaken one, a tall one — the three sizes the owner
+    // named. No vessel noun, because no one vessel fits a mixed drink the way
+    // "can" fits a beer; the noun that carries the model sits on the Custom
+    // field instead, where the pour-size trap opens.
     case .cocktail:
       [
-        .init(label: "1.5 oz spirit", volumeOunces: 1.5),
-        .init(label: "2 oz spirit", volumeOunces: 2),
-        .init(label: "3 oz spirit", volumeOunces: 3),
+        .init(label: "3 oz", volumeOunces: 3),
+        .init(label: "4 oz", volumeOunces: 4),
+        .init(label: "6 oz", volumeOunces: 6),
         .custom
       ]
     case .other:
@@ -186,17 +188,18 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
   /// Beer, wine, spirit and cocktail each resolve to almost exactly 1.0 US
   /// standard drink at their default ABV, so "one drink" in the app means one
   /// drink. Spirit uses the 1.5 oz shot for that reason: at 40% it is 0.6 fl oz
-  /// of ethanol, which is the US definition exactly — and a cocktail, measured
-  /// by its spirit, rests on the same fact (ADR-0035). See
-  /// docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md.
+  /// of ethanol, which is the US definition exactly — and a cocktail's 4 oz at
+  /// 15% is that same 0.6 fl oz, the standard pour mixed to a glass
+  /// (ADR-0037). See docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md.
   public var defaultVolumeOunces: Double {
     switch self {
     case .beer: 12
     case .wine: 5
     case .spirit: 1.5
-    // The same 1.5 oz at 40%: a cocktail is measured by its spirit, so the
-    // bar-standard pour is one US standard drink exactly (ADR-0035).
-    case .cocktail: 1.5
+    // The middle pill: 4 oz at 15% is 0.6 fl oz of ethanol — the 1.5 oz
+    // standard pour at 40%, mixed and diluted to a 4 oz drink — so the
+    // two-tap path is one US standard drink exactly (ADR-0037).
+    case .cocktail: 4
     // Other is the deliberate exception: 8 oz @ 10% is 1.33 standard drinks. It
     // has no presets and no typical serving to anchor to, so its default is a
     // starting point for the Custom field rather than a claim about a real drink.
@@ -214,8 +217,11 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
     case .beer: 5
     case .wine: 12
     case .spirit: 40
-    // The spirit's strength, not the mix's: the volume above is the pour.
-    case .cocktail: 40
+    // The mix's strength, an estimate by construction (ADR-0037): the volume
+    // above is the whole drink, and 15% is what one standard pour comes to
+    // in 4 oz of it. A stirred drink runs stronger and a tall one weaker; the
+    // slider is how the user says so.
+    case .cocktail: 15
     case .other: 10
     // Pure alcohol. An untyped drink is stored as the ethanol a standard drink
     // is *defined* as, rather than as a plausible-looking beverage — 12 oz at

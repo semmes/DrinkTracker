@@ -35,21 +35,22 @@ struct LogExportTests {
     """)
   }
 
-  /// A cocktail's size and strength columns are the spirit poured and its
-  /// strength (ADR-0035) — the two facts the user stated — and the total is
-  /// exactly one US standard drink at the defaults, which is ADR-0005's
-  /// one-drink rule made checkable in the file itself.
-  @Test("A cocktail exports its spirit's facts and one standard drink at its defaults")
+  /// A cocktail's size and strength columns are the whole drink's volume and
+  /// its mixed strength (ADR-0037) — the two facts the row holds, in the same
+  /// shape as every other typed drink, which is why the Export footnote needs
+  /// no per-type clause — and the total is exactly one US standard drink at
+  /// the defaults, ADR-0005's one-drink rule made checkable in the file itself.
+  @Test("A cocktail exports the whole drink's facts and one standard drink at its defaults")
   func cocktailRow() {
     let csv = LogExport.csv(
       drinks: [
-        LoggedDrink(loggedAt: date(2026, 9, 7, 21, 0), type: .cocktail, volumeOunces: 1.5, abvPercent: 40)
+        LoggedDrink(loggedAt: date(2026, 9, 7, 21, 0), type: .cocktail, volumeOunces: 4, abvPercent: 15)
       ],
       alcoholFreeDays: [],
       region: .unitedStates,
       calendar: calendar
     )
-    #expect(csv.contains("2026-09-07,21:00,Cocktail,1.5,40,1,US standard drink,Tallyist"))
+    #expect(csv.contains("2026-09-07,21:00,Cocktail,4,15,1,US standard drink,Tallyist"))
   }
 
   @Test("The standard_drinks column follows the current region, not the entry's")

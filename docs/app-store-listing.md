@@ -223,10 +223,10 @@ into 6-9 and 10+ instead of one open-ended 6+. Under the counter, a control
 shows which drink plus is repeating and logs a plain standard drink instead
 in one tap. Add specific opens the full drink sheet whenever you want it.
 
-The drink sheet gains a fifth type, Cocktail, measured by the spirit in it:
-it opens at a 1.5 oz pour at 40%, one standard drink, with 2 oz and 3 oz
-pours a tap away and a Custom field that asks for ounces of spirit. Beer
-gains a 40 oz bottle size. Every drink type now has its own icon, shown
+The drink sheet gains a fifth type, Cocktail, measured as the whole drink:
+it opens at 4 oz at 15%, one standard drink, with 3 oz and 6 oz sizes a tap
+away and a Custom field that asks for the ounces in the glass. Beer gains a
+40 oz bottle size. Every drink type now has its own icon, shown
 beside its name on the sheet's type control, on today's list, in History
 and in Trends; the standard drink, Apple Health entries and days recorded
 as no alcohol have theirs too. Siri understands "Log a cocktail in
@@ -274,8 +274,8 @@ Notes on what's new in 1.3:
   not open the type breakdown on iOS 26 — a held, accessibility-stepped
   selection does.)
 - A fifth drink type, Cocktail, is a label on the user's own entry, stored as
-  the same two facts as every other type — a volume and a strength, here the
-  spirit poured and its strength, defaulting to one standard drink. A 40 oz
+  the same two facts as every other type — the drink's volume and its
+  strength, defaulting to one standard drink. A 40 oz
   size for beer is one more preset over the same facts. The drink icons are
   the app's own bundled artwork, replacing system symbols on the same
   surfaces. No new kind of data, no new permission, no network.
