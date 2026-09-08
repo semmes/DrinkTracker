@@ -93,3 +93,74 @@ Survey norms table replaces the 2020 one outright. If users read the
 twelve-month figure as stale after a change in their drinking, the
 four-week window can return as a *choice*, one window shown at a time, on
 ADR-0026's model — never two averages on one card.
+
+## Amendment (2026-09-07) — the average is keyed by calendar day
+
+**Status:** accepted · **Date:** 2026-09-07 · **Amends:** the Decision's
+"Both are instant-based windows with a fixed divisor" — the average's
+filter only; the gate and the divisors are unchanged · **Relates to:**
+ADR-0031 (the line that shares the window), ADR-0026 (`dayKeys`, the
+package's one DST-safe day walk), the contract's
+`weekly_average_standard_drinks`
+
+### Context
+
+The 1.3 release review found the card's two lines covering different sets
+of drinks. `weeklyAverage(_:window:endingAt:region:)` kept every entry
+logged at or after `now − length`, an instant 28 or 364 days back to the
+second; `FrequencyReference.drinkingDays(in:last:endingOn:calendar:)`
+(ADR-0031) counts calendar days from `TrendSummary.trailingDays`. The two
+differ by a partial day at the far edge. Probe: a drink at 21:00, 28
+calendar days back, read at 08:00 — 27 days and 11 hours earlier, inside
+the instant cutoff, outside the last 28 days — printed an average above
+zero over "You logged drinks on 0 of the last 28 days." The mirror case
+runs the other way on a day the clocks change. ADR-0031 wrote "over the
+same window", and the code did not quite deliver it.
+
+**The owner ruled (2026-09-07): day-key the average.**
+
+### Decision
+
+`weeklyAverage(_:window:endingAt:region:calendar:)` sums the entries whose
+`calendar.startOfDay(for: loggedAt)` is one of the `window.days` keys from
+`TrendSummary.trailingDays(count:endingOn:calendar:)` — the exact key set
+`drinkingDays` counts, walked by `dayKeys`, so it is DST-safe by the same
+argument as ADR-0026 — over the **fixed divisor, unchanged**: 4 or 52
+(ADR-0018's rule, kept). A `calendar` parameter, defaulting to `.current`,
+is the only signature change; the card passes its own calendar to both
+lines. `window(firstRecord:now:)` stays a comparison of instants — it
+measures how *old* the record is, not what is inside the window — and
+`Window.length` stays for it alone, re-documented as the gate's threshold.
+`weeklyAverage(of:)`, the year form, is untouched.
+
+### Consequences
+
+- The two lines now cover one set of days by construction. A tier-1 test
+  checks it drink by drink over both windows and three reading times,
+  including the probe and a Santiago midnight-DST day, and the far-edge
+  fixtures are calendar days an instant cutoff would have placed the other
+  way — so a regression to the instant rule fails the existing tests, not
+  only the new ones.
+- The figure moves by at most one day's drinks, at the window's far edge, on
+  the day this ships; the divisor does not move, so nothing else does.
+- "Entries dated after `now` are not excluded" narrows: an entry later
+  *today* is inside (today is a key); an entry on a later day is not — the
+  day count's rule already. The drink sheet's date picker stops at now, so
+  such an entry comes only from a clock set forward, and the two lines now
+  treat it alike.
+- **The contract's aggregation rule for "Your average"**
+  (`weekly_average_standard_drinks` in `semmes/tallyist-product`, 1.7.0)
+  still describes the instant cutoff and the original "not excluded" rule;
+  it must be bumped to the day-keyed filter. Raised, not assumed — the
+  standing merge authorization is this repo's — and not touched here.
+- No schema change, no CloudKit step, no setting, no copy change, no
+  catalog change. The note still reads "Your average covers your last 4
+  weeks." — truer than before.
+
+### How to reopen
+
+Day-keying the *gate* as well would make "28 days of history" a count of
+calendar days rather than of seconds. It was left alone here because it
+changes when the card first appears, which the spec's acceptance criterion
+states in days of history and nobody has reported; it is one function and
+one test if a report arrives.
