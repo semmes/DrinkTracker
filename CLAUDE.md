@@ -886,7 +886,7 @@ Open items for v1.2:
   at five heights because a symbol lays out at its own drawn height (fixed by a
   `@ScaledMetric` slot). The glyphs are **cap-height sized by decision** — 62–74%
   of the SF glyphs' height — one constant in the script if the owner wants SF's
-  size. **Cocktail is measured by its spirit** (1.5 oz @ 40% = 1.0 exactly, ADR-0005's
+  size. **Cocktail was measured by its spirit** (reversed the next day by ADR-0037 — the last bullet of this section) (1.5 oz @ 40% = 1.0 exactly, ADR-0005's
   clause exercised; pills "1.5 / 2 / 3 oz spirit"; the Custom field asks "Ounces of
   spirit"; the Export footnote says the columns are the spirit's), sits between
   spirit and other in every order, and an older build decodes its raw value to
@@ -908,3 +908,47 @@ Open items for v1.2:
   symbolset in Xcode's GUI, which may validate the SVG differently from actool.
   The neutral contract (`semmes/tallyist-product`) still enumerates four types;
   it joins ADR-0033/0034 as iOS decisions it has not caught up with.
+- **The cocktail is measured as the whole drink (2026-09-08, ADR-0037, PR #82).**
+  The owner reviewed the shipped type control: *"the oz options should be 3oz,
+  4oz, 6oz, custom to better represent a mixed drink rather than a shot of a
+  spirit."* That reverses ADR-0035's spirit-pour model one day after it landed,
+  on the owner's ruling rather than the ADR's field-report trigger — recorded as
+  a **partial supersession** (the type, its order, its glyph and the 40 oz
+  stand), with the old record's analysis of this model taken as read rather
+  than re-argued. What shipped: pills **"3 oz" / "4 oz" / "6 oz" / Custom** (no
+  vessel noun — none fits a mixed drink; one label each if the owner wants
+  "short"/"tall"); **default 4 oz at 15%** — the middle pill, and exactly one US
+  standard drink because 4 × 0.15 is the same 0.6 fl oz as spirit's 1.5 oz at
+  40%, the standard pour mixed to a glass (a tier-1 pin asserts the two
+  defaults' ethanol agree, and this is the first type whose default pill is not
+  its first); the slider keeps 0–60; the Custom field asks **"Ounces in the
+  glass"** over the shared "oz", because this model's own trap is the
+  *plausible* under-count — a known 1.5 oz pour typed there reads "≈ 0.4
+  standard drinks" (rendered) — and wording at that field is the defence
+  ADR-0035 itself prescribed for the other model; the Export footnote is back
+  to its 2026-09-02 wording. **The 15% is an estimate right for one shape of
+  drink** (a single pour mixed to 4 oz): a 3 oz stirred drink reads 0.75 where
+  a martini is about 1.8, a 6 oz single tall reads 1.5 where it is about 1.0;
+  the slider corrects both and the ADR records the cost as accepted. Rows
+  written under ADR-0035's model keep their facts and change their reading —
+  the simulator's own "Cocktail · 3oz · 40%" now sits under a "4oz · 15%" row
+  and totals the same; nothing shipped carries one. App catalog 303 → **302**
+  (in: "Ounces in the glass", the restored footnote; out: "Ounces of spirit",
+  "oz spirit", the ADR-0035 footnote), synced with `xcstringstool` from a full
+  build into a fresh `-derivedDataPath` — that route wrote exactly the predicted
+  key set again; widget and core untouched (the core "Cocktail" entry carries no
+  comment, so the code comment's change has nothing to sync). **No schema
+  change, no CloudKit step, no setting.** Verified locally at all four CI gates
+  (230 domain tests; the generic build; 81 integration tests, run on a second
+  simulator so the render was undisturbed; the glyph generator clean) plus tier
+  3 on a booted iPhone 17 Pro: the four pills on **one row** (cocktail no
+  longer wraps — design-system updated), 4 oz selected, "15% ABV", "≈ 1
+  standard drink", the placeholder, the 0.4, and the logged row with its seed
+  caption. **Tooling lesson:** the simulator MCP's `text` action types `\b`
+  literally and strips real control characters — no key can be sent from here —
+  so the way to an empty field (and its placeholder) is long-press → Select All
+  → **Cut** from the edit menu; typing over a selection replaces it. **Tier 3/4
+  for the owner's pass:** the three pills beside the other types' on a real
+  display; "Log a 6 oz cocktail" landing on the pill and a spoken 1.5 on Custom
+  at 0.4; the CSV's 4 and 15; both appearances (not rendered — copy and numbers
+  over existing controls).

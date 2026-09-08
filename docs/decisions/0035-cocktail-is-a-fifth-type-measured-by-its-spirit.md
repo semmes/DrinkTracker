@@ -1,6 +1,11 @@
 # 0035 — Cocktail is a fifth drink type, measured by the spirit in it; beer offers the 40 oz bottle
 
-**Status:** accepted · **Date:** 2026-09-07 · **Relates to:** ADR-0005 (its
+**Status:** accepted · **Superseded in part by:**
+[ADR-0037](0037-a-cocktail-is-measured-as-the-whole-drink.md) (2026-09-08),
+which moved the measurement to the whole drink on the owner's review of the
+shipped control — the pills, the strength, the Custom wording and the export
+clause decided below are history; the type, its order, its glyph and the 40 oz
+stand · **Date:** 2026-09-07 · **Relates to:** ADR-0005 (its
 "adding a type later" clause, exercised here for the first time), ADR-0009 and
 ADR-0023 (the seeds; `.unspecified` stays outside the picker), ADR-0022 and
 ADR-0023 (what an older build does with a row it cannot name), ADR-0015 (the

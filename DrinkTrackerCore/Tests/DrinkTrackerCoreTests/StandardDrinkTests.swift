@@ -126,10 +126,10 @@ struct DrinkTypeDefaultsTests {
     #expect(DrinkType.wine.defaultABVPercent == 12)
     #expect(DrinkType.spirit.defaultVolumeOunces == 1.5)
     #expect(DrinkType.spirit.defaultABVPercent == 40)
-    // A cocktail is its spirit (ADR-0035): the bar-standard pour at spirit
-    // strength, which is the US definition exactly, like spirit itself.
-    #expect(DrinkType.cocktail.defaultVolumeOunces == 1.5)
-    #expect(DrinkType.cocktail.defaultABVPercent == 40)
+    // A cocktail is the whole drink (ADR-0037): 4 oz at a mixed 15%, which is
+    // the same 0.6 fl oz of ethanol as the 1.5 oz pour at 40% it is made from.
+    #expect(DrinkType.cocktail.defaultVolumeOunces == 4)
+    #expect(DrinkType.cocktail.defaultABVPercent == 15)
     #expect(DrinkType.other.defaultVolumeOunces == 8)
     #expect(DrinkType.other.defaultABVPercent == 10)
   }
@@ -144,6 +144,10 @@ struct DrinkTypeDefaultsTests {
     for type in [DrinkType.beer, .wine, .spirit, .cocktail] {
       #expect(abs(drinks(type) - 1.0) < 0.01, "\(type.displayName) should open at one drink")
     }
+    // The cocktail's default is spirit's standard pour mixed to a glass
+    // (ADR-0037), so the two defaults hold the same ethanol by construction —
+    // 4 × 15 and 1.5 × 40 are the same product — not merely the same rounding.
+    #expect(abs(drinks(.cocktail) - drinks(.spirit)) < 1e-9)
   }
 
   /// Other is the deliberate exception, not an oversight: it has no presets and
@@ -168,7 +172,9 @@ struct DrinkTypeDefaultsTests {
       #expect(selected == type.defaultVolumeOunces, "\(type.displayName) pill disagrees")
     }
     #expect(DrinkType.spirit.defaultSizeOption.label == "1.5 oz shot")
-    #expect(DrinkType.cocktail.defaultSizeOption.label == "1.5 oz spirit")
+    // The middle pill, not the first: ADR-0005 freed position to be about
+    // presentation, and this is the first type whose default is not first.
+    #expect(DrinkType.cocktail.defaultSizeOption.label == "4 oz")
     #expect(DrinkType.other.defaultSizeOption.isCustom)
   }
 
@@ -203,10 +209,13 @@ struct DrinkTypeDefaultsTests {
     #expect(DrinkType.beer.sizeOptions.contains { $0.volumeOunces == 40 && $0.label == "40 oz bottle" })
     #expect(DrinkType.wine.sizeOptions.count == 3)
     #expect(DrinkType.spirit.sizeOptions.count == 4)
-    // A cocktail's pills are pours of spirit, and say so in every label.
+    // A cocktail's pills are glass sizes — the three the owner named, in
+    // ascending order, with no vessel noun (ADR-0037) — and none is the spirit
+    // pour ADR-0035 offered, so no label can be read under the old model.
     #expect(DrinkType.cocktail.sizeOptions.count == 4)
-    #expect(DrinkType.cocktail.sizeOptions.map(\.volumeOunces) == [1.5, 2, 3, nil])
-    #expect(DrinkType.cocktail.sizeOptions.dropLast().allSatisfy { $0.label.hasSuffix(" oz spirit") })
+    #expect(DrinkType.cocktail.sizeOptions.map(\.volumeOunces) == [3, 4, 6, nil])
+    #expect(DrinkType.cocktail.sizeOptions.dropLast().map(\.label) == ["3 oz", "4 oz", "6 oz"])
+    #expect(!DrinkType.cocktail.sizeOptions.contains { $0.label.contains("spirit") })
     #expect(DrinkType.other.sizeOptions == [.custom])
     // Every type the sheet offers can reach Custom, so no size is unreachable.
     for type in DrinkType.selectableCases {
@@ -878,14 +887,21 @@ struct IntentDraftTests {
   }
 
   /// "Log a cocktail in Tallyist" is one standard drink at the defaults, and
-  /// a spoken size is the spirit poured, matched to its pill (ADR-0035).
-  @Test("A cocktail intent is one standard drink, and a spoken pour finds its pill")
+  /// a spoken size is the whole drink, matched to its pill (ADR-0037). A
+  /// spoken 1.5 — the pour, under the model ADR-0035 had — is honoured as
+  /// stated, as Custom at the mixed strength: the intent records what was
+  /// said, and the plausible under-count that follows is the trap ADR-0037
+  /// accepts rather than second-guesses.
+  @Test("A cocktail intent is one standard drink, and a spoken glass size finds its pill")
   func cocktailIntent() throws {
     let plain = try #require(DrinkDraft.forIntent(type: .cocktail))
     #expect(abs(plain.standardDrinks(region: .unitedStates) - 1.0) < 0.001)
-    let double = try #require(DrinkDraft.forIntent(type: .cocktail, volumeOunces: 2))
-    #expect(double.selectedSize.label == "2 oz spirit")
-    #expect(double.volumeOunces == 2)
+    let tall = try #require(DrinkDraft.forIntent(type: .cocktail, volumeOunces: 6))
+    #expect(tall.selectedSize.label == "6 oz")
+    #expect(tall.volumeOunces == 6)
+    let pour = try #require(DrinkDraft.forIntent(type: .cocktail, volumeOunces: 1.5))
+    #expect(pour.selectedSize == .custom)
+    #expect(abs(pour.standardDrinks(region: .unitedStates) - 0.375) < 0.001)
   }
 
   @Test("A non-finite size falls back to the type's default, as strength does")

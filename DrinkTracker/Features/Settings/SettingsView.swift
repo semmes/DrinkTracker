@@ -347,10 +347,11 @@ struct SettingsView: View {
   private var exportSection: some View {
     SettingsSection(
       title: "Export",
-      // The cocktail clause is there because the file is the one surface read
-      // across a desk from someone else (ADR-0015): its size and strength
-      // columns hold the spirit poured, not the whole drink (ADR-0035).
-      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days recorded as no alcohol, here or in Apple Health. Totals are in your current unit. Size and strength are included for every drink you described — for a cocktail they are the spirit poured and its strength; a standard drink logged without a type carries only its count."
+      // No per-type clause: since ADR-0037 a cocktail's two columns are the
+      // whole drink's volume and its mixed strength, the same shape as every
+      // other typed drink, so the sentence ADR-0035 added for the spirit-pour
+      // model is gone again and the 2026-09-02 wording stands.
+      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days recorded as no alcohol, here or in Apple Health. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count."
     ) {
       ShareLink(
         item: LogExportFile(
