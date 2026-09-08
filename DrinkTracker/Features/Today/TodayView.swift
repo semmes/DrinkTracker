@@ -43,6 +43,9 @@ struct TodayView: View {
   @State private var draft: DrinkDraft?
   /// The imported entry being given typed details, if any (ADR-0016).
   @State private var adopting: LoggedDrink?
+  /// The entry this session's last save produced — set on every save, never
+  /// cleared. Read through `currentLastLogged`, which is what decides whether
+  /// the screen still shows it.
   @State private var lastLogged: LoggedDrink?
   @State private var isShowingSettings = false
   @State private var deletion = DeletionCoordinator()
@@ -247,6 +250,13 @@ struct TodayView: View {
         Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
           .foregroundStyle(.secondary)
+          // Its own element in this stack, so the label is what VoiceOver
+          // speaks — "Approximately 2.6 standard drinks" rather than the "≈"
+          // symbol, which has no reading. Composed verbatim because the
+          // package already translated it (same as `DrinkDetailSheet`).
+          .accessibilityLabel(
+            Text(verbatim: StandardDrink.accessibleEstimate(total, region: settings.effectiveRegion))
+          )
       }
 
       HeroBandLegend(active: todayIntensity)
@@ -569,13 +579,22 @@ struct TodayView: View {
         // to give. Promising "left alone it counts as one standard drink"
         // over a day of imported rows would describe a choice nobody made,
         // and a multi-count import cannot be tapped at all.
-        Text(drinks.contains(where: \.isTypeUnspecified)
-          ? "Tap a drink to say what it was — left alone it counts as one standard drink."
-          : "Tap a drink to change what it was.")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .listRowSeparator(.hidden)
-          .listRowBackground(Color.clear)
+        //
+        // And only while there is a row a tap can reach. A day whose only
+        // rows are multi-count imports renders them read-only (`isTappable:
+        // false` above), and "Tap a drink to change what it was" over those
+        // answers no tap. The prototype's ternary chose between the two
+        // sentences and never considered the third case (ADR-0034's
+        // deviation list).
+        if drinks.contains(where: { !$0.isImportedFromHealth || $0.isAdoptable }) {
+          Text(drinks.contains(where: \.isTypeUnspecified)
+            ? "Tap a drink to say what it was — left alone it counts as one standard drink."
+            : "Tap a drink to change what it was.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+        }
       }
     }
   }
@@ -639,7 +658,7 @@ struct TodayView: View {
       drink: drink,
       region: settings.effectiveRegion,
       isTappable: isTappable,
-      isMostRecent: drink.id == lastLogged?.id
+      isMostRecent: drink.id == currentLastLogged?.id
     )
   }
 
@@ -652,17 +671,36 @@ struct TodayView: View {
     }
   }
 
+  /// `lastLogged` while its row is still on today's list; nil otherwise.
+  ///
+  /// The state is set on every save and never cleared, and both readers — the
+  /// line under the counter and the row tint — go through this rather than
+  /// the raw state. Cleared state would be the wrong fix: the tint answers
+  /// "where did my tap land" (see `row`), so the line must not be derived
+  /// from `todaysEntries.first` — a widget or Health row is not something
+  /// this session logged — but a line naming a drink that is no longer in
+  /// the log is a claim about nothing, and its Edit re-inserted the removed
+  /// entry through `DrinkStore.save`'s insert-on-missing-id path. Reading
+  /// presence off the query also gives the right answer without new state
+  /// in every case that used to be wrong: − or swipe-Remove hides the line,
+  /// Undo brings it back, and midnight clears it with the rest of the day.
+  private var currentLastLogged: LoggedDrink? {
+    guard let lastLogged,
+          todaysEntries.contains(where: { $0.entryID == lastLogged.id }) else { return nil }
+    return lastLogged
+  }
+
   /// The "last logged" line only appears once something has been logged this
   /// session, and carries the Edit affordance for the edit-after pattern.
   @ViewBuilder
   private var lastLoggedLine: some View {
-    if let lastLogged {
+    if let current = currentLastLogged {
       HStack(spacing: GlassTokens.Spacing.tight) {
-        Text(lastLogged.summaryLine)
+        Text(current.summaryLine)
           .font(.footnote)
           .foregroundStyle(.secondary)
         Button("Edit") {
-          draft = DrinkDraft(editing: lastLogged)
+          draft = DrinkDraft(editing: current)
         }
         .font(.footnote.weight(.medium))
         .buttonStyle(.plain)
@@ -670,7 +708,7 @@ struct TodayView: View {
       }
       .padding(.top, GlassTokens.Spacing.tight)
       .transition(.opacity.combined(with: .move(edge: .top)))
-      .animation(.smooth, value: lastLogged)
+      .animation(.smooth, value: current)
     }
   }
 

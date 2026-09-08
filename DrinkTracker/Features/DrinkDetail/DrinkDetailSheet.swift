@@ -46,6 +46,17 @@ struct DrinkDetailSheet: View {
   /// what the sheet asks for is a property of the presentation, and the
   /// answer must never be able to withdraw the question.
   private let asksType: Bool
+  /// Whether the primary action says "Save details" — adoption, and adding
+  /// a type to an untyped drink already on the record (ADR-0016's word,
+  /// borrowed by ADR-0023).
+  ///
+  /// Decided once at init for the same reason as `asksType`. It used to be a
+  /// live read of `draft.needsType`, so on the untyped row's "Tap to say what
+  /// it was" path the button said "Save details" until the first type tap and
+  /// "Save changes" after it — the mid-presentation change `asksType` exists
+  /// to prevent, one row lower. The owner ruled that "Save details" holds for
+  /// the whole presentation (2026-09-07).
+  private let savesDetails: Bool
 
   init(
     draft: DrinkDraft,
@@ -64,6 +75,8 @@ struct DrinkDetailSheet: View {
     // does a draft that arrives without one — Today's "Add specific" opens on
     // an untyped standard drink (ADR-0023), which is the whole of that path.
     self.asksType = showsTimeControl || editsExistingEntry || draft.needsType
+    // Read here, once: the picker writes `needsType` false on its first tap.
+    self.savesDetails = editsExistingEntry && draft.needsType
     self.adopting = nil
     self.onLogged = onLogged
     self.onCancel = onCancel
@@ -88,6 +101,7 @@ struct DrinkDetailSheet: View {
     self.showsTimeControl = false
     // The import doesn't know the type; asking for it is the point of adopting.
     self.asksType = true
+    self.savesDetails = true
     self.adopting = imported
     self.onLogged = onLogged
     self.onCancel = onCancel
@@ -392,7 +406,6 @@ struct DrinkDetailSheet: View {
   private var canLog: Bool { draft.volumeOunces > 0 }
 
   private var logButtonTitle: String {
-    if adopting != nil { return "Save details" }
     // Adding a type to an untyped drink *that is already on the record* is the
     // same act as adoption, and says so — "Save changes" would imply something
     // was there to change (ADR-0016's vocabulary, borrowed by ADR-0023).
@@ -402,10 +415,14 @@ struct DrinkDetailSheet: View {
     // on one, and pressing the button before naming a type writes a row that
     // does not exist yet — the same row ＋ writes. Calling that "Save details"
     // named details nobody had given, and it is a log, so it says "Log drink"
-    // (owner's call, 2026-09-07). The title is now fixed for the whole of that
-    // presentation rather than changing under the first tap, which is the same
-    // fault `asksType` exists to prevent.
-    if draft.needsType && draft.editingEntryID != nil { return "Save details" }
+    // (owner's call, 2026-09-07).
+    //
+    // `savesDetails` is stored, not re-read: the test includes `needsType`,
+    // which the picker writes false, so a live read flipped the untyped row's
+    // button to "Save changes" under the first tap. Each presentation now
+    // keeps the title it opened with, which is the same fault `asksType`
+    // exists to prevent.
+    if adopting != nil || savesDetails { return "Save details" }
     return draft.editingEntryID == nil ? "Log drink" : "Save changes"
   }
 

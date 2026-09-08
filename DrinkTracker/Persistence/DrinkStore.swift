@@ -37,13 +37,25 @@ struct DrinkStore {
     // backfill queue and being mirrored a second time when access returns.
     // Either way nothing new is written, and the next authorized edit of a
     // Tallyist-owned row retires its sample as before.
-    if let existing = repository.entry(with: drink.id),
-       let oldSampleID = existing.healthKitSampleID {
-      switch await health.deleteSample(id: oldSampleID) {
-      case .retired:
+    //
+    // Which sample that is comes from the stored row — or, when the row is
+    // already gone, from the value itself. Remove → Undo re-saves the deleted
+    // `LoggedDrink` after the hard delete, so reading only the row sent every
+    // undo down the fresh-sample path: an undone adopted import got a
+    // Tallyist sample beside the other app's and lost its foreign id. The
+    // decision is `HealthSampleRetirement` (tier 1); a draft's
+    // `makeLoggedDrink` never carries a sample id, so only a value read back
+    // from the store can supply one here.
+    let retirement = HealthSampleRetirement(
+      existingSampleID: repository.entry(with: drink.id)?.healthKitSampleID,
+      incomingSampleID: drink.healthKitSampleID
+    )
+    if let oldSampleID = retirement.sampleToRetire {
+      switch retirement.resolution(after: await health.deleteSample(id: oldSampleID)) {
+      case .writeFresh:
         drink.healthKitSampleID = await health.save(drink)
-      case .foreign, .kept:
-        drink.healthKitSampleID = oldSampleID
+      case .keep(let sampleID):
+        drink.healthKitSampleID = sampleID
       }
     } else {
       drink.healthKitSampleID = await health.save(drink)
