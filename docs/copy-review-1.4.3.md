@@ -1120,6 +1120,22 @@ visually identical string.
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
 
+### Listing copy (2026-09-07)
+
+The What's New (1.3) paragraph for Home v2, one sentence in it reworded on the
+1.3 release review, and the sentence the same review added for ADR-0033's
+figure — which belongs with "The longest run with none" above and is reviewed
+here because the three landed in one pass.
+
+| Where | Copy | Read |
+|---|---|---|
+| What's New (1.3), the Today paragraph | "The Today screen is rebuilt around the counter. The number now sits on the same colour scale the calendar uses, so a day reads the same on both, and a legend names the bands. The calendar's scale gains a step: the top band splits into 6–9 and 10+ instead of one open-ended 6+. Under the counter, a control shows which drink plus is repeating and logs a plain standard drink instead in one tap. Add specific opens the full drink sheet whenever you want it." | Feature statements only: what moved, what it now reads the same as, what one tap does. No invitation to log more, no word for what a band *means*, no exclamation marks. |
+| The scale sentence, reworded | was "heavy days split into 6-9 and 10+ instead of one open-ended 6+"; now "the top band splits into 6–9 and 10+ instead of one open-ended 6+" | "Heavy" graded the day — the one evaluative word in the block, and the kind of verdict the legend itself never makes. The band is now named as a band, with the legend's own en dash; an ASCII hyphen would have printed a range the app itself never prints. |
+| What's New (1.3), the longest-run sentence | "Trends also gains a card for the longest run of days recorded as no alcohol in the range shown; it counts only days marked that way, so a day with nothing logged does not extend it." | Names the figure by the statistic's own name and states its rule in the reader's terms — "marked" is the calendar's own verb ("Mark no drinks"). "Recorded", not "achieved"; no "streak", "best" or "so far"; the last clause says what not logging does, which is the fact the reviewer needs and the reader is owed. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
+
 ## 1.3 — The Add-specific sheet's primary action (ADR-0034 amendment, 2026-09-07)
 
 No new string. One existing reviewed string moves off one path, and another
