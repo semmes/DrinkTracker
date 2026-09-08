@@ -19,6 +19,7 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
   case beer
   case wine
   case spirit
+  case cocktail
   case other
   /// One standard drink, no type — the spoken form of the counter's ＋
   /// (ADR-0023). Makes "Log a standard drink in Tallyist" work through the
@@ -34,6 +35,7 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
       .beer: DisplayRepresentation(title: "Beer"),
       .wine: DisplayRepresentation(title: "Wine"),
       .spirit: DisplayRepresentation(title: "Spirit"),
+      .cocktail: DisplayRepresentation(title: "Cocktail"),
       .other: DisplayRepresentation(title: "Other"),
       .standardDrink: DisplayRepresentation(title: "Standard drink")
     ]
@@ -44,6 +46,7 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
     case .beer: self = .beer
     case .wine: self = .wine
     case .spirit: self = .spirit
+    case .cocktail: self = .cocktail
     case .other: self = .other
     case .unspecified: self = .standardDrink
     }
@@ -54,6 +57,7 @@ enum QuickLogDrinkType: String, AppEnum, CaseIterable {
     case .beer: .beer
     case .wine: .wine
     case .spirit: .spirit
+    case .cocktail: .cocktail
     case .other: .other
     case .standardDrink: .unspecified
     }

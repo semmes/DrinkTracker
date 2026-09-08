@@ -34,7 +34,7 @@ struct DrinkDetailSheet: View {
   /// Decided once, when the sheet opens, and deliberately *not* re-derived from
   /// the draft while it is open. The condition used to be `draft.needsType`,
   /// which stops being true the instant the question is answered: on Today's
-  /// "Add specific" path the four types disappeared as the user's own tap
+  /// "Add specific" path the types disappeared as the user's own tap
   /// landed, size and strength took their place, and the sheet read as having
   /// pushed a second page — with no way back to a different type short of
   /// closing it and starting over (owner's report, 2026-09-07).
@@ -137,6 +137,13 @@ struct DrinkDetailSheet: View {
 
   private var header: some View {
     HStack {
+      // The type's glyph beside its name, so the sheet names the drink the
+      // way every row does (ADR-0036). It follows the picker below without
+      // any extra state: both read `draft.type`.
+      Image(draft.type.symbolName)
+        .font(.title)
+        .foregroundStyle(Color.accentColor)
+        .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text(draft.type.displayName)
           .font(GlassTokens.Typography.sheetTitle)
@@ -167,7 +174,7 @@ struct DrinkDetailSheet: View {
   // MARK: - Type
 
   /// Shown whenever the presentation asks which drink it was, and then shown
-  /// for as long as the sheet is open — the four types stay in place, so a
+  /// for as long as the sheet is open — the five types stay in place, so a
   /// reader who picks Wine can still change their mind to Spirit without
   /// leaving. Picking one adds size and strength *below* it rather than
   /// replacing it.
@@ -182,12 +189,9 @@ struct DrinkDetailSheet: View {
     if asksType {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Drink")
-        Picker("Drink", selection: typeBinding) {
-          ForEach(DrinkType.selectableCases) { type in
-            Text(type.displayName).tag(type)
-          }
-        }
-        .pickerStyle(.segmented)
+        // Glyph over name in every segment (ADR-0036) — a native segmented
+        // Picker shows one or the other, so the control is its own view.
+        DrinkTypePicker(selection: typeBinding)
       }
     }
   }
@@ -230,7 +234,7 @@ struct DrinkDetailSheet: View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
       SectionLabel("Size")
 
-      // Wrapping layout so a four-pill type (Beer, Spirit) doesn't squeeze
+      // Wrapping layout so a four-pill type (Beer, Spirit, Cocktail) doesn't squeeze
       // labels below legibility on narrower devices or at large Dynamic Type.
       FlowLayout(spacing: GlassTokens.Spacing.tight) {
         ForEach(draft.type.sizeOptions) { option in
@@ -252,9 +256,14 @@ struct DrinkDetailSheet: View {
     }
   }
 
+  /// A cocktail's field asks for the spirit, in so many words. The pills
+  /// above it say "oz spirit", but this is the one place the glass-size trap
+  /// opens — typing an 8 oz glass at spirit strength records five drinks —
+  /// so the noun that carries the model (ADR-0035) cannot vanish exactly
+  /// here. Every other type keeps the plain unit.
   private var customVolumeField: some View {
     HStack(spacing: GlassTokens.Spacing.tight) {
-      TextField("Ounces", text: $customVolumeText)
+      TextField(draft.type == .cocktail ? "Ounces of spirit" : "Ounces", text: $customVolumeText)
         .keyboardType(.decimalPad)
         .focused($isCustomVolumeFocused)
         .font(.body)
@@ -268,7 +277,7 @@ struct DrinkDetailSheet: View {
             draft.customVolumeOunces = parsed
           }
         }
-      Text("oz")
+      Text(draft.type == .cocktail ? "oz spirit" : "oz")
         .font(.body)
         .foregroundStyle(.secondary)
     }
@@ -417,6 +426,10 @@ struct SectionLabel: View {
       .font(.footnote.weight(.medium))
       .foregroundStyle(.secondary)
       .textCase(.uppercase)
+      // A heading, so VoiceOver can move between the sheet's sections and
+      // the type picker's own "Drink" label reads as the section it sits
+      // under rather than as an echo of it.
+      .accessibilityAddTraits(.isHeader)
   }
 }
 

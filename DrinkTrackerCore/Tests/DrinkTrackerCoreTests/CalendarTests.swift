@@ -450,6 +450,20 @@ struct QuickLogSeedTests {
     let picks = (0..<20).map { _ in TrendSummary.mostLoggedType(in: drinks) }
     #expect(Set(picks).count == 1)
     #expect(picks.first == .beer)
+
+    // The new case sits between spirit and other in `allCases` (ADR-0035),
+    // so it loses a tie to spirit and wins one against other — and a log with
+    // no cocktail in it resolves exactly as it did before.
+    let spiritOrCocktail = [
+      LoggedDrink(type: .cocktail, volumeOunces: 1.5, abvPercent: 40),
+      LoggedDrink(type: .spirit, volumeOunces: 1.5, abvPercent: 40),
+    ]
+    #expect(TrendSummary.mostLoggedType(in: spiritOrCocktail) == .spirit)
+    let cocktailOrOther = [
+      LoggedDrink(type: .other, volumeOunces: 8, abvPercent: 10),
+      LoggedDrink(type: .cocktail, volumeOunces: 1.5, abvPercent: 40),
+    ]
+    #expect(TrendSummary.mostLoggedType(in: cocktailOrOther) == .cocktail)
   }
 
   @Test("The most recent drink of a type carries its size and strength forward")

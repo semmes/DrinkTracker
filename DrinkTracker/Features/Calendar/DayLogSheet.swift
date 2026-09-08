@@ -171,7 +171,7 @@ struct DayLogSheet: View {
 
   private var markedState: some View {
     VStack(spacing: GlassTokens.Spacing.tight) {
-      Label("Recorded as no alcohol", systemImage: "checkmark.circle")
+      Label("Recorded as no alcohol", image: DrinkType.Symbol.alcoholFree)
         .font(.subheadline)
         .foregroundStyle(.secondary)
       if markerIsFromHealth {

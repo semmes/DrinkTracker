@@ -30,7 +30,7 @@ struct PeriodDetailView: View {
         dayFigure
       case .alcoholFree(let fromHealth)?:
         VStack(alignment: .leading, spacing: 2) {
-          Label("Recorded as no alcohol", systemImage: "checkmark.circle")
+          Label("Recorded as no alcohol", image: DrinkType.Symbol.alcoholFree)
             .font(.subheadline)
             .foregroundStyle(.secondary)
           // The same disclosure the day sheet and Today make (ADR-0025): a
@@ -164,7 +164,10 @@ struct PeriodDetailView: View {
 
     return layout {
       HStack(spacing: GlassTokens.Spacing.regular) {
-        Image(systemName: symbolName(share.kind))
+        // A catalog symbol, never `systemName:`, and decorative: the row
+        // combines its children for VoiceOver, and a catalog `Image` would
+        // otherwise contribute its asset name to the sentence (ADR-0036).
+        Image(decorative: symbolName(share.kind))
           .foregroundStyle(Color.accentColor)
           .frame(width: 28)
         VStack(alignment: .leading, spacing: 2) {
@@ -195,7 +198,7 @@ struct PeriodDetailView: View {
   private func symbolName(_ kind: DrinkShare.Kind) -> String {
     switch kind {
     case .type(let type): type.symbolName
-    case .importedFromHealth: "heart.text.square"
+    case .importedFromHealth: DrinkType.Symbol.health
     }
   }
 
@@ -349,7 +352,7 @@ struct PeriodReadout: View {
     case .alcoholFree(let fromHealth)?:
       // ADR-0025: every surface showing the marker says where it came from.
       HStack(spacing: 4) {
-        Label("Recorded as no alcohol", systemImage: "checkmark.circle")
+        Label("Recorded as no alcohol", image: DrinkType.Symbol.alcoholFree)
         if fromHealth {
           Text(verbatim: "·")
           Text("From Apple Health")

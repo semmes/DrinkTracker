@@ -93,7 +93,10 @@ struct PlusModePill: View {
   ) -> some View {
     Button(action: action) {
       HStack(spacing: 6) {
-        Image(systemName: symbol)
+        // A catalog symbol, never `systemName:`, and decorative because the
+        // name beside it is the label — a catalog `Image` otherwise speaks
+        // its asset name (ADR-0036).
+        Image(decorative: symbol)
           .font(.caption)
           .foregroundStyle(isSelected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
         label

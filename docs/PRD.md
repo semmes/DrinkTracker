@@ -68,7 +68,9 @@ The time control appears only when editing an existing entry or adding one
 retroactively — `DrinkDetailSheet.showsTimeControl`. The type picker appears when the
 presentation opens without a type — "Add specific" opens on an untyped standard drink
 (ADR-0034) — and then **stays for the whole presentation**: `DrinkDetailSheet.asksType`
-is decided once at init, never re-read from the draft.
+is decided once at init, never re-read from the draft. The picker is the app's own
+`DrinkTypePicker` (five types, each its glyph over its name — ADR-0035, ADR-0036),
+and it never hides a segment.
 *Failure mode:* a control added "just for completeness" to the quick-add path is a tax
 on the most common action in the app. And a question gated on live state withdraws
 itself the moment it is answered — the sheet reads as having pushed a second page, with

@@ -93,6 +93,30 @@ struct DrinkRepositoryTests {
     #expect(entry.abvPercent == 12)
   }
 
+  /// The store keeps the type as its raw string so a case added later cannot
+  /// fail to decode (`DrinkEntry`'s own note). Cocktail is the first case
+  /// added since the store shipped (ADR-0035), so this is the first time the
+  /// promise is exercised in both directions: the new value round-trips, and
+  /// a value this build does not know — what a *newer* build will one day
+  /// write — still reads back as a drink rather than a crash, as `.other`
+  /// with its real volume and strength intact, which is the degradation
+  /// ADR-0022 and ADR-0023 chose on purpose.
+  @Test("A cocktail round-trips, and an unknown type reads back as Other")
+  func cocktailRoundTripsAndUnknownTypeDegradesToOther() throws {
+    repository.save(drink(type: .cocktail, ounces: 1.5, abv: 40))
+    let entry = try #require(try allEntries().first)
+    #expect(entry.typeRawValue == "cocktail")
+    #expect(entry.logged.type == .cocktail)
+    #expect(entry.logged.volumeOunces == 1.5)
+
+    entry.typeRawValue = "mead"
+    let unknown = entry.logged
+    #expect(unknown.type == .other)
+    #expect(unknown.volumeOunces == 1.5)
+    #expect(unknown.abvPercent == 40)
+    #expect(unknown.isRepeatable)
+  }
+
   @Test("Different ids produce separate entries")
   func differentIDsInsertSeparately() throws {
     repository.save(drink())
