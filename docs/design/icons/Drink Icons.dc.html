@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/tallyist-design-system-a2a6b19a-c12c-47d8-9abe-c21e2c5a8671/styles.css">
+  <style>
+    body { margin: 0; background: #e5e5ea; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</helmet>
+<section id="1a" style="display:flex; flex-direction:column; gap:24px; padding:32px; width:1120px; box-sizing:border-box; font-family:var(--font-text); color:var(--label);">
+  <div style="display:flex; align-items:baseline; gap:12px;">
+    <a href="#1a" style="font-size:11px; font-weight:600; padding:2px 7px; border-radius:6px; background:var(--accent-fill); color:var(--on-fill);">1a</a>
+    <div style="font-size:22px; font-weight:600;">Drink type glyphs</div>
+    <div style="font-size:13px; color:var(--label-secondary);">Replaces mug.fill · wineglass.fill · flask.fill · cup.and.saucer.fill · drop.fill · heart.text.square · checkmark.circle</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+    <div style="background:var(--surface); border-radius:var(--r-card); padding:20px; box-shadow:inset 0 0 0 .5px var(--separator);">
+      <div style="font-size:13px; font-weight:600; margin-bottom:14px;">The set — light</div>
+      <div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px 8px;">
+        <sc-for list="{{ set }}" as="it" hint-placeholder-count="8">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 4px 10px; background:var(--surface-card); border-radius:var(--r-control); box-shadow:inset 0 0 0 .5px var(--separator);">
+            <div style="display:flex; color:var(--accent);">
+              <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ it.f.d }}" fill="{{ it.f.fill }}" stroke="{{ it.f.stroke }}" stroke-width="{{ it.f.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg>
+            </div>
+            <div style="font-size:12px; font-weight:500; text-align:center;">{{ it.name }}</div>
+            <div class="mono" style="font-size:10px; color:var(--label-secondary); text-align:center;">{{ it.symbol }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div class="caption" style="margin-top:12px;">Filled weight, accent 500 on light. Alcohol-free stays an outline (colour never grades — the marker sits off the ramp).</div>
+    </div>
+    <div class="dark" style="background:var(--surface); color:var(--label); border-radius:var(--r-card); padding:20px; box-shadow:inset 0 0 0 .5px var(--separator);">
+      <div style="font-size:13px; font-weight:600; margin-bottom:14px;">The set — dark</div>
+      <div style="display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px 8px;">
+        <sc-for list="{{ set }}" as="it" hint-placeholder-count="8">
+          <div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 4px 10px; background:var(--surface-card); border-radius:var(--r-control); box-shadow:inset 0 0 0 .5px var(--separator);">
+            <div style="display:flex; color:var(--accent);">
+              <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ it.f.d }}" fill="{{ it.f.fill }}" stroke="{{ it.f.stroke }}" stroke-width="{{ it.f.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg>
+            </div>
+            <div style="font-size:12px; font-weight:500; text-align:center;">{{ it.name }}</div>
+            <div class="mono" style="font-size:10px; color:var(--label-secondary); text-align:center;">{{ it.symbol }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div class="caption" style="margin-top:12px;">Accent steps to 400 in dark (4.79:1). Secondary-label glyphs — the untyped row, the unselected pill segment — follow the system secondary colour.</div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-card); border-radius:var(--r-card); padding:20px; box-shadow:inset 0 0 0 .5px var(--separator); display:grid; grid-template-columns:1.1fr 1fr; gap:24px;">
+    <div>
+      <div style="font-size:13px; font-weight:600; margin-bottom:12px;">Construction</div>
+      <div style="display:flex; gap:20px; align-items:flex-start;">
+        <div style="position:relative; width:192px; height:192px; flex:none; background-image:linear-gradient(var(--separator) .5px, transparent .5px), linear-gradient(90deg, var(--separator) .5px, transparent .5px); background-size:8px 8px; border-radius:8px; box-shadow:inset 0 0 0 .5px var(--separator);">
+          <div style="position:absolute; inset:16px; border:1px dashed var(--accent); opacity:.5;"></div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--accent);">
+            <svg width="192" height="192" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.beer.d }}" fill="{{ ic.beer.fill }}" stroke="{{ ic.beer.stroke }}" stroke-width="{{ ic.beer.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg>
+          </div>
+        </div>
+        <ul style="margin:0; padding:0; list-style:none; font-size:12px; line-height:18px; display:flex; flex-direction:column; gap:6px;">
+          <li>24pt grid, 2pt safe margin; every vessel sits on the same baseline (y&nbsp;20) with the same 2pt stroke and 1pt corner radii, so the set reads as one hand.</li>
+          <li>One vessel per type, told apart by silhouette not detail: tall-with-handle, stemmed-deep, short-wide, stemmed-cone, tall-plain.</li>
+          <li>Liquid is one cut line (foam, fill level); nothing decorative — no bubbles, garnish, or straws, matching “a mark, not a message”.</li>
+          <li>Other carries an ellipsis, the platform’s own sign for “anything else”. The untyped drink stays a measure, not a vessel (the drop), as the code comment asks.</li>
+          <li>Alcohol-free is outline in both weights: an outline is the design system’s own signal for “off the ramp”.</li>
+          <li>Filled, like every other symbol the app uses; the 2pt stroke rule governs cut lines and the alcohol-free ring so the set reads as one family.</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:13px; font-weight:600; margin-bottom:12px;">Scale — the sizes the app renders</div>
+      <div style="display:grid; grid-template-columns:auto 1fr; gap:10px 16px; align-items:center; font-size:12px;">
+        <div class="caption">caption · 12pt (＋ pill)</div>
+        <div style="display:flex; gap:10px; color:var(--accent); align-items:center;">
+          <sc-for list="{{ typeIcons }}" as="it" hint-placeholder-count="6"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ it.d }}" fill="{{ it.fill }}" stroke="{{ it.stroke }}" stroke-width="{{ it.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></sc-for>
+        </div>
+        <div class="caption">body · 17pt (rows)</div>
+        <div style="display:flex; gap:12px; color:var(--accent); align-items:center;">
+          <sc-for list="{{ typeIcons }}" as="it" hint-placeholder-count="6"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ it.d }}" fill="{{ it.fill }}" stroke="{{ it.stroke }}" stroke-width="{{ it.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></sc-for>
+        </div>
+        <div class="caption">title3 · 22pt (design-system row)</div>
+        <div style="display:flex; gap:14px; color:var(--accent); align-items:center;">
+          <sc-for list="{{ typeIcons }}" as="it" hint-placeholder-count="6"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ it.d }}" fill="{{ it.fill }}" stroke="{{ it.stroke }}" stroke-width="{{ it.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></sc-for>
+        </div>
+        <div class="caption">large · 28pt (sheet header)</div>
+        <div style="display:flex; gap:16px; color:var(--accent); align-items:center;">
+          <sc-for list="{{ typeIcons }}" as="it" hint-placeholder-count="6"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ it.d }}" fill="{{ it.fill }}" stroke="{{ it.stroke }}" stroke-width="{{ it.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></sc-for>
+        </div>
+      </div>
+      <div class="caption" style="margin-top:14px;">At 12pt the cut lines close to 1pt; silhouettes stay distinct, which is why filled ships.</div>
+    </div>
+  </div>
+
+  <div>
+    <div style="font-size:13px; font-weight:600; margin-bottom:12px;">In place — every surface that reads <span class="mono">DrinkType.symbolName</span></div>
+    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;">
+
+      <div style="background:var(--surface); border-radius:var(--r-card); box-shadow:inset 0 0 0 .5px var(--separator); padding:16px 16px 18px; display:flex; flex-direction:column; gap:12px;" data-screen-label="Today">
+        <div style="font-size:17px; font-weight:600;">Today</div>
+        <div style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+          <div class="numeral" style="font-size:56px; line-height:1;">3</div>
+          <div style="font-size:13px; color:var(--label-secondary);">drinks today</div>
+          <div style="display:flex; gap:3px; padding:3px; border-radius:22px; background:rgba(118,118,128,.12); margin-top:8px;">
+            <div style="display:flex; align-items:center; gap:6px; padding:0 15px; min-height:32px; font-size:13px; color:var(--label);">
+              <span style="display:flex; color:var(--label-secondary);"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.standard.d }}" fill="{{ ic.standard.fill }}" stroke="{{ ic.standard.stroke }}" stroke-width="{{ ic.standard.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>Standard drink
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; padding:0 15px; min-height:32px; border-radius:22px; background:var(--surface-card); font-size:13px; font-weight:600; color:var(--label);">
+              <span style="display:flex; color:var(--accent);"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.beer.d }}" fill="{{ ic.beer.fill }}" stroke="{{ ic.beer.stroke }}" stroke-width="{{ ic.beer.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>Beer
+            </div>
+          </div>
+          <div class="caption">＋ logs another beer</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:6px;">
+          <span class="caption">Logged today</span><span style="font-size:12px; font-weight:500; color:var(--accent);">Add specific</span>
+        </div>
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:center; gap:12px; padding:8px 8px; border-radius:14px; background:rgba(37,106,191,.08);">
+            <span style="display:flex; width:24px; justify-content:center; color:var(--accent);"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.beer.d }}" fill="{{ ic.beer.fill }}" stroke="{{ ic.beer.stroke }}" stroke-width="{{ ic.beer.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+            <div style="flex:1; min-width:0;"><div style="font-size:15px;">Beer</div><div style="font-size:11px; color:var(--label-secondary);">12oz · 5%</div></div>
+            <span style="font-size:12px; color:var(--label-secondary);">9:41 PM</span><span style="color:var(--label-tertiary); font-size:11px;">›</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:8px 8px;">
+            <span style="display:flex; width:24px; justify-content:center; color:var(--label-secondary);"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.standard.d }}" fill="{{ ic.standard.fill }}" stroke="{{ ic.standard.stroke }}" stroke-width="{{ ic.standard.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+            <div style="flex:1; min-width:0;"><div style="font-size:15px; color:var(--label-secondary);">One standard drink</div><div style="font-size:11px; color:var(--accent);">Tap to say what it was</div></div>
+            <span style="font-size:12px; color:var(--label-secondary);">8:10 PM</span><span style="color:var(--label-tertiary); font-size:11px;">›</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px; padding:8px 8px;">
+            <span style="display:flex; width:24px; justify-content:center; color:var(--accent);"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.health.d }}" fill="{{ ic.health.fill }}" stroke="{{ ic.health.stroke }}" stroke-width="{{ ic.health.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+            <div style="flex:1; min-width:0;"><div style="font-size:15px;">From Apple Health</div><div style="font-size:11px; color:var(--label-secondary);">counted as 1 drink</div></div>
+            <span style="font-size:12px; color:var(--label-secondary);">6:30 PM</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark" style="background:var(--surface); color:var(--label); border-radius:var(--r-card); box-shadow:inset 0 0 0 .5px var(--separator); padding:16px 16px 18px; display:flex; flex-direction:column; gap:12px;" data-screen-label="History">
+        <div style="font-size:17px; font-weight:600;">History</div>
+        <div class="caption">Saturday, September 6</div>
+        <div style="display:flex; flex-direction:column; background:var(--surface-card); border-radius:14px; padding:4px 12px;">
+          <sc-for list="{{ historyRows }}" as="r" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:12px; padding:9px 0; box-shadow:0 .5px 0 var(--separator);">
+              <span style="display:flex; width:28px; justify-content:center; color:var(--accent);"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ r.icon.d }}" fill="{{ r.icon.fill }}" stroke="{{ r.icon.stroke }}" stroke-width="{{ r.icon.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+              <div style="flex:1; min-width:0;"><div style="font-size:15px;">{{ r.name }}</div><div style="font-size:11px; color:var(--label-secondary);">{{ r.detail }}</div></div>
+              <span class="numeral" style="font-size:14px; color:var(--label-secondary);">{{ r.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div class="caption">Undo bar, day sheet and the calendar’s day rows reuse this row unchanged.</div>
+      </div>
+
+      <div style="background:var(--surface); border-radius:var(--r-card); box-shadow:inset 0 0 0 .5px var(--separator); padding:16px 16px 18px; display:flex; flex-direction:column; gap:12px;" data-screen-label="Drink sheet">
+        <div style="width:36px; height:5px; border-radius:3px; background:var(--label-tertiary); margin:-6px auto 2px;"></div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="display:flex; color:var(--accent);"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.wine.d }}" fill="{{ ic.wine.fill }}" stroke="{{ ic.wine.stroke }}" stroke-width="{{ ic.wine.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+          <div style="font-size:20px; font-weight:600; flex:1;">Wine</div>
+          <div style="width:30px; height:30px; border-radius:15px; background:var(--glass); box-shadow:inset 0 0 0 .5px var(--separator); display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--label-secondary);">✕</div>
+        </div>
+        <div class="caption" style="text-transform:uppercase; font-weight:500;">Drink</div>
+        <div style="display:flex; gap:2px; padding:2px; border-radius:9px; background:rgba(118,118,128,.12);">
+          <sc-for list="{{ pickerTypes }}" as="t" hint-placeholder-count="4">
+            <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:7px 2px; border-radius:7px; background:{{ t.bg }}; box-shadow:{{ t.shadow }}; color:var(--label);">
+              <span style="display:flex; color:{{ t.iconColor }};"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ t.icon.d }}" fill="{{ t.icon.fill }}" stroke="{{ t.icon.stroke }}" stroke-width="{{ t.icon.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+              <span style="font-size:11px; font-weight:{{ t.weight }};">{{ t.name }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div class="caption" style="text-transform:uppercase; font-weight:500; margin-top:4px;">Size</div>
+        <div style="display:flex; gap:8px;">
+          <div style="padding:0 16px; min-height:40px; display:flex; align-items:center; border-radius:22px; background:var(--accent-fill); color:var(--on-fill); font-size:13px;">5 oz glass</div>
+          <div style="padding:0 16px; min-height:40px; display:flex; align-items:center; border-radius:22px; background:var(--glass); box-shadow:inset 0 0 0 .5px var(--separator); font-size:13px;">8 oz glass</div>
+          <div style="padding:0 16px; min-height:40px; display:flex; align-items:center; border-radius:22px; background:var(--glass); box-shadow:inset 0 0 0 .5px var(--separator); font-size:13px;">Custom</div>
+        </div>
+        <div class="caption">New: the segmented picker gains the glyph above each label, and the header names the type with its glyph — the only two places this set appears that the current build renders as text alone.</div>
+      </div>
+
+      <div class="dark" style="background:var(--surface); color:var(--label); border-radius:var(--r-card); box-shadow:inset 0 0 0 .5px var(--separator); padding:16px 16px 18px; display:flex; flex-direction:column; gap:12px;" data-screen-label="Trends">
+        <div style="font-size:17px; font-weight:600;">Trends</div>
+        <div style="background:var(--surface-card); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:flex-end; gap:5px; height:64px;">
+            <div style="flex:1; height:30%; background:var(--data-low); border-radius:3px;"></div>
+            <div style="flex:1; height:55%; background:var(--data-medium); border-radius:3px;"></div>
+            <div style="flex:1; height:18%; background:var(--data-low); border-radius:3px;"></div>
+            <div style="flex:1; height:100%; background:var(--data-high); border-radius:3px; outline:1.5px solid var(--label); outline-offset:1px;"></div>
+            <div style="flex:1; height:42%; background:var(--data-medium); border-radius:3px;"></div>
+            <div style="flex:1; height:0; background:var(--data-low); box-shadow:0 0 0 .5px var(--separator);"></div>
+            <div style="flex:1; height:22%; background:var(--data-low); border-radius:3px;"></div>
+          </div>
+          <div style="font-size:13px; font-weight:600;">Thursday, September 4</div>
+          <div><span class="numeral" style="font-size:24px;">4.4</span> <span class="caption">standard drinks</span></div>
+          <sc-for list="{{ trendRows }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="display:flex; width:28px; justify-content:center; color:var(--accent);"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ r.icon.d }}" fill="{{ r.icon.fill }}" stroke="{{ r.icon.stroke }}" stroke-width="{{ r.icon.sw }}" stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd"></path></svg></span>
+              <div style="flex:1; min-width:0;"><div style="font-size:15px;">{{ r.name }}</div><div style="font-size:11px; color:var(--label-secondary);">{{ r.detail }}</div></div>
+              <span class="numeral" style="font-size:14px; color:var(--label-secondary);">{{ r.value }}</span>
+            </div>
+          </sc-for>
+          <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--label-secondary);">
+            <span style="display:flex;"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ ic.af.d }}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Recorded as no alcohol · Sep 3
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-card); border-radius:var(--r-card); padding:20px; box-shadow:inset 0 0 0 .5px var(--separator); display:grid; grid-template-columns:1fr 1fr; gap:24px; font-size:12px; line-height:18px;">
+    <div>
+      <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Handoff — one change site</div>
+      <p style="margin:0 0 8px;">Every surface reads <span class="mono">DrinkType.symbolName</span> (Today row, ＋ pill, History row, Trends composition row) or hard-codes the two companions (<span class="mono">heart.text.square</span> in both rows and Trends; <span class="mono">checkmark.circle</span> in Today, day sheet, bulk fill, Trends). Add the eight SVGs to <span class="mono">Assets.xcassets</span> as custom symbols and swap the names in those places; the code path does not change.</p>
+      <div class="mono" style="font-size:11px; line-height:17px; background:var(--surface); border-radius:10px; padding:10px 12px; white-space:pre;">case .beer:        "tally.beer"
+case .wine:        "tally.wine"
+case .spirit:      "tally.spirit"
+case .other:       "tally.other"
+case .unspecified: "tally.standard"
+// companions
+"tally.health"     // was heart.text.square
+"tally.alcoholfree"// was checkmark.circle</div>
+      <p style="margin:8px 0 0;">Custom symbols inherit the accent through <span class="mono">foregroundStyle</span> exactly as system ones do, so the 500/400 pairing and the secondary-label fallback on the untyped row keep their contrast math.</p>
+    </div>
+    <div>
+      <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Files &amp; decisions</div>
+      <ul style="margin:0; padding:0 0 0 14px; display:flex; flex-direction:column; gap:6px;">
+        <li><span class="mono">icons/*.svg</span> — 24×24 filled source art; drop into the Regular-M slot of an SF Symbols template and let iOS derive sizes and weights.</li>
+        <li>Cocktail is drawn and the Tweaks toggle places it in the picker, but adding it is a product decision — it needs a default size/ABV (<span class="mono">DrinkType.swift</span>), a Siri entity, and a localized name.</li>
+        <li>Other loses the cup-and-saucer: a hot drink reads as “not alcohol”, the opposite of what the row records.</li>
+        <li>Spirit becomes a shot glass, not a flask — the flask reads as laboratory; the shot is the 1.5&nbsp;oz default the type is defined by (ADR-0005).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;cocktail&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Glyphs&quot;}}">
+class Component extends DCLogic {
+  static ICONS = {
+    beer: { name: 'Beer', symbol: 'tally.beer', was: 'mug.fill',
+      f: 'M5 3.5h11v15.5A2 2 0 0 1 14 21H7a2 2 0 0 1-2-2z M16 8h1.5A3.5 3.5 0 0 1 21 11.5v2a3.5 3.5 0 0 1-3.5 3.5H16v-2h1.5a1.5 1.5 0 0 0 1.5-1.5v-2A1.5 1.5 0 0 0 17.5 10H16z M7 6.5h7V8H7z',
+      o: 'M6 4.5h9v14.5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z M15 9h2.5a2.5 2.5 0 0 1 2.5 2.5v2a2.5 2.5 0 0 1-2.5 2.5H15 M6 8h9' },
+    wine: { name: 'Wine', symbol: 'tally.wine', was: 'wineglass.fill',
+      f: 'M7 3h10v4.5a5 5 0 0 1-10 0z M11 12.5h2V18h-2z M8 18h8v2H8z',
+      o: 'M8 4h8v3.5a4 4 0 0 1-8 0z M12 11.5V19 M8.5 19h7' },
+    spirit: { name: 'Spirit', symbol: 'tally.spirit', was: 'flask.fill',
+      f: 'M5 7h14l-1.4 12.2A2 2 0 0 1 15.6 21H8.4a2 2 0 0 1-2-1.8z M7.2 13.5h9.6V15H7.2z',
+      o: 'M6 8h12l-1.2 10.9a1.4 1.4 0 0 1-1.4 1.1H8.6a1.4 1.4 0 0 1-1.4-1.1z M7.5 14h9' },
+    cocktail: { name: 'Cocktail', symbol: 'tally.cocktail', was: '— (new)',
+      f: 'M3 3.5h18L13.2 12.8V18h3v2H7.8v-2h3v-5.2z',
+      o: 'M4 4.5h16l-8 8.5z M12 13v6 M8.5 19.5h7' },
+    other: { name: 'Other', symbol: 'tally.other', was: 'cup.and.saucer.fill',
+      f: 'M7 3h10v16a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z M8.35 12.5a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0z M10.85 12.5a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0z M13.35 12.5a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0z',
+      o: 'M8 4h8v15a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1z M9.5 12.5h.01 M12 12.5h.01 M14.5 12.5h.01' },
+    standard: { name: 'Standard drink', symbol: 'tally.standard', was: 'drop.fill',
+      f: 'M12 2.5c3.2 4 6.5 7.8 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.3 8.8 6.5 12 2.5z',
+      o: 'M12 3.5c2.9 3.7 5.5 7 5.5 10.3a5.5 5.5 0 0 1-11 0C6.5 10.5 9.1 7.2 12 3.5z' },
+    health: { name: 'From Health', symbol: 'tally.health', was: 'heart.text.square',
+      f: 'M12 20.5C7.5 17.5 4 14 4 9.8A4.3 4.3 0 0 1 12 7.5a4.3 4.3 0 0 1 8 2.3c0 4.2-3.5 7.7-8 10.7z',
+      o: 'M12 19.5C8 16.8 5 13.6 5 10a3.8 3.8 0 0 1 7-2.1A3.8 3.8 0 0 1 19 10c0 3.6-3 6.8-7 9.5z' },
+    af: { name: 'No alcohol', symbol: 'tally.alcoholfree', was: 'checkmark.circle', outlineOnly: true,
+      f: 'M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16z M8.5 12.2l2.4 2.4 4.8-4.8',
+      o: 'M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16z M8.5 12.2l2.4 2.4 4.8-4.8' },
+  };
+  variant(key, filled) {
+    const i = Component.ICONS[key];
+    if (filled && !i.outlineOnly) return { d: i.f, fill: 'currentColor', stroke: 'none', sw: 0 };
+    return { d: i.o, fill: 'none', stroke: 'currentColor', sw: 2 };
+  }
+  renderVals() {
+    const filled = true;
+    const withCocktail = this.props.cocktail ?? false;
+    const keys = Object.keys(Component.ICONS);
+    const ic = {};
+    keys.forEach(k => { ic[k] = this.variant(k, filled); });
+    const set = keys.map(k => ({ name: Component.ICONS[k].name, symbol: Component.ICONS[k].symbol, f: this.variant(k, true), o: this.variant(k, false) }));
+    const typeKeys = ['beer', 'wine', 'spirit', 'cocktail', 'other', 'standard'];
+    const typeIcons = typeKeys.map(k => ic[k]);
+    const pickerKeys = withCocktail ? ['beer', 'wine', 'spirit', 'cocktail', 'other'] : ['beer', 'wine', 'spirit', 'other'];
+    const pickerTypes = pickerKeys.map(k => {
+      const sel = k === 'wine';
+      return { name: Component.ICONS[k].name, icon: ic[k], bg: sel ? 'var(--surface-card)' : 'transparent', shadow: sel ? '0 1px 3px rgba(0,0,0,.12)' : 'none', iconColor: sel ? 'var(--accent)' : 'var(--label-secondary)', weight: sel ? 600 : 400 };
+    });
+    const historyRows = [
+      { icon: ic.wine, name: 'Wine', detail: '10:12 PM · 5oz · 12% ABV', value: '1.0' },
+      { icon: ic.spirit, name: 'Spirit', detail: '9:40 PM · 1.5oz · 40% ABV', value: '1.0' },
+      { icon: withCocktail ? ic.cocktail : ic.other, name: withCocktail ? 'Cocktail' : 'Other', detail: '8:55 PM · 8oz · 10% ABV', value: '1.3' },
+      { icon: ic.standard, name: 'One standard drink', detail: '7:30 PM · no size or strength recorded', value: '1.0' },
+      { icon: ic.health, name: 'From Apple Health', detail: '6:02 PM · counted as 1 drink', value: '1.0' },
+    ];
+    const trendRows = [
+      { icon: ic.beer, name: 'Beer', detail: '2 drinks', value: '2.0' },
+      { icon: ic.wine, name: 'Wine', detail: '1 drink', value: '1.0' },
+      { icon: ic.standard, name: 'No type', detail: '1 drink', value: '1.0' },
+    ];
+    return { ic, set, typeIcons, pickerTypes, historyRows, trendRows };
+  }
+}
+</script>
+</body>
+</html>

@@ -11,7 +11,9 @@ struct DrinkRow: View {
 
   var body: some View {
     HStack(spacing: GlassTokens.Spacing.regular) {
-      Image(systemName: symbolName)
+      // A catalog symbol, never `systemName:`, and decorative — the row
+      // speaks its own label below (ADR-0036).
+      Image(decorative: symbolName)
         .font(.body)
         .foregroundStyle(Color.accentColor)
         .frame(width: 28)
@@ -37,7 +39,7 @@ struct DrinkRow: View {
   }
 
   private var symbolName: String {
-    drink.isImportedFromHealth ? "heart.text.square" : drink.type.symbolName
+    drink.isImportedFromHealth ? DrinkType.Symbol.health : drink.type.symbolName
   }
 
   /// `Text`, not a key: one branch is a real sentence to translate, the other

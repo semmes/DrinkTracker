@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Generator: scripts/make-drink-symbols.py-->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 3300 2200">
+ <!--glyph: "tally.cocktail", point size: 100.000000, template writer version: "8"-->
+ <g id="Notes">
+  <rect height="2200" opacity="0" width="3300" x="0" y="0"/>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 292)">Weight/Scale Variations</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 559.0 322)">Ultralight</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 856.0 322)">Thin</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 1153.0 322)">Light</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 1450.0 322)">Regular</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 1747.0 322)">Medium</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 2044.0 322)">Semibold</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 2341.0 322)">Bold</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 2638.0 322)">Heavy</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:middle;" transform="matrix(1 0 0 1 2935.0 322)">Black</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 1953)">Design Variations</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 1971)">Symbols are supported in up to nine weights and three scales.</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 1989)">For optimal layout with text and other symbols, vertically align</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 2007)">symbols with the center of the capital letter height.</text>
+  <text id="template-version" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 258)">Template v.3.0</text>
+  <text id="descriptive-name" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;text-anchor:end;" transform="matrix(1 0 0 1 3036 1953)">tally.cocktail</text>
+  <text style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 2050)">Generated from scripts/make-drink-symbols.py</text>
+ </g>
+ <g id="Guides">
+  <g id="H-reference" style="fill:#27AAE1;stroke:none;">
+   <path d="M263 625.541 L274.39 625.541 L274.39 656.864 L307.137 656.864 L307.137 625.541 L318.527 625.541 L318.527 696.729 L307.137 696.729 L307.137 666.118 L274.39 666.118 L274.39 696.729 L263 696.729 Z"/>
+   <path d="M263 1126.28 L274.382 1126.28 L274.382 1157.582 L307.107 1157.582 L307.107 1126.28 L318.489 1126.28 L318.489 1197.42 L307.107 1197.42 L307.107 1166.83 L274.382 1166.83 L274.382 1197.42 L263 1197.42 Z"/>
+   <path d="M263 1607.56 L274.382 1607.56 L274.382 1638.862 L307.107 1638.862 L307.107 1607.56 L318.489 1607.56 L318.489 1678.7 L307.107 1678.7 L307.107 1648.11 L274.382 1648.11 L274.382 1678.7 L263 1678.7 Z"/>
+  </g>
+  <line id="Capline-S" stroke="#27AAE1" stroke-width="0.5" x1="263" x2="3036" y1="625.541" y2="625.541"/>
+  <line id="Baseline-S" stroke="#27AAE1" stroke-width="0.5" x1="263" x2="3036" y1="696.729" y2="696.729"/>
+  <line id="Capline-M" stroke="#27AAE1" stroke-width="0.5" x1="263" x2="3036" y1="1126.28" y2="1126.28"/>
+  <line id="Baseline-M" stroke="#27AAE1" stroke-width="0.5" x1="263" x2="3036" y1="1197.42" y2="1197.42"/>
+  <line id="Capline-L" stroke="#27AAE1" stroke-width="0.5" x1="263" x2="3036" y1="1607.56" y2="1607.56"/>
+  <line id="Baseline-L" stroke="#27AAE1" stroke-width="0.5" x1="263" x2="3036" y1="1678.7" y2="1678.7"/>
+  <line id="left-margin" stroke="#00AEEF" stroke-width="0.5" x1="1412.5" x2="1412.5" y1="1026.28" y2="1257.42"/>
+  <line id="right-margin" stroke="#00AEEF" stroke-width="0.5" x1="1487.5" x2="1487.5" y1="1026.28" y2="1257.42"/>
+ </g>
+ <g id="Symbols">
+  <g id="Ultralight-L">
+   <path d="M510.625 1590.013 L607.375 1590.013 L565.45 1640 L565.45 1667.95 L581.575 1667.95 L581.575 1678.7 L536.425 1678.7 L536.425 1667.95 L552.55 1667.95 L552.55 1640 L510.625 1590.013 Z"/>
+  </g>
+  <g id="Thin-L">
+   <path d="M807.625 1590.013 L904.375 1590.013 L862.45 1640 L862.45 1667.95 L878.575 1667.95 L878.575 1678.7 L833.425 1678.7 L833.425 1667.95 L849.55 1667.95 L849.55 1640 L807.625 1590.013 Z"/>
+  </g>
+  <g id="Light-L">
+   <path d="M1104.625 1590.013 L1201.375 1590.013 L1159.45 1640 L1159.45 1667.95 L1175.575 1667.95 L1175.575 1678.7 L1130.425 1678.7 L1130.425 1667.95 L1146.55 1667.95 L1146.55 1640 L1104.625 1590.013 Z"/>
+  </g>
+  <g id="Regular-L">
+   <path d="M1401.625 1590.013 L1498.375 1590.013 L1456.45 1640 L1456.45 1667.95 L1472.575 1667.95 L1472.575 1678.7 L1427.425 1678.7 L1427.425 1667.95 L1443.55 1667.95 L1443.55 1640 L1401.625 1590.013 Z"/>
+  </g>
+  <g id="Medium-L">
+   <path d="M1698.625 1590.013 L1795.375 1590.013 L1753.45 1640 L1753.45 1667.95 L1769.575 1667.95 L1769.575 1678.7 L1724.425 1678.7 L1724.425 1667.95 L1740.55 1667.95 L1740.55 1640 L1698.625 1590.013 Z"/>
+  </g>
+  <g id="Semibold-L">
+   <path d="M1995.625 1590.013 L2092.375 1590.013 L2050.45 1640 L2050.45 1667.95 L2066.575 1667.95 L2066.575 1678.7 L2021.425 1678.7 L2021.425 1667.95 L2037.55 1667.95 L2037.55 1640 L1995.625 1590.013 Z"/>
+  </g>
+  <g id="Bold-L">
+   <path d="M2292.625 1590.013 L2389.375 1590.013 L2347.45 1640 L2347.45 1667.95 L2363.575 1667.95 L2363.575 1678.7 L2318.425 1678.7 L2318.425 1667.95 L2334.55 1667.95 L2334.55 1640 L2292.625 1590.013 Z"/>
+  </g>
+  <g id="Heavy-L">
+   <path d="M2589.625 1590.013 L2686.375 1590.013 L2644.45 1640 L2644.45 1667.95 L2660.575 1667.95 L2660.575 1678.7 L2615.425 1678.7 L2615.425 1667.95 L2631.55 1667.95 L2631.55 1640 L2589.625 1590.013 Z"/>
+  </g>
+  <g id="Black-L">
+   <path d="M2886.625 1590.013 L2983.375 1590.013 L2941.45 1640 L2941.45 1667.95 L2957.575 1667.95 L2957.575 1678.7 L2912.425 1678.7 L2912.425 1667.95 L2928.55 1667.95 L2928.55 1640 L2886.625 1590.013 Z"/>
+  </g>
+  <g id="Ultralight-M">
+   <path d="M521.5 1128.67 L596.5 1128.67 L564 1167.42 L564 1189.087 L576.5 1189.087 L576.5 1197.42 L541.5 1197.42 L541.5 1189.087 L554 1189.087 L554 1167.42 L521.5 1128.67 Z"/>
+  </g>
+  <g id="Thin-M">
+   <path d="M818.5 1128.67 L893.5 1128.67 L861 1167.42 L861 1189.087 L873.5 1189.087 L873.5 1197.42 L838.5 1197.42 L838.5 1189.087 L851 1189.087 L851 1167.42 L818.5 1128.67 Z"/>
+  </g>
+  <g id="Light-M">
+   <path d="M1115.5 1128.67 L1190.5 1128.67 L1158 1167.42 L1158 1189.087 L1170.5 1189.087 L1170.5 1197.42 L1135.5 1197.42 L1135.5 1189.087 L1148 1189.087 L1148 1167.42 L1115.5 1128.67 Z"/>
+  </g>
+  <g id="Regular-M">
+   <path d="M1412.5 1128.67 L1487.5 1128.67 L1455 1167.42 L1455 1189.087 L1467.5 1189.087 L1467.5 1197.42 L1432.5 1197.42 L1432.5 1189.087 L1445 1189.087 L1445 1167.42 L1412.5 1128.67 Z"/>
+  </g>
+  <g id="Medium-M">
+   <path d="M1709.5 1128.67 L1784.5 1128.67 L1752 1167.42 L1752 1189.087 L1764.5 1189.087 L1764.5 1197.42 L1729.5 1197.42 L1729.5 1189.087 L1742 1189.087 L1742 1167.42 L1709.5 1128.67 Z"/>
+  </g>
+  <g id="Semibold-M">
+   <path d="M2006.5 1128.67 L2081.5 1128.67 L2049 1167.42 L2049 1189.087 L2061.5 1189.087 L2061.5 1197.42 L2026.5 1197.42 L2026.5 1189.087 L2039 1189.087 L2039 1167.42 L2006.5 1128.67 Z"/>
+  </g>
+  <g id="Bold-M">
+   <path d="M2303.5 1128.67 L2378.5 1128.67 L2346 1167.42 L2346 1189.087 L2358.5 1189.087 L2358.5 1197.42 L2323.5 1197.42 L2323.5 1189.087 L2336 1189.087 L2336 1167.42 L2303.5 1128.67 Z"/>
+  </g>
+  <g id="Heavy-M">
+   <path d="M2600.5 1128.67 L2675.5 1128.67 L2643 1167.42 L2643 1189.087 L2655.5 1189.087 L2655.5 1197.42 L2620.5 1197.42 L2620.5 1189.087 L2633 1189.087 L2633 1167.42 L2600.5 1128.67 Z"/>
+  </g>
+  <g id="Black-M">
+   <path d="M2897.5 1128.67 L2972.5 1128.67 L2940 1167.42 L2940 1189.087 L2952.5 1189.087 L2952.5 1197.42 L2917.5 1197.42 L2917.5 1189.087 L2930 1189.087 L2930 1167.42 L2897.5 1128.67 Z"/>
+  </g>
+  <g id="Ultralight-S">
+   <path d="M529.638 642.898 L588.363 642.898 L562.915 673.239 L562.915 690.204 L572.702 690.204 L572.702 696.729 L545.298 696.729 L545.298 690.204 L555.085 690.204 L555.085 673.239 L529.638 642.898 Z"/>
+  </g>
+  <g id="Thin-S">
+   <path d="M826.638 642.898 L885.363 642.898 L859.915 673.239 L859.915 690.204 L869.702 690.204 L869.702 696.729 L842.298 696.729 L842.298 690.204 L852.085 690.204 L852.085 673.239 L826.638 642.898 Z"/>
+  </g>
+  <g id="Light-S">
+   <path d="M1123.637 642.898 L1182.362 642.898 L1156.915 673.239 L1156.915 690.204 L1166.702 690.204 L1166.702 696.729 L1139.297 696.729 L1139.297 690.204 L1149.085 690.204 L1149.085 673.239 L1123.637 642.898 Z"/>
+  </g>
+  <g id="Regular-S">
+   <path d="M1420.637 642.898 L1479.362 642.898 L1453.915 673.239 L1453.915 690.204 L1463.702 690.204 L1463.702 696.729 L1436.297 696.729 L1436.297 690.204 L1446.085 690.204 L1446.085 673.239 L1420.637 642.898 Z"/>
+  </g>
+  <g id="Medium-S">
+   <path d="M1717.637 642.898 L1776.362 642.898 L1750.915 673.239 L1750.915 690.204 L1760.702 690.204 L1760.702 696.729 L1733.297 696.729 L1733.297 690.204 L1743.085 690.204 L1743.085 673.239 L1717.637 642.898 Z"/>
+  </g>
+  <g id="Semibold-S">
+   <path d="M2014.637 642.898 L2073.362 642.898 L2047.915 673.239 L2047.915 690.204 L2057.702 690.204 L2057.702 696.729 L2030.297 696.729 L2030.297 690.204 L2040.085 690.204 L2040.085 673.239 L2014.637 642.898 Z"/>
+  </g>
+  <g id="Bold-S">
+   <path d="M2311.637 642.898 L2370.362 642.898 L2344.915 673.239 L2344.915 690.204 L2354.702 690.204 L2354.702 696.729 L2327.298 696.729 L2327.298 690.204 L2337.085 690.204 L2337.085 673.239 L2311.637 642.898 Z"/>
+  </g>
+  <g id="Heavy-S">
+   <path d="M2608.637 642.898 L2667.362 642.898 L2641.915 673.239 L2641.915 690.204 L2651.702 690.204 L2651.702 696.729 L2624.298 696.729 L2624.298 690.204 L2634.085 690.204 L2634.085 673.239 L2608.637 642.898 Z"/>
+  </g>
+  <g id="Black-S">
+   <path d="M2905.637 642.898 L2964.362 642.898 L2938.915 673.239 L2938.915 690.204 L2948.702 690.204 L2948.702 696.729 L2921.298 696.729 L2921.298 690.204 L2931.085 690.204 L2931.085 673.239 L2905.637 642.898 Z"/>
+  </g>
+ </g>
+</svg>

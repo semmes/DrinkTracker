@@ -132,6 +132,11 @@ struct BulkFillSheet: View {
       : "Log \(drinkPhrase) on each of \(dayPhrase)"
   }
 
+  /// Keeps the system checkmark, not the alcohol-free glyph (ADR-0036): a
+  /// skipped day "already has a record", which is a day with drinks *or* a
+  /// marker, and the glyph is reserved for the marker's own meaning — a day
+  /// recorded as no alcohol. This is a "done" mark over a count, not a claim
+  /// about what those days hold.
   private var skippedNote: some View {
     Label(skippedText, systemImage: "checkmark.circle")
       .font(.footnote)

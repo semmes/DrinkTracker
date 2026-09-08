@@ -37,7 +37,7 @@ struct PopulationReferenceCard: View {
   private func card(_ reference: PopulationReference, window: PopulationReference.Window, now: Date) -> some View {
     let region = settings.effectiveRegion
     let drinks = entries.loggedDrinks
-    let units = PopulationReference.weeklyAverage(drinks, window: window, endingAt: now, region: region)
+    let units = PopulationReference.weeklyAverage(drinks, window: window, endingAt: now, region: region, calendar: calendar)
     let grams = units * region.gramsPureAlcoholPerStandardDrink
     let comparison = reference.comparison(gramsPerWeek: grams)
     let frequency = FrequencyReference.bundled

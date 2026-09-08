@@ -227,6 +227,15 @@ splits into 6–9 and 10+ instead of one open-ended 6+. Under the counter, a
 control shows which drink plus is repeating and logs a plain standard drink
 instead in one tap. Add specific opens the full drink sheet whenever you
 want it.
+
+The drink sheet gains a fifth type, Cocktail, measured by the spirit in it:
+it opens at a 1.5 oz pour at 40%, one standard drink, with 2 oz and 3 oz
+pours a tap away and a Custom field that asks for ounces of spirit. Beer
+gains a 40 oz bottle size. Every drink type now has its own icon, shown
+beside its name on the sheet's type control, on today's list, in History
+and in Trends; the standard drink, Apple Health entries and days recorded
+as no alcohol have theirs too. Siri understands "Log a cocktail in
+Tallyist".
 ```
 
 ## Reviewer notes (1.3) — paste into App Review notes
@@ -290,6 +299,12 @@ Notes on what's new in 1.3:
   same calendar colour from 6 standard drinks up — an amount on the app's
   one scale, not a warning; nothing red, no icon, no notification. No new
   data is recorded, nothing is inferred, and nothing leaves the device.
+- A fifth drink type, Cocktail, is a label on the user's own entry, stored as
+  the same two facts as every other type — a volume and a strength, here the
+  spirit poured and its strength, defaulting to one standard drink. A 40 oz
+  size for beer is one more preset over the same facts. The drink icons are
+  the app's own bundled artwork, replacing system symbols on the same
+  surfaces. No new kind of data, no new permission, no network.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```
@@ -307,6 +322,8 @@ Notes on what's new in 1.3:
   day's colour, with the legend and the plus pill), Calendar (the four-band
   legend) and Trends (the chart card's header readout and the By weekday
   card) — both the iPhone and the iPad sets — keeping the counts low per the
-  note above; the widget shot is unchanged.
+  note above; the widget shot is unchanged. Any shot showing drink rows or
+  the drink sheet is stale as well: the drink glyphs are new (ADR-0036) and
+  the sheet's type control shows five glyph-and-name segments.
 - The tip-jar IAPs must be submitted for review with the first version that
   contains them (select all three products on the version page).

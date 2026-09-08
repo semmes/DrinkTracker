@@ -7,7 +7,7 @@ to make localizing it possible rather than about having done it.**
 
 **String Catalogs exist, and they are populated.** `Localizable.xcstrings` ships
 in the app, the widget and the core package, with `AppShortcuts.xcstrings` beside
-the app's — 365 keys in all as of 2026-09-06 (the count's history is under
+the app's — 370 keys in all as of 2026-09-07 (the count's history is under
 "Progress" below). `SWIFT_EMIT_LOC_STRINGS` was already `YES` on every
 configuration, so `Text("…")` literals are emitted as localizable strings; the
 catalogs were filled from a clean build's `.stringsdata` with `xcstringstool sync`
@@ -71,7 +71,19 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **365 keys** — 300 app, 34 widget, 27 core, 4 shortcuts (counted
+Current: **370 keys** — 303 app, 35 widget, 28 core, 4 shortcuts (counted
+2026-09-07 after ADR-0035/0036's sync — the cocktail type and the glyph set.
+"Cocktail" landed in three catalogs at once: the core package's by hand, since
+`DrinkType.displayName` is a package `localized(...)` call and the coverage test
+iterates `allCases`; the app's and the widget's from the Siri enum's
+`DisplayRepresentation`, because `Shared/LogDrinkIntent.swift` compiles into
+both. The app also gained "Ounces of spirit" and "oz spirit" — the cocktail
+Custom field's placeholder and unit — and the Export footnote's key was
+replaced one-for-one by its reworded self. No case-folded collision: the
+package holds no other "cocktail". The four new size-pill labels ("40 oz
+bottle" and the three "… oz spirit" pours) are `String`s rendered verbatim and
+are **not** in any catalog, the standing size-axis deferral below. The
+previous count was 365 — 300 app, 34 widget, 27 core, 4 shortcuts, counted
 2026-09-06 after ADR-0034's sync — Home v2. The app catalog went 298 → 300: 13
 in, 11 out. In: the ramp's two new legend labels ("6–9", "10+"), four Today
 strings ("Add specific", "Tap to say what it was", and the two footer hints),
@@ -205,6 +217,18 @@ there is. `StandardDrink.readsAsOne` is now the single definition of that rule.
 ## What is still not done
 
 **No translations.** Source language is English and there is exactly one language.
+
+**The size axis is verbatim.** `DrinkSizeOption.label` is a plain `String` in the
+core package, and `SizePill` renders it with `Text(label)`, the verbatim
+initializer — so none of the twelve pill labels ("12 oz can", "16 oz pint",
+"40 oz bottle", "5 oz glass", "8 oz glass", "1 oz shot", "1.5 oz shot",
+"2 oz double", "1.5 oz spirit", "2 oz spirit", "3 oz spirit", "Custom") is in
+any catalog. Two things make this more than a `LocalizedStringKey` swap when
+the time comes: `DrinkSizeOption.id` *is* the label, so a translated label
+must stay unique within its type; and the labels carry a unit ("oz") that the
+region lens does not yet re-express, so a UK build would need the size axis in
+millilitres as well as in its own words. Recorded 2026-09-07, when ADR-0035
+added four labels to the axis.
 
 **Plural variations are not filled in.** Count-bearing sentences are whole keys per
 branch, which is what lets a catalog carry real variations — but the variations

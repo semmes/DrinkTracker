@@ -32,7 +32,10 @@ impossible here and is not attempted.
 average about 7 in 28." The user's figure is the calendar's own definition
 of a day with drinks — a calendar day with at least one entry, an entry at
 0% included, a marker alone excluded — over the card's window (ADR-0030:
-28 or 364 days), walked with the package's DST-safe day keys. The
+28 or 364 days), walked with the package's DST-safe day keys. *Since
+2026-09-07 (ADR-0030's amendment) the volume average is filtered on that
+same key set, so "the same window" here is literally one set of days for
+both lines, not two windows of matching length.* The
 reference is the mean scaled to the same number of days and rounded to
 whole days: a mean over a population is not a figure a tenth of a day can
 be checked against. The source line names both sources; the note adds one

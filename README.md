@@ -150,8 +150,11 @@ The plan's Open Question #1 asked how widely to use ComponentsKit. Current split
   that fills implies a target, and this app doesn't set them. See
   [the copy review](docs/copy-review-1.4.3.md).
 - **Native SwiftUI** — size pills (bespoke per the brief), the sheet itself, and the
-  quick-add row, which uses `GlassEffectContainer` so the four buttons merge as one
-  glass mass the way Apple's own controls do.
+  drink-type picker: five real buttons in a segmented-control track, each the
+  type's glyph over its name, folding to rows at accessibility sizes
+  ([ADR-0036](docs/decisions/0036-the-drink-types-wear-their-own-glyphs.md)).
+  The glyphs are the app's own symbol set, generated into the asset catalog by
+  `scripts/make-drink-symbols.py` from the SVGs in `docs/design/icons/icons/`.
 - **Swift Charts** — `BarMark` plus a dashed `RuleMark` for the average. Deliberately
   inside the mark set Swift Charts renders well natively; no radial or multi-axis
   charts, per the plan.
@@ -253,7 +256,11 @@ pinning the behaviour so nothing is silently "corrected".
 
 1. **~~Spirit and Other defaults don't hit 1.0 standard drinks.~~** *Settled.* The
    one-drink invariant is real, and Spirit now defaults to the 1.5 oz shot — 0.6 fl
-   oz of ethanol at 40%, the US definition exactly. Other stays at 8 oz @ 10% as a
+   oz of ethanol at 40%, the US definition exactly. Cocktail (1.3) rests on the same
+   fact: it is measured by the spirit in it, defaults to the 1.5 oz pour at 40%, and
+   its pills are pours of spirit
+   ([ADR-0035](docs/decisions/0035-cocktail-is-a-fifth-type-measured-by-its-spirit.md)).
+   Other stays at 8 oz @ 10% as a
    deliberate exception: it has no presets and no typical serving to anchor to, so
    its default seeds the Custom field rather than describing a real drink. See
    [ADR-0005](docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md).
@@ -369,9 +376,13 @@ is easy — correcting it has to be just as easy.
 - **Adding a forgotten drink**: the `+` in History opens the sheet with a drink-type
   picker and a date/time control, so it lands where it actually happened.
 
-The quick-add path is deliberately untouched by this: no type picker, no time
-control, still two taps. The extra controls appear only when editing an existing
-entry or adding one retroactively — the cases where "now" is the wrong answer.
+The counter's path is deliberately untouched by this: ＋ asks nothing, still one
+tap. The type picker appears in every presentation of the sheet but the
+counter's — "Add specific" (an untyped draft), History's and the calendar's `+`,
+editing an entry, adopting a Health import — and stays for the whole presentation
+(PRD invariant 2, `DrinkDetailSheet.asksType`); the time control appears only
+when editing an existing entry or adding one retroactively — the cases where
+"now" is the wrong answer.
 
 ## Siri, Shortcuts, and hands-free logging
 
@@ -673,8 +684,7 @@ two links — paste-ready metadata lives in
 
 **The app is not localized yet, but the catalogs are populated.** Four string
 catalogs (app, widget, the core package's own, and `AppShortcuts.xcstrings`) hold
-365 keys — 300, 34, 27 and 4, counted 2026-09-07 — kept in exact agreement with
-extraction by running
+370 keys (303 / 35 / 28 / 4, counted 2026-09-07), kept in exact agreement with extraction by running
 `xcrun xcstringstool sync <Catalog>.xcstrings --stringsdata …` against a clean
 build's `.stringsdata` files — a command-line build emits those but never writes
 back into a catalog; only the Xcode GUI does. Language choice and translation are

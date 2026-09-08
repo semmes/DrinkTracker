@@ -72,22 +72,32 @@ public enum DayIntensity: String, CaseIterable, Sendable, Hashable {
   /// settings. That is the same display-lens behaviour as every other total in the
   /// app — see ADR-0002 — not a rounding artefact.
   ///
-  /// Rounds to the nearest whole drink before bucketing, so the boundaries line up
-  /// exactly with the labels: a 2.5-drink day reads as 3, and lands in "3–5" rather
-  /// than being quietly labelled "1–2".
+  /// The band follows the digits the reader sees. Every surface prints a day's
+  /// total through `StandardDrink.formatted`, to one decimal, and the band is
+  /// decided on that same one-decimal value (`StandardDrink.displayed`): 9.5 and up
+  /// is "10+", 5.5 and up "6–9", 2.5 and up "3–5", anything else logged "1–2". So
+  /// two days that print the same figure always draw the same colour, and a day
+  /// that prints "9.5" is "10+" wherever it prints so. Until 2026-09-07 the total
+  /// was rounded to a whole drink first, which put 9.46 and 9.50 in different
+  /// bands while both read "≈ 9.5 standard drinks" (ADR-0034's amendment). The
+  /// edges are the half-steps between the labels, as they always were: a
+  /// 2.5-drink day lands under "3–5" rather than being quietly labelled "1–2".
   public static func bucket(
     standardDrinks: Double,
     isMarkedAlcoholFree: Bool,
     hasEntries: Bool
   ) -> DayIntensity {
     if hasEntries {
-      // Anything logged is at least "low", even if it rounds to zero — a 0.3-drink
-      // day is a day something was drunk, and showing it as alcohol-free would be
-      // wrong in the one direction that matters.
-      let rounded = standardDrinks.rounded()
-      if rounded >= 10 { return .veryHigh }
-      if rounded >= 6 { return .high }
-      if rounded >= 3 { return .medium }
+      // Anything logged is at least "low", even a total that prints as 0 — a
+      // 0.04-drink day is a day something was drunk, and showing it as
+      // alcohol-free would be wrong in the one direction that matters. A
+      // non-finite total takes the same floor (NaN fails every comparison, and so
+      // does −∞) and +∞ the top: what the whole-drink rule did, kept rather than
+      // trapped on.
+      let shown = StandardDrink.displayed(standardDrinks)
+      if shown >= 9.5 { return .veryHigh }
+      if shown >= 5.5 { return .high }
+      if shown >= 2.5 { return .medium }
       return .low
     }
     return isMarkedAlcoholFree ? .alcoholFree : .unlogged
