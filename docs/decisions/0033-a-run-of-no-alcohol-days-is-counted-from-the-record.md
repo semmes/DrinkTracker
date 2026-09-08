@@ -142,8 +142,12 @@ having no alcohol*, over the picked Trends range.
 - `docs/tallyist-1.2-spec.md`'s stop list and ADR-0017 rule 2 are amended in the
   same change that builds this, naming (b) and keeping (a) stopped. A stop
   condition that is quietly contradicted is worse than one that is argued.
-- The repository gains a reconciliation for the dormant-marker case, which is a
-  correctness fix with or without this figure.
+- ~~The repository gains a reconciliation for the dormant-marker case, which is
+  a correctness fix with or without this figure.~~ *Corrected 2026-09-07:* no
+  repository change was made or needed. The Context section above records that
+  `DrinkRepository.saveOrThrow` already deletes every marker on a drink's day
+  and that an earlier draft claiming otherwise was wrong; this bullet was that
+  draft's residue, struck rather than deleted so the correction stays visible.
 - The 1.2 spec's "three hard rules" heading — "the difference between a
   measurement tool and a shame mechanic" — now has one rule with a stated
   exception. That is a real loss of absoluteness, and it is the price the owner
@@ -159,3 +163,20 @@ convenience argument. If it is ever wanted as a *current* run, that is ADR-0017
 rule 1 and this record does not touch it. If it acquires a superlative, a
 comparison between windows, or any reaction when it changes, it has become a
 streak and this record is the thing being violated.
+
+## Note (2026-09-07) — the owner's ruling on "no streaks"
+
+Reviewing the 1.3 release material, the owner was asked whether this figure
+changes the App Store description's "No goals, no streaks, no lectures, no
+judgement", the About sentence in `SettingsView`, the README and the support
+page. The ruling is that all of them stay true and stay as written: *"alcohol
+free days is not a streak but data on how many days they have or haven't had
+drinks to better understand patterns."* That is this record's own definition
+restated from the owner's side — a count over days affirmatively recorded, read
+as a fact about the pattern, with nothing to protect and no reaction when it
+moves. What changed on the strength of it: the 1.3 reviewer notes in
+`docs/app-store-listing.md` carry a bullet for the figure in those terms, and a
+What's New sentence names the card; `docs/tallyist-1.3-spec.md`'s claims table
+restores the 1.0 row ("no goals, streaks, scores, or advice") and answers it
+with this record; and `docs/PRD.md`'s "No streaks" refusal names this record as
+where the line is held. Nothing in the app's own copy changed.
