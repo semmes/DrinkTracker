@@ -436,7 +436,7 @@ struct TodayView: View {
   /// Factual in both directions: states what was recorded, awards nothing.
   private var markedTodayState: some View {
     VStack(spacing: GlassTokens.Spacing.tight) {
-      Label("Recorded as no alcohol today", systemImage: "checkmark.circle")
+      Label("Recorded as no alcohol today", image: DrinkType.Symbol.alcoholFree)
         .font(.subheadline)
         .foregroundStyle(.secondary)
       if isTodayMarkedFromHealth {

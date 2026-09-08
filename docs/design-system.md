@@ -5,7 +5,10 @@
 
 Tallyist's visual language is **native iOS with one voice added**. The system does
 not replace Apple's material system — it rides it: system semantic colours, system
-type, Liquid Glass surfaces, SF Symbols. The brand layer is deliberately thin and
+type, Liquid Glass surfaces, SF Symbols for the chrome — and, since ADR-0036, one
+custom symbol set of its own for the drink types and their two companions
+(`tally.*`, drawn in `docs/design/icons/`, monochrome template symbols that take
+the accent and secondary inks exactly as system symbols do). The brand layer is deliberately thin and
 deliberately consistent: one hue, one numeral style, one way of speaking. An app
 about noticing exactly one thing should look like it notices exactly one thing.
 
@@ -145,6 +148,7 @@ Type behaviour.
 | Onboarding headline | largeTitle bold | `.onboardingHeadline` |
 | Section label | footnote medium, uppercase, tracked | `.sectionLabel` |
 | Column head | caption2 medium, uppercase, tracked, **`.primary`** | `.columnHead` |
+| Segment label | caption2, semibold when selected, one line, 0.8 scale floor; folds to body rows at accessibility sizes | `DrinkTypePicker` (ADR-0036) |
 | Row figure / row count | callout / footnote, semibold rounded, tabular | `.rowFigure`, `.rowCount` |
 | Card label / captions | footnote / caption, secondary | `.cardLabel`, `.supporting` |
 
@@ -210,7 +214,9 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Plus-mode pill** | `Today/PlusModePill.swift` | Two log buttons in a capsule track; selection derived from the day template, never stored |
 | **Today drink row** | `Today/TodayDrinkRow.swift` | Symbol, name, size/strength or "Tap to say what it was", time, chevron. No per-region value column — that is History's and the day sheet's |
 | **Primary button** | ComponentsKit `SUButton` via `AppTheme` | Accent fill, one per surface, always a verb phrase |
-| **Size pill** | `DrinkDetailSheet.SizePill` | Selected = accent capsule; wraps via `FlowLayout` |
+| **Drink glyphs** | `Assets.xcassets/tally.*.symbolset`, `scripts/make-drink-symbols.py`, `DrinkType.Symbol` | Eight custom symbols from the owner's 24×24 art (`docs/design/icons/icons/`): a vessel per type, a drop for the untyped drink, a heart for a Health mirror, an outlined ring-and-check for a day recorded as no alcohol — outline by ADR-0007's rule, since the marker sits off the ramp. Cap-height sized (one em is the 24-unit box, the canvas's own scale), no weight axis, no colour of their own. Loaded with `Image(_:)` / `Label(_:image:)`, never `systemName:`; `Image(decorative:)` beside text, because a catalog image otherwise speaks its asset name. Regenerate from the SVGs; never hand-edit a symbolset (ADR-0036) |
+| **Type picker** | `DrinkDetail/DrinkTypePicker.swift` | Five real buttons in a `tertiarySystemFill` track (radius 9, 2pt padding and gaps), each the glyph at body size over the name at caption2, equal widths, 44pt floor; the selected one on a `systemBackground` tile (radius 7, no shadow) that slides under the sheet's animation and crossfades under Reduce Motion. Folds to the region picker's rows at accessibility sizes — measured: "Cocktail" fits the segment only by the 0.8 scale floor at the largest non-accessibility size. The selection is the sheet's binding, so a change still resets size and strength (ADR-0036) |
+| **Size pill** | `DrinkDetailSheet.SizePill` | Selected = accent capsule; wraps via `FlowLayout`. Four pills for beer, spirit and cocktail wrap to two rows at the default size on a 393pt screen |
 | **Drink row** | `History/DrinkRow.swift` | Symbol, name, detail, per-region value; swipe edit/remove. History and the day sheet only |
 | **Status row** | `SettingsView` (Health, iCloud) | Symbol + factual state + footnote; the template for any system-state UI |
 | **Stat card** | `TrendsView.StatCard`, `RecentSummaryCard` (`RecentSummaryFigures` + `RecentSummaryCaptions`) | Value + noun. No deltas, no arrows, no progress bars (copy review F2). Trends adds a "Longest run with none" card in the same shape as its day-count card, reading "None recorded" at zero — a maximum over the picked range, built only from days explicitly recorded as alcohol-free, never a current run (ADR-0033). The calendar card takes a window picker above it — native segmented control on interactive glass — and crossfades its figures on a switch, never rolls them (ADR-0026) |
@@ -218,7 +224,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Intensity cell + legend** | `Calendar/IntensityCell.swift` | Ramp fill, outline second channel for alcohol-free, legend always present. Drag selection = accent ring on every selected cell + 15% wash on blank cells only — the wash previews exactly which days a bulk action will touch |
 | **Selection action bar** | `Calendar/CalendarView.swift` (`selectionBar`) | Bottom-pinned glass bar (radius 22): live day count, one-tap "Mark no drinks" (AccentFill under white), "Log drinks…" to the bulk sheet, 32pt dismiss. From the prototype handoff, carrying ADR-0011 semantics |
 | **Bulk fill sheet** | `Calendar/BulkFillSheet.swift` | A staged batch counter — the model the day sheet had before it became a live log (ADR-0013) — applied to a dragged run of days; skips recorded days and says so (ADR-0011) |
-| **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom drawing beside the icon); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
+| **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom *animated* drawing beside the icon — the drink glyphs are static symbols, ADR-0036); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll. The pinned header and footer are held to their wrapped height (`fixedSize(horizontal: false, vertical: true)`) so the ScrollView between them is the only child that yields — the outer VStack otherwise proposes the chrome a fair share and its `Text` truncates rather than pushing back (the figure reached the screen as "≈ 1 standard dr…" at AX5). At accessibility sizes the sheet offers only the large detent: the medium one is ~459pt at AX5 and the chrome takes ~400pt of it |
 | **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
@@ -330,3 +336,8 @@ The claude.ai/design prototype *Tallyist iOS Prototype* delivered three changes
   is not yet in the claude.ai/design project — `DesignSync` needs a one-time
   `/design-login` from an interactive terminal, which the desktop Code tab
   cannot run. §6 above is current; the synced bundle is one card behind.
+- **Drift (2026-09-07):** the drink glyph set and the type picker (ADR-0036;
+  source bundle `docs/design/icons/`, whose *Drink Icons* canvas is the owner's
+  own drawing) are in §1 and §6 above and not in the claude.ai/design project,
+  for the same reason. The synced bundle is now three cards behind: the bar
+  readout, the drink glyphs, the type picker.

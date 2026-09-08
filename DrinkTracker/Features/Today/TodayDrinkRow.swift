@@ -29,7 +29,9 @@ struct TodayDrinkRow: View {
 
     return layout {
       HStack(spacing: GlassTokens.Spacing.regular) {
-        Image(systemName: symbolName)
+        // A catalog symbol, never `systemName:`, and decorative — the row
+        // speaks its own label below (ADR-0036).
+        Image(decorative: symbolName)
           .font(.body)
           .foregroundStyle(iconStyle)
           .frame(width: 24)
@@ -76,7 +78,7 @@ struct TodayDrinkRow: View {
   }
 
   private var symbolName: String {
-    drink.isImportedFromHealth ? "heart.text.square" : drink.type.symbolName
+    drink.isImportedFromHealth ? DrinkType.Symbol.health : drink.type.symbolName
   }
 
   /// Secondary rather than the drawn 40%-black: that value measures 2.14:1 and

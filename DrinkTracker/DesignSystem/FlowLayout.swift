@@ -2,7 +2,7 @@ import SwiftUI
 
 /// A layout that fills each row before wrapping to the next.
 ///
-/// Used for the size pills, whose labels ("22 oz bottle") vary enough in width
+/// Used for the size pills, whose labels ("40 oz bottle") vary enough in width
 /// that an even `HStack` split would truncate them — and truncating a size is
 /// exactly the kind of friction the sheet is supposed to avoid.
 struct FlowLayout: Layout {

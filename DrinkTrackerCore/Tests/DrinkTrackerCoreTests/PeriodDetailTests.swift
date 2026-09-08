@@ -178,14 +178,17 @@ struct PeriodDetailTests {
       wine(date(2026, 8, 20, 20)),
       beer(date(2026, 8, 20, 19)),
       beer(date(2026, 8, 20, 18)),
+      // A cocktail rows between wine and the untyped drink: `allCases` order,
+      // which is the picker's order (ADR-0035).
+      LoggedDrink(loggedAt: date(2026, 8, 20, 17), type: .cocktail, volumeOunces: 1.5, abvPercent: 40),
     ]
     let detail = detail(day, range: .week, endingOn: date(2026, 8, 26, 12), drinks: drinks)
     let shares = detail?.shares ?? []
-    #expect(shares.map(\.kind) == [.type(.beer), .type(.wine), .type(.unspecified), .importedFromHealth])
-    #expect(shares.map(\.count) == [2, 1, 1, 2])
-    #expect(shares.map { abs($0.standardDrinks - [2.0, 1.0, 1.0, 2.0][shares.firstIndex(of: $0)!]) < 0.0001 }.allSatisfy { $0 })
+    #expect(shares.map(\.kind) == [.type(.beer), .type(.wine), .type(.cocktail), .type(.unspecified), .importedFromHealth])
+    #expect(shares.map(\.count) == [2, 1, 1, 1, 2])
+    #expect(shares.map { abs($0.standardDrinks - [2.0, 1.0, 1.0, 1.0, 2.0][shares.firstIndex(of: $0)!]) < 0.0001 }.allSatisfy { $0 })
     let sum = shares.reduce(0) { $0 + $1.standardDrinks }
-    #expect(abs(sum - 6.0) < 0.0001)
+    #expect(abs(sum - 7.0) < 0.0001)
     #expect(abs(sum - (detail?.standardDrinks ?? -1)) < 1e-9)
 
     let onlyWine = TrendSummary.shares(of: [wine(day), wine(day)], region: .unitedStates)
@@ -309,14 +312,14 @@ struct PeriodDetailTests {
   func detailAgreesWithBarsAtScale() {
     let end = date(2026, 8, 26, 12)
     var drinks: [LoggedDrink] = []
-    let types: [DrinkType] = [.beer, .wine, .spirit, .other]
+    let types = DrinkType.selectableCases
     for i in 0..<10_000 {
       let dayOffset = -(i % 400)
       let stamp = calendar.date(byAdding: .day, value: dayOffset, to: date(2026, 8, 26, 12 + (i % 11)))!
       switch i % 6 {
       case 0: drinks.append(LoggedDrink.importedFromHealth(sampleID: UUID(), count: Double(1 + i % 3), loggedAt: stamp))
       case 1: drinks.append(LoggedDrink.standardDrink(in: .unitedStates, at: stamp))
-      default: drinks.append(LoggedDrink(loggedAt: stamp, type: types[i % 4], volumeOunces: Double(4 + i % 10), abvPercent: Double(3 + i % 12)))
+      default: drinks.append(LoggedDrink(loggedAt: stamp, type: types[i % types.count], volumeOunces: Double(4 + i % 10), abvPercent: Double(3 + i % 12)))
       }
     }
     for range in [TrendRange.quarter, .year] {
