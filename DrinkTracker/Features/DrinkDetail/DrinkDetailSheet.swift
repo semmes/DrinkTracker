@@ -270,14 +270,16 @@ struct DrinkDetailSheet: View {
     }
   }
 
-  /// A cocktail's field asks for the spirit, in so many words. The pills
-  /// above it say "oz spirit", but this is the one place the glass-size trap
-  /// opens — typing an 8 oz glass at spirit strength records five drinks —
-  /// so the noun that carries the model (ADR-0035) cannot vanish exactly
-  /// here. Every other type keeps the plain unit.
+  /// A cocktail's field asks for the whole drink, in so many words. Its pills
+  /// are glass sizes, and this is the one place the pour-size trap opens — a
+  /// reader who knows their pour was 1.5 oz and types it records 0.4 drinks at
+  /// the mixed strength, an under-count that looks plausible (the trap
+  /// ADR-0035 named for this model, and ADR-0037 accepts on the owner's
+  /// ruling) — so the noun that carries the model sits exactly here. Every
+  /// other type keeps the plain "Ounces"; the unit is "oz" for all of them.
   private var customVolumeField: some View {
     HStack(spacing: GlassTokens.Spacing.tight) {
-      TextField(draft.type == .cocktail ? "Ounces of spirit" : "Ounces", text: $customVolumeText)
+      TextField(draft.type == .cocktail ? "Ounces in the glass" : "Ounces", text: $customVolumeText)
         .keyboardType(.decimalPad)
         .focused($isCustomVolumeFocused)
         .font(.body)
@@ -291,7 +293,7 @@ struct DrinkDetailSheet: View {
             draft.customVolumeOunces = parsed
           }
         }
-      Text(draft.type == .cocktail ? "oz spirit" : "oz")
+      Text("oz")
         .font(.body)
         .foregroundStyle(.secondary)
     }

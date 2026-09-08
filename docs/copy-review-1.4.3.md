@@ -1189,3 +1189,29 @@ Every glyph beside text is decorative to VoiceOver; the text is the label.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.3 — The cocktail is measured as the whole drink (ADR-0037, 2026-09-08)
+
+The owner's review of the shipped type control: the cocktail's sizes should
+"better represent a mixed drink rather than a shot of a spirit". Three pill
+labels change, one placeholder replaces another, one footnote returns to its
+reviewed wording, and every sentence that prints a cocktail's figures prints
+different numbers. None of it sets a target, grades, or counts toward
+anything.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "3 oz" · "4 oz" · "6 oz" | Cocktail's size pills, replacing "1.5 oz spirit" · "2 oz spirit" · "3 oz spirit" | Sizes, stated as sizes — the three the owner named — in the same "N oz" shape as every other pill and with no vessel noun, since no one vessel fits a mixed drink. Verbatim `String`s outside every catalog, the standing size-axis deferral. |
+| "Ounces in the glass" | Cocktail's Custom field placeholder, replacing "Ounces of spirit" | Says what the number is, at the one place a reader might type the pour instead (the trap ADR-0037 accepts). Factual; no instruction beyond the field's own. One new app key; "oz spirit" retires with it and the unit is the shared "oz". |
+| Export footnote (restored) | Settings → Export | Returns to its 2026-09-02 wording, reviewed above. The clause ADR-0035 added ("— for a cocktail they are the spirit poured and its strength") described a model that no longer exists; a cocktail's two columns are now the same shape as every other typed drink's. |
+| "Plus logs a cocktail, 4oz at 15% — editable afterwards." | `CounterSeedCaption`, when the day is following a cocktail | The existing sentence over the new figures. |
+| "Logged: Cocktail, 4oz, 15% ABV." · "Cocktail · 4oz · 15%" | Siri's reply and the row detail, at the defaults | The same templates over the whole drink's facts — a drink, not a shot. |
+
+**Reviewed against 1.4.3.** The 15% is a default the user can move, like
+beer's 5% and wine's 12%, and the sheet shows the estimate change as they do.
+Nothing here celebrates, judges, or compares to a threshold. The under-count
+the model admits — a pour typed into Custom — is a measurement question,
+recorded in ADR-0037; the placeholder is the copy that answers it.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

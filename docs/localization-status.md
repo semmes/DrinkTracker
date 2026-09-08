@@ -67,7 +67,18 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **370 keys** — 303 app, 35 widget, 28 core, 4 shortcuts (counted
+Current: **369 keys** — 302 app, 35 widget, 28 core, 4 shortcuts (counted
+2026-09-08 after ADR-0037's sync — the cocktail measured as the whole drink).
+The app catalog went 303 → 302: two in, three out. In: "Ounces in the glass"
+(the cocktail Custom field's placeholder, the one place the model's noun is
+spoken) and the Export footnote's 2026-09-02 wording, restored one-for-one.
+Out: "Ounces of spirit" and "oz spirit" (the spirit-pour wording; the unit is
+the shared "oz" again) and the footnote ADR-0035 had reworded. The three
+cocktail pills are now "3 oz", "4 oz", "6 oz" — still verbatim `String`s
+outside every catalog, the size-axis deferral below. Nothing reached the
+widget or the core package: "Cocktail" is unchanged in all three, and the core
+key's translator comment lives in code, not in the catalog. The previous count
+was 370 — 303 app, 35 widget, 28 core, 4 shortcuts, counted
 2026-09-07 after ADR-0035/0036's sync — the cocktail type and the glyph set.
 "Cocktail" landed in three catalogs at once: the core package's by hand, since
 `DrinkType.displayName` is a package `localized(...)` call and the coverage test
@@ -218,13 +229,14 @@ there is. `StandardDrink.readsAsOne` is now the single definition of that rule.
 core package, and `SizePill` renders it with `Text(label)`, the verbatim
 initializer — so none of the twelve pill labels ("12 oz can", "16 oz pint",
 "40 oz bottle", "5 oz glass", "8 oz glass", "1 oz shot", "1.5 oz shot",
-"2 oz double", "1.5 oz spirit", "2 oz spirit", "3 oz spirit", "Custom") is in
+"2 oz double", "3 oz", "4 oz", "6 oz", "Custom") is in
 any catalog. Two things make this more than a `LocalizedStringKey` swap when
 the time comes: `DrinkSizeOption.id` *is* the label, so a translated label
 must stay unique within its type; and the labels carry a unit ("oz") that the
 region lens does not yet re-express, so a UK build would need the size axis in
 millilitres as well as in its own words. Recorded 2026-09-07, when ADR-0035
-added four labels to the axis.
+added four labels to the axis; ADR-0037 swapped the three cocktail labels for
+glass sizes on 2026-09-08, and the axis is still verbatim.
 
 **Plural variations are not filled in.** Count-bearing sentences are whole keys per
 branch, which is what lets a catalog carry real variations — but the variations

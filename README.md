@@ -257,9 +257,11 @@ pinning the behaviour so nothing is silently "corrected".
 1. **~~Spirit and Other defaults don't hit 1.0 standard drinks.~~** *Settled.* The
    one-drink invariant is real, and Spirit now defaults to the 1.5 oz shot — 0.6 fl
    oz of ethanol at 40%, the US definition exactly. Cocktail (1.3) rests on the same
-   fact: it is measured by the spirit in it, defaults to the 1.5 oz pour at 40%, and
-   its pills are pours of spirit
-   ([ADR-0035](docs/decisions/0035-cocktail-is-a-fifth-type-measured-by-its-spirit.md)).
+   fact from the other side: it is measured as the whole drink in the glass, and its
+   default of 4 oz at 15% is that same 0.6 fl oz — the standard pour, mixed — with
+   pills of 3, 4 and 6 oz
+   ([ADR-0037](docs/decisions/0037-a-cocktail-is-measured-as-the-whole-drink.md),
+   which reversed ADR-0035's spirit-pour model on the owner's review).
    Other stays at 8 oz @ 10% as a
    deliberate exception: it has no presets and no typical serving to anchor to, so
    its default seeds the Custom field rather than describing a real drink. See
