@@ -71,8 +71,14 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **369 keys** — 302 app, 35 widget, 28 core, 4 shortcuts (counted
-2026-09-08 after ADR-0037's sync — the cocktail measured as the whole drink).
+Current: **370 keys** — 303 app, 35 widget, 28 core, 4 shortcuts (counted
+2026-09-08 after the ADR-0034 amendment's sync — the empty day says less, PR
+#83). The app catalog went 302 → 303: one in, none out — "Tap the plus sign to
+change that.", Today's marked-state footnote where the "Remove that record"
+link was; the link's key and the seed caption's keys stay, still used by the
+day sheet and the pill. Nothing reached the widget or the core package. Before
+that, **369** — 302 app, 35 widget, 28 core, 4 shortcuts, counted earlier the
+same day after ADR-0037's sync — the cocktail measured as the whole drink.
 The app catalog went 303 → 302: two in, three out. In: "Ounces in the glass"
 (the cocktail Custom field's placeholder, the one place the model's noun is
 spoken) and the Export footnote's 2026-09-02 wording, restored one-for-one.
