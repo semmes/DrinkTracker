@@ -24,6 +24,22 @@ jobs:
       - name: Dates agree across the policy's copies
         run: python3 .github/scripts/check_policy_dates.py
 
+  # The drink glyphs are generated output (ADR-0036): eight .symbolset folders
+  # written by a dependency-free script from the owner's SVGs. A hand-edited
+  # symbolset, a renamed case in DrinkType.Symbol, or a stale catalog would all
+  # compile green and render nothing, so this regenerates and requires a clean
+  # tree. Linux on purpose, like the policy check: it needs only Python.
+  drink-symbols:
+    name: Drink glyphs match their source
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Regenerate the symbolsets and compare
+        run: |
+          python3 scripts/make-drink-symbols.py
+          git diff --exit-code -- DrinkTracker/Assets.xcassets
+          test -z "$(git status --porcelain -- DrinkTracker/Assets.xcassets)"
+
   # Tier 1 (docs/PRD.md §4). Pure value types, no simulator and no signing —
   # DrinkTrackerCore declares .macOS(.v15) precisely so this can run natively.
   domain-tests:

@@ -35,7 +35,7 @@ struct DrinkDetailSheet: View {
   /// Decided once, when the sheet opens, and deliberately *not* re-derived from
   /// the draft while it is open. The condition used to be `draft.needsType`,
   /// which stops being true the instant the question is answered: on Today's
-  /// "Add specific" path the four types disappeared as the user's own tap
+  /// "Add specific" path the types disappeared as the user's own tap
   /// landed, size and strength took their place, and the sheet read as having
   /// pushed a second page — with no way back to a different type short of
   /// closing it and starting over (owner's report, 2026-09-07).
@@ -46,6 +46,17 @@ struct DrinkDetailSheet: View {
   /// what the sheet asks for is a property of the presentation, and the
   /// answer must never be able to withdraw the question.
   private let asksType: Bool
+  /// Whether the primary action says "Save details" — adoption, and adding
+  /// a type to an untyped drink already on the record (ADR-0016's word,
+  /// borrowed by ADR-0023).
+  ///
+  /// Decided once at init for the same reason as `asksType`. It used to be a
+  /// live read of `draft.needsType`, so on the untyped row's "Tap to say what
+  /// it was" path the button said "Save details" until the first type tap and
+  /// "Save changes" after it — the mid-presentation change `asksType` exists
+  /// to prevent, one row lower. The owner ruled that "Save details" holds for
+  /// the whole presentation (2026-09-07).
+  private let savesDetails: Bool
 
   init(
     draft: DrinkDraft,
@@ -64,6 +75,8 @@ struct DrinkDetailSheet: View {
     // does a draft that arrives without one — Today's "Add specific" opens on
     // an untyped standard drink (ADR-0023), which is the whole of that path.
     self.asksType = showsTimeControl || editsExistingEntry || draft.needsType
+    // Read here, once: the picker writes `needsType` false on its first tap.
+    self.savesDetails = editsExistingEntry && draft.needsType
     self.adopting = nil
     self.onLogged = onLogged
     self.onCancel = onCancel
@@ -88,6 +101,7 @@ struct DrinkDetailSheet: View {
     self.showsTimeControl = false
     // The import doesn't know the type; asking for it is the point of adopting.
     self.asksType = true
+    self.savesDetails = true
     self.adopting = imported
     self.onLogged = onLogged
     self.onCancel = onCancel
@@ -147,6 +161,13 @@ struct DrinkDetailSheet: View {
 
   private var header: some View {
     HStack {
+      // The type's glyph beside its name, so the sheet names the drink the
+      // way every row does (ADR-0036). It follows the picker below without
+      // any extra state: both read `draft.type`.
+      Image(draft.type.symbolName)
+        .font(.title)
+        .foregroundStyle(Color.accentColor)
+        .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 2) {
         Text(draft.type.displayName)
           .font(GlassTokens.Typography.sheetTitle)
@@ -181,7 +202,7 @@ struct DrinkDetailSheet: View {
   // MARK: - Type
 
   /// Shown whenever the presentation asks which drink it was, and then shown
-  /// for as long as the sheet is open — the four types stay in place, so a
+  /// for as long as the sheet is open — the five types stay in place, so a
   /// reader who picks Wine can still change their mind to Spirit without
   /// leaving. Picking one adds size and strength *below* it rather than
   /// replacing it.
@@ -196,12 +217,9 @@ struct DrinkDetailSheet: View {
     if asksType {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Drink")
-        Picker("Drink", selection: typeBinding) {
-          ForEach(DrinkType.selectableCases) { type in
-            Text(type.displayName).tag(type)
-          }
-        }
-        .pickerStyle(.segmented)
+        // Glyph over name in every segment (ADR-0036) — a native segmented
+        // Picker shows one or the other, so the control is its own view.
+        DrinkTypePicker(selection: typeBinding)
       }
     }
   }
@@ -244,7 +262,7 @@ struct DrinkDetailSheet: View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
       SectionLabel("Size")
 
-      // Wrapping layout so a four-pill type (Beer, Spirit) doesn't squeeze
+      // Wrapping layout so a four-pill type (Beer, Spirit, Cocktail) doesn't squeeze
       // labels below legibility on narrower devices or at large Dynamic Type.
       FlowLayout(spacing: GlassTokens.Spacing.tight) {
         ForEach(draft.type.sizeOptions) { option in
@@ -266,9 +284,14 @@ struct DrinkDetailSheet: View {
     }
   }
 
+  /// A cocktail's field asks for the spirit, in so many words. The pills
+  /// above it say "oz spirit", but this is the one place the glass-size trap
+  /// opens — typing an 8 oz glass at spirit strength records five drinks —
+  /// so the noun that carries the model (ADR-0035) cannot vanish exactly
+  /// here. Every other type keeps the plain unit.
   private var customVolumeField: some View {
     HStack(spacing: GlassTokens.Spacing.tight) {
-      TextField("Ounces", text: $customVolumeText)
+      TextField(draft.type == .cocktail ? "Ounces of spirit" : "Ounces", text: $customVolumeText)
         .keyboardType(.decimalPad)
         .focused($isCustomVolumeFocused)
         .font(.body)
@@ -282,7 +305,7 @@ struct DrinkDetailSheet: View {
             draft.customVolumeOunces = parsed
           }
         }
-      Text("oz")
+      Text(draft.type == .cocktail ? "oz spirit" : "oz")
         .font(.body)
         .foregroundStyle(.secondary)
     }
@@ -383,7 +406,6 @@ struct DrinkDetailSheet: View {
   private var canLog: Bool { draft.volumeOunces > 0 }
 
   private var logButtonTitle: String {
-    if adopting != nil { return "Save details" }
     // Adding a type to an untyped drink *that is already on the record* is the
     // same act as adoption, and says so — "Save changes" would imply something
     // was there to change (ADR-0016's vocabulary, borrowed by ADR-0023).
@@ -393,10 +415,14 @@ struct DrinkDetailSheet: View {
     // on one, and pressing the button before naming a type writes a row that
     // does not exist yet — the same row ＋ writes. Calling that "Save details"
     // named details nobody had given, and it is a log, so it says "Log drink"
-    // (owner's call, 2026-09-07). The title is now fixed for the whole of that
-    // presentation rather than changing under the first tap, which is the same
-    // fault `asksType` exists to prevent.
-    if draft.needsType && draft.editingEntryID != nil { return "Save details" }
+    // (owner's call, 2026-09-07).
+    //
+    // `savesDetails` is stored, not re-read: the test includes `needsType`,
+    // which the picker writes false, so a live read flipped the untyped row's
+    // button to "Save changes" under the first tap. Each presentation now
+    // keeps the title it opened with, which is the same fault `asksType`
+    // exists to prevent.
+    if adopting != nil || savesDetails { return "Save details" }
     return draft.editingEntryID == nil ? "Log drink" : "Save changes"
   }
 
@@ -445,6 +471,10 @@ struct SectionLabel: View {
       .font(.footnote.weight(.medium))
       .foregroundStyle(.secondary)
       .textCase(.uppercase)
+      // A heading, so VoiceOver can move between the sheet's sections and
+      // the type picker's own "Drink" label reads as the section it sits
+      // under rather than as an echo of it.
+      .accessibilityAddTraits(.isHeader)
   }
 }
 

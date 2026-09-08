@@ -109,6 +109,13 @@ struct DayLogSheet: View {
         Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
           .foregroundStyle(.secondary)
+          // Its own element in this stack, so the label is what VoiceOver
+          // speaks — "Approximately 2.6 standard drinks" rather than the "≈"
+          // symbol, which has no reading. Composed verbatim because the
+          // package already translated it (same as `DrinkDetailSheet`).
+          .accessibilityLabel(
+            Text(verbatim: StandardDrink.accessibleEstimate(total, region: settings.effectiveRegion))
+          )
       }
 
       CounterSeedCaption(seed: seed, includesMinus: !existingDrinks.isEmpty)
@@ -171,7 +178,7 @@ struct DayLogSheet: View {
 
   private var markedState: some View {
     VStack(spacing: GlassTokens.Spacing.tight) {
-      Label("Recorded as no alcohol", systemImage: "checkmark.circle")
+      Label("Recorded as no alcohol", image: DrinkType.Symbol.alcoholFree)
         .font(.subheadline)
         .foregroundStyle(.secondary)
       if markerIsFromHealth {

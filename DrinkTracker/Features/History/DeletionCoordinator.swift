@@ -32,7 +32,10 @@ final class DeletionCoordinator {
     guard let drink = recentlyDeleted else { return }
     clear()
     // Re-saving also writes a fresh HealthKit sample, replacing the one the
-    // delete retired.
+    // delete retired — when it did retire one. The value still carries its
+    // sample id, and `DrinkStore.save` retires from that when the row is
+    // gone, so an undone adopted import keeps the other app's sample and its
+    // foreign id rather than getting a Tallyist sample beside it (ADR-0016).
     await store.save(drink)
   }
 

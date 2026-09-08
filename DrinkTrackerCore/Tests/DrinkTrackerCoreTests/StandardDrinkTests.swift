@@ -126,6 +126,10 @@ struct DrinkTypeDefaultsTests {
     #expect(DrinkType.wine.defaultABVPercent == 12)
     #expect(DrinkType.spirit.defaultVolumeOunces == 1.5)
     #expect(DrinkType.spirit.defaultABVPercent == 40)
+    // A cocktail is its spirit (ADR-0035): the bar-standard pour at spirit
+    // strength, which is the US definition exactly, like spirit itself.
+    #expect(DrinkType.cocktail.defaultVolumeOunces == 1.5)
+    #expect(DrinkType.cocktail.defaultABVPercent == 40)
     #expect(DrinkType.other.defaultVolumeOunces == 8)
     #expect(DrinkType.other.defaultABVPercent == 10)
   }
@@ -137,7 +141,7 @@ struct DrinkTypeDefaultsTests {
   /// See docs/decisions/0005-spirit-defaults-to-the-1_5-oz-shot.md.
   @Test("Every type with a real serving size defaults to 1.0 standard drink")
   func defaultsHitTheOneDrinkInvariant() {
-    for type in [DrinkType.beer, .wine, .spirit] {
+    for type in [DrinkType.beer, .wine, .spirit, .cocktail] {
       #expect(abs(drinks(type) - 1.0) < 0.01, "\(type.displayName) should open at one drink")
     }
   }
@@ -164,7 +168,23 @@ struct DrinkTypeDefaultsTests {
       #expect(selected == type.defaultVolumeOunces, "\(type.displayName) pill disagrees")
     }
     #expect(DrinkType.spirit.defaultSizeOption.label == "1.5 oz shot")
+    #expect(DrinkType.cocktail.defaultSizeOption.label == "1.5 oz spirit")
     #expect(DrinkType.other.defaultSizeOption.isCustom)
+  }
+
+  /// A structural pin against ADR-0022's failure: no pill the sheet offers
+  /// may record a zero volume, and a draft opened on any selectable type is
+  /// a drink that can be repeated. A future Custom-only or 0 oz pill would
+  /// otherwise mint the "Other, 0oz" row by design rather than by bug.
+  @Test("Every offered size is a real size, and every type opens repeatable")
+  func everyPillHasVolume() {
+    for type in DrinkType.selectableCases {
+      for option in type.sizeOptions where !option.isCustom {
+        #expect((option.volumeOunces ?? 0) > 0, "\(type.displayName): \(option.label)")
+      }
+      let draft = DrinkDraft(type: type)
+      #expect(draft.makeLoggedDrink(region: .unitedStates).isRepeatable, "\(type.displayName) opens unrepeatable")
+    }
   }
 
   private func drinks(_ type: DrinkType) -> Double {
@@ -176,11 +196,17 @@ struct DrinkTypeDefaultsTests {
 
   @Test("Only Other is custom-only")
   func sizeOptions() {
-    // Beer dropped the 22 oz bottle: two common sizes plus Custom.
-    #expect(DrinkType.beer.sizeOptions.count == 3)
+    // Beer dropped the 22 oz bottle and later gained the 40 oz (ADR-0035):
+    // the can, the pint, the forty, and Custom.
+    #expect(DrinkType.beer.sizeOptions.count == 4)
     #expect(!DrinkType.beer.sizeOptions.contains { $0.volumeOunces == 22 })
+    #expect(DrinkType.beer.sizeOptions.contains { $0.volumeOunces == 40 && $0.label == "40 oz bottle" })
     #expect(DrinkType.wine.sizeOptions.count == 3)
     #expect(DrinkType.spirit.sizeOptions.count == 4)
+    // A cocktail's pills are pours of spirit, and say so in every label.
+    #expect(DrinkType.cocktail.sizeOptions.count == 4)
+    #expect(DrinkType.cocktail.sizeOptions.map(\.volumeOunces) == [1.5, 2, 3, nil])
+    #expect(DrinkType.cocktail.sizeOptions.dropLast().allSatisfy { $0.label.hasSuffix(" oz spirit") })
     #expect(DrinkType.other.sizeOptions == [.custom])
     // Every type the sheet offers can reach Custom, so no size is unreachable.
     for type in DrinkType.selectableCases {
@@ -191,6 +217,26 @@ struct DrinkTypeDefaultsTests {
     // and a Custom pill there would invite editing the standard-drink
     // definition (ADR-0023).
     #expect(DrinkType.unspecified.sizeOptions.isEmpty)
+  }
+
+  /// The glyphs are catalog symbols now (ADR-0036), and the catalog is built
+  /// by `scripts/make-drink-symbols.py` from a fixed list of names. This pins
+  /// the package's side of that contract: every type names a `tally.` symbol,
+  /// no two share one, and the two companions are in the same list the
+  /// generator writes — so a renamed case cannot silently render nothing.
+  @Test("Every type names its own catalog symbol")
+  func symbolNames() {
+    let names = DrinkType.allCases.map(\.symbolName)
+    #expect(Set(names).count == names.count)
+    for name in names + [DrinkType.Symbol.health, DrinkType.Symbol.alcoholFree] {
+      #expect(name.hasPrefix("tally."), "\(name) is not a catalog symbol")
+      #expect(DrinkType.Symbol.all.contains(name), "\(name) is not in the generator's list")
+    }
+    #expect(DrinkType.Symbol.all.count == 8)
+    #expect(Set(DrinkType.Symbol.all).count == 8)
+    // The untyped drink is a measure, not a vessel — its own glyph, shared
+    // with nothing.
+    #expect(DrinkType.unspecified.symbolName == DrinkType.Symbol.standard)
   }
 }
 
@@ -831,6 +877,17 @@ struct IntentDraftTests {
     #expect(custom.abvPercent == 13)
   }
 
+  /// "Log a cocktail in Tallyist" is one standard drink at the defaults, and
+  /// a spoken size is the spirit poured, matched to its pill (ADR-0035).
+  @Test("A cocktail intent is one standard drink, and a spoken pour finds its pill")
+  func cocktailIntent() throws {
+    let plain = try #require(DrinkDraft.forIntent(type: .cocktail))
+    #expect(abs(plain.standardDrinks(region: .unitedStates) - 1.0) < 0.001)
+    let double = try #require(DrinkDraft.forIntent(type: .cocktail, volumeOunces: 2))
+    #expect(double.selectedSize.label == "2 oz spirit")
+    #expect(double.volumeOunces == 2)
+  }
+
   @Test("A non-finite size falls back to the type's default, as strength does")
   func nonFiniteSizeFallsBack() throws {
     let infinite = try #require(DrinkDraft.forIntent(type: .beer, volumeOunces: .infinity))
@@ -1093,7 +1150,10 @@ struct UntypedStandardDrinkTests {
   @Test("No picker can offer the untyped case")
   func neverSelectable() {
     #expect(!DrinkType.selectableCases.contains(.unspecified))
-    #expect(DrinkType.selectableCases.count == 4)
+    // Five since ADR-0035 — cocktail sits between spirit and other, in the
+    // picker and in `allCases` alike, so the two orders never disagree.
+    #expect(DrinkType.selectableCases == [.beer, .wine, .spirit, .cocktail, .other])
+    #expect(DrinkType.allCases == DrinkType.selectableCases + [.unspecified])
     // It stays in allCases, which is what the seed tie-break orders against.
     #expect(DrinkType.allCases.contains(.unspecified))
   }

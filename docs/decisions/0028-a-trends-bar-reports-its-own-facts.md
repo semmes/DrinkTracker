@@ -55,7 +55,8 @@ through `SummaryHeading` so "…, through today" is assembled in one place),
 the day count for a week or month bar (the calendar card's own count line),
 the total in the current unit for a day, what was logged by kind with entry
 count and contribution — Beer, Wine, Spirit, Other, No type, From Apple
-Health — with the rows summing to the bar, which zero a zero day is
+Health (and Cocktail between Spirit and Other since ADR-0035, by the same
+`allCases` order) — with the rows summing to the bar, which zero a zero day is
 ("Recorded as no alcohol", with "From Apple Health" when the marker is
 Health's, or "Not logged"), and for a week or month the calendar card's four
 ADR-0006 figures with unlogged days named, in the same component

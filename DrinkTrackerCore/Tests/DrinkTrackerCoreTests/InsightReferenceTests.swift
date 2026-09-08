@@ -36,46 +36,140 @@ struct InsightReferenceTests {
     #expect(PopulationReference.window(firstRecord: date(2020, 1, 1), now: now) == .twelveMonths)
   }
 
-  @Test("Four weeks is the shipped rule: the trailing 28 days over a fixed 4")
+  @Test("Four weeks is the shipped rule: the last 28 calendar days over a fixed 4")
   func fourWeekAverage() {
     let now = date(2026, 9, 5)
     let drinks = [
-      beer(now.addingTimeInterval(-1 * 86400)),
-      beer(now.addingTimeInterval(-27 * 86400)),
-      beer(now.addingTimeInterval(-29 * 86400))  // outside
+      beer(date(2026, 9, 4)),
+      beer(date(2026, 8, 9, 23)),  // the 28th day back: inside
+      beer(date(2026, 8, 8, 23))   // the 29th: outside, though only 27 days and 13 hours before `now`
     ]
-    let average = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates)
+    let average = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar)
     #expect(abs(average - 2.0 / 4) < 1e-9)
   }
 
-  @Test("Twelve months is 52 whole weeks over a fixed 52")
+  @Test("Twelve months is 52 whole weeks of calendar days over a fixed 52")
   func twelveMonthAverage() {
     let now = date(2026, 9, 5)
     var drinks: [LoggedDrink] = []
     for week in 0..<52 {  // one beer a week, the last one 357 days back
-      drinks.append(beer(now.addingTimeInterval(-Double(week * 7 + 1) * 86400)))
+      drinks.append(beer(calendar.date(byAdding: .day, value: -(week * 7 + 1), to: now)!))
     }
-    drinks.append(beer(now.addingTimeInterval(-365 * 86400)))  // outside
-    let average = PopulationReference.weeklyAverage(drinks, window: .twelveMonths, endingAt: now, region: .unitedStates)
-    #expect(abs(average - 1.0) < 1e-9)
+    drinks.append(beer(date(2025, 9, 7, 0)))   // the 364th day back, at its first minute: inside
+    drinks.append(beer(date(2025, 9, 6, 23)))  // the 365th: outside, though 363 days and 13 hours before `now`
+    let average = PopulationReference.weeklyAverage(drinks, window: .twelveMonths, endingAt: now, region: .unitedStates, calendar: calendar)
+    #expect(abs(average - 53.0 / 52) < 1e-9)
     // The same year's drinks over four weeks are the last four only.
-    let recent = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates)
+    let recent = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar)
     #expect(abs(recent - 1.0) < 1e-9)
   }
 
   @Test("The divisor never shrinks with a sparse window")
   func fixedDivisor() {
     let now = date(2026, 9, 5)
-    let drinks = [beer(now.addingTimeInterval(-3600))]
-    #expect(abs(PopulationReference.weeklyAverage(drinks, window: .twelveMonths, endingAt: now, region: .unitedStates) - 1.0 / 52) < 1e-9)
+    let drinks = [beer(date(2026, 9, 5, 11))]
+    #expect(abs(PopulationReference.weeklyAverage(drinks, window: .twelveMonths, endingAt: now, region: .unitedStates, calendar: calendar) - 1.0 / 52) < 1e-9)
+    #expect(abs(PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar) - 1.0 / 4) < 1e-9)
+  }
+
+  /// The probe from the 1.3 review: an evening drink 28 calendar days back,
+  /// read the next morning, is 27 days and 11 hours old — inside an instant
+  /// cutoff, outside the last 28 days — and printed an average above zero over
+  /// "0 of the last 28 days". Both edges of the window are calendar days now:
+  /// the far one, and the near one, where an entry later today counts and an
+  /// entry dated tomorrow does not.
+  @Test("Both edges of the window are calendar days, not instants")
+  func edgesAreCalendarDays() {
+    let morning = date(2026, 9, 5, 8)
+    func average(_ drinks: [LoggedDrink], _ window: PopulationReference.Window = .fourWeeks) -> Double {
+      PopulationReference.weeklyAverage(drinks, window: window, endingAt: morning, region: .unitedStates, calendar: calendar)
+    }
+    let probe = [beer(date(2026, 8, 8, 21))]
+    #expect(average(probe) == 0)
+    #expect(FrequencyReference.drinkingDays(in: probe, last: 28, endingOn: morning, calendar: calendar) == 0)
+
+    let firstMinute = [beer(date(2026, 8, 9, 0))]
+    #expect(abs(average(firstMinute) - 1.0 / 4) < 1e-9)
+    #expect(FrequencyReference.drinkingDays(in: firstMinute, last: 28, endingOn: morning, calendar: calendar) == 1)
+
+    let laterToday = [beer(date(2026, 9, 5, 23))]
+    #expect(abs(average(laterToday) - 1.0 / 4) < 1e-9)
+    #expect(FrequencyReference.drinkingDays(in: laterToday, last: 28, endingOn: morning, calendar: calendar) == 1)
+    let tomorrow = [beer(date(2026, 9, 6, 0))]
+    #expect(average(tomorrow) == 0)
+    #expect(FrequencyReference.drinkingDays(in: tomorrow, last: 28, endingOn: morning, calendar: calendar) == 0)
+
+    // The same at twelve months: the 364th day back is a whole day.
+    #expect(abs(average([beer(date(2025, 9, 7, 0))], .twelveMonths) - 1.0 / 52) < 1e-9)
+    #expect(average([beer(date(2025, 9, 6, 23))], .twelveMonths) == 0)
+  }
+
+  /// One key set, two lines: whatever `drinkingDays` counts, the average sums,
+  /// and nothing else. Checked drink by drink, so a drink the count includes
+  /// and the average drops — or the reverse — names itself.
+  @Test("The average and the drinking-days count cover one set of days")
+  func averageAndDayCountAgree() {
+    let readings = [date(2026, 9, 5, 0), date(2026, 9, 5, 8), date(2026, 9, 5, 23)]
+    let candidates = [
+      date(2026, 8, 7, 23), date(2026, 8, 8, 0), date(2026, 8, 8, 21), date(2026, 8, 8, 23),
+      date(2026, 8, 9, 0), date(2026, 8, 9, 7), date(2026, 8, 9, 23),
+      date(2026, 9, 5, 0), date(2026, 9, 5, 12), date(2026, 9, 5, 23),
+      date(2026, 9, 6, 0), date(2026, 9, 6, 9),
+      date(2025, 9, 6, 23), date(2025, 9, 7, 0), date(2025, 9, 7, 12)
+    ]
+    for now in readings {
+      for window in [PopulationReference.Window.fourWeeks, .twelveMonths] {
+        for at in candidates {
+          let drink = [beer(at)]
+          let counted = FrequencyReference.drinkingDays(in: drink, last: window.days, endingOn: now, calendar: calendar) == 1
+          let summed = PopulationReference.weeklyAverage(drink, window: window, endingAt: now, region: .unitedStates, calendar: calendar) > 0
+          #expect(counted == summed, "\(at) read at \(now) over \(window): counted \(counted), summed \(summed)")
+        }
+      }
+    }
+    // And all at once: six of the candidates fall on the last 28 days ending
+    // September 5 — three on August 9, three on the 5th — so two days, six drinks.
+    let all = candidates.map { beer($0) }
+    #expect(FrequencyReference.drinkingDays(in: all, last: 28, endingOn: readings[1], calendar: calendar) == 2)
+    #expect(abs(PopulationReference.weeklyAverage(all, window: .fourWeeks, endingAt: readings[1], region: .unitedStates, calendar: calendar) - 6.0 / 4) < 1e-9)
+  }
+
+  /// Santiago moves its clocks at midnight on 2026-09-06: that day has no
+  /// 00:00 and `startOfDay` is 01:00, the case the package's day walk exists
+  /// for (ADR-0026). The window that ends on the transition day must hold the
+  /// day itself and the 27 before it, and the two lines must agree across it.
+  @Test("The average survives a midnight daylight-saving day, in step with the count")
+  func averageOnTransitionDay() {
+    var santiago = Calendar(identifier: .gregorian)
+    santiago.timeZone = TimeZone(identifier: "America/Santiago")!
+    santiago.firstWeekday = 1
+    func at(_ month: Int, _ day: Int, _ hour: Int) -> Date {
+      santiago.date(from: DateComponents(year: 2026, month: month, day: day, hour: hour))!
+    }
+    let now = at(9, 6, 12)
+    let drinks = [
+      beer(at(9, 6, 1)),   // the transition day's first hour
+      beer(at(9, 6, 11)),
+      beer(at(9, 5, 23)),  // the last hour before the clocks moved
+      beer(at(8, 10, 0)),  // the 28th day back: inside
+      beer(at(8, 9, 23))   // the 29th: outside
+    ]
+    let average = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: santiago)
+    #expect(abs(average - 4.0 / 4) < 1e-9)
+    #expect(FrequencyReference.drinkingDays(in: drinks, last: 28, endingOn: now, calendar: santiago) == 3)
+    for drink in drinks {
+      let counted = FrequencyReference.drinkingDays(in: [drink], last: 28, endingOn: now, calendar: santiago) == 1
+      let summed = PopulationReference.weeklyAverage([drink], window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: santiago) > 0
+      #expect(counted == summed, "\(drink.loggedAt): counted \(counted), summed \(summed)")
+    }
   }
 
   @Test("The window's average re-expresses under the current region only")
   func windowFollowsTheLens() {
     let now = date(2026, 9, 5)
     let drinks = [beer(now.addingTimeInterval(-86400))]
-    let us = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates)
-    let uk = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedKingdom)
+    let us = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar)
+    let uk = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedKingdom, calendar: calendar)
     #expect(uk > us)
     // And the comparison agrees in grams whichever lens produced it.
     let ref = try! #require(PopulationReference.bundled)

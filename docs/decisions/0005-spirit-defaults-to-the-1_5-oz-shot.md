@@ -58,7 +58,10 @@ It stays at 8 oz @ 10%.
   `defaultPillMatchesDefaultVolume` guards the coupling that made this a two-line
   change rather than a one-line one.
 - Adding a type later means picking a default that lands on 1.0, or documenting why
-  it is an exception. That is a real constraint, and an intended one.
+  it is an exception. That is a real constraint, and an intended one. *Exercised
+  once, 2026-09-07:* Cocktail lands on 1.0 exactly, by the same 1.5 oz at 40%
+  this record settled for spirit — see
+  [ADR-0035](0035-cocktail-is-a-fifth-type-measured-by-its-spirit.md).
 
 ## How to reopen
 

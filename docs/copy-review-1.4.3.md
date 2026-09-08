@@ -777,7 +777,7 @@ invited the threshold comparison spec constraint 5 refuses.
 | Under it, when the marker came from Health (existing key) | "From Apple Health" |
 | Detail body, a day with nothing recorded (the legend's own word) | "Not logged" |
 | Detail body, a week or month bar | the calendar card's four figures and its unlogged line, unchanged |
-| Composition row names | "Beer" · "Wine" · "Spirit" · "Other" (package names) · "No type" · "From Apple Health" |
+| Composition row names | "Beer" · "Wine" · "Spirit" · "Cocktail" (since ADR-0035) · "Other" (package names) · "No type" · "From Apple Health" |
 | Composition row, count under a typed or untyped name | "1 drink" · "2 drinks" |
 | Composition row, trailing amount (existing package phrase) | "2 standard drinks" · "1.75 units" |
 | Clear button VoiceOver label; the chart's named action (existing key) | "Clear selection" |
@@ -1153,6 +1153,13 @@ restated itself while the reader was still deciding. It is now fixed for the
 whole presentation, the same discipline `asksType` applies to the picker above
 it.
 
+*2026-09-07, ruling B of the 1.3 release review:* the untyped-row path had the
+same flip one row down — "Save details" until the first type tap, "Save
+changes" after — so the title is now decided once per presentation (a stored
+`let` in the sheet's initialiser) and "Save details" holds for the whole of
+that path, as the table above already claimed. Same three literals, still
+outside the catalogs.
+
 **Reviewed against 1.4.3.** "Log drink" is factual and already in use on this
 button; it sets no target, grades nothing, and reads the same for a first drink
 and a tenth. Nothing here celebrates, judges, or counts up to anything.
@@ -1163,3 +1170,29 @@ and a tenth. Nothing here celebrates, judges, or counts up to anything.
 unreachable"). The app catalog stays at 300 keys; this change adds and retires
 none. All eight `SUButton(model: .primary(…))` titles in the app share that gap
 and want one pass, not a one-off here.
+
+## 1.3 — A fifth drink type, its pours, a beer size, and the glyph set (ADR-0035, ADR-0036, 2026-09-07)
+
+New strings, and one existing string reworded. Every one is a name or a
+measurement of the user's own record; none sets a target, grades, or counts
+toward anything.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Cocktail" | The picker's fifth segment, the sheet header, Today and History row titles, the Trends composition row, the CSV `entry` column and Siri's reply ("Logged: Cocktail, 1.5oz, 40% ABV.") through the package's `displayName`; Siri's parameter list through the intent enum's own title, a second key held in the app and widget catalogs | A category name, like "Beer". No framing. |
+| "1.5 oz spirit" · "2 oz spirit" · "3 oz spirit" | Cocktail's size pills | Sizes, stated as sizes, with the noun that says what is measured (ADR-0035: a cocktail is its spirit). Not in any catalog — `DrinkSizeOption.label` is verbatim, the standing size-axis deferral. |
+| "Ounces of spirit" · "oz spirit" | Cocktail's Custom field placeholder and unit | The same noun at the one place the glass-size trap opens; every other type keeps "Ounces" / "oz". Two new app keys. |
+| "40 oz bottle" | Beer's third size pill | A retail size, named the way the can and the pint are. At beer's default 5% it is 3.33 standard drinks in one tap — a correct figure for one physical bottle, stated nowhere as anything but a size; the row reads "40oz · 5%" like any other. Verbatim, like the other pills. |
+| "Plus logs a cocktail, 1.5oz at 40% — editable afterwards." | `CounterSeedCaption`, when the day is following a cocktail | The existing sentence over the new name; `.other` is still the one type worded "a drink". |
+| Export footnote (reworded) | Settings → Export | Gains "— for a cocktail they are the spirit poured and its strength" so the file's columns are described truthfully for the type whose size is a pour, not a glass. Factual; the file is the one surface read across a desk from someone else (ADR-0015). |
+| "Drink" (existing key, new use) | VoiceOver label of the type picker's container | The section's own word; the section label is now a heading so the two read as heading and control, not an echo. |
+
+**Not copy, but seen by a reader:** the eight drink glyphs (ADR-0036) replace SF
+Symbols on every surface that names a type. They are marks, not messages — a
+vessel per type, a drop for the untyped drink, a heart for Health, an outlined
+ring-and-check for a day recorded as no alcohol — and they carry no colour of
+their own, so nothing about them reads as a verdict (invariant 10 untouched).
+Every glyph beside text is decorative to VoiceOver; the text is the label.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
