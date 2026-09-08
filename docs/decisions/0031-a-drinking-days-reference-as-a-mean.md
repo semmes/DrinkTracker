@@ -2,7 +2,8 @@
 
 **Status:** accepted · **Date:** 2026-09-05 · **Relates to:** ADR-0018 (the
 population reference and its rules), ADR-0030 (the window it shares),
-ADR-0006, spec Feature C's "Shape 2", constraints 3 and 5
+ADR-0006, spec Feature C's "Shape 2", constraints 3 and 5 · **Amended by:**
+ADR-0038 (the two lines are the reader's to show)
 
 ## Context
 

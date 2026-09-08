@@ -100,7 +100,12 @@ struct TrendsView: View {
         rangePicker
         chartCard(snapshot)
         summaryCards(snapshot)
-        WeekdayCard(totals: snapshot.weekdays, region: settings.effectiveRegion, calendar: calendar)
+        WeekdayCard(
+          totals: snapshot.weekdays,
+          region: settings.effectiveRegion,
+          calendar: calendar,
+          showsComparison: settings.showsWeekendComparison
+        )
         PopulationReferenceCard()
       }
       .screenMargin()

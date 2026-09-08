@@ -216,6 +216,13 @@ beside a published average for US adults who drink. A year that has ended
 gets the same comparison on the year view. And a new By weekday card lists
 what you logged on each day of the week, with your Friday-to-Sunday and
 Monday-to-Thursday days counted, beside a published rate for US adults.
+
+Settings gains a Comparisons section. Each of the three published
+comparisons on Trends can be turned off, and the weekly-average comparison
+can be placed against the survey's men's or women's column instead of all
+adults — the same published table, a different column, with the sentence
+saying which. The weekend comparison now appears for ranges of a month or
+more.
 Trends also gains a card for the longest run of days recorded as no alcohol
 in the range shown; it counts only days marked that way, so a day with
 nothing logged does not extend it.
@@ -305,6 +312,15 @@ Notes on what's new in 1.3:
   size for beer is one more preset over the same facts. The drink icons are
   the app's own bundled artwork, replacing system symbols on the same
   surfaces. No new kind of data, no new permission, no network.
+- The three published comparisons on Trends are each a setting the user can
+  turn off (all on by default), and the weekly-average comparison can be
+  placed against the survey's men's or women's column instead of its total.
+  The columns are the same published table's own (Alcohol Research Group,
+  2020), bundled with the app and renormalised the same way; the sentence
+  names the column it read. The choice is a display preference stored on
+  the device, like the region setting: the app records nothing about the
+  person, asks no gender, and offers no option the survey does not publish.
+  No comparison to a threshold, no ranking, no network.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```

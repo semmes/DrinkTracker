@@ -22,12 +22,14 @@ struct PopulationReferenceTests {
     #expect(ref.rows.count == 27)
   }
 
-  @Test("Percentiles rise monotonically and levels never overlap")
+  @Test("Percentiles rise monotonically in every column, and levels never overlap")
   func tableIsCoherent() throws {
     let rows = try reference.rows
     for (a, b) in zip(rows, rows.dropFirst()) {
-      #expect(a.percentDrinkers <= b.percentDrinkers)
-      #expect(a.percentAllAdults <= b.percentAllAdults)
+      for column in PopulationReference.Column.allCases {
+        #expect(a.percentDrinkers(in: column) <= b.percentDrinkers(in: column))
+        #expect(a.percentPublished(in: column) <= b.percentPublished(in: column))
+      }
       #expect((a.drinksMax ?? .max) < b.drinksMin || a.drinksMax == nil)
     }
     // Only the top row is open-ended.
@@ -35,14 +37,18 @@ struct PopulationReferenceTests {
     #expect(rows.last?.drinksMax == nil)
   }
 
-  @Test("Every drinkers percentile is the published value renormalized, exactly")
+  @Test("Every drinkers percentile is the published value renormalized, exactly, in every column")
   func renormalizationIsExact() throws {
     let ref = try reference
-    let abstain = ref.abstainersPercentAllAdults
+    for column in PopulationReference.Column.allCases {
+      let abstain = ref.abstainersPercent(in: column)
+      for row in ref.rows {
+        let expected = (row.percentPublished(in: column) - abstain) / (100 - abstain) * 100
+        #expect(abs(row.percentDrinkers(in: column) - expected) < 0.06,
+          "\(column) row ≤\(row.drinksMax.map(String.init) ?? "∞"): stored \(row.percentDrinkers(in: column)), derived \(expected)")
+      }
+    }
     for row in ref.rows {
-      let expected = (row.percentAllAdults - abstain) / (100 - abstain) * 100
-      #expect(abs(row.percentDrinkers - expected) < 0.06,
-        "row ≤\(row.drinksMax.map(String.init) ?? "∞"): stored \(row.percentDrinkers), derived \(expected)")
       if let max = row.drinksMax {
         #expect(row.gramsMax == Double(max) * ref.gramsPerSurveyDrink)
       }
@@ -109,5 +115,62 @@ struct PopulationReferenceTests {
   @Test("The history gate is four weeks")
   func minimumHistory() {
     #expect(PopulationReference.minimumHistory == 28 * 24 * 3600)
+  }
+
+  // MARK: - The survey's columns (ADR-0039)
+
+  @Test("The men's and women's columns are bundled beside the total, abstainers stated per column")
+  func columnsLoad() throws {
+    let ref = try reference
+    #expect(PopulationReference.Column.allCases == [.allAdults, .men, .women])
+    #expect(ref.abstainersPercent(in: .allAdults) == 28)
+    #expect(ref.abstainersPercent(in: .men) == 25)
+    #expect(ref.abstainersPercent(in: .women) == 31)
+    #expect(ref.drinkersPercent(in: .allAdults) == 72)
+    #expect(ref.drinkersPercent(in: .men) == 75)
+    #expect(ref.drinkersPercent(in: .women) == 69)
+    // The page's own top row: 99 / 100 / 99 at 70 or more a week.
+    let top = try #require(ref.rows.last)
+    #expect(top.percentPublished(in: .men) == 99)
+    #expect(top.percentPublished(in: .women) == 100)
+    #expect(top.percentPublished(in: .allAdults) == 99)
+    // And its first: 50 / 65 / 58 at one a week.
+    let first = try #require(ref.rows.first)
+    #expect(first.percentPublished(in: .men) == 50)
+    #expect(first.percentPublished(in: .women) == 65)
+    #expect(first.percentPublished(in: .allAdults) == 58)
+  }
+
+  @Test("The same four drinks a week read differently against each column")
+  func columnComparisons() throws {
+    let ref = try reference
+    let four = 4 * 14.0
+    // Men at or below 4 a week: 69% of all men, (69 − 25) / 75 = 58.7% of
+    // men who drink → 41.3% more → "lower than roughly 40%".
+    #expect(ref.comparison(gramsPerWeek: four, in: .men) == .lowerThan(percent: 40))
+    // Women: 81% → (81 − 31) / 69 = 72.5% → 27.5% more → 30.
+    #expect(ref.comparison(gramsPerWeek: four, in: .women) == .lowerThan(percent: 30))
+    #expect(ref.comparison(gramsPerWeek: four, in: .allAdults) == .lowerThan(percent: 35))
+    // One a week: men 50% → 33.3% → 66.7% more → 65; women 65% → 49.3% → 50.7% more → 50.
+    #expect(ref.comparison(gramsPerWeek: 14, in: .men) == .lowerThan(percent: 65))
+    #expect(ref.comparison(gramsPerWeek: 14, in: .women) == .lowerThan(percent: 50))
+  }
+
+  @Test("The total column is the default, so every existing caller reads what it always did")
+  func totalIsTheDefault() throws {
+    let ref = try reference
+    for drinks in [0.5, 1, 4, 4.3, 12, 40, 80] {
+      #expect(ref.comparison(gramsPerWeek: drinks * 14) == ref.comparison(gramsPerWeek: drinks * 14, in: .allAdults))
+    }
+  }
+
+  @Test("Every column flips to more-than at the top and says nothing at zero")
+  func columnsShareTheEdges() throws {
+    let ref = try reference
+    for column in PopulationReference.Column.allCases {
+      #expect(ref.comparison(gramsPerWeek: 80 * 14, in: column) == .moreThan(percent: 95))
+      #expect(ref.comparison(gramsPerWeek: 0, in: column) == nil)
+      #expect(ref.comparison(gramsPerWeek: .nan, in: column) == nil)
+    }
   }
 }

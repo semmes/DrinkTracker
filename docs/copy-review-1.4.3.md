@@ -1236,6 +1236,32 @@ Nothing here celebrates, judges, or compares to a threshold. The under-count
 the model admits — a pour typed into Custom — is a measurement question,
 recorded in ADR-0037; the placeholder is the copy that answers it.
 
+## 1.3 — The comparisons are the reader's to show, and the survey's column (ADR-0038, ADR-0039, 2026-09-08)
+
+New strings for Settings → Comparisons and the population sentences that now
+name their column. Every one states what a control does or where a figure
+came from; none recommends a setting, and none says anything about the
+reader.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Comparisons" | The Settings section title | A noun naming what the section holds. |
+| "Weekly average" · "Drinking days" · "Weekend and weekdays" | The three switch titles | Each names the comparison it shows, in the words the cards already use. No "show me", no "see how you compare". |
+| "Alcohol Research Group, 2020 National Alcohol Survey" · "NIAAA, NESARC-III, 2012–13" · "Liang and Chikritzhs, 2015 (NHANES 2005–10)" | The switch captions | The sources, as the cards' own source lines print them: a figure is never shown without saying where it came from, and that holds for the switch that shows it. |
+| "Published US statistics your own figures are shown beside, each bundled with its source and year — never data from other Tallyist users, and nothing about your log leaves this device. The survey behind the weekly average prints its table for all adults, for men and for women; Compare with picks the column your average is placed against. It is a choice of reference, not a question about you, and it stays on this device. The other two figures are published for all adults only." | The section footnote while the weekly average is shown | Facts about the sources and the control. "Not a question about you" states what the picker is not, which is the one thing a reader might otherwise assume. Nothing here says which column to choose. |
+| "Published US statistics your own figures are shown beside, each bundled with its source and year — never data from other Tallyist users, and nothing about your log leaves this device. A comparison that is off no longer appears on Trends or the year view." | The section footnote while the weekly average is off | The same first sentence; the second states the effect of a switch, not a reason to flip it. |
+| "Compare with" | The picker's title and its spoken label | Names the control's question — which reference — and nothing about the reader. |
+| "All adults" · "Men" · "Women" | The picker's segments | The survey's own column names. The default segment is the whole table; no segment exists for a column the survey does not print (ADR-0039). |
+| "That's lower than roughly N% of US men who drink." · "That's more than roughly N% of US men who drink." · the same pair for "US women" | The population card and the year comparison, when a column is chosen | The shipped sentence with the column named in the source's own word. "Lower than", never "better than"; no congratulation, no warning, either direction, whichever column — the 1.2 spec's rule unchanged. |
+| The note's first paragraph, "…among US men, recalculated to cover only the 75% who reported drinking…" and the same for "US women … 69%" | The source note under the card, when a column is chosen | The shipped note with the column and its own abstainer share; the number is read from the bundled file, so the sentence cannot state a figure the table does not. |
+| "Source: NIAAA, NESARC-III, 2012–13" | The card's source line when only the drinking days are shown | The source, alone, because it is the only one on screen. |
+
+**Not copy, but seen by a reader:** the Week range's By weekday card no
+longer carries the comparison table (ADR-0032 amendment) and prints nothing
+in its place — silence below a floor, the population card's own precedent,
+rather than a sentence saying the range is too short, which would read as
+the app withholding.
+
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
 

@@ -84,6 +84,39 @@ final class AppSettings {
     didSet { defaults.set(calendarSummaryWindow.rawValue, forKey: Keys.calendarSummaryWindow) }
   }
 
+  /// Which of the published comparisons appear (ADR-0038): the weekly
+  /// average against the survey's distribution (Trends and the year view),
+  /// the drinking-days mean, and the weekend rate beside the weekday split.
+  /// All three default to shown — they are the neutral surfaces the app
+  /// already showed, and the 1.2 spec's "optional and off" rule is for
+  /// behavioural surfaces, which a published figure beside the reader's own
+  /// is not. Off removes the published figure and the reader's own line
+  /// beside it; the range's own totals stay where they are. A stored value
+  /// wins; "never set" reads as shown, so the default lives here and not in
+  /// `bool(forKey:)`'s false.
+  var showsWeeklyAverageComparison: Bool {
+    didSet { defaults.set(showsWeeklyAverageComparison, forKey: Keys.weeklyAverageComparison) }
+  }
+
+  var showsDrinkingDaysComparison: Bool {
+    didSet { defaults.set(showsDrinkingDaysComparison, forKey: Keys.drinkingDaysComparison) }
+  }
+
+  var showsWeekendComparison: Bool {
+    didSet { defaults.set(showsWeekendComparison, forKey: Keys.weekendComparison) }
+  }
+
+  /// Which of the survey's columns the weekly-average comparison reads
+  /// (ADR-0039): the total by default, or the men's or women's column the
+  /// source prints beside it. A choice of reference kept on this device, not
+  /// a fact recorded about the reader — which is why the type is `Column` and
+  /// there is no case the table does not publish. Stored as the raw name so
+  /// "never set" is `nil` and the default lives here (the `counterSeed`
+  /// pattern); an unrecognised name falls back rather than crashing.
+  var comparisonColumn: PopulationReference.Column {
+    didSet { defaults.set(comparisonColumn.rawValue, forKey: Keys.comparisonColumn) }
+  }
+
   private let defaults: UserDefaults
 
   init(defaults: UserDefaults = AppGroup.defaults) {
@@ -94,6 +127,19 @@ final class AppSettings {
     self.counterSeed = Self.storedCounterSeed(defaults: defaults)
     self.calendarSummaryWindow = defaults.string(forKey: Keys.calendarSummaryWindow)
       .flatMap(CalendarSummaryWindow.init(rawValue:)) ?? .lastThirtyDays
+    self.showsWeeklyAverageComparison = Self.storedFlag(Keys.weeklyAverageComparison, defaults: defaults, fallback: true)
+    self.showsDrinkingDaysComparison = Self.storedFlag(Keys.drinkingDaysComparison, defaults: defaults, fallback: true)
+    self.showsWeekendComparison = Self.storedFlag(Keys.weekendComparison, defaults: defaults, fallback: true)
+    self.comparisonColumn = defaults.string(forKey: Keys.comparisonColumn)
+      .flatMap(PopulationReference.Column.init(rawValue:)) ?? .allAdults
+  }
+
+  /// A Bool whose default is not false: the stored value if a Bool was ever
+  /// written under `key`, `fallback` otherwise. `bool(forKey:)` cannot tell
+  /// "never set" from "set to false", and a setting that starts on needs the
+  /// difference; anything stored that is not a Bool reads as the fallback.
+  nonisolated private static func storedFlag(_ key: String, defaults: UserDefaults, fallback: Bool) -> Bool {
+    (defaults.object(forKey: key) as? Bool) ?? fallback
   }
 
   /// Region lookup for contexts without a live `AppSettings` — notably the widget's
@@ -120,5 +166,9 @@ final class AppSettings {
     static let sessionPace = "showsSessionPace"
     static let counterSeed = "counterSeed"
     static let calendarSummaryWindow = "calendarSummaryWindow"
+    static let weeklyAverageComparison = "showsWeeklyAverageComparison"
+    static let drinkingDaysComparison = "showsDrinkingDaysComparison"
+    static let weekendComparison = "showsWeekendComparison"
+    static let comparisonColumn = "comparisonColumn"
   }
 }

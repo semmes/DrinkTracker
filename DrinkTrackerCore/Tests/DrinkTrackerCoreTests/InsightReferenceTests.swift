@@ -286,6 +286,31 @@ struct InsightReferenceTests {
     #expect(totals.allSatisfy { $0.daysWithDrinks == 0 && $0.standardDrinks == 0 })
   }
 
+  /// ADR-0038: the published rate waits for four weeks of range. A Week
+  /// range is three weekend days beside a rate per hundred; a Month range is
+  /// the first that qualifies. The rows and the split themselves never wait.
+  @Test("The weekend comparison waits for four weeks of range")
+  func weekendComparisonGate() throws {
+    #expect(WeekendReference.minimumDays == 28)
+    let week = WeekendSplit(weekendDaysWithDrinks: 1, weekendDays: 3, otherDaysWithDrinks: 0, otherDays: 4)
+    #expect(week.dayCount == 7)
+    #expect(!week.isComparable)
+    let edge = WeekendSplit(weekendDaysWithDrinks: 0, weekendDays: 12, otherDaysWithDrinks: 0, otherDays: 16)
+    #expect(edge.isComparable)
+    let under = WeekendSplit(weekendDaysWithDrinks: 0, weekendDays: 12, otherDaysWithDrinks: 0, otherDays: 15)
+    #expect(!under.isComparable)
+
+    // From the real fold: never on Week, always on Month.
+    let ref = try #require(WeekendReference.bundled)
+    let end = date(2026, 9, 5)
+    let weekTotals = TrendSummary.weekdayTotals(range: .week, endingOn: end, drinks: [], region: .unitedStates, calendar: calendar)
+    #expect(!TrendSummary.weekendSplit(weekTotals, weekend: ref.weekendWeekdays).isComparable)
+    let monthTotals = TrendSummary.weekdayTotals(range: .month, endingOn: end, drinks: [], region: .unitedStates, calendar: calendar)
+    let month = TrendSummary.weekendSplit(monthTotals, weekend: ref.weekendWeekdays)
+    #expect(month.dayCount == 30)
+    #expect(month.isComparable)
+  }
+
   @Test("A 0% drink makes a day with drinks; the weekday keeps the entry")
   func zeroABVCounts() {
     let end = date(2026, 9, 5)

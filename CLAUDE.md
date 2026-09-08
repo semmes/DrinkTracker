@@ -986,3 +986,74 @@ Open items for v1.2:
   at accessibility sizes (the footnote wraps under the label), VoiceOver reading
   the label then the sentence as two elements, both appearances, and a
   Health-marked day still reading "From Apple Health" with no sentence.
+- **The comparisons are the reader's to show, and the weekly average can read
+  the survey's men's or women's column (2026-09-08, ADR-0038 and ADR-0039).**
+  The owner asked whether Trends' insights could be *cycled* or *chosen from
+  the user's data*. The answer that shipped separates the app choosing from the
+  reader choosing: a selection keyed to what a figure says is a verdict by
+  another route (the copy review already bans "insight" for that reason) and
+  rotation hides facts a reader cannot find again — both refused in ADR-0038;
+  a gate on how much record exists is the existing pattern; the reader's own
+  choice is ADR-0026's model. **What shipped:** Settings → Comparisons, three
+  switches on by default, each captioned with its source — Weekly average
+  (one switch for Trends *and* the year view), Drinking days, Weekend and
+  weekdays; the population card's source line and note name only what is
+  shown, and with both of its comparisons off it is not rendered; the weekend
+  comparison waits for four weeks of range (`WeekendReference.minimumDays`,
+  `WeekendSplit.isComparable` — the Week range now shows the seven rows alone,
+  ADR-0032 amended). And the ARG table's Men and Women columns are bundled
+  beside the Total (checked against the PDF: abstainers 25 / 31 / 28, no other
+  column exists; ARG's *news page* prints different abstainer figures in prose
+  and the PDF governs), each renormalised by its own share and pinned row by
+  row at tier 1; `PopulationReference.Column` (.allAdults default, .men,
+  .women) is the type and its name is the decision — a choice of reference,
+  never a fact about the reader; "Compare with" (All adults · Men · Women)
+  sits under the weekly-average switch; the sentence names the column it read
+  ("…of US men who drink"), the note's drinkers share comes from the file
+  (72 / 75 / 69), and the year view reads the same column. **Not built: a
+  Non-binary segment**, which the owner named. The survey publishes no such
+  column, so it could only read the Total under another name — a question
+  asked to no effect whose answer would be a stored gender identity. The
+  default is what a non-binary reader already has, with no question asked; if
+  the owner wants the literal segment anyway it is one enum case reading the
+  Total's figures, one key, and a note saying so (ADR-0039 records the cost).
+  **No schema change, no CloudKit step, no network.** Four device-local
+  settings (`AppSettings.storedFlag`: "never set" reads as shown, because
+  `bool(forKey:)` cannot tell never-set from off). 323 app keys (21 in against
+  main's 303, the fixed "72%" note out); 390 in all. The contract is a **draft PR**,
+  `semmes/tallyist-product` #7 (1.8.0): the reference file byte-identical
+  again, the sources entry's `columns` note, the compare measure's column, a
+  Comparison-settings rule, the copy deck, the verifier recomputing both new
+  columns — not merged, the standing authorization is this repo's.
+  **Verified at all four gates** (250 domain tests; the generic and the
+  device builds; the integration suite on a *second* simulator so the render
+  was undisturbed) **plus tier 3 on the iPhone 17 Pro** over a seeded ten
+  weeks and a complete 2025: Week rows-only and Month with the comparison
+  table; the card with both comparisons and with the days alone ("Source:
+  NIAAA, NESARC-III, 2012–13"); the Men column on Trends (2.1 a week → "lower
+  than roughly 45% of US men who drink", the note's "75%") and on the 2025
+  year view; the picker answering a tap; the switches' effect after a
+  relaunch; the section at `accessibility-extra-large` (titles and captions
+  wrap, switches stay aligned, the three segments fit one line) and in dark
+  mode. **Not rendered, stated honestly:** the volume-only card form, the
+  Women column on screen (tier 1 pins its brackets), and the year view with
+  the weekly average off. **Three tooling lessons.** (a) A synthetic tap does
+  **not** flip a `Toggle` — the shipped Session pace switch ignores it too — but
+  a 30pt drag across the knob does. (b) A synthetic touch can leave
+  *interactive* glass in its pressed (dark grey) tint until the app is
+  relaunched: two switch rows rendered dark at AX5 after taps and a scroll that
+  started on them, and light on a fresh launch with nothing touched — check a
+  suspicious tint against a relaunch before calling it a defect. (c) Settings
+  can be flipped from the shell for a relaunch check: the App Group plist
+  under `simctl get_app_container … groups` with `defaults write <path>`; the
+  plain `defaults read group.com…` reads a stale copy. **Process lessons:** a
+  second interactive session was live in this very checkout (its PR #82
+  merged mid-work and took ADR-0037, so these records were renumbered before
+  pushing) — work in a scratch `git worktree`, check `origin/main`'s
+  `docs/decisions/` before numbering, re-merge main before the PR; and the
+  four green review-fix drafts (#77–#80) were merged first under the standing
+  policy, their docs conflicts resolved by keeping both sides. **Tier 3/4 for
+  the owner's pass:** the switches under a thumb on hardware; the Women
+  sentence on a real display; VoiceOver reading a switch row (title then
+  caption) and the picker; the picker's fade in and out under Reduce Motion;
+  a UK region reading "US men" in units; the volume-only source line.
