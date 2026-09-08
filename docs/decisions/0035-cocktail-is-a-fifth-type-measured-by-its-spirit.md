@@ -133,7 +133,7 @@ unchanged. The 22 oz stays out.
   screen — four pills where there were three. Spirit already did; beer now
   does. The 40 oz at beer's default 5% is 3.33 standard drinks in one tap: a
   correct figure for one physical bottle, and the first pill in the app whose
-  default lands a single entry in the calendar's middle band. No 1.4.3 exposure
+  default lands a single entry in the calendar's 3–5 band. No 1.4.3 exposure
   was found in that (a size is a size), and the reasoning is in the copy
   review so it is on record.
 - **The neutral contract is behind again.** `semmes/tallyist-product` v1.7.0
@@ -153,11 +153,15 @@ order, literally), `IntentDraftTests.cocktailIntent`,
 `LogExportTests.cocktailRow`, `PeriodDetailTests` (the composition row order),
 `CalendarTests.tiesAreStable`. Tier 2: `DrinkRepositoryTests.cocktailRoundTripsAndUnknownTypeDegradesToOther`
 (the raw value round-trips; an unknown one reads back as Other with its facts
-intact — the mechanism the whole cross-version argument rests on),
-`IntentMappingTests` (the Siri mirror, both ways, in the picker's order).
-Tier 3, on the simulator: the five-segment picker, the cocktail pills, the
-forty. Tier 4, for the owner: "Log a cocktail in Tallyist" spoken to Siri, and
-the Shortcuts app's parameter list showing the fifth type.
+intact — the mechanism the whole cross-version argument rests on). The Siri
+mirror has no test at any tier: the test bundle does not compile
+`Shared/LogDrinkIntent.swift`, so `QuickLogDrinkType` is out of reach there,
+and a test written for it was dropped for that reason; the two exhaustive
+switches in that enum (`init(_:)` and `drinkType`) are the guard, and the
+compiler is what enforces it. Tier 3, on the simulator: the five-segment
+picker, the cocktail pills, the forty. Tier 4, for the owner: "Log a cocktail
+in Tallyist" spoken to Siri, and the Shortcuts app's parameter list showing
+the fifth type.
 
 ## How to reopen
 

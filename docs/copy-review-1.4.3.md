@@ -1172,7 +1172,7 @@ toward anything.
 
 | String | Where | Reviewed against 1.4.3 |
 | --- | --- | --- |
-| "Cocktail" | The picker's fifth segment, the sheet header, Today and History row titles, the Trends composition row, the CSV `entry` column, Siri's parameter list and reply ("Logged: Cocktail, 1.5oz, 40% ABV.") — all through the package's `displayName`, one key | A category name, like "Beer". No framing. |
+| "Cocktail" | The picker's fifth segment, the sheet header, Today and History row titles, the Trends composition row, the CSV `entry` column and Siri's reply ("Logged: Cocktail, 1.5oz, 40% ABV.") through the package's `displayName`; Siri's parameter list through the intent enum's own title, a second key held in the app and widget catalogs | A category name, like "Beer". No framing. |
 | "1.5 oz spirit" · "2 oz spirit" · "3 oz spirit" | Cocktail's size pills | Sizes, stated as sizes, with the noun that says what is measured (ADR-0035: a cocktail is its spirit). Not in any catalog — `DrinkSizeOption.label` is verbatim, the standing size-axis deferral. |
 | "Ounces of spirit" · "oz spirit" | Cocktail's Custom field placeholder and unit | The same noun at the one place the glass-size trap opens; every other type keeps "Ounces" / "oz". Two new app keys. |
 | "40 oz bottle" | Beer's third size pill | A retail size, named the way the can and the pint are. At beer's default 5% it is 3.33 standard drinks in one tap — a correct figure for one physical bottle, stated nowhere as anything but a size; the row reads "40oz · 5%" like any other. Verbatim, like the other pills. |

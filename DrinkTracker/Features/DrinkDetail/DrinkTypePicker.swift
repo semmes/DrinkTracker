@@ -67,11 +67,21 @@ struct DrinkTypePicker: View {
     .accessibilityLabel("Drink")
   }
 
+  /// Writes the binding only on a change. A native segmented control never
+  /// re-selects the selected segment; these are plain Buttons, and an
+  /// unconditional write would re-run the sheet's setter — which re-formats
+  /// the Custom field from the draft, turning a half-typed "2." into "2"
+  /// under the user's thumb.
+  private func select(_ type: DrinkType) {
+    guard selection != type else { return }
+    selection = type
+  }
+
   /// One segment of the row: the glyph over the name.
   private func segment(_ type: DrinkType) -> some View {
     let isSelected = selection == type
     return Button {
-      selection = type
+      select(type)
     } label: {
       VStack(spacing: 4) {
         glyph(type, isSelected: isSelected)
@@ -129,7 +139,7 @@ struct DrinkTypePicker: View {
   private func row(_ type: DrinkType) -> some View {
     let isSelected = selection == type
     return Button {
-      selection = type
+      select(type)
     } label: {
       HStack(spacing: GlassTokens.Spacing.regular) {
         glyph(type, isSelected: isSelected)

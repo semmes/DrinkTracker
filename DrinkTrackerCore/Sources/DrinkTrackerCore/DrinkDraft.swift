@@ -126,7 +126,7 @@ public struct DrinkDraft: Equatable, Sendable {
     // from the region rather than from the enum's US fallback (ADR-0023).
     // Size and strength are ignored here on purpose: a caller who knows the
     // ounces and the ABV is describing a drink they can name, and naming it
-    // is what the other four cases are for. Honouring both at once would
+    // is what the typed cases are for. Honouring both at once would
     // write a row that says "no type stated" over facts that state one.
     if type == .unspecified {
       var draft = DrinkDraft.standardDrink(region: region)

@@ -163,7 +163,7 @@ ADR-0014's own refusal).
 | "Nothing leaves the device unless the user sends it" | Preserved. Built at share time, no temp file, no log of the share. |
 | "No accounts, no servers, no networking code" | Preserved. No new code path reaches the network. |
 | "The population reference is a bundled, published, dated statistic; no thresholds, no guidelines" | Preserved and extended on the same terms: two more bundled, published, dated descriptive statistics (a mean of drinking days, a weekend rate), each named with its source and year; the app still classifies no one and compares to no threshold. The comparison's window follows the record, matching the survey's twelve-month measure. |
-| "The app records what the user logs: a type, a size, a strength, a time" | Preserved. Cocktail is a fifth label over the same two facts — the spirit poured and its strength, defaulting to one standard drink — and the 40 oz is one more preset over them. The drink icons are bundled artwork on the same surfaces. No new kind of data, no new permission (ADR-0035, ADR-0036). |
+| "No new permissions, no new privacy label categories, no new third-party code" (the 1.2 notes' closing line, repeated for 1.3) | Preserved. Cocktail is a fifth label over the same two facts every typed drink already records — the spirit poured and its strength, defaulting to one standard drink — and the 40 oz is one more preset over them. The drink icons are bundled artwork on the same surfaces. No new kind of data, no new permission (ADR-0035, ADR-0036). |
 
 Reviewer notes and What's New for 1.3 are in `docs/app-store-listing.md`.
 

@@ -1,12 +1,12 @@
 {
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   },
-  "symbols": [
+  "symbols" : [
     {
-      "filename": "tally.wine.svg",
-      "idiom": "universal"
+      "filename" : "tally.wine.svg",
+      "idiom" : "universal"
     }
   ]
 }

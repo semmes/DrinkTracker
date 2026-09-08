@@ -377,11 +377,12 @@ is easy — correcting it has to be just as easy.
   picker and a date/time control, so it lands where it actually happened.
 
 The counter's path is deliberately untouched by this: ＋ asks nothing, still one
-tap. The type picker appears whenever a presentation opens without a type — "Add
-specific", History's `+`, adopting a Health import — and stays for the whole
-presentation (PRD invariant 2, `DrinkDetailSheet.asksType`); the time control
-appears only when editing an existing entry or adding one retroactively — the
-cases where "now" is the wrong answer.
+tap. The type picker appears in every presentation of the sheet but the
+counter's — "Add specific" (an untyped draft), History's and the calendar's `+`,
+editing an entry, adopting a Health import — and stays for the whole presentation
+(PRD invariant 2, `DrinkDetailSheet.asksType`); the time control appears only
+when editing an existing entry or adding one retroactively — the cases where
+"now" is the wrong answer.
 
 ## Siri, Shortcuts, and hands-free logging
 

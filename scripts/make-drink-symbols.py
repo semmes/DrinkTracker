@@ -89,11 +89,19 @@ class Seg:
         self.arc = arc  # (rx, ry, rotation, large, sweep)
 
 
-_TOKEN = re.compile(r"[MmLlHhVvCcSsAaZz]|-?\d*\.?\d+(?:e-?\d+)?")
+# Every letter is a token, so a command this parser does not implement (Q, T)
+# reaches the `unsupported command` guard instead of being dropped and its
+# arguments read as repeats of the previous command.
+_TOKEN = re.compile(r"[A-Za-z]|-?\d*\.?\d+(?:e-?\d+)?")
 
 
-def parse_path(d):
-    """Parse an SVG path into a list of subpaths, each a list of absolute `Seg`s."""
+def parse_path(d, close_all=True):
+    """Parse an SVG path into a list of subpaths, each a list of absolute `Seg`s.
+
+    Filled art is a set of closed contours, so by default a subpath that ends
+    without `Z` is closed anyway. Stroked art is not — a polyline's open end
+    is its cap — so a stroke's parser passes `close_all=False` and only `Z`
+    closes."""
     tokens = _TOKEN.findall(d)
     i = 0
     cmd = None
@@ -109,10 +117,13 @@ def parse_path(d):
         i += 1
         return v
 
-    def close():
+    def close(force):
         nonlocal current, cur
         if current:
-            if current[-1].end != start:
+            # A tolerance, not equality: relative arcs return to their start
+            # with an ulp of drift, and exact comparison emitted a zero-length
+            # line before every Z.
+            if force and math.dist(current[-1].end, start) > 1e-9:
                 current.append(Seg("L", current[-1].end, start))
             subpaths.append(current)
         current = []
@@ -124,7 +135,7 @@ def parse_path(d):
             cmd = t
             i += 1
             if cmd in "Zz":
-                close()
+                close(True)
                 continue
         rel = cmd.islower()
         c = cmd.upper()
@@ -133,7 +144,7 @@ def parse_path(d):
             if rel:
                 x, y = cur[0] + x, cur[1] + y
             if current:
-                close()
+                close(close_all)
             cur = start = (x, y)
             last_c2 = None
             cmd = "l" if rel else "L"
@@ -183,7 +194,7 @@ def parse_path(d):
         else:
             raise ValueError(f"unsupported command {cmd}")
     if current:
-        close()
+        close(close_all)
     return subpaths
 
 
@@ -282,6 +293,24 @@ def centroid(pts):
     return (sum(p[0] for p in pts) / len(pts), sum(p[1] for p in pts) / len(pts))
 
 
+def interior_point(pts):
+    """A point strictly inside the contour: the midpoint of its first edge,
+    nudged off the edge to whichever side the contour itself contains. A
+    vertex will not do — the mug's handle starts on the body's own edge, and
+    a ray cast from a point that sits exactly on another contour's boundary
+    answers by rounding luck."""
+    (x0, y0), (x1, y1) = pts[0], pts[1]
+    mx, my = (x0 + x1) / 2, (y0 + y1) / 2
+    nx, ny = -(y1 - y0), x1 - x0
+    length = math.hypot(nx, ny) or 1.0
+    eps = 1e-3
+    for sign in (1, -1):
+        candidate = (mx + sign * eps * nx / length, my + sign * eps * ny / length)
+        if contains(pts, candidate):
+            return candidate
+    raise SystemExit("could not find a point inside a contour; the art may be degenerate")
+
+
 def reversed_subpath(subpath):
     out = []
     for seg in reversed(subpath):
@@ -303,7 +332,7 @@ def normalise_winding(subpaths):
     polys = [polygon(sp) for sp in subpaths]
     out = []
     for i, sp in enumerate(subpaths):
-        probe = polys[i][0]
+        probe = interior_point(polys[i])
         depth = sum(1 for j, other in enumerate(polys) if j != i and contains(other, probe))
         want_positive = depth % 2 == 0
         is_positive = signed_area(polys[i]) > 0
@@ -381,14 +410,34 @@ def circle(cx, cy, r, sweep):
     return [Seg("A", p0, p1, arc=(r, r, 0, 0, sweep)), Seg("A", p1, p0, arc=(r, r, 0, 0, sweep))]
 
 
-def alcoholfree_contours():
-    """The source is `M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16z M8.5 12.2l2.4 2.4
-    4.8-4.8`, stroked at 2 with round caps and joins."""
-    return [
-        circle(12, 12, 9, sweep=1),
-        circle(12, 12, 7, sweep=1),
-        outline_polyline([(8.5, 12.2), (10.9, 14.6), (15.7, 9.8)], half_width=1.0),
-    ]
+def stroked_contours(d, stroke_width):
+    """Filled outlines of a stroked path, read from the art rather than
+    transcribed from it, so a redrawn stroke reaches the catalog through the
+    same CI gate as a redrawn fill.
+
+    Supports exactly the shapes the set uses — a closed circle (the ring
+    becomes two circles, half a stroke either side of it) and an open
+    two-segment polyline (the check, outlined with round caps and one round
+    join) — and refuses anything else rather than approximate it."""
+    half = stroke_width / 2
+    contours = []
+    for subpath in parse_path(d, close_all=False):
+        points = [subpath[0].start] + [seg.end for seg in subpath]
+        is_closed = math.dist(points[0], points[-1]) < 1e-9
+        if is_closed and all(seg.kind == "A" for seg in subpath):
+            # Exact, from the arc's own centre parameterisation — a mean over
+            # flattened points drifts by a few thousandths, enough to change
+            # the file the CI gate compares.
+            cx, cy, rx, ry = arc_center(subpath[0])[:4]
+            if abs(rx - ry) > 1e-9:
+                raise SystemExit("a stroked ellipse is not supported; the ring must be a circle")
+            contours.append(circle(cx, cy, rx + half, sweep=1))
+            contours.append(circle(cx, cy, rx - half, sweep=1))
+        elif not is_closed and len(subpath) == 2 and all(seg.kind == "L" for seg in subpath):
+            contours.append(outline_polyline(points, half_width=half))
+        else:
+            raise SystemExit("stroked art may be a circle or a two-segment polyline; outline anything else by hand")
+    return contours
 
 
 # MARK: - Emission
@@ -526,16 +575,23 @@ def template(name, subpaths):
 
 
 def source_contours(name):
-    if name == "alcoholfree":
-        return alcoholfree_contours()
-    svg = (SOURCE / f"{name}.svg").read_text()
+    """The glyph's contours, read from the bundle's SVG. Filled art is parsed
+    as it is; stroked art (the alcohol-free ring and check) is outlined from
+    its own geometry and stroke width."""
+    svg = (SOURCE / f"{name}.svg").read_text(encoding="utf-8")
     svg = re.sub(r"<metadata>.*?</metadata>", "", svg, flags=re.S)
-    paths = re.findall(r'<path[^>]*\sd="([^"]+)"', svg)
-    if len(paths) != 1:
-        raise SystemExit(f"{name}.svg: expected one <path>, found {len(paths)}")
-    if 'stroke="currentColor"' in svg:
-        raise SystemExit(f"{name}.svg is stroked; outline it here like alcoholfree")
-    return parse_path(paths[0])
+    elements = re.findall(r"<path\b[^>]*>", svg)
+    if len(elements) != 1:
+        raise SystemExit(f"{name}.svg: expected one <path>, found {len(elements)}")
+    element = elements[0]
+    d = re.search(r'\sd="([^"]+)"', element).group(1)
+    stroke = re.search(r'\sstroke="([^"]+)"', element)
+    if stroke and stroke.group(1) != "none":
+        width = re.search(r'\sstroke-width="([^"]+)"', element)
+        if not width:
+            raise SystemExit(f"{name}.svg is stroked without a stroke-width")
+        return stroked_contours(d, float(width.group(1)))
+    return parse_path(d)
 
 
 def write_symbolset(name):
@@ -543,11 +599,13 @@ def write_symbolset(name):
     symbol = f"tally.{name}"
     folder = CATALOG / f"{symbol}.symbolset"
     folder.mkdir(parents=True, exist_ok=True)
-    (folder / f"{symbol}.svg").write_text(template(symbol, contours))
+    (folder / f"{symbol}.svg").write_text(template(symbol, contours), encoding="utf-8")
+    # Xcode's own `"key" : value` spacing, so a re-save from the asset editor
+    # leaves the tree clean for the CI gate that diffs it.
     (folder / "Contents.json").write_text(json.dumps({
         "info": {"author": "xcode", "version": 1},
         "symbols": [{"filename": f"{symbol}.svg", "idiom": "universal"}],
-    }, indent=2) + "\n")
+    }, indent=2, separators=(",", " : ")) + "\n", encoding="utf-8")
     return symbol, contours
 
 
@@ -573,14 +631,14 @@ def preview(results, path):
         parts.append(f'<path d="{emit(contours, T())}" fill="#256abf"/>')
         parts.append(f'<text x="{ox + 48}" y="{oy + 112}" font-family="sans-serif" font-size="10" text-anchor="middle">{symbol}</text>')
     parts.append("</svg>")
-    path.write_text("\n".join(parts))
+    path.write_text("\n".join(parts), encoding="utf-8")
 
 
 def check_swift_names():
     """The package's `DrinkType.Symbol` and `GLYPHS` are two hand-written lists
     of the same eight names. A typo in either compiles and renders nothing,
     so they are compared here, and CI runs this script."""
-    swift = (ROOT / "DrinkTrackerCore" / "Sources" / "DrinkTrackerCore" / "DrinkType.swift").read_text()
+    swift = (ROOT / "DrinkTrackerCore" / "Sources" / "DrinkTrackerCore" / "DrinkType.swift").read_text(encoding="utf-8")
     declared = set(re.findall(r'public static let \w+ = "tally\.(\w+)"', swift))
     expected = set(GLYPHS)
     if declared != expected:

@@ -35,7 +35,7 @@ public enum DrinkType: String, CaseIterable, Codable, Sendable, Identifiable {
   case other
   /// One standard drink with no type stated (ADR-0023).
   ///
-  /// Not a fifth category — the *absence* of the category question. It exists
+  /// Not a category — the *absence* of the category question. It exists
   /// because "what kind?" is a question the app asks and the user may have no
   /// answer for, and answering it wrongly to get past it is worse than not
   /// answering it at all.
