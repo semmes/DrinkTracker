@@ -460,6 +460,23 @@ says. The sources the app may draw on, and the rule that excludes
 guidelines, definitions and risk figures, live in the product contract
 (`semmes/tallyist-product`, `platform/sources.json`).
 
+**The comparisons are the reader's to show**
+([ADR-0038](docs/decisions/0038-the-comparisons-are-the-readers-to-show.md)):
+Settings → Comparisons carries three switches, on by default — the weekly
+average (Trends and the year view together), the drinking days, and the
+weekend rate — each naming its source; the card's source line and note name
+only what is shown, and the weekend comparison waits for four weeks of range,
+so the Week range shows the seven rows alone. The app never chooses a
+comparison by what the figures say, and never rotates them — the record says
+why. **The weekly average can read the survey's men's or women's column**
+([ADR-0039](docs/decisions/0039-the-weekly-average-can-read-the-surveys-mens-or-womens-column.md)):
+all three of the table's columns are bundled, each renormalised by its own
+abstainer share and pinned at tier 1; "Compare with" (All adults · Men ·
+Women) chooses the column, the sentence names it, and the note's drinkers
+share follows the file. A choice of reference stored on the device, not a
+fact about the reader: no gender is asked, and no column the survey does not
+print is offered.
+
 ## Calendar and year view
 
 The chart on Trends answers *how much*. The calendar answers *which days*.

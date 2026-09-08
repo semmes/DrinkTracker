@@ -4,7 +4,9 @@
 Feature C · **Relates to:** ADR-0006, spec constraints 2, 4, 5 · **Amended by:**
 ADR-0030 (the window follows the record: twelve months once it can, the
 survey's own span; and a complete year is compared on the year view),
-ADR-0031 (a drinking-days mean beside the volume comparison)
+ADR-0031 (a drinking-days mean beside the volume comparison),
+ADR-0039 (the table's men's and women's columns are bundled and can be
+chosen as the reference, the Total staying the default)
 
 ## Context
 

@@ -123,6 +123,56 @@ struct AppSettingsTests {
     #expect(AppSettings(defaults: defaults).calendarSummaryWindow == .lastThirtyDays)
   }
 
+  // MARK: - Comparisons
+
+  /// The three published comparisons start shown (ADR-0038) — a stored false
+  /// is the only thing that hides one — and each survives a relaunch alone.
+  @Test("The comparisons default to shown and each round-trips off on its own")
+  func comparisonsDefaultToShown() {
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.showsWeeklyAverageComparison)
+    #expect(settings.showsDrinkingDaysComparison)
+    #expect(settings.showsWeekendComparison)
+
+    settings.showsWeeklyAverageComparison = false
+    settings.showsWeekendComparison = false
+    let reloaded = AppSettings(defaults: defaults)
+    #expect(reloaded.showsWeeklyAverageComparison == false)
+    #expect(reloaded.showsDrinkingDaysComparison)
+    #expect(reloaded.showsWeekendComparison == false)
+  }
+
+  /// `bool(forKey:)` reads an absent key as false, which would turn "never
+  /// set" into "off". The default lives in the initialiser instead, so only a
+  /// stored Bool is read as one — anything else falls back to shown.
+  @Test("Only a stored Bool hides a comparison; anything else reads as shown")
+  func comparisonFlagReadsOnlyBools() {
+    defaults.set("no", forKey: "showsDrinkingDaysComparison")
+    #expect(AppSettings(defaults: defaults).showsDrinkingDaysComparison)
+
+    defaults.set(false, forKey: "showsDrinkingDaysComparison")
+    #expect(AppSettings(defaults: defaults).showsDrinkingDaysComparison == false)
+  }
+
+  /// The column the weekly average reads (ADR-0039) starts on the survey's
+  /// total and survives a relaunch once chosen — a choice of reference,
+  /// stored as the column's raw name.
+  @Test("The comparison column defaults to all adults and round-trips")
+  func comparisonColumnRoundTrips() {
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.comparisonColumn == .allAdults)
+
+    settings.comparisonColumn = .women
+    #expect(AppSettings(defaults: defaults).comparisonColumn == .women)
+  }
+
+  @Test("An unrecognised stored column falls back to all adults")
+  func unknownStoredColumnFallsBack() {
+    defaults.set("everyone", forKey: "comparisonColumn")
+
+    #expect(AppSettings(defaults: defaults).comparisonColumn == .allAdults)
+  }
+
   // MARK: - Onboarding
 
   @Test("The onboarding flag round-trips and starts false")

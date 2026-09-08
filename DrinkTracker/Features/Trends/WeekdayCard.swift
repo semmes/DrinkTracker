@@ -36,6 +36,10 @@ struct WeekdayCard: View {
   let totals: [WeekdayTotal]
   let region: Region
   let calendar: Calendar
+  /// Whether the published weekend rate is shown beside the split at all —
+  /// the reader's own choice in Settings (ADR-0038). The seven rows are the
+  /// user's own log and do not depend on it.
+  let showsComparison: Bool
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -78,8 +82,12 @@ struct WeekdayCard: View {
 
         // The user's own weekend, on the paper's definition, beside the
         // published rate — two facts about days, no rank and no threshold.
-        if let reference = WeekendReference.bundled {
-          let split = TrendSummary.weekendSplit(totals, weekend: reference.weekendWeekdays)
+        // Only when the reader shows it, and only over four weeks of range
+        // or more (ADR-0038): a Week range puts three weekend days beside a
+        // rate per hundred, which is the noise the population card's own
+        // four-week gate exists to keep off the screen.
+        if showsComparison, let reference = WeekendReference.bundled,
+          let split = comparableSplit(on: reference) {
 
           Divider()
             .padding(.top, GlassTokens.Spacing.cardPadding)
@@ -100,6 +108,14 @@ struct WeekdayCard: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
+  }
+
+  /// The range's split on the paper's weekend, or nil below the four-week
+  /// floor (`WeekendSplit.isComparable`) — nothing is then shown in its
+  /// place, the population card's own silence below its gate.
+  private func comparableSplit(on reference: WeekendReference) -> WeekendSplit? {
+    let split = TrendSummary.weekendSplit(totals, weekend: reference.weekendWeekdays)
+    return split.isComparable ? split : nil
   }
 
   // MARK: - The log by weekday

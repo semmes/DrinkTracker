@@ -13,6 +13,13 @@ import SwiftUI
 /// nothing at all if a bundled file is missing — never a placeholder number.
 /// Once the first recorded fact is a year old the average covers the last
 /// twelve months, and the note says which.
+///
+/// Each of the card's two comparisons is the reader's to show (ADR-0038):
+/// the weekly average against the survey's distribution, and the drinking
+/// days against a published mean. Both default to shown; with both off the
+/// card is not rendered at all. The weekly average reads whichever of the
+/// survey's columns Settings chose — the total unless told otherwise
+/// (ADR-0039) — and the sentence and the note both name that column.
 struct PopulationReferenceCard: View {
   @Environment(AppSettings.self) private var settings
 
@@ -23,11 +30,19 @@ struct PopulationReferenceCard: View {
 
   var body: some View {
     let now = Date()
-    if let reference = PopulationReference.bundled,
+    if showsVolume || showsDays,
+      let reference = PopulationReference.bundled,
       let window = PopulationReference.window(firstRecord: firstRecord, now: now) {
       card(reference, window: window, now: now)
     }
   }
+
+  /// The weekly-average comparison, if the reader shows it.
+  private var showsVolume: Bool { settings.showsWeeklyAverageComparison }
+
+  /// The drinking-days comparison, if the reader shows it and its file is
+  /// bundled — never a placeholder for a missing source.
+  private var showsDays: Bool { settings.showsDrinkingDaysComparison && FrequencyReference.bundled != nil }
 
   /// The first recorded fact — an entry or an alcohol-free marker.
   private var firstRecord: Date? {
@@ -36,23 +51,26 @@ struct PopulationReferenceCard: View {
 
   private func card(_ reference: PopulationReference, window: PopulationReference.Window, now: Date) -> some View {
     let region = settings.effectiveRegion
+    let column = settings.comparisonColumn
     let drinks = entries.loggedDrinks
     let units = PopulationReference.weeklyAverage(drinks, window: window, endingAt: now, region: region, calendar: calendar)
     let grams = units * region.gramsPureAlcoholPerStandardDrink
-    let comparison = reference.comparison(gramsPerWeek: grams)
-    let frequency = FrequencyReference.bundled
+    let comparison = reference.comparison(gramsPerWeek: grams, in: column)
+    let frequency = showsDays ? FrequencyReference.bundled : nil
     let drinkingDays = FrequencyReference.drinkingDays(in: drinks, last: window.days, endingOn: now, calendar: calendar)
 
     return SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-        Text(units > 0 ? PopulationReferenceCopy.averageLine(units, region: region) : PopulationReferenceCopy.noDrinks(in: window))
-          .font(.body)
-          .foregroundStyle(.primary)
-
-        if let comparison {
-          Text(PopulationReferenceCopy.comparisonLine(comparison))
+        if showsVolume {
+          Text(units > 0 ? PopulationReferenceCopy.averageLine(units, region: region) : PopulationReferenceCopy.noDrinks(in: window))
             .font(.body)
             .foregroundStyle(.primary)
+
+          if let comparison {
+            Text(PopulationReferenceCopy.comparisonLine(comparison, in: column))
+              .font(.body)
+              .foregroundStyle(.primary)
+          }
         }
 
         // The second figure: days, beside the survey's mean of days. Two
@@ -61,15 +79,18 @@ struct PopulationReferenceCard: View {
           Text(PopulationReferenceCopy.drinkingDaysLine(drinkingDays, of: window.days))
             .font(.body)
             .foregroundStyle(.primary)
-            .padding(.top, GlassTokens.Spacing.tight)
+            .padding(.top, showsVolume ? GlassTokens.Spacing.tight : 0)
           Text(PopulationReferenceCopy.drinkingDaysReferenceLine(frequency, windowDays: window.days))
             .font(.body)
             .foregroundStyle(.primary)
         }
 
-        SourceDisclosure(sources: frequency == nil ? PopulationReferenceCopy.yearSource : PopulationReferenceCopy.trendsSources) {
-          Text(PopulationReferenceCopy.explainer)
-          Text(PopulationReferenceCopy.windowNote(window))
+        // The source line names only what is shown, and so does the note.
+        SourceDisclosure(sources: PopulationReferenceCopy.sources(volume: showsVolume, days: frequency != nil)) {
+          if showsVolume {
+            Text(PopulationReferenceCopy.explainer(in: column, drinkersPercent: reference.drinkersPercent(in: column)))
+            Text(PopulationReferenceCopy.windowNote(window))
+          }
           if frequency != nil {
             Text(PopulationReferenceCopy.drinkingDaysNote)
           }

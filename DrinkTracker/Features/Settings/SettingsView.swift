@@ -22,6 +22,7 @@ struct SettingsView: View {
           appearanceSection
           counterSeedSection
           sessionPaceSection
+          comparisonsSection
           regionSection
           iCloudSection
           healthSection
@@ -123,6 +124,69 @@ struct SettingsView: View {
         // the app sits on interactive glass for this reason.
         .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
     }
+  }
+
+  // MARK: - Comparisons
+
+  /// Which of the published comparisons appear, and which of the survey's
+  /// columns the weekly average is placed against (ADR-0038, ADR-0039).
+  ///
+  /// Three toggles, each naming its source, and — while the weekly average
+  /// is shown — a segmented picker for the column. The picker's segments are
+  /// the three columns the source prints and no more: a fourth that read the
+  /// total under another name would be a question asked to no effect, so the
+  /// default, "All adults", is what a reader who is neither of the other two,
+  /// or who would rather not say, already has. Every control sits on
+  /// interactive glass, the session-pace lesson.
+  private var comparisonsSection: some View {
+    SettingsSection(title: "Comparisons", footnote: comparisonsFootnote) {
+      @Bindable var settings = settings
+      VStack(spacing: GlassTokens.Spacing.tight) {
+        ComparisonToggle(
+          title: "Weekly average",
+          source: "Alcohol Research Group, 2020 National Alcohol Survey",
+          isOn: $settings.showsWeeklyAverageComparison
+        )
+        ComparisonToggle(
+          title: "Drinking days",
+          source: "NIAAA, NESARC-III, 2012–13",
+          isOn: $settings.showsDrinkingDaysComparison
+        )
+        ComparisonToggle(
+          title: "Weekend and weekdays",
+          source: "Liang and Chikritzhs, 2015 (NHANES 2005–10)",
+          isOn: $settings.showsWeekendComparison
+        )
+
+        if settings.showsWeeklyAverageComparison {
+          VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+            Text("Compare with")
+              .font(.footnote.weight(.medium))
+              .foregroundStyle(.secondary)
+              .padding(.horizontal, GlassTokens.Spacing.tight)
+            Picker("Compare with", selection: $settings.comparisonColumn) {
+              Text("All adults").tag(PopulationReference.Column.allAdults)
+              Text("Men").tag(PopulationReference.Column.men)
+              Text("Women").tag(PopulationReference.Column.women)
+            }
+            .pickerStyle(.segmented)
+          }
+          .padding(GlassTokens.Spacing.tight)
+          .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+          .transition(.opacity)
+        }
+      }
+      .animation(.smooth(duration: 0.22), value: settings.showsWeeklyAverageComparison)
+    }
+  }
+
+  /// One footnote for the section, in two forms: with the column picker on
+  /// screen it says what the picker is and is not; without it, what turning
+  /// a comparison off does. Neither recommends a setting.
+  private var comparisonsFootnote: LocalizedStringKey {
+    settings.showsWeeklyAverageComparison
+      ? "Published US statistics your own figures are shown beside, each bundled with its source and year — never data from other Tallyist users, and nothing about your log leaves this device. The survey behind the weekly average prints its table for all adults, for men and for women; Compare with picks the column your average is placed against. It is a choice of reference, not a question about you, and it stays on this device. The other two figures are published for all adults only."
+      : "Published US statistics your own figures are shown beside, each bundled with its source and year — never data from other Tallyist users, and nothing about your log leaves this device. A comparison that is off no longer appears on Trends or the year view."
   }
 
   // MARK: - Region
@@ -442,6 +506,37 @@ struct SettingsView: View {
 }
 
 // MARK: - Pieces
+
+/// One published comparison's switch: its name over its source, and the
+/// toggle. The source is the caption because the section's rule is that a
+/// figure is never shown without saying where it came from, and that holds
+/// for the switch that shows it.
+private struct ComparisonToggle: View {
+  let title: LocalizedStringKey
+  let source: LocalizedStringKey
+  @Binding var isOn: Bool
+
+  var body: some View {
+    Toggle(isOn: $isOn) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(.body)
+          .foregroundStyle(.primary)
+        Text(source)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+    .tint(Color("AccentFill"))
+    .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+    .padding(.vertical, GlassTokens.Spacing.tight)
+    .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+    // interactive: a control on non-interactive glass loses taps — the rule
+    // every tappable control in the app follows.
+    .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+  }
+}
 
 private struct SettingsSection<Content: View>: View {
   // Keys, not Strings: a `String` here would reach `Text` through its verbatim

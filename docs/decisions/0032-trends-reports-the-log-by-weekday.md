@@ -2,7 +2,9 @@
 
 **Status:** accepted · **Date:** 2026-09-05 · **Relates to:** ADR-0028 (a
 bar reports its own facts), ADR-0018 (the population reference's rules),
-constraints 3 and 5
+constraints 3 and 5 · **Amended by:**
+ADR-0038 (the comparison is the reader's to show, and waits for four
+weeks of range — see the amendment below)
 
 ## Context
 
@@ -257,3 +259,25 @@ constant — measured heads, not `@ScaledMetric` — so the label column can be
 guaranteed rather than computed; that is a layout engine change, not a
 threshold change, and a threshold change alone re-creates the hyphenation
 above.
+
+---
+
+## Amendment (2026-09-08) — the comparison is the reader's to show, and waits for four weeks of range
+
+**Status:** accepted, by ADR-0038. The figures, the sources and the refusals
+above are unchanged. Two things move:
+
+1. **A switch.** Settings → Comparisons → "Weekend and weekdays" shows or
+   hides the comparison section — the split beside the published rate and
+   its source line. On by default. The seven weekday rows are the reader's
+   own log and never depend on it.
+2. **A floor.** The comparison section appears only when the range holds
+   `WeekendReference.minimumDays` (28) calendar days or more —
+   `WeekendSplit.isComparable`. The decision above put it on every range,
+   which on Week placed three Friday-to-Sunday days beside a rate per
+   hundred person-days: the noise the population card's own four-week gate
+   exists to keep off the screen. Below the floor the section is silent, as
+   that card is below its gate; Month, Quarter and Year are unchanged.
+
+Nothing is added, ranked or recomputed; the Week range shows one fewer
+block. Tier 1 pins the floor (`weekendComparisonGate`).

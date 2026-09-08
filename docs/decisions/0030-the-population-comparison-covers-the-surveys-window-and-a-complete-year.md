@@ -3,7 +3,9 @@
 **Status:** accepted · **Date:** 2026-09-05 · **Amends:** ADR-0018 (the
 window) · **Relates to:** ADR-0006, ADR-0026 (the year's fold), ADR-0027 and
 ADR-0029 (never on a share card), spec constraints 3 and 5, the contract's
-`domain/aggregation.md` ("Measures a source may be compared against")
+`domain/aggregation.md` ("Measures a source may be compared against") · **Amended by:**
+ADR-0038 (the year comparison follows the weekly-average switch),
+ADR-0039 (and reads the same column)
 
 ## Context
 

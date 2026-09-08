@@ -209,6 +209,42 @@ catalogue (the forty is one retail size the owner named; the 22 oz stays out),
 or a per-type strength estimate the user never stated (invented precision,
 ADR-0014's own refusal).
 
+## Feature J: the comparisons are the reader's to show — done (ADR-0038)
+
+The owner asked whether Trends' insights could be cycled or chosen from the
+user's data. The answer separates the app choosing (refused where the rule
+would read a figure's direction; allowed where it reads only how much record
+exists) from the reader choosing (allowed, ADR-0026's model). What shipped:
+Settings → Comparisons, three switches on by default — Weekly average,
+Drinking days, Weekend and weekdays — each naming its source; the first
+governs Trends and the year view together; the card's source line and note
+name only what is shown. And one sufficiency gate the review found: the
+weekend comparison waits for four weeks of range, so the Week range shows
+the seven rows alone.
+
+**Must not become:** a rule that reads a figure to decide whether to show
+it, a rotation, an ordering of the cards by the reader's own numbers, a
+switch that defaults off (a change in what everyone sees under the name of
+a preference).
+
+## Feature K: the weekly average can read the survey's men's or women's column — done (ADR-0039)
+
+The source prints Men, Women and Total, verified against the PDF; all three
+are bundled, each renormalised by its own abstainer share and pinned row by
+row at tier 1. Settings → Comparisons → Compare with (All adults · Men ·
+Women) chooses the column the weekly average is placed against, on Trends
+and the year view; the sentence names the column and the note's drinkers
+share follows the file. A choice of reference kept on the device, not a
+fact recorded about the reader: the survey publishes no non-binary column,
+so none is offered — the default is what a non-binary reader, or anyone who
+would rather not say, already has, with no question asked.
+
+**Must not become:** a gender question (no segment that reads the Total
+under another name; no stored identity), a column the source does not
+print, a percentile for the drinking-days mean or the weekend rate (their
+sources publish one figure for all adults), a comparison against any
+guideline band.
+
 ## App Review consistency
 
 | Claim made in the 1.0 response, kept through 1.2 | 1.3 |
@@ -220,6 +256,7 @@ ADR-0014's own refusal).
 | "Nothing leaves the device unless the user sends it" | Preserved. Built at share time, no temp file, no log of the share. |
 | "No accounts, no servers, no networking code" | Preserved. No new code path reaches the network. |
 | "The population reference is a bundled, published, dated statistic; no thresholds, no guidelines" | Preserved and extended on the same terms: two more bundled, published, dated descriptive statistics (a mean of drinking days, a weekend rate), each named with its source and year; the app still classifies no one and compares to no threshold. The comparison's window follows the record, matching the survey's twelve-month measure. |
+| "The population reference is a bundled, published, dated statistic; no thresholds, no guidelines" — continued | Preserved. Each comparison can be turned off in Settings, and the weekly average can be placed against the survey's men's or women's column instead of its total: the same bundled table, three of its published columns, each renormalised by its own stated abstainer share, the sentence naming the column it read. The setting is a preference like Region, stored on the device and on no entry; the app records nothing about the person and asks no gender (ADR-0038, ADR-0039). |
 | "No new permissions, no new privacy label categories, no new third-party code" (the 1.2 notes' closing line, repeated for 1.3) | Preserved. Cocktail is a fifth label over the same two facts every typed drink already records — the spirit poured and its strength, defaulting to one standard drink — and the 40 oz is one more preset over them. The drink icons are bundled artwork on the same surfaces. No new kind of data, no new permission (ADR-0035, ADR-0036). |
 
 Reviewer notes and What's New for 1.3 are in `docs/app-store-listing.md`.

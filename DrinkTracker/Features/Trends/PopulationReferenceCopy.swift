@@ -10,6 +10,13 @@ import SwiftUI
 /// and its year visible; the note says what this is and is not. Every
 /// function returns a key so the sentence reaches the catalog and a
 /// translation can reorder the interpolations.
+///
+/// The volume comparison names the survey column it read (ADR-0039): "US
+/// adults", "US men" or "US women" who drink — one key per column and
+/// direction, never a noun interpolated into a shared sentence, so a
+/// translation can decline it. The note's drinkers share follows the column
+/// from the bundled file, so a data-file change cannot leave the note
+/// stating the wrong number.
 enum PopulationReferenceCopy {
 
   /// "Your average is about 4 standard drinks a week." One key per region
@@ -59,12 +66,20 @@ enum PopulationReferenceCopy {
     "No drinks logged in \(String(year))."
   }
 
-  static func comparisonLine(_ comparison: PopulationReference.Comparison) -> LocalizedStringKey {
-    switch comparison {
-    case .lowerThan(let percent):
+  static func comparisonLine(_ comparison: PopulationReference.Comparison, in column: PopulationReference.Column) -> LocalizedStringKey {
+    switch (comparison, column) {
+    case (.lowerThan(let percent), .allAdults):
       "That's lower than roughly \(percent)% of US adults who drink."
-    case .moreThan(let percent):
+    case (.moreThan(let percent), .allAdults):
       "That's more than roughly \(percent)% of US adults who drink."
+    case (.lowerThan(let percent), .men):
+      "That's lower than roughly \(percent)% of US men who drink."
+    case (.moreThan(let percent), .men):
+      "That's more than roughly \(percent)% of US men who drink."
+    case (.lowerThan(let percent), .women):
+      "That's lower than roughly \(percent)% of US women who drink."
+    case (.moreThan(let percent), .women):
+      "That's more than roughly \(percent)% of US women who drink."
     }
   }
 
@@ -89,9 +104,34 @@ enum PopulationReferenceCopy {
   /// The source line under the year comparison, which has one source.
   static let yearSource: LocalizedStringKey = "Source: Alcohol Research Group, 2020 National Alcohol Survey"
 
-  /// The note's first paragraph: what the percentages are and are not.
-  static let explainer: LocalizedStringKey =
-    "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the 72% who reported drinking, and compared by grams of alcohol."
+  /// The source line when only the drinking-days comparison is shown.
+  static let daysSource: LocalizedStringKey = "Source: NIAAA, NESARC-III, 2012–13"
+
+  /// The Trends card's source line for whichever of its two comparisons the
+  /// reader shows (ADR-0038): both, the volume alone, or the days alone. The
+  /// card is not rendered with neither, so that case names both.
+  static func sources(volume: Bool, days: Bool) -> LocalizedStringKey {
+    switch (volume, days) {
+    case (true, false): yearSource
+    case (false, true): daysSource
+    default: trendsSources
+    }
+  }
+
+  /// The note's first paragraph: what the percentages are and are not, for
+  /// the column that was read. `drinkersPercent` is the file's own figure
+  /// (100 less the column's abstainers — 72, 75 or 69), printed whole.
+  static func explainer(in column: PopulationReference.Column, drinkersPercent: Double) -> LocalizedStringKey {
+    let percent = Int(drinkersPercent.rounded())
+    switch column {
+    case .allAdults:
+      return "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+    case .men:
+      return "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+    case .women:
+      return "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+    }
+  }
 
   /// Which span the average covers, stated plainly. The twelve-month window
   /// is offered once the record supports it; a single heavy week moves a
