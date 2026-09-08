@@ -59,9 +59,12 @@ It stays at 8 oz @ 10%.
   change rather than a one-line one.
 - Adding a type later means picking a default that lands on 1.0, or documenting why
   it is an exception. That is a real constraint, and an intended one. *Exercised
-  once, 2026-09-07:* Cocktail lands on 1.0 exactly, by the same 1.5 oz at 40%
-  this record settled for spirit — see
-  [ADR-0035](0035-cocktail-is-a-fifth-type-measured-by-its-spirit.md).
+  twice for one type:* Cocktail landed on 1.0 exactly on 2026-09-07 by the same
+  1.5 oz at 40% this record settled for spirit
+  ([ADR-0035](0035-cocktail-is-a-fifth-type-measured-by-its-spirit.md)), and
+  again on 2026-09-08 when the owner moved it to the whole drink — 4 oz at 15%,
+  the same 0.6 fl oz mixed to a glass
+  ([ADR-0037](0037-a-cocktail-is-measured-as-the-whole-drink.md)).
 
 ## How to reopen
 

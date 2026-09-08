@@ -149,3 +149,111 @@ Unchanged from above. Additionally: if the two-line column heads read as noise
 at default type in real use, the heads can drop to one line by shortening
 "Days with a drink" to "Days" — but the unit head cannot shorten, because a
 bare "Drinks" would stop being the region's own word.
+
+---
+
+## Amendment (2026-09-07) — the fold moves to xLarge, the comparison columns size to their content, and a row is one VoiceOver stop
+
+**Status:** accepted. From the 1.3 release review. The tables, the figures and
+the refusals above are unchanged; this corrects *when* the tables give way and
+*how wide* their columns are, and fixes a VoiceOver fault in the weekday rows.
+
+### What was wrong
+
+The 2026-09-06 amendment folded the tables only at accessibility sizes and
+verified that fold at accessibility-extra-large alone; the 1.3 release review
+then computed from the HIG's caption2 table that the label column would starve
+from xLarge on a 375pt screen and from xxLarge on a 402pt one. Rendering found
+it worse still, and this decision was rendered rather than reasoned. Measured
+from frames of the shipped card on the iPhone 17 Pro simulator (402pt; content
+width 328pt), by the numeric columns' trailing edges:
+
+| Content size | Each numeric column | Label column | Widest name (subheadline) | Rendered |
+|---|---|---|---|---|
+| medium / large | 88 | 136 | Wednesday 81 | one line |
+| xLarge | 122 | 68 | Wednesday 90 | "Wednes-/day", "Thurs-/day" |
+| xxLarge | 136 | 40 | Wednesday 100 | every name hyphenated, "Sat-/ur-/day" |
+
+The columns are `@ScaledMetric(relativeTo: .caption2)`, and the metric grows
+faster than the text style it is named for — 1.39× at xLarge and 1.54× at
+xxLarge against the names' 1.13× and 1.27× — so the label column starves two
+sizes before the accessibility threshold. The comparison table fails sooner
+still: its fixed 74/100pt columns left "Monday to Thursday" (125pt at the
+default size) 140pt on a 402pt screen but only 113pt on a 375pt one, so on the
+smaller phones the label wrapped at the **default** size, and at xLarge on the
+402pt screen it wrapped too ("Friday to / Sunday").
+
+Design-system §3 says wrap, never clip — and a weekday name broken mid-word
+with a hyphen is neither; it is the fold arriving too late.
+
+### Decision
+
+1. **The fold happens at xLarge**, the first size above the default:
+   `isStacked` is `dynamicTypeSize >= .xLarge`. Extra-small through large keep
+   the owner's table on every screen width; xLarge and up get the stacked rows
+   and the three reviewed sentences, which read correctly at any width.
+2. **The comparison table's numeric columns size to their content** — the
+   head or the widest cell, whichever is wider — with no fixed width. Both
+   heads are one line, so a fixed width bought nothing there and cost the label
+   column the room it needed. Rendered at the default size the columns come to
+   60pt ("YOUR LOG", measured from the frame) and about 87pt ("31 of every
+   100", the caption's own width), and "Monday to Thursday" sits on one line
+   with a 375pt screen's label column at about 138pt against the phrase's 121.
+3. **The weekday table keeps its 88pt scaled columns.** They are still what
+   breaks the two-line heads, and at the sizes the table now appears at they
+   are 88pt on every screen: the label column is 136pt on 402 and 109pt on
+   375, against 81 for "Wednesday".
+4. **Each weekday row is one VoiceOver stop.** The row's `accessibilityElement`
+   and label were on the `GridRow`, and a modifier on a `GridRow` is applied to
+   each of its cells, so every weekday was three identical stops (a compiled
+   probe in the review counted six elements for two rows). The label now sits
+   on the name cell and the two figure cells are hidden. The stacked form and
+   the comparison table (modifiers on a `VStack` and on the `Grid`) were
+   already one element each.
+
+### Why not a narrower weekday column and a later fold
+
+Holding "Wednesday" at xLarge on a 375pt screen needs the two numeric columns
+under 70pt at that size, and the head's widest line, "DAYS WITH", is 67pt at
+the default size with the same metric behind it: a column narrow enough for
+the name is a column that squeezes the two-line head into three. On the 402pt
+screen alone a ~76pt column would hold the weekday names at xLarge, but the
+comparison labels are a coin toss there (141pt of phrase in 141pt of column)
+and a 390pt screen is one too. One threshold serves every width, so it is the
+one at which nothing fragments anywhere.
+
+### Consequences
+
+- "What accessibility sizes do" above now reads as "what the sizes above the
+  default do": the fold is at xLarge, not at the accessibility threshold. The
+  figures are identical either way; only their arrangement changes.
+- The `@ScaledMetric` consequence above is corrected: only the weekday
+  table's column is scaled (88); the comparison table's 74/100 are gone. At the
+  sizes the tables appear at, the scaled value is its base value.
+- The frames, listed in the pull request that landed this amendment:
+  `fixed-large-weekday.png` (table, both labels one line),
+  `fixed-xLarge-weekday.png`, `fixed-xxLarge-weekday.png`,
+  `fixed-xxxLarge-weekday.png`, `fixed-axXL-weekday.png` (stacked, nothing
+  hyphenated), against `baseline-xLarge-weekday.png` and
+  `baseline-xxLarge-weekday.png` (the shipped fragments), all on the
+  iPhone 17 Pro. The 375pt case is arithmetic, stated above; there is no
+  375pt simulator on the build Mac.
+- The one-stop-per-row fix follows from the documented `GridRow` semantics
+  and the review's measurement of the fault; the stop count after the fix is
+  not measured here — an in-process macOS probe cannot see SwiftUI's
+  accessibility tree — and is stated as tier 3 for VoiceOver on a device.
+- One measurement note for the next pass: the simulator's resting content
+  size on that Mac is `medium`, which is one step *below* the iOS default
+  (`large`). The default-size frames here were taken at `large`; earlier
+  amendments' "default type" measurements may have been at medium, where
+  caption2 and the columns are the same but the names are a point smaller.
+- No key in or out, no schema change, no CloudKit step, no setting.
+
+### How to reopen
+
+If the stacked form at xLarge reads as a step down in real use, the route back
+is a table whose column widths come from the text rather than from a scaled
+constant — measured heads, not `@ScaledMetric` — so the label column can be
+guaranteed rather than computed; that is a layout engine change, not a
+threshold change, and a threshold change alone re-creates the hyphenation
+above.

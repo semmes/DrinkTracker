@@ -194,20 +194,23 @@ take the accent and secondary inks and nothing else), a mascot or an
 illustration style (design-system §1), a second way to pick a type that
 disappears once answered (PRD invariant 2, `asksType`).
 
-## Feature I: Cocktail, and the 40 oz — done (ADR-0035)
+## Feature I: Cocktail, and the 40 oz — done (ADR-0035, revised by ADR-0037)
 
-A fifth selectable type, measured by the spirit in it: 1.5 oz at 40% by
-default (one standard drink exactly, ADR-0005's clause exercised), pours of
-1.5 / 2 / 3 oz spirit plus Custom, the Custom field asking for ounces of
-spirit. Beer offers the 40 oz bottle after the can and the pint. No schema
-change, no CloudKit step, no setting.
+A fifth selectable type, measured as the whole drink in the glass: 4 oz at
+15% by default (one standard drink exactly — the 1.5 oz standard pour mixed
+to a glass, ADR-0005's clause exercised a second way), sizes of 3 / 4 / 6 oz
+plus Custom, the Custom field asking for the ounces in the glass. ADR-0035
+shipped it measured by the spirit poured; the owner's review of the control
+moved it to the drink (ADR-0037, 2026-09-08). Beer offers the 40 oz bottle
+after the can and the pint. No schema change, no CloudKit step, no setting.
 
-**Must not become:** a recipe or serving guide (the pills are the common
-pours, not a menu), a default that under-counts (the whole-drink model's
-plausible trap, refused in the ADR), a size list that grows on request into a
-catalogue (the forty is one retail size the owner named; the 22 oz stays out),
-or a per-type strength estimate the user never stated (invented precision,
-ADR-0014's own refusal).
+**Must not become:** a recipe or serving guide (the pills are three common
+sizes, not a menu), a size list that grows on request into a catalogue (the
+forty is one retail size the owner named; the 22 oz stays out), a pill that
+silently changes the strength (a size is a size; the slider is the only way
+strength moves), or a default that under-counts — the default itself lands on
+1.0, and the whole-drink model's plausible under-count in Custom is accepted
+in ADR-0037 with the field's wording as its defence, not built around.
 
 ## App Review consistency
 
@@ -220,7 +223,7 @@ ADR-0014's own refusal).
 | "Nothing leaves the device unless the user sends it" | Preserved. Built at share time, no temp file, no log of the share. |
 | "No accounts, no servers, no networking code" | Preserved. No new code path reaches the network. |
 | "The population reference is a bundled, published, dated statistic; no thresholds, no guidelines" | Preserved and extended on the same terms: two more bundled, published, dated descriptive statistics (a mean of drinking days, a weekend rate), each named with its source and year; the app still classifies no one and compares to no threshold. The comparison's window follows the record, matching the survey's twelve-month measure. |
-| "No new permissions, no new privacy label categories, no new third-party code" (the 1.2 notes' closing line, repeated for 1.3) | Preserved. Cocktail is a fifth label over the same two facts every typed drink already records — the spirit poured and its strength, defaulting to one standard drink — and the 40 oz is one more preset over them. The drink icons are bundled artwork on the same surfaces. No new kind of data, no new permission (ADR-0035, ADR-0036). |
+| "No new permissions, no new privacy label categories, no new third-party code" (the 1.2 notes' closing line, repeated for 1.3) | Preserved. Cocktail is a fifth label over the same two facts every typed drink already records — the drink's volume and its strength, defaulting to one standard drink — and the 40 oz is one more preset over them. The drink icons are bundled artwork on the same surfaces. No new kind of data, no new permission (ADR-0035, ADR-0036). |
 
 Reviewer notes and What's New for 1.3 are in `docs/app-store-listing.md`.
 

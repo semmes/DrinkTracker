@@ -247,6 +247,26 @@ release write. Row 2 of the scrub is a numeral *or* a phrase by design, so the
 block's optical weight changes between bars — deliberate, and not to be "fixed"
 by printing 0 for a marker day.
 
+*Added 2026-09-07, from the 1.3 release review.* The idle title row folds at
+accessibility sizes. As shipped, the average legend beside the range name was
+`fixedSize()` in both axes, so it took its full width first and the title got
+what was left — a column some 60pt wide at accessibility sizes, where "Last 7
+days" reached the screen as three lines of one word each. Now the title carries
+the layout priority, the legend may wrap (`fixedSize(horizontal: false,
+vertical: true)`), and from the first accessibility size the row is a stack —
+title over legend — the same `isAccessibilitySize` fold `PeriodReadout`'s facts
+row, `WeekdayCard` and `PlusModePill` make. The 80pt floor is untouched and
+still binds both states at the sizes the design was drawn at; at accessibility
+sizes the box grows past it, as a floor allows and a fixed height would not —
+the case this amendment's floor rather than a fixed height was chosen for.
+Below the accessibility threshold the row stays a row and the legend yields:
+rendered at xxxLarge with the Year range on the 402pt screen, "Last 12 months"
+holds its line and "Your monthly average · 6.4" wraps once, after "average",
+with the value on a second line — wrap, never clip, as design-system §3 asks.
+A 375pt screen reaches the same wrap by arithmetic. In the same pass the rail
+and hairline's slide between bars went behind Reduce Motion, as the readout's
+6pt offset already was: with it on they jump to the touched bar and only fade.
+
 **No schema change, no CloudKit step, no setting, no App Group key, no widget
 change, no networking.** One app-catalog key in, one out. Pinned at tier 1
 (`rangeSummaryClassifier`, `rangeSummaryTotalAgreesWithBars`,

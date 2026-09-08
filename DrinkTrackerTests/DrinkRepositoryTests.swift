@@ -103,17 +103,18 @@ struct DrinkRepositoryTests {
   /// ADR-0022 and ADR-0023 chose on purpose.
   @Test("A cocktail round-trips, and an unknown type reads back as Other")
   func cocktailRoundTripsAndUnknownTypeDegradesToOther() throws {
-    repository.save(drink(type: .cocktail, ounces: 1.5, abv: 40))
+    // The whole drink's facts (ADR-0037): 4 oz at a mixed 15%.
+    repository.save(drink(type: .cocktail, ounces: 4, abv: 15))
     let entry = try #require(try allEntries().first)
     #expect(entry.typeRawValue == "cocktail")
     #expect(entry.logged.type == .cocktail)
-    #expect(entry.logged.volumeOunces == 1.5)
+    #expect(entry.logged.volumeOunces == 4)
 
     entry.typeRawValue = "mead"
     let unknown = entry.logged
     #expect(unknown.type == .other)
-    #expect(unknown.volumeOunces == 1.5)
-    #expect(unknown.abvPercent == 40)
+    #expect(unknown.volumeOunces == 4)
+    #expect(unknown.abvPercent == 15)
     #expect(unknown.isRepeatable)
   }
 
