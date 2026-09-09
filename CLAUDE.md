@@ -1057,7 +1057,7 @@ Open items for v1.2:
   sentence on a real display; VoiceOver reading a switch row (title then
   caption) and the picker; the picker's fade in and out under Reduce Motion;
   a UK region reading "US men" in units; the volume-only source line.
-- **Navigation is a tab bar, and Settings is a page (2026-09-08, ADR-0040).**
+- **Navigation is a tab bar, and Settings is a page (2026-09-08, ADR-0040, PR #86).**
   The owner dropped `docs/design/bottom-nav/` — the *Tallyist iOS Prototype*
   canvas again; **diff its `.dc.html` against `today2`'s** to read it: the
   only *unbuilt* new work is the "Home v3 (tab bar)" screen (Home v2 minus its
