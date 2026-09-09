@@ -128,7 +128,7 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-09-07:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
+**As of 2026-09-08:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
 **the 1.3 train is open** — `MARKETING_VERSION` is 1.3 on main; its first
 feature (the year-in-review share card, ADR-0029) has landed, and the
@@ -1057,3 +1057,63 @@ Open items for v1.2:
   sentence on a real display; VoiceOver reading a switch row (title then
   caption) and the picker; the picker's fade in and out under Reduce Motion;
   a UK region reading "US men" in units; the volume-only source line.
+- **Navigation is a tab bar, and Settings is a page (2026-09-08, ADR-0040).**
+  The owner dropped `docs/design/bottom-nav/` — the *Tallyist iOS Prototype*
+  canvas again; **diff its `.dc.html` against `today2`'s** to read it: the
+  only *unbuilt* new work is the "Home v3 (tab bar)" screen (Home v2 minus its
+  four toolbar buttons), the "Tab bar" block, the "Settings page" block and
+  the calendar's labelled year pill — the rest of that 363-line diff is the
+  canvas catching up with ADR-0035/0036/0037 (a Filled/Outline glyph-style
+  prop, the cocktail, the 40 oz, the five-segment type control); its three
+  side files and nested `design_handoff_*` directory are byte-identical to
+  `today2`'s, the directory not committed again; three things in it are
+  drift, not intent (Home v3's empty day still shows the caption and link
+  PR #83 removed; the cocktail sizes predate ADR-0037; the Calendar, Trends
+  and History screens keep a back chevron to Today beside the bar) — and
+  asked for the
+  bottom bar with icons and text, Settings as its own page, and the year
+  button with text. What shipped: `AppTabs` (`Features/Navigation/`) — the
+  **system's** iOS 26 `TabView`, never a drawn bar (design-system §0 and §4),
+  five `Tab`s Today · Calendar · Trends · History · Settings with one
+  `NavigationStack` per tab owned there (Today and Settings lost their own;
+  the other three never had one), the year view still pushed under Calendar
+  and the policy and tip jar under Settings, the bar visible on every push;
+  Today's toolbar and its Settings sheet are deleted outright; Settings lost
+  Done and `dismiss`; the calendar's year button is an explicit `Image` +
+  `Text("Year")` pair in its own glass shape behind a `ToolbarSpacer(.fixed)`,
+  the glyph hidden from VoiceOver. Opens on Today every launch, nothing
+  stored (invariant 1 — the reopen path is one `@AppStorage`); no
+  minimise-on-scroll, no badge, the system's iPad form. Tab glyphs: the app's
+  own drop (`tally.standard`, what the drawing shows) and `calendar` /
+  `chart.bar` / `list.bullet` / `gearshape` — named in outline because **the
+  bar applies the fill variant itself, to every item at rest** (`chart.bar`
+  and `gearshape` render filled selected or not; the other three have one
+  form), so selection is accent ink plus a **neutral glass capsule**, never a
+  change of shape; inks are the system's — primary inactive, accent
+  selected — so the drawing's grey inactive tabs, accent toolbar glyphs and
+  12% accent wash are not reproduced, recorded in the ADR. A hidden tab's
+  `@Query` body does **not** re-evaluate on a store change (probed on iOS 26.5
+  in the review), so logging on Today does not re-fold the reading tabs. **Two rendering lessons:** a `Label` in a
+  navigation-bar toolbar item shows its icon only and `.labelStyle(.titleAndIcon)`
+  does not override that on iOS 26 — the word was missing on the first render;
+  use an explicit `HStack { Image; Text }` — and the cap-height custom drop
+  renders visibly smaller than its four SF neighbours in the bar, accepted
+  and a one-line swap to `drop.fill`. App catalog 323 → 323 ("Year" in,
+  "Year view" out; the five titles are existing keys); 390 in all. **No
+  schema change, no CloudKit step, no setting.** No test tier reaches
+  navigation (app target, no `TEST_HOST`) — CI proves compilation; the proof
+  is tier 3 on the booted iPhone 17 Pro: all five tabs, the pushed year view
+  and privacy policy keeping the bar, the Year pill apart from the share
+  button, dark mode, `accessibility-extra-large` (the bar keeps its words and
+  height), and the undo bar and the calendar's selection bar clearing the bar
+  through the safe area. All four gates green locally (250 domain tests; the
+  device and generic builds; 85 integration tests on a second simulator; the
+  glyph generator and the policy-date check clean), plus a six-lens review
+  workflow with a skeptic per finding. **Tier 3/4 for the owner's pass:** the
+  bar under a thumb on real Liquid Glass in both appearances; the drop's size
+  beside the SF glyphs (the one design judgment here); VoiceOver reading a
+  tab ("Today, tab, 1 of 5") and the Year button as "Year"; the iPad's
+  top-of-window bar; a widget tap while the app sits on History, then a
+  foregrounding, still backfilling the sample (Today's view owns the sweep
+  and lives behind the other tabs); a sheet hiding the bar; and the App Store
+  screenshots, every in-app one of which is now stale.

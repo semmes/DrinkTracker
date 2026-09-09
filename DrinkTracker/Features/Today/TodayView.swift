@@ -6,6 +6,11 @@ import SwiftUI
 
 /// Screen 4 — Today. Home surface and the entry point for every log.
 ///
+/// The first of the five tabs (ADR-0040): the other surfaces sit beside it in
+/// the tab bar, so this screen carries no chrome of its own — no toolbar, and
+/// no sheet for Settings, which is a tab like the rest. The stack this sits in
+/// belongs to `AppTabs`.
+///
 /// One tap of ＋ logs a drink. Everything else on the screen exists to say what
 /// that tap just did: the band behind the number is the day's own amount on the
 /// calendar's scale, the pill says which drink ＋ is following, and the list
@@ -47,7 +52,6 @@ struct TodayView: View {
   /// cleared. Read through `currentLastLogged`, which is what decides whether
   /// the screen still shows it.
   @State private var lastLogged: LoggedDrink?
-  @State private var isShowingSettings = false
   @State private var deletion = DeletionCoordinator()
 
   /// The tail of the counter's ± operations. Each new one awaits the previous,
@@ -71,114 +75,75 @@ struct TodayView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      // A List rather than a ScrollView so today's entries get native
-      // swipe-to-delete. The counter sits in a chrome-less first section so the
-      // screen still reads as one surface rather than a form.
-      List {
-        Section {
-          VStack(spacing: GlassTokens.Spacing.block) {
-            counterHero
-            SessionPaceCard()
-          }
-          .padding(.top, GlassTokens.Spacing.tight)
+    // A List rather than a ScrollView so today's entries get native
+    // swipe-to-delete. The counter sits in a chrome-less first section so the
+    // screen still reads as one surface rather than a form.
+    List {
+      Section {
+        VStack(spacing: GlassTokens.Spacing.block) {
+          counterHero
+          SessionPaceCard()
         }
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets(
-          top: 0,
-          leading: GlassTokens.Spacing.screenMargin,
-          bottom: GlassTokens.Spacing.section,
-          trailing: GlassTokens.Spacing.screenMargin
-        ))
+        .padding(.top, GlassTokens.Spacing.tight)
+      }
+      .listRowBackground(Color.clear)
+      .listRowSeparator(.hidden)
+      .listRowInsets(EdgeInsets(
+        top: 0,
+        leading: GlassTokens.Spacing.screenMargin,
+        bottom: GlassTokens.Spacing.section,
+        trailing: GlassTokens.Spacing.screenMargin
+      ))
 
-        todaysDrinksSection
+      todaysDrinksSection
+    }
+    .listStyle(.plain)
+    .scrollContentBackground(.hidden)
+    .scrollBounceBehavior(.basedOnSize)
+    .navigationTitle("Today")
+    .safeAreaInset(edge: .bottom) {
+      if let drink = deletion.recentlyDeleted {
+        UndoDeleteBar(drink: drink) {
+          Task { await deletion.undo(using: store) }
+        }
+        .padding(.bottom, GlassTokens.Spacing.tight)
       }
-      .listStyle(.plain)
-      .scrollContentBackground(.hidden)
-      .scrollBounceBehavior(.basedOnSize)
-      .navigationTitle("Today")
-      .safeAreaInset(edge: .bottom) {
-        if let drink = deletion.recentlyDeleted {
-          UndoDeleteBar(drink: drink) {
-            Task { await deletion.undo(using: store) }
-          }
-          .padding(.bottom, GlassTokens.Spacing.tight)
-        }
+    }
+    .animation(.smooth(duration: 0.25), value: deletion.recentlyDeleted)
+    .sheet(item: $draft) { current in
+      DrinkDetailSheet(draft: current) { saved in
+        lastLogged = saved
+        draft = nil
+      } onCancel: {
+        draft = nil
       }
-      .animation(.smooth(duration: 0.25), value: deletion.recentlyDeleted)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          NavigationLink {
-            HistoryView()
-          } label: {
-            Image(systemName: "list.bullet")
-          }
-          .accessibilityLabel("History")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-          NavigationLink {
-            CalendarView()
-          } label: {
-            Image(systemName: "calendar")
-          }
-          .accessibilityLabel("Calendar")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-          NavigationLink {
-            TrendsView()
-          } label: {
-            Image(systemName: "chart.bar.xaxis")
-          }
-          .accessibilityLabel("Trends")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            isShowingSettings = true
-          } label: {
-            Image(systemName: "gearshape")
-          }
-          .accessibilityLabel("Settings")
-        }
+    }
+    .sheet(item: $adopting) { imported in
+      // The adopted row updates in place a few points below, so this does not
+      // also claim the "last logged" line — adoption fills in a drink that was
+      // already in the log, it does not add one.
+      DrinkDetailSheet(adopting: imported) { _ in
+        adopting = nil
+      } onCancel: {
+        adopting = nil
       }
-      .sheet(item: $draft) { current in
-        DrinkDetailSheet(draft: current) { saved in
-          lastLogged = saved
-          draft = nil
-        } onCancel: {
-          draft = nil
-        }
-      }
-      .sheet(item: $adopting) { imported in
-        // The adopted row updates in place a few points below, so this does not
-        // also claim the "last logged" line — adoption fills in a drink that was
-        // already in the log, it does not add one.
-        DrinkDetailSheet(adopting: imported) { _ in
-          adopting = nil
-        } onCancel: {
-          adopting = nil
-        }
-      }
-      .sheet(isPresented: $isShowingSettings) {
-        SettingsView()
-      }
-      .task {
+    }
+    .task {
+      runForegroundSweep()
+    }
+    .onChange(of: scenePhase) { _, phase in
+      // Anything logged from the widget while the app was away lands without a
+      // Health sample; sweep those up on return. Drinks other apps put into
+      // Health flow in on the same sweep, and the iCloud check rides along,
+      // since the user can sign in while the app is backgrounded and nothing
+      // else would notice.
+      if phase == .active {
+        dayChanged = Date()
         runForegroundSweep()
       }
-      .onChange(of: scenePhase) { _, phase in
-        // Anything logged from the widget while the app was away lands without a
-        // Health sample; sweep those up on return. Drinks other apps put into
-        // Health flow in on the same sweep, and the iCloud check rides along,
-        // since the user can sign in while the app is backgrounded and nothing
-        // else would notice.
-        if phase == .active {
-          dayChanged = Date()
-          runForegroundSweep()
-        }
-      }
-      .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
-        dayChanged = Date()
-      }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+      dayChanged = Date()
     }
   }
 

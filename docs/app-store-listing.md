@@ -243,6 +243,11 @@ beside its name on the sheet's type control, on today's list, in History
 and in Trends; the standard drink, Apple Health entries and days recorded
 as no alcohol have theirs too. Siri understands "Log a cocktail in
 Tallyist".
+
+The app's five screens are now tabs — Today, Calendar, Trends, History and
+Settings, each with its name — so any screen is one tap from any other, and
+Settings is a page of its own rather than a sheet. The calendar's year
+button now says Year.
 ```
 
 ## Reviewer notes (1.3) — paste into App Review notes
@@ -321,6 +326,10 @@ Notes on what's new in 1.3:
   the device, like the region setting: the app records nothing about the
   person, asks no gender, and offers no option the survey does not publish.
   No comparison to a threshold, no ranking, no network.
+- The screens moved into a standard tab bar (Today, Calendar, Trends,
+  History, Settings) and Settings became a page instead of a sheet. A
+  navigation change only: the same screens, the same controls on them, and
+  nothing new recorded or read.
 - No new permissions, no new privacy label categories, no new third-party
   code. There are still no accounts and no servers of any kind.
 ```
@@ -340,6 +349,10 @@ Notes on what's new in 1.3:
   card) — both the iPhone and the iPad sets — keeping the counts low per the
   note above; the widget shot is unchanged. Any shot showing drink rows or
   the drink sheet is stale as well: the drink glyphs are new (ADR-0036) and
-  the sheet's type control shows five glyph-and-name segments.
+  the sheet's type control shows five glyph-and-name segments. And every
+  in-app shot is stale in one more way since ADR-0040: the tab bar is now on
+  every screen (along the bottom on iPhone, the top on iPad), Today has no
+  toolbar, and the calendar's toolbar reads "Year" — retake the whole in-app
+  set, not only the three named above.
 - The tip-jar IAPs must be submitted for review with the first version that
   contains them (select all three products on the version page).

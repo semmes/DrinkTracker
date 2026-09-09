@@ -73,13 +73,14 @@ struct DrinkTrackerApp: App {
   }
 }
 
-/// Routes straight from onboarding to Today. There is no account step in between.
+/// Routes straight from onboarding to the tab bar, which opens on Today. There
+/// is no account step in between.
 struct RootView: View {
   @Environment(AppSettings.self) private var settings
 
   var body: some View {
     if settings.hasCompletedOnboarding {
-      TodayView()
+      AppTabs()
     } else {
       OnboardingFlow()
     }
