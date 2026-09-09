@@ -1085,13 +1085,12 @@ Open items for v1.2:
   stored (invariant 1 — the reopen path is one `@AppStorage`); no
   minimise-on-scroll, no badge, the system's iPad form. Tab glyphs: the app's
   own drop (`tally.standard`, what the drawing shows) and `calendar` /
-  `chart.bar` / `list.bullet` / `gearshape` — named in outline because **the
-  bar applies the fill variant itself, to every item at rest** (`chart.bar`
-  and `gearshape` render filled selected or not; the other three have one
-  form), so selection is accent ink plus a **neutral glass capsule**, never a
-  change of shape; inks are the system's — primary inactive, accent
-  selected — so the drawing's grey inactive tabs, accent toolbar glyphs and
-  12% accent wash are not reproduced, recorded in the ADR. A hidden tab's
+  `chart.bar` / `list.bullet` / `gearshape` — **superseded the next day by
+  the prototype's own five glyphs, see the following bullet** — so selection
+  is accent ink plus a **neutral glass capsule**, never a change of shape;
+  inks are the system's — primary inactive, accent selected — so the
+  drawing's grey inactive tabs, accent toolbar glyphs and 12% accent wash are
+  not reproduced, recorded in the ADR. A hidden tab's
   `@Query` body does **not** re-evaluate on a store change (probed on iOS 26.5
   in the review), so logging on Today does not re-fold the reading tabs. **Two rendering lessons:** a `Label` in a
   navigation-bar toolbar item shows its icon only and `.labelStyle(.titleAndIcon)`
@@ -1117,3 +1116,48 @@ Open items for v1.2:
   foregrounding, still backfilling the sample (Today's view owns the sweep
   and lives behind the other tabs); a sheet hiding the bar; and the App Store
   screenshots, every in-app one of which is now stale.
+- **The owner's review of the bar, and two sheets (2026-09-09, ADR-0040
+  amendment, ADR-0034's second amendment, PR #87).** Three findings on PR #86. **(a)
+  The tab glyphs.** *"The icons in the bottom row don't match or look uniform
+  like in the prototype … It's okay to leave them primary ink … but the icon
+  styles themselves need to be updated."* Four SF Symbols beside one
+  cap-height custom drop could not read as one set; the bar now wears the
+  prototype's own five glyphs — `docs/design/bottom-nav/icons/*.svg`, lifted
+  from the prototype's Tab bar block into one filled path each (the
+  calendar's white overlays become cut-outs, the gear's zero-length repeats
+  go) and built into `tally.tab.today` / `.calendar` / `.trends` / `.history`
+  / `.settings` by `scripts/make-drink-symbols.py`, ADR-0036's pipeline with
+  a second placement (`TabPlacement`: the 24-unit box centred on the cap
+  height at 120 template units, 5 per source unit — the size the system's
+  own tab glyphs rendered at, the gear's ink 20–21pt before and after).
+  `AppTab.symbolName` names them and the generator cross-checks that list,
+  the source directory and the catalog, so the existing `drink-symbols` CI
+  job covers them; thirteen `tally.*` symbolsets now. Ink stays the system's.
+  `Tab(_:image:value:)` takes the catalog name. **(b) History's edit and
+  add open full.** *"tapping an edit or add should open a full sheet. This
+  exposes the date and time."* `DrinkDetailSheet` offers only `.large`
+  whenever `showsTimeControl` is true (an edit anywhere, History's and the
+  calendar's retroactive add) — the "When" section sat below the medium
+  fold; the counter's "Add specific" keeps `[.medium, .large]`. A fold, like
+  the AX-size rule beside it, one expression to reverse. **(c) The day
+  sheet's rows are Today's.** *"the 'logged that day' should match the home
+  screen logged today 'Tap to say what it was' to hint that it's editable."*
+  `DayLogSheet.loggedSection` renders `TodayDrinkRow` (`isTappable: false`
+  for a Health import); the per-region value column leaves the day sheet and
+  stays History's, which keeps `DrinkRow` and "no size or strength recorded"
+  — whether the hint belongs in History too is asked in the handoff, not
+  assumed. No new strings (the catalog re-synced from a fresh full build:
+  unchanged, 323 app keys). **No schema change, no CloudKit step, no
+  setting.** Verified at all four gates (250 domain tests; the device build;
+  85 integration tests on the second simulator; the generator clean) plus
+  tier 3 on the iPhone 17 Pro: the bar with the five glyphs at one weight,
+  History's edit sheet opening at the large detent with "When" in view, the
+  add sheet likewise, and the day sheet's rows with the accent "Tap to say
+  what it was". **One simulator lesson:** the booted iPhone 17 Pro was found
+  *shut down* mid-session (`simctl` "Unable to lookup in current state:
+  Shutdown") — `xcrun simctl boot <udid>` and a `bootstatus -b` wait
+  recover it; check the state before blaming a build. **Tier 3/4 for the
+  owner's pass:** the five glyphs against the prototype on a real display
+  and in dark mode; the full sheet's drag-to-dismiss with a single detent;
+  VoiceOver reading a day-sheet row ("One standard drink, 9:04 PM, no size or
+  strength recorded, 1 standard drink", then "Add what it was").

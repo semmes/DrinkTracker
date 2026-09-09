@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""The drink glyphs: custom SF Symbols built from the owner's 24×24 source art.
+"""The drink glyphs and the tab-bar glyphs: custom SF Symbols built from the
+owner's 24×24 source art.
 
 Regenerate with:  python3 scripts/make-drink-symbols.py
 
@@ -10,6 +11,13 @@ glyph, each holding an SF Symbols template SVG plus its `Contents.json`.
 The names are the bundle README's: `tally.beer`, `tally.wine`, `tally.spirit`,
 `tally.cocktail`, `tally.other`, `tally.standard`, `tally.health`,
 `tally.alcoholfree`.
+
+A second set, the five tab-bar glyphs (ADR-0040 amendment), reads
+`docs/design/bottom-nav/icons/<name>.svg` — the prototype's own bar, lifted
+into single paths — and writes `tally.tab.<name>.symbolset`. Same template,
+same winding rules; only the placement differs: a tab glyph is centred on the
+capital-letter height and drawn at the bar's size rather than sitting on the
+drink glyphs' shared baseline at cap height (see `TabPlacement`).
 
 Deliberately dependency-free, like `make-app-icon.py`: it carries its own SVG
 path parser rather than needing a library, so it runs anywhere Python does.
@@ -45,9 +53,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "docs" / "design" / "icons" / "icons"
+TAB_SOURCE = ROOT / "docs" / "design" / "bottom-nav" / "icons"
 CATALOG = ROOT / "DrinkTracker" / "Assets.xcassets"
 
 GLYPHS = ["beer", "wine", "spirit", "cocktail", "other", "standard", "health", "alcoholfree"]
+TAB_GLYPHS = ["today", "calendar", "trends", "history", "settings"]
 
 # Template geometry (Apple's sheet; the caplines/baselines are the values the
 # SF Symbols app writes into every exported template).
@@ -71,6 +81,14 @@ SCALE_RATIO = {"S": 0.783, "M": 1.0, "L": 1.29}
 # every glyph together if the owner wants the SF size instead.
 UNITS_PER_SOURCE_UNIT = 100.0 / 24.0
 ART_BASELINE_Y = 20.0  # the bundle's shared baseline, in source units
+
+# The tab glyphs are drawn to be as tall as the system's own tab-bar symbols,
+# not to the drink glyphs' cap height: the prototype draws its bar with a
+# 24-unit box per tab, and the gear in that box (20.2 units of ink) is the
+# size `gearshape.fill` renders at in the bar. Measured against that render
+# on an iPhone 17 Pro, the box lands on the SF size at this scale; one
+# constant, like the one above, if the owner wants the bar lighter.
+TAB_UNITS_PER_SOURCE_UNIT = 120.0 / 24.0
 
 FLATTEN_STEPS = 24
 
@@ -470,12 +488,28 @@ def emit(subpaths, transform):
 
 
 class Placement:
-    """Maps source units onto the sheet for one scale and one weight column."""
+    """Maps source units onto the sheet for one scale and one weight column:
+    the drink glyphs, their shared baseline on the template's baseline."""
 
     def __init__(self, scale_key, column_x):
         self.scale = UNITS_PER_SOURCE_UNIT * SCALE_RATIO[scale_key]
         self.x0 = column_x - 12.0 * self.scale
         self.y0 = BASELINE[scale_key] - ART_BASELINE_Y * self.scale
+
+    def __call__(self, p):
+        return (self.x0 + p[0] * self.scale, self.y0 + p[1] * self.scale)
+
+
+class TabPlacement:
+    """The tab glyphs: the 24-unit box centred on the capital-letter height,
+    which is where Apple's guidance puts a symbol's optical centre, at the
+    bar's size."""
+
+    def __init__(self, scale_key, column_x):
+        self.scale = TAB_UNITS_PER_SOURCE_UNIT * SCALE_RATIO[scale_key]
+        self.x0 = column_x - 12.0 * self.scale
+        middle = (CAPLINE[scale_key] + BASELINE[scale_key]) / 2
+        self.y0 = middle - 12.0 * self.scale
 
     def __call__(self, p):
         return (self.x0 + p[0] * self.scale, self.y0 + p[1] * self.scale)
@@ -499,7 +533,7 @@ def h_reference(scale_key):
     )
 
 
-def template(name, subpaths):
+def template(name, subpaths, placement=Placement):
     text_style = "stroke:none;fill:black;font-family:sans-serif;font-size:13;"
     notes = [
         f'  <rect height="{SHEET_H}" opacity="0" width="{SHEET_W}" x="0" y="0"/>',
@@ -535,7 +569,7 @@ def template(name, subpaths):
     # box-edge margin put up to 58 units of empty space beside the narrower
     # vessels, which `Label` read as part of the icon and spaced the title
     # away from.
-    regular = Placement("M", COLUMN_X[3])
+    regular = placement("M", COLUMN_X[3])
     xs = [point[0] for subpath in subpaths for point in polygon(subpath)]
     left, right = regular((min(xs), 0.0))[0], regular((max(xs), 0.0))[0]
     guide_top, guide_bottom = CAPLINE["M"] - 100, BASELINE["M"] + 60
@@ -549,7 +583,7 @@ def template(name, subpaths):
     symbols = []
     for key in ("L", "M", "S"):
         for weight, x in zip(WEIGHTS, COLUMN_X):
-            place = Placement(key, x)
+            place = placement(key, x)
             symbols.append(f'  <g id="{weight}-{key}">')
             symbols.append(f'   <path d="{emit(subpaths, place)}"/>')
             symbols.append("  </g>")
@@ -574,11 +608,11 @@ def template(name, subpaths):
     ])
 
 
-def source_contours(name):
+def source_contours(name, source=SOURCE):
     """The glyph's contours, read from the bundle's SVG. Filled art is parsed
     as it is; stroked art (the alcohol-free ring and check) is outlined from
     its own geometry and stroke width."""
-    svg = (SOURCE / f"{name}.svg").read_text(encoding="utf-8")
+    svg = (source / f"{name}.svg").read_text(encoding="utf-8")
     svg = re.sub(r"<metadata>.*?</metadata>", "", svg, flags=re.S)
     elements = re.findall(r"<path\b[^>]*>", svg)
     if len(elements) != 1:
@@ -594,12 +628,12 @@ def source_contours(name):
     return parse_path(d)
 
 
-def write_symbolset(name):
-    contours = normalise_winding(source_contours(name))
-    symbol = f"tally.{name}"
+def write_symbolset(name, source=SOURCE, prefix="tally.", placement=Placement):
+    contours = normalise_winding(source_contours(name, source))
+    symbol = f"{prefix}{name}"
     folder = CATALOG / f"{symbol}.symbolset"
     folder.mkdir(parents=True, exist_ok=True)
-    (folder / f"{symbol}.svg").write_text(template(symbol, contours), encoding="utf-8")
+    (folder / f"{symbol}.svg").write_text(template(symbol, contours, placement), encoding="utf-8")
     # Xcode's own `"key" : value` spacing, so a re-save from the asset editor
     # leaves the tree clean for the CI gate that diffs it.
     (folder / "Contents.json").write_text(json.dumps({
@@ -636,8 +670,9 @@ def preview(results, path):
 
 def check_swift_names():
     """The package's `DrinkType.Symbol` and `GLYPHS` are two hand-written lists
-    of the same eight names. A typo in either compiles and renders nothing,
-    so they are compared here, and CI runs this script."""
+    of the same eight names, and `AppTab.symbolName` and `TAB_GLYPHS` are two
+    of the same five. A typo in any of them compiles and renders nothing, so
+    they are compared here, and CI runs this script."""
     swift = (ROOT / "DrinkTrackerCore" / "Sources" / "DrinkTrackerCore" / "DrinkType.swift").read_text(encoding="utf-8")
     declared = set(re.findall(r'public static let \w+ = "tally\.(\w+)"', swift))
     expected = set(GLYPHS)
@@ -645,15 +680,27 @@ def check_swift_names():
         raise SystemExit(
             f"DrinkType.Symbol names {sorted(declared)} but the generator writes {sorted(expected)}"
         )
+    tabs = (ROOT / "DrinkTracker" / "Features" / "Navigation" / "AppTabs.swift").read_text(encoding="utf-8")
+    declared_tabs = set(re.findall(r'"tally\.tab\.(\w+)"', tabs))
+    expected_tabs = set(TAB_GLYPHS)
+    if declared_tabs != expected_tabs:
+        raise SystemExit(
+            f"AppTab.symbolName names {sorted(declared_tabs)} but the generator writes {sorted(expected_tabs)}"
+        )
     on_disk = {p.name.removeprefix("tally.").removesuffix(".symbolset") for p in CATALOG.glob("tally.*.symbolset")}
-    if on_disk != expected:
-        raise SystemExit(f"the catalog holds {sorted(on_disk)} but the generator writes {sorted(expected)}")
+    expected_all = expected | {f"tab.{name}" for name in expected_tabs}
+    if on_disk != expected_all:
+        raise SystemExit(f"the catalog holds {sorted(on_disk)} but the generator writes {sorted(expected_all)}")
 
 
 if __name__ == "__main__":
     import sys
 
     results = [write_symbolset(name) for name in GLYPHS]
+    results += [
+        write_symbolset(name, source=TAB_SOURCE, prefix="tally.tab.", placement=TabPlacement)
+        for name in TAB_GLYPHS
+    ]
     check_swift_names()
     for symbol, contours in results:
         areas = [round(signed_area(polygon(sp)), 2) for sp in contours]

@@ -1,0 +1,4 @@
+<!-- The prototype's Settings tab: the eight-tooth gear with its 4.4-unit centre cut out; the zero-length repeats after each arc dropped -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <path d="M10.38 4.17L10.56 1.9L13.44 1.9L13.62 4.17A8 8 0 0 1 16.39 5.31L18.12 3.84L20.16 5.88L18.69 7.61A8 8 0 0 1 19.83 10.38L22.1 10.56L22.1 13.44L19.83 13.62A8 8 0 0 1 18.69 16.39L20.16 18.12L18.12 20.16L16.39 18.69A8 8 0 0 1 13.62 19.83L13.44 22.1L10.56 22.1L10.38 19.83A8 8 0 0 1 7.61 18.69L5.88 20.16L3.84 18.12L5.31 16.39A8 8 0 0 1 4.17 13.62L1.9 13.44L1.9 10.56L4.17 10.38A8 8 0 0 1 5.31 7.61L3.84 5.88L5.88 3.84L7.61 5.31A8 8 0 0 1 10.38 4.17Z M16.4 12A4.4 4.4 0 1 0 7.6 12A4.4 4.4 0 1 0 16.4 12Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>

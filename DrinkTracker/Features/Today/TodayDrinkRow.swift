@@ -1,13 +1,15 @@
 import DrinkTrackerCore
 import SwiftUI
 
-/// One of today's drinks (ADR-0034).
+/// One of today's drinks (ADR-0034), and since the owner's review of
+/// 2026-09-09 one of the day sheet's too.
 ///
-/// Deliberately not `DrinkRow`. History and the day sheet are *reading*
-/// surfaces, where the per-entry standard-drink figure is the point of the
-/// column; Today already prints the day's total twice above this list, so a
-/// third copy of the same arithmetic per row is noise. What Today needs instead
-/// is the time and a way in, which is what the trailing pair carries.
+/// Deliberately not `DrinkRow`. History is a *reading* surface, where the
+/// per-entry standard-drink figure is the point of the column; Today and the
+/// day sheet already print the day's total twice above this list, so a third
+/// copy of the same arithmetic per row is noise. What they need instead is
+/// the time and a way in, which is what the trailing pair carries — and, on
+/// an untyped row, a subtitle that says the row can be tapped.
 ///
 /// The figure is not lost — it stays in the accessibility label, which is the
 /// only place a VoiceOver reader ever gets the region lens per entry.

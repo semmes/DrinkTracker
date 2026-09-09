@@ -201,20 +201,27 @@ struct DayLogSheet: View {
 
   // MARK: - Already has entries
 
+  /// Today's rows, not History's (owner's review, 2026-09-09): this sheet is
+  /// Today for another day (ADR-0013), and its rows should say what Today's
+  /// say — an untyped drink invites the tap with "Tap to say what it was",
+  /// the trailing pair is the time and a chevron, and the per-entry figure
+  /// stays in the spoken label. The day's total is already printed above the
+  /// list, twice, which is the argument `TodayDrinkRow` was built on.
   private var loggedSection: some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
       SectionLabel("Logged that day")
       VStack(spacing: GlassTokens.Spacing.tight) {
         ForEach(existingDrinks) { drink in
           // Imported Health entries are read-only (ADR-0014); only the app's
-          // own entries open the editor.
+          // own entries open the editor. No chevron and no button trait on
+          // a row nothing opens.
           if drink.isImportedFromHealth {
-            DrinkRow(drink: drink, region: settings.effectiveRegion)
+            TodayDrinkRow(drink: drink, region: settings.effectiveRegion, isTappable: false)
           } else {
             Button {
               onEditDrink(drink)
             } label: {
-              DrinkRow(drink: drink, region: settings.effectiveRegion)
+              TodayDrinkRow(drink: drink, region: settings.effectiveRegion)
                 .contentShape(.rect)
             }
             .buttonStyle(.plain)

@@ -154,7 +154,9 @@ The plan's Open Question #1 asked how widely to use ComponentsKit. Current split
   type's glyph over its name, folding to rows at accessibility sizes
   ([ADR-0036](docs/decisions/0036-the-drink-types-wear-their-own-glyphs.md)).
   The glyphs are the app's own symbol set, generated into the asset catalog by
-  `scripts/make-drink-symbols.py` from the SVGs in `docs/design/icons/icons/`.
+  `scripts/make-drink-symbols.py` from the SVGs in `docs/design/icons/icons/`,
+  and the tab bar's five glyphs (`tally.tab.*`) from `docs/design/bottom-nav/icons/`
+  by the same script (ADR-0040 amendment).
 - **Swift Charts** — `BarMark` plus a dashed `RuleMark` for the average. Deliberately
   inside the mark set Swift Charts renders well natively; no radial or multi-axis
   charts, per the plan.
@@ -310,8 +312,9 @@ process last built an intent, and what the last tap did. The full protocol lives
 
 ## Getting around
 
-Five tabs — Today, Calendar, Trends, History, Settings — each a glyph with its
-name, in the system's own tab bar (along the bottom on iPhone, the top on iPad)
+Five tabs — Today, Calendar, Trends, History, Settings — each the prototype's
+own glyph with its name, in the system's own tab bar (along the bottom on
+iPhone, the top on iPad)
 ([ADR-0040](docs/decisions/0040-navigation-is-a-tab-bar-and-settings-is-a-page.md)).
 The app opens on Today every launch, and nothing about the selection is
 stored: Today is where ＋ is, and a launch that landed elsewhere would put the
@@ -392,6 +395,11 @@ is easy — correcting it has to be just as easy.
   sample the deletion retired.
 - **Adding a forgotten drink**: the `+` in History opens the sheet with a drink-type
   picker and a date/time control, so it lands where it actually happened.
+- **The sheet opens full when it carries the time control** — an edit, or a
+  retroactive add from History or the calendar — so the date and time are in
+  view without a drag; the counter's "Add specific" keeps the half-height sheet.
+- **The calendar's day sheet lists a day the way Today does**: the same row,
+  with "Tap to say what it was" on an untyped drink, the time and a chevron.
 
 The counter's path is deliberately untouched by this: ＋ asks nothing, still one
 tap. The type picker appears in every presentation of the sheet but the
