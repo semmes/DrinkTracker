@@ -1117,7 +1117,7 @@ Open items for v1.2:
   and lives behind the other tabs); a sheet hiding the bar; and the App Store
   screenshots, every in-app one of which is now stale.
 - **The owner's review of the bar, and two sheets (2026-09-09, ADR-0040
-  amendment, ADR-0034's second amendment).** Three findings on PR #86. **(a)
+  amendment, ADR-0034's second amendment, PR #87).** Three findings on PR #86. **(a)
   The tab glyphs.** *"The icons in the bottom row don't match or look uniform
   like in the prototype … It's okay to leave them primary ink … but the icon
   styles themselves need to be updated."* Four SF Symbols beside one
