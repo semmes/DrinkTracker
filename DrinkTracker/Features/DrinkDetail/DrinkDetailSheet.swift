@@ -142,16 +142,29 @@ struct DrinkDetailSheet: View {
       .padding(.top, GlassTokens.Spacing.regular)
       .padding(.bottom, GlassTokens.Spacing.section)
     }
-    // Large only at accessibility sizes. Measured at AX5 on an iPhone 17 Pro,
-    // the medium detent is ~459pt and the sheet's pinned chrome — a two-line
-    // title above, a two-line figure and the button below — takes ~400pt of
-    // it, leaving the form one row of viewport with nothing of the next
-    // section showing to say there is more (the "When" report). Adoption's
-    // header adds a wrapped "From Apple Health, …" caption and exceeds the
-    // detent outright, and a VStack that outgrows its sheet clips at both
-    // ends. The large detent holds every path with room to scroll; what the
-    // medium one showed of Today behind it at these sizes was the counter.
-    .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
+    // Large only when the presentation carries the time control, and at
+    // accessibility sizes.
+    //
+    // The time control: an edit, or History's and the calendar's retroactive
+    // add, opens *because* of the "When" section, and at the medium detent
+    // that section sat below the fold — a reader correcting their history
+    // had to know to drag before the one control they came for appeared
+    // (owner's review, 2026-09-09). So a presentation with the control opens
+    // full. The counter's "Add specific" keeps the medium detent: a new
+    // entry has no "When", and its type question fits above the fold.
+    //
+    // Accessibility sizes: measured at AX5 on an iPhone 17 Pro, the medium
+    // detent is ~459pt and the sheet's pinned chrome — a two-line title
+    // above, a two-line figure and the button below — takes ~400pt of it,
+    // leaving the form one row of viewport with nothing of the next section
+    // showing to say there is more (the "When" report). Adoption's header
+    // adds a wrapped "From Apple Health, …" caption and exceeds the detent
+    // outright, and a VStack that outgrows its sheet clips at both ends. The
+    // large detent holds every path with room to scroll; what the medium one
+    // showed of Today behind it at these sizes was the counter.
+    .presentationDetents(
+      showsTimeControl || dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large]
+    )
     .presentationDragIndicator(.visible)
     .presentationCornerRadius(GlassTokens.Radius.sheet)
     .presentationBackground(.regularMaterial)

@@ -216,3 +216,47 @@ tier 3/4 for the owner.
 - **The Today glyph.** `Label("Today", systemImage: "drop.fill")` if the
   cap-height drop reads as too small beside its neighbours, or a different
   symbol if a drink's glyph is the wrong sign for a home tab.
+
+## Amendment (2026-09-09): the bar wears the drawing's own glyphs
+
+The owner's review of the first bar: *"The icons in the bottom row don't match
+or look uniform like in the prototype. Can you fix? It's okay to leave them
+primary ink vs the prototype but the icon styles themselves need to be
+updated."*
+
+What the Decision above got wrong: it sent four SF Symbols and one cap-height
+custom drop into a bar whose drawing has five glyphs of one weight on one
+24-unit grid. The SF gear and calendar are heavier than the drawing's, the SF
+list lighter, and the drop was two-thirds the height of its neighbours —
+ADR-0036's cap-height sizing, right beside row text and wrong beside tab
+glyphs. Five glyphs from three sources could not read as one set, and the
+render said so before the owner did (the "smaller than its neighbours" note
+above was the symptom, not the diagnosis).
+
+**Decision.** The five tab glyphs are the prototype's own, lifted from its
+Tab bar block into `docs/design/bottom-nav/icons/` — one filled path each,
+the calendar's white overlays turned into cut-outs, the gear's zero-length
+repeats dropped — and built into `tally.tab.today` / `.calendar` / `.trends`
+/ `.history` / `.settings` symbolsets by `scripts/make-drink-symbols.py`: the
+ADR-0036 pipeline with a second placement, `TabPlacement`, which centres the
+24-unit box on the capital-letter height at 120 template units (5 per source
+unit) instead of standing it on the drink glyphs' baseline at 100. That is
+the size the system's own tab glyphs render at — the gear's ink measured
+20–21pt in the bar before and after — so the bar's proportions are unchanged
+and only the drawing is. `AppTab.symbolName` names them; the generator
+cross-checks that list, the source directory and the catalog, and the CI job
+that regenerates the drink glyphs regenerates these. Ink stays the system's,
+primary at rest and accent selected, as the owner allowed.
+
+**Consequences.** The fill-variant discussion in the Decision no longer
+applies: a custom symbol has one form, which is what the drawing draws. The
+tab glyphs carry no weight axis, like the drink glyphs. The Today tab's drop
+is the prototype's *Filled* drop at the bar's size; `tally.standard` keeps
+its cap-height size in rows, so the same shape ships twice at two sizes on
+purpose. The catalog holds thirteen `tally.*` symbolsets. The "drop is
+smaller than its neighbours" consequence and its `drop.fill` reopen path are
+retired.
+
+**How to reopen.** Size: `TAB_UNITS_PER_SOURCE_UNIT`, one constant. The
+system set: `Tab(_:systemImage:)` per tab, and the five symbolsets and their
+sources go.

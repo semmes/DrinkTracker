@@ -469,3 +469,30 @@ adds nothing in their place: the five surfaces sit side by side in the
 system tab bar, Settings a page among them. Nothing else on this record's
 Today changes — the band, the legend, the pill, the rows and "Add specific"
 are as decided here. ADR-0040 holds the reasoning.
+
+## Amendment (2026-09-09): the day sheet takes Today's rows
+
+The owner, reviewing the calendar: *"On the calendar view, when logging a
+drink by tapping a calendar [day], the 'Logged that day' should match the
+home screen's Logged today 'Tap to say what it was' to hint that it's
+editable."*
+
+The day sheet's rows were `DrinkRow` — History's reading row, with the
+per-region figure in a column and an untyped drink described as "no size or
+strength recorded". This record built `TodayDrinkRow` for Today on the
+argument that a surface which prints the day's total twice above its list
+does not need a third copy per row, and needs instead the time, a way in,
+and on an untyped row a subtitle that invites the tap. The day sheet is
+Today for another day (ADR-0013) and prints the same two totals above the
+same list, so the argument was already its own.
+
+**Decision.** `DayLogSheet.loggedSection` renders `TodayDrinkRow`
+(`isTappable: false` for a Health import, which nothing opens). The
+per-region value column leaves the day sheet and stays History's. No new
+strings: the row's copy is the reviewed Today copy.
+
+**Consequence, and a question left open.** History keeps `DrinkRow` and
+"no size or strength recorded": it is the reading surface the column exists
+for, and the owner's review named the calendar. If the hint belongs there
+too, `DrinkRow`'s untyped detail is the one line to change — asked, not
+assumed.

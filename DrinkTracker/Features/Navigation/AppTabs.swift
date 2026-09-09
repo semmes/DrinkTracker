@@ -27,28 +27,29 @@ struct AppTabs: View {
 
   var body: some View {
     TabView(selection: $selection) {
-      // The drop is the untyped drink's own glyph (ADR-0036), and it is what
-      // the design drew for this tab: Today is the surface where that drink
-      // is logged. A catalog symbol, so `image:` — `systemImage:` would
-      // render nothing. The bar draws every glyph in its fill variant at
-      // rest, so the four SF names below are the outline ones.
-      Tab("Today", image: DrinkType.Symbol.standard, value: .today) {
+      // Catalog symbols, so `image:` — `systemImage:` would render nothing.
+      // The five are the drawing's own glyphs (`AppTab.symbolName`), not SF
+      // Symbols: the owner's review of the first bar (2026-09-09) found the
+      // system set neither matched the prototype nor sat uniformly beside
+      // the drop, so the bar wears the prototype's set, generated like the
+      // drink glyphs (ADR-0040 amendment).
+      Tab("Today", image: AppTab.today.symbolName, value: .today) {
         NavigationStack { TodayView() }
       }
 
-      Tab("Calendar", systemImage: "calendar", value: .calendar) {
+      Tab("Calendar", image: AppTab.calendar.symbolName, value: .calendar) {
         NavigationStack { CalendarView() }
       }
 
-      Tab("Trends", systemImage: "chart.bar", value: .trends) {
+      Tab("Trends", image: AppTab.trends.symbolName, value: .trends) {
         NavigationStack { TrendsView() }
       }
 
-      Tab("History", systemImage: "list.bullet", value: .history) {
+      Tab("History", image: AppTab.history.symbolName, value: .history) {
         NavigationStack { HistoryView() }
       }
 
-      Tab("Settings", systemImage: "gearshape", value: .settings) {
+      Tab("Settings", image: AppTab.settings.symbolName, value: .settings) {
         NavigationStack { SettingsView() }
       }
     }
@@ -63,4 +64,20 @@ enum AppTab: Hashable {
   case trends
   case history
   case settings
+
+  /// The catalog symbol the bar draws for the tab: the prototype's own five
+  /// glyphs, built by `scripts/make-drink-symbols.py` from
+  /// `docs/design/bottom-nav/icons/` exactly as the drink glyphs are built
+  /// (ADR-0036, ADR-0040 amendment). Two hand-written lists of the same
+  /// names, this and the generator's, and the generator compares them, so a
+  /// typo here fails CI instead of rendering a blank tab.
+  var symbolName: String {
+    switch self {
+    case .today: "tally.tab.today"
+    case .calendar: "tally.tab.calendar"
+    case .trends: "tally.tab.trends"
+    case .history: "tally.tab.history"
+    case .settings: "tally.tab.settings"
+    }
+  }
 }

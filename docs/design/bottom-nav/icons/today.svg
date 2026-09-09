@@ -1,0 +1,4 @@
+<!-- The prototype's Filled drop (this.ICS.Filled.drop), the Today tab's glyph; the untyped drink's own shape at the bar's size -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <path d="M12 2.6c3.9 4.7 6.6 8.4 6.6 11.8a6.6 6.6 0 0 1-13.2 0C5.4 11 8.1 7.3 12 2.6z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
