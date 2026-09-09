@@ -5,7 +5,9 @@
 the hero band as a named surface), ADR-0009 (the typed disclosure is retired),
 ADR-0013 (Today's list order — shipped ascending, reverted to newest-first the
 same day), ADR-0017 (the pace chip carries the ramp),
-ADR-0023 revision (where the way back to a standard drink lives)
+ADR-0023 revision (where the way back to a standard drink lives) ·
+**Amended by:** ADR-0040 (Today's chrome: the four toolbar buttons Home v2
+kept are gone; the tab bar replaces them, and Settings is a tab)
 
 ## Context
 
@@ -457,3 +459,13 @@ who does not read ＋ as the way back — is the case for the sentence to become
 control again, and the copy would be "Remove that record" as before; the day
 sheet's link is the model. The caption's return has a lower bar: it is one
 line, and the sentence is still reviewed and still in the catalog.
+
+## Amendment (2026-09-08, ADR-0040)
+
+Home v2 kept the four glass buttons in Today's top-right corner — History,
+Calendar, Trends, and the gear that presented Settings as a sheet. The
+owner's next drawing (Home v3, `docs/design/bottom-nav/`) deletes them and
+adds nothing in their place: the five surfaces sit side by side in the
+system tab bar, Settings a page among them. Nothing else on this record's
+Today changes — the band, the legend, the pill, the rows and "Add specific"
+are as decided here. ADR-0040 holds the reasoning.

@@ -121,13 +121,28 @@ struct CalendarView: View {
         }
         .accessibilityLabel("Share this month as an image")
       }
+      // Its own glass shape, apart from the share button: the design draws
+      // the year as a labelled pill, not as a second icon in the share
+      // button's group (`docs/design/bottom-nav/`, ADR-0040).
+      ToolbarSpacer(.fixed, placement: .topBarTrailing)
       ToolbarItem(placement: .topBarTrailing) {
         NavigationLink {
           YearView()
         } label: {
-          Image(systemName: "square.grid.3x3")
+          // Glyph and word: an icon-only grid needed a spoken label to say
+          // what it opened, and sighted readers had no word at all. The
+          // visible title is now the accessible name too. An explicit pair
+          // rather than a `Label`: the navigation bar applies its own
+          // icon-only style to a `Label` here, and `.titleAndIcon` did not
+          // override it (rendered, 2026-09-08).
+          HStack(spacing: GlassTokens.Spacing.tight / 2) {
+            // Hidden from VoiceOver so the button reads "Year", not
+            // "calendar, Year": the word is the name, the glyph decorates it.
+            Image(systemName: "calendar")
+              .accessibilityHidden(true)
+            Text("Year")
+          }
         }
-        .accessibilityLabel("Year view")
       }
     }
     .sheet(item: $selectedDay) { selection in

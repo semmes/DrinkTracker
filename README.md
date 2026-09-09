@@ -185,8 +185,8 @@ DrinkTracker/               App target
   Persistence/                DrinkStore (HealthKit-aware wrapper)
   Services/                   HealthKitService, DrinkTrackerShortcuts, TipJar,
                               CloudKitStatusProbe
-  Features/                   Onboarding, Today, DrinkDetail, Calendar, Trends,
-                              Settings
+  Features/                   Navigation (the tab bar), Onboarding, Today,
+                              DrinkDetail, Calendar, Trends, History, Settings
 DrinkTrackerWidget/         Widget extension target
 ```
 
@@ -308,6 +308,21 @@ TestFlight builds) shows the App Group status, store mode, iCloud sync state, wh
 process last built an intent, and what the last tap did. The full protocol lives in
 [`docs/device-test-widget-dispatch.md`](docs/device-test-widget-dispatch.md).
 
+## Getting around
+
+Five tabs — Today, Calendar, Trends, History, Settings — each a glyph with its
+name, in the system's own tab bar (along the bottom on iPhone, the top on iPad)
+([ADR-0040](docs/decisions/0040-navigation-is-a-tab-bar-and-settings-is-a-page.md)).
+The app opens on Today every launch, and nothing about the selection is
+stored: Today is where ＋ is, and a launch that landed elsewhere would put the
+fast path one tap further away. Each tab keeps its own stack — the year view
+is pushed under Calendar (its button now reads "Year", glyph and word), and
+the privacy policy and the tip jar are pushed under Settings, which is a page
+like the other four rather than a sheet. Today carries no chrome of its own.
+The bar is the system's: it takes the accessibility sizes, the VoiceOver
+traits and the iPad form from iOS rather than drawing them, and it neither
+minimises on scroll nor carries a badge.
+
 ## Count-first logging
 
 Today leads with a single counter that **is** the day's log: plus records a drink
@@ -369,7 +384,7 @@ is easy — correcting it has to be just as easy.
 
 - **Today** lists what you've logged today under the metric. Swipe left to remove,
   swipe right or tap to edit.
-- **History** (the list icon) shows every day, grouped, with the day's total in each
+- **History** (its own tab) shows every day, grouped, with the day's total in each
   header. Same swipe actions.
 - **Removing is undoable** for 10 seconds via a bar at the bottom. Undo re-saves the
   same entry by id, so it returns to its original position and time rather than

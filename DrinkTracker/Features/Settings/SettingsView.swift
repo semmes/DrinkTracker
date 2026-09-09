@@ -4,45 +4,41 @@ import SwiftUI
 
 /// Settings: appearance, the region, sync and Health status, and export.
 ///
+/// A page of its own in the tab bar since ADR-0040 — it was a sheet over Today
+/// with a Done button — so it has no dismissal of its own, and the stack it
+/// pushes the privacy policy and the tip jar onto belongs to `AppTabs`.
+///
 /// The region picked during onboarding persists here and can be changed at any
 /// time, which is what the onboarding copy ("you can set this later") promises.
 struct SettingsView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(HealthKitService.self) private var health
   @Environment(\.modelContext) private var modelContext
-  @Environment(\.dismiss) private var dismiss
 
   @AppStorage(AppearancePreference.storageKey)
   private var appearanceRaw = AppearancePreference.system.rawValue
 
   var body: some View {
-    NavigationStack {
-      ScrollView {
-        VStack(spacing: GlassTokens.Spacing.section) {
-          appearanceSection
-          counterSeedSection
-          sessionPaceSection
-          comparisonsSection
-          regionSection
-          iCloudSection
-          healthSection
-          exportSection
-          aboutSection
-          if Diagnostics.isVisible {
-            diagnosticsSection
-          }
-        }
-        .screenMargin()
-        .padding(.vertical, GlassTokens.Spacing.section)
-      }
-      .navigationTitle("Settings")
-      .navigationBarTitleDisplayMode(.large)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button("Done") { dismiss() }
+    ScrollView {
+      VStack(spacing: GlassTokens.Spacing.section) {
+        appearanceSection
+        counterSeedSection
+        sessionPaceSection
+        comparisonsSection
+        regionSection
+        iCloudSection
+        healthSection
+        exportSection
+        aboutSection
+        if Diagnostics.isVisible {
+          diagnosticsSection
         }
       }
+      .screenMargin()
+      .padding(.vertical, GlassTokens.Spacing.section)
     }
+    .navigationTitle("Settings")
+    .navigationBarTitleDisplayMode(.large)
   }
 
   // MARK: - Appearance

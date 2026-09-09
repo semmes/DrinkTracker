@@ -72,8 +72,13 @@ standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
 Current: **390 keys** — 323 app, 35 widget, 28 core, 4 shortcuts (counted
-2026-09-08 after ADR-0038/0039's sync — the comparison switches and the
-survey's column). The app catalog went 303 → 323: 21 in, one out. In: the
+2026-09-08 after ADR-0040's sync — the tab bar: the app catalog swapped one
+key for one, "Year" in for the calendar's labelled year button and "Year
+view", the retired icon-only button's spoken label, out; the five tab titles
+are the screens' existing title keys, so nothing else moved). The previous
+count, the same day after ADR-0038/0039's sync — the comparison switches and
+the survey's column — was also 390: the app catalog went 303 → 323, 21 in,
+one out. In: the
 Settings section's title, its three switch titles and three source captions,
 the footnote's two forms, "Compare with" and its three segments, the four
 column sentences (lower / more × US men / US women), the note's two column

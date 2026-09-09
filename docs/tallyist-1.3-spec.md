@@ -248,6 +248,24 @@ print, a percentile for the drinking-days mean or the weekend rate (their
 sources publish one figure for all adults), a comparison against any
 guideline band.
 
+## Feature L: the tab bar, and Settings as a page — done (ADR-0040)
+
+The owner's `docs/design/bottom-nav/` bundle: the four toolbar buttons leave
+Today for a five-tab bar — Today, Calendar, Trends, History, Settings, a glyph
+over a word each — in the system's own iOS 26 tab bar, never a drawn one;
+Settings is a page in that bar rather than a sheet with Done; the calendar's
+year button reads "Year" beside its glyph. Each tab owns a `NavigationStack`
+(`AppTabs`); the app opens on Today every launch with nothing stored; no
+minimise-on-scroll, no badge. No schema change, no CloudKit step, no setting,
+one new app key ("Year") for one retired ("Year view").
+
+**Must not become:** a bar that remembers a tab (the launch lands on ＋,
+invariant 1 — the reopen path is one `@AppStorage` and an amendment), a
+badge or a dot on any tab (nothing in the app notifies), a drawn bar (the
+design system's depth rule), or a sixth tab for a feature that wants a
+place — a surface earns a tab by being one of the app's reading or writing
+surfaces, not by existing.
+
 ## App Review consistency
 
 | Claim made in the 1.0 response, kept through 1.2 | 1.3 |

@@ -1280,3 +1280,20 @@ microcopy.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.3 — The tab bar (ADR-0040, 2026-09-08)
+
+The owner's design moves the four toolbar buttons off Today into a five-tab
+bar with a word under each glyph, makes Settings a page, and gives the
+calendar's year button its word. One string is new; four existing keys become
+visible where they were only spoken, and Today's title names its tab; two
+controls retire.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Year" | The calendar's toolbar, beside a calendar glyph, opening the year view | A noun naming the destination, the owner's own word. No instruction, no figure. One new app key; "Year view", the icon-only button's spoken label, retires with the icon-only button. |
+| "Today" · "Calendar" · "Trends" · "History" · "Settings" | The five tab titles, with their glyphs | The screens' existing titles, already reviewed as navigation titles — four of them also as the toolbar buttons' spoken labels; now visible in the bar. Nouns; no key added. |
+| "Done" | *Removed from* Settings, which is a tab and not a sheet | No copy change; the key stays in the catalog through the day sheet. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
