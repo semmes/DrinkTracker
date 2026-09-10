@@ -161,8 +161,11 @@ anonymous lines vanish from a card that also held two other anonymous lines.
 The setting named a thing the screen did not.
 
 **What shipped.** The bottom of Trends carries a `COMPARISONS` heading — the
-app's shared `SectionLabel`, the same footnote-medium uppercase secondary
-label `SettingsSection` uses for its own section title — and under it one card
+app's shared `SectionLabel`, in the same footnote-medium uppercase secondary
+treatment `SettingsSection` gives its own section title (it inlines that
+treatment rather than using the component, so the two render alike but only
+`SectionLabel` carries the header trait — noted here because a reader is meant
+to recognise the same label in both places) — and under it one card
 per switch, in the switches' own order, each titled with that switch's exact
 words: **Weekly average**, **Drinking days**, **Weekend and weekdays**. No new
 strings: all four were already in the catalog and already through the 1.4.3

@@ -15,8 +15,10 @@ import SwiftUI
 /// re-inking a heading is invariant 10's own failure mode). The group heading
 /// above the cards is `SectionLabel`: footnote *medium*, uppercased. A card
 /// title is footnote *regular*, sentence case — so a reader sees COMPARISONS
-/// over "Weekly average" exactly as Settings shows COMPARISONS over its switch
-/// rows.
+/// over "Weekly average" in the same relationship Settings draws between its
+/// section title and its switch rows. (`SettingsSection` inlines that heading
+/// treatment rather than using `SectionLabel`, so the two render alike but only
+/// this one speaks as a heading.)
 ///
 /// It replaced `WeekdayCard`'s private uppercase-tracked label when that card
 /// stopped holding two tables (ADR-0032's 2026-09-10 amendment): the

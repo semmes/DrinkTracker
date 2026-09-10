@@ -43,10 +43,12 @@ import SwiftUI
 /// charted. A chart of seven bars invites "which is highest", and the tallest
 /// bar named is a rank.
 ///
-/// The user's own counts are rounded and tabular; the published rates stay in
-/// default SF. That numeral difference is the only channel available for
-/// "your fact" against "a published fact" — the design system allows no second
-/// hue for it (PRD invariant 10), so it must not be softened.
+/// The counts here are rounded and tabular because they are the user's own
+/// (`rowFigure` / `rowCount`). The rule that gives that numeral face its
+/// meaning — a published figure stays in default SF, since the design system
+/// allows no second hue to carry "your fact" against "a published fact" (PRD
+/// invariant 10) — now lives with the card that holds both kinds of figure,
+/// `WeekendComparisonCard`. Nothing on this card is published.
 struct WeekdayCard: View {
   let totals: [WeekdayTotal]
   let region: Region

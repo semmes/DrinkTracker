@@ -59,8 +59,10 @@ struct ComparisonsSection: View {
     if !shown.isEmpty {
       // Mapped once for both cards, as the combined card mapped it once for
       // both blocks: `loggedDrinks` walks the whole log, and reading it per
-      // card would allocate a second copy of it on every body pass.
-      let drinks = entries.loggedDrinks
+      // card would allocate a second copy of it on every body pass. Skipped
+      // entirely when neither population card is shown — the weekend
+      // comparison reads the weekday totals it was handed, never the log.
+      let drinks = shown.needsLog ? entries.loggedDrinks : []
 
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Comparisons")
@@ -109,6 +111,10 @@ struct ComparisonsSection: View {
     var weekend: (reference: WeekendReference, split: WeekendSplit)?
 
     var isEmpty: Bool { average == nil && days == nil && weekend == nil }
+
+    /// Whether anything shown needs the whole log projected. Only the two
+    /// population cards do.
+    var needsLog: Bool { average != nil || days != nil }
   }
 
   private func resolve(now: Date) -> Shown {
