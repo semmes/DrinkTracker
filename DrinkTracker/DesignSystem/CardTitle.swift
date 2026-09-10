@@ -2,19 +2,29 @@ import SwiftUI
 
 /// The title at the top of a glass card, naming what the card holds.
 ///
-/// Two heading levels exist on a screen that groups cards under a heading, and
-/// they are told apart by **case**, never by ink (design-system §3: hierarchy
-/// comes from size, case and tracking, and re-inking a heading is invariant
-/// 10's own failure mode). The group heading above the cards is `SectionLabel`
-/// — the same footnote-medium secondary label, uppercased. A card title is the
-/// sentence-case form of it, so a reader sees COMPARISONS over "Weekly
-/// average" exactly as Settings shows COMPARISONS over its switch rows.
+/// It is `GlassTokens.Typography.cardLabel` — the role every other card on
+/// Trends and the calendar already titles itself with (`StatCard`, "Days with
+/// no drinks logged", "Longest run with none", the chart card's own title,
+/// `RecentSummaryCard`) — plus the two things a *title* needs that a caption
+/// does not: a header trait and a wrapping rule. It exists so those are in one
+/// place rather than repeated at five call sites.
+///
+/// Two heading levels sit together on a screen that groups cards under a
+/// heading, and they are told apart by **weight and case**, never by ink
+/// (design-system §3: hierarchy comes from size, case and tracking, and
+/// re-inking a heading is invariant 10's own failure mode). The group heading
+/// above the cards is `SectionLabel`: footnote *medium*, uppercased. A card
+/// title is footnote *regular*, sentence case — so a reader sees COMPARISONS
+/// over "Weekly average" exactly as Settings shows COMPARISONS over its switch
+/// rows.
 ///
 /// It replaced `WeekdayCard`'s private uppercase-tracked label when that card
-/// stopped holding two tables (ADR-0032's 2026-09-10 amendment):
-/// `GlassTokens.Typography.sectionLabel`'s own documentation scopes the
-/// uppercase form to "a card that holds more than one table", and after the
-/// weekend comparison moved out, no card on Trends holds two.
+/// stopped holding two tables (ADR-0032's 2026-09-10 amendment): the
+/// uppercase-tracked form was scoped to "a card that holds more than one
+/// table", and after the weekend comparison moved out, no card on Trends holds
+/// two. Matching `cardLabel` rather than inventing a heavier title is what
+/// keeps the four new titles from reading a step louder than the summary cards
+/// directly above them.
 ///
 /// A key rather than a `String`: `Text(String)` is the verbatim initializer, so
 /// typing this as `String` would silence every card title in the app at once —
@@ -26,7 +36,7 @@ struct CardTitle: View {
 
   var body: some View {
     Text(text)
-      .font(GlassTokens.Typography.sectionLabel)
+      .font(GlassTokens.Typography.cardLabel)
       .foregroundStyle(.secondary)
       // Three words ("Weekend and weekdays") wrap rather than truncate at the
       // larger type sizes — design-system §3's rule, and the fault that reached

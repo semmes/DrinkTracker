@@ -207,10 +207,14 @@ one body of work behind it, one-to-one with the caption on its switch.
   is governed by the same switch, and leaving it anonymous would make the year
   view the one surface where that setting's effect has no name. Beyond the
   literal ask, and one line to drop.
-- Two heading levels now sit close together, told apart by case only —
-  `COMPARISONS` uppercase over "Weekly average" in sentence case, exactly the
-  relationship Settings already draws between its section title and its switch
-  rows. Nothing is re-inked to separate them (invariant 10, design-system §3).
+- Two heading levels now sit close together, told apart by **weight and
+  case** — `COMPARISONS` in footnote medium uppercase over "Weekly average" in
+  footnote regular sentence case, exactly the relationship Settings already
+  draws between its section title and its switch rows. Nothing is re-inked to
+  separate them (invariant 10, design-system §3). The card title is the
+  `cardLabel` role every other card on Trends already uses, so the four new
+  titles sit at the same weight as the summary cards above them rather than a
+  step louder; `CardTitle` adds only the header trait and the wrapping rule.
 - No schema change, no CloudKit step, no new setting, no new figure, no
   network. No share card is touched.
 - No test tier reaches any of this — app target, and `DrinkTrackerTests` has
@@ -220,8 +224,9 @@ one body of work behind it, one-to-one with the caption on its switch.
 ### How to reopen
 
 If the two heading levels read as a stutter rather than a hierarchy on real
-hardware, the fallback is one treatment for both, or a quieter `cardLabel` for
-the card titles — one line, and it is a render question, not a decision. If
+hardware, the fallback is to give the card titles more presence rather than
+less — footnote medium, or the uppercase-tracked form `WeekdayCard` used to
+carry — one line, and it is a render question, not a decision. If
 the three source rows read as chrome, the reopen is one card with three
 headlined blocks and dividers, which is `WeekdayCard`'s own former pattern;
 what may **not** come back is a source line whose wording depends on which

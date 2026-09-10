@@ -148,8 +148,8 @@ Type behaviour.
 | Card value | title, semibold, rounded | `.cardValue` |
 | Sheet title | title2 semibold | `.sheetTitle` |
 | Onboarding headline | largeTitle bold | `.onboardingHeadline` |
-| Section label | footnote medium, uppercase | `SectionLabel` (the tracked variant retired with `WeekdayCard`'s second table) |
-| Card title | footnote medium, sentence case, secondary | `CardTitle` over `.sectionLabel` — one step below a `SectionLabel` heading, told apart by case, never by ink |
+| Section label | footnote medium, uppercase, secondary | `SectionLabel` — a group heading, on the screen ground or at the top of a sheet; carries `.isHeader`. The tracked variant, and the `.sectionLabel` token behind it, retired with `WeekdayCard`'s second table |
+| Card title | footnote regular, sentence case, secondary | `CardTitle` over `.cardLabel` — the same role every card already titles itself with, plus a header trait and a wrapping rule. One step below a `SectionLabel` heading, told apart by **weight and case**, never by ink |
 | Column head | caption2 medium, uppercase, tracked, **`.primary`** | `.columnHead` |
 | Segment label | caption2, semibold when selected, one line, 0.8 scale floor; folds to body rows at accessibility sizes | `DrinkTypePicker` (ADR-0036) |
 | Row figure / row count | callout / footnote, semibold rounded, tabular | `.rowFigure`, `.rowCount` |

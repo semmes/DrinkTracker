@@ -57,6 +57,11 @@ struct ComparisonsSection: View {
     let shown = resolve(now: now)
 
     if !shown.isEmpty {
+      // Mapped once for both cards, as the combined card mapped it once for
+      // both blocks: `loggedDrinks` walks the whole log, and reading it per
+      // card would allocate a second copy of it on every body pass.
+      let drinks = entries.loggedDrinks
+
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Comparisons")
 
@@ -64,7 +69,7 @@ struct ComparisonsSection: View {
           WeeklyAverageCard(
             reference: population.reference,
             window: population.window,
-            drinks: entries.loggedDrinks,
+            drinks: drinks,
             region: region,
             column: settings.comparisonColumn,
             now: now,
@@ -76,7 +81,7 @@ struct ComparisonsSection: View {
           DrinkingDaysCard(
             frequency: days.reference,
             window: days.window,
-            drinks: entries.loggedDrinks,
+            drinks: drinks,
             now: now,
             calendar: calendar
           )

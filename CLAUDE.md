@@ -1198,11 +1198,18 @@ Open items for v1.2:
   together; `@ScaledMetric figureColumn` (88) stayed with the weekday table,
   since a property wrapper needs a `DynamicProperty` context and the
   comparison table's columns are content-sized on purpose. "By weekday"
-  dropped to sentence case as a consequence of the split
-  (`GlassTokens.Typography.sectionLabel`'s uppercase-tracked form is
-  documented for a card holding more than one table), and the new shared
-  `CardTitle` is that role in sentence case — **the two heading levels are
-  told apart by case, never by ink** (invariant 10). **No schema change, no
+  dropped to sentence case as a consequence of the split (the
+  uppercase-tracked form was documented for a card holding more than one
+  table), and the new shared `CardTitle` is simply **`cardLabel` plus a header
+  trait and a wrapping rule** — the role every other card on Trends and the
+  calendar already titles itself with. That was a review catch worth keeping:
+  the first cut used footnote *medium*, which would have made the four new
+  titles a step louder than the summary cards immediately above them; matching
+  `cardLabel` also leaves the two heading levels told apart by **weight and
+  case**, never by ink (invariant 10). `GlassTokens.Typography.sectionLabel`
+  had no other caller and retired with it — the role now lives in the
+  `SectionLabel` component, which is where `docs/design-system.md`'s type table
+  points. **No schema change, no
   CloudKit step, no new setting, no new figure, no share card touched.**
   **All five CI gates green** (build, domain, integration, policy copies,
   glyphs), which here proves *compilation only*: **no test tier reaches any of

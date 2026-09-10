@@ -48,12 +48,6 @@ enum GlassTokens {
     static let cardLabel = Font.system(.footnote, weight: .regular)
     static let supporting = Font.system(.subheadline)
 
-    /// A heading *inside* a card, for a card that holds more than one table.
-    /// Uppercase with tracking at the call site, so the step down from the
-    /// card's own content comes from case and letterspacing rather than from
-    /// a smaller size or thinner ink.
-    static let sectionLabel = Font.system(.footnote, weight: .medium)
-
     /// The head over a numeric column. It carries the noun the rows below it
     /// no longer repeat, so it is set in `.primary` ink, never `.secondary`:
     /// at this size secondary lands near 3.4:1, and hierarchy here comes from

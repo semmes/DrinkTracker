@@ -21,10 +21,10 @@ import SwiftUI
 ///
 /// Two consequences, both deliberate. The card no longer holds a switch of any
 /// kind — `showsComparison` is gone, so nothing here can be gated by accident.
-/// And its title dropped to `CardTitle`'s sentence case:
-/// `GlassTokens.Typography.sectionLabel`'s uppercase-tracked form is
-/// documented for "a card that holds more than one table", and this one no
-/// longer does.
+/// And its title dropped to `CardTitle` — the sentence-case `cardLabel` every
+/// other card on Trends already titles itself with. The uppercase-tracked form
+/// it used to carry was scoped to "a card that holds more than one table", and
+/// this one no longer does; that token had no other caller and retired with it.
 ///
 /// ## The layout, and why it is a table
 ///
