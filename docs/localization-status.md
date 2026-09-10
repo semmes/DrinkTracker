@@ -71,8 +71,19 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
-Current: **390 keys** — 323 app, 35 widget, 28 core, 4 shortcuts (counted
-2026-09-08 after ADR-0040's sync — the tab bar: the app catalog swapped one
+Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
+2026-09-10 after ADR-0038's naming amendment — the Comparisons section on
+Trends: **no key was added**, because the section heading and the three card
+titles reuse the four keys Settings' own switches already had, and one key
+retired, the joined `"Sources: … · …"` line the combined population card
+printed before each comparison got its own card and its own single source
+line. **This one was removed by hand**, in the file's own three-line byte
+shape, because a remote session has no Swift toolchain and so cannot run
+`xcstringstool sync`: the count is right and the JSON is valid, but this
+change does **not** re-establish "extraction and the committed catalogs agree
+exactly", which stays a claim wanting a full GUI build plus a sync on the
+owner's Mac). The previous count was **390** — 323 app, 35 widget, 28 core,
+4 shortcuts (counted 2026-09-08 after ADR-0040's sync — the tab bar: the app catalog swapped one
 key for one, "Year" in for the calendar's labelled year button and "Year
 view", the retired icon-only button's spoken label, out; the five tab titles
 are the screens' existing title keys, so nothing else moved). The previous
@@ -239,7 +250,7 @@ a sentence assembled at the call site instead of being one key:
 | `TodayView`, `DayLogSheet` | hand-rolled `"≈ %@ %@"`, a placeholder-only key | `StandardDrink.liveEstimate` |
 | `IntensityCell` | `"%@, %@"`; no singular branch; hardcoded English unit | region-aware `amountPhrase`; non-today branch composes verbatim |
 | `DrinkDetailSheet` | `unitName` + literal `"s"` | `StandardDrink.accessibleEstimate` |
-| `PopulationReferenceCard` | noun injected as a bare placeholder | one whole key per region and number |
+| `PopulationReferenceCard` (now `PopulationComparisonCards`) | noun injected as a bare placeholder | one whole key per region and number |
 | `SessionPaceCard` | singular chosen on `count == 1` exactly | chosen on the digits actually displayed |
 
 **The rounding rule that kept recurring.** Several of those picked the noun's form

@@ -26,6 +26,11 @@ struct YearComparisonCard: View {
       let comparison = reference.comparison(gramsPerWeek: units * region.gramsPureAlcoholPerStandardDrink, in: column)
       SUCard(model: .glass) {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+          // The same title the Trends card carries, because the same switch
+          // governs both: leaving this one anonymous would make the year view
+          // the surface where that setting's effect has no name.
+          CardTitle("Weekly average")
+
           Text(units > 0 ? PopulationReferenceCopy.yearAverageLine(units, year: year, region: region) : PopulationReferenceCopy.noDrinks(inYear: year))
             .font(.body)
             .foregroundStyle(.primary)
@@ -36,7 +41,7 @@ struct YearComparisonCard: View {
               .foregroundStyle(.primary)
           }
 
-          SourceDisclosure(sources: PopulationReferenceCopy.yearSource) {
+          SourceDisclosure(sources: PopulationReferenceCopy.surveySource) {
             Text(PopulationReferenceCopy.explainer(in: column, drinkersPercent: reference.drinkersPercent(in: column)))
             Text(PopulationReferenceCopy.yearWindowNote(year))
           }

@@ -97,26 +97,20 @@ enum PopulationReferenceCopy {
     return "US adults who drink average about \(mean) in \(windowDays)."
   }
 
-  /// The source line under the trailing-window card, naming both sources.
-  static let trendsSources: LocalizedStringKey =
-    "Sources: Alcohol Research Group, 2020 National Alcohol Survey · NIAAA, NESARC-III, 2012–13"
+  /// The weekly average's source, on Trends and on the year view alike — one
+  /// constant, read by both, which is what stops the two surfaces' source
+  /// lines from drifting.
+  ///
+  /// It was `yearSource` while the year view was the only surface naming this
+  /// one body of work alone; on Trends the survey shared a "·"-joined line with
+  /// NESARC-III. Since ADR-0038's 2026-09-10 amendment each comparison is its
+  /// own card and names exactly the source behind it, so the joined line — and
+  /// with it a source line whose wording was a function of which switches were
+  /// on — is gone. Same string, same catalog key.
+  static let surveySource: LocalizedStringKey = "Source: Alcohol Research Group, 2020 National Alcohol Survey"
 
-  /// The source line under the year comparison, which has one source.
-  static let yearSource: LocalizedStringKey = "Source: Alcohol Research Group, 2020 National Alcohol Survey"
-
-  /// The source line when only the drinking-days comparison is shown.
+  /// The drinking-days card's source.
   static let daysSource: LocalizedStringKey = "Source: NIAAA, NESARC-III, 2012–13"
-
-  /// The Trends card's source line for whichever of its two comparisons the
-  /// reader shows (ADR-0038): both, the volume alone, or the days alone. The
-  /// card is not rendered with neither, so that case names both.
-  static func sources(volume: Bool, days: Bool) -> LocalizedStringKey {
-    switch (volume, days) {
-    case (true, false): yearSource
-    case (false, true): daysSource
-    default: trendsSources
-    }
-  }
 
   /// The note's first paragraph: what the percentages are and are not, for
   /// the column that was read. `drinkersPercent` is the file's own figure

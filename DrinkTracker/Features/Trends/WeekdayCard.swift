@@ -7,11 +7,30 @@ import SwiftUI
 /// user's own log, seven rows in the calendar's order, with no rank, no
 /// "most", and no external figure — ADR-0028's rule applied to weekdays.
 ///
+/// ## One table, and why the other one left
+///
+/// The card held two tables until ADR-0038's 2026-09-10 amendment: these seven
+/// rows, then the weekend split beside a published rate. The split moved to
+/// `WeekendComparisonCard`, under the new Comparisons heading, because that
+/// heading names the three published comparisons and **these rows are not one
+/// of them** — they are the reader's own log, gated by nothing, and ADR-0038
+/// says so in as many words. A heading spanning them would also do the thing
+/// this card is built to refuse: naming a comparison over seven weekday
+/// figures instructs the reader to rank them, when the point of the aligned
+/// columns is that alignment does the comparing the copy will not.
+///
+/// Two consequences, both deliberate. The card no longer holds a switch of any
+/// kind — `showsComparison` is gone, so nothing here can be gated by accident.
+/// And its title dropped to `CardTitle` — the sentence-case `cardLabel` every
+/// other card on Trends already titles itself with. The uppercase-tracked form
+/// it used to carry was scoped to "a card that holds more than one table", and
+/// this one no longer does; that token had no other caller and retired with it.
+///
 /// ## The layout, and why it is a table
 ///
 /// The card used to print the unit noun seven times ("3 standard drinks",
 /// "1 standard drink", …) and stack each row's two figures, so nothing lined
-/// up down the card. Three changes, no new figures (ADR-0032 amendment):
+/// up down the card. Two changes, no new figures (ADR-0032 amendment):
 ///
 /// 1. **The noun moves to the column head.** Stated once over the column
 ///    instead of once per row. `StandardDrink.amountPhrase` still supplies
@@ -19,27 +38,21 @@ import SwiftUI
 /// 2. **Two aligned numeric columns.** Alignment does the comparing that the
 ///    copy refuses to do: the reader sees the shape of their own week without
 ///    a sentence naming a largest day.
-/// 3. **The three trailing sentences become one small table.** They carried
-///    three different denominators in running prose ("20 of 39", "10 of 52",
-///    "31 of every 100"); as a table the rows are the paper's own definition
-///    of the weekend and the columns are whose figure it is.
 ///
 /// Still refused, and the reason is unchanged: the seven weekdays are **not**
 /// charted. A chart of seven bars invites "which is highest", and the tallest
 /// bar named is a rank.
 ///
-/// The user's own counts are rounded and tabular; the published rates stay in
-/// default SF. That numeral difference is the only channel available for
-/// "your fact" against "a published fact" — the design system allows no second
-/// hue for it (PRD invariant 10), so it must not be softened.
+/// The counts here are rounded and tabular because they are the user's own
+/// (`rowFigure` / `rowCount`). The rule that gives that numeral face its
+/// meaning — a published figure stays in default SF, since the design system
+/// allows no second hue to carry "your fact" against "a published fact" (PRD
+/// invariant 10) — now lives with the card that holds both kinds of figure,
+/// `WeekendComparisonCard`. Nothing on this card is published.
 struct WeekdayCard: View {
   let totals: [WeekdayTotal]
   let region: Region
   let calendar: Calendar
-  /// Whether the published weekend rate is shown beside the split at all —
-  /// the reader's own choice in Settings (ADR-0038). The seven rows are the
-  /// user's own log and do not depend on it.
-  let showsComparison: Bool
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -47,75 +60,32 @@ struct WeekdayCard: View {
   /// column head wrap onto two lines instead of running the width of the card
   /// and pushing its neighbour into it — the head has to be narrow enough to
   /// break. Scaled rather than fixed, so the columns grow with the type they
-  /// hold. The comparison table below carries no such width: its heads are
-  /// one line each, so its columns size to their own content and the label
-  /// column keeps whatever is left (the 2026-09-07 amendment to ADR-0032).
+  /// hold. It stays here and is not shared: the comparison table carries no
+  /// such width, because its heads are one line each, so its columns size to
+  /// their own content and the label column keeps whatever is left (the
+  /// 2026-09-07 amendment to ADR-0032).
   @ScaledMetric(relativeTo: .caption2) private var figureColumn: CGFloat = 88
 
-  /// Above the default size the tables fold back to the stacked rows and the
-  /// three reviewed sentences — the form the card had before, which reads
-  /// correctly at any width. The figures are identical either way; only their
-  /// arrangement changes.
-  ///
-  /// `xLarge`, not `isAccessibilitySize`, and the threshold was rendered rather
-  /// than reasoned about (ADR-0032's 2026-09-07 amendment). The label column
-  /// is what the numeric columns leave, and that shrinks faster than the
-  /// names grow: on a 402pt screen the shipped table already broke
-  /// "Wednesday" and "Thursday" mid-word at xLarge, and at xxLarge every
-  /// weekday hyphenated ("Sat-/ur-/day"). A 375pt screen has 27pt less, so
-  /// no width for the numeric columns holds the widest weekday name at xLarge
-  /// on both screens without squeezing the two-line heads into three. The
-  /// fold therefore happens at the first size above the default, before
-  /// anything fragments; xSmall through large keep the table on every screen.
-  private var isStacked: Bool { dynamicTypeSize >= .xLarge }
+  /// Above the default size the table folds back to the stacked rows — the
+  /// form the card had before, which reads correctly at any width. The figures
+  /// are identical either way; only their arrangement changes. The threshold
+  /// is `ComparisonTable.folds`, shared with the weekend card so the two fold
+  /// together now that they are two views; it was rendered, not reasoned.
+  private var isStacked: Bool { ComparisonTable.folds(dynamicTypeSize) }
 
   var body: some View {
     SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: 0) {
-        sectionLabel("By weekday")
+        CardTitle("By weekday")
 
         if isStacked {
           stackedWeekdays
         } else {
           weekdayTable
         }
-
-        // The user's own weekend, on the paper's definition, beside the
-        // published rate — two facts about days, no rank and no threshold.
-        // Only when the reader shows it, and only over four weeks of range
-        // or more (ADR-0038): a Week range puts three weekend days beside a
-        // rate per hundred, which is the noise the population card's own
-        // four-week gate exists to keep off the screen.
-        if showsComparison, let reference = WeekendReference.bundled,
-          let split = comparableSplit(on: reference) {
-
-          Divider()
-            .padding(.top, GlassTokens.Spacing.cardPadding)
-            .padding(.bottom, 14)
-
-          sectionLabel("Days with a drink")
-
-          if isStacked {
-            stackedComparison(split, reference)
-          } else {
-            comparisonTable(split, reference)
-          }
-
-          SourceDisclosure(sources: PopulationReferenceCopy.weekdaySource) {
-            Text(PopulationReferenceCopy.weekendNote)
-          }
-        }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-  }
-
-  /// The range's split on the paper's weekend, or nil below the four-week
-  /// floor (`WeekendSplit.isComparable`) — nothing is then shown in its
-  /// place, the population card's own silence below its gate.
-  private func comparableSplit(on reference: WeekendReference) -> WeekendSplit? {
-    let split = TrendSummary.weekendSplit(totals, weekend: reference.weekendWeekdays)
-    return split.isComparable ? split : nil
   }
 
   // MARK: - The log by weekday
@@ -126,12 +96,12 @@ struct WeekdayCard: View {
   private var weekdayTable: some View {
     Grid(alignment: .trailing, horizontalSpacing: GlassTokens.Spacing.tight, verticalSpacing: 0) {
       GridRow(alignment: .bottom) {
-        emptyHeadCell
+        ComparisonTable.emptyHeadCell
         // The region's own plural, uppercased for display: the head is the
         // one place the unit is named, so it has to follow the lens like the
         // rows it heads (a UK reader reads "UNITS").
-        columnHead(Text(verbatim: region.unitNamePlural), width: figureColumn)
-        columnHead(Text("Days with a drink"), width: figureColumn)
+        ComparisonTable.columnHead(Text(verbatim: region.unitNamePlural), width: figureColumn)
+        ComparisonTable.columnHead(Text("Days with a drink"), width: figureColumn)
       }
       .padding(.bottom, 7)
       .accessibilityHidden(true)
@@ -163,7 +133,7 @@ struct WeekdayCard: View {
             .foregroundStyle(.primary)
             .accessibilityHidden(true)
 
-          ratioCell(total.daysWithDrinks, of: total.dayCount)
+          ComparisonTable.ratioCell(total.daysWithDrinks, of: total.dayCount)
             .accessibilityHidden(true)
         }
         .padding(.vertical, GlassTokens.Spacing.tight)
@@ -196,128 +166,6 @@ struct WeekdayCard: View {
     .padding(.top, GlassTokens.Spacing.regular)
   }
 
-  // MARK: - The split, beside the published rate
-
-  /// Two rows on the paper's own definition of the weekend, two columns for
-  /// whose figure it is. Nothing is recomputed, normalised, subtracted or
-  /// ranked — the table only puts two published denominators where they can
-  /// be seen to be different ones.
-  ///
-  /// The two numeric columns take their own content's width — the head or the
-  /// widest cell, whichever is wider — rather than a fixed one. A fixed width
-  /// here bought nothing (both heads are one line) and cost the label column
-  /// the room "Monday to Thursday" needs: at 74 and 100 the label had 113pt on
-  /// a 375pt screen at the default size, and the phrase is 125.
-  private func comparisonTable(_ split: WeekendSplit, _ reference: WeekendReference) -> some View {
-    Grid(alignment: .trailing, horizontalSpacing: GlassTokens.Spacing.tight, verticalSpacing: 0) {
-      GridRow(alignment: .bottom) {
-        emptyHeadCell
-        columnHead(Text("Your log"))
-        columnHead(Text("US adults"))
-      }
-      .padding(.bottom, 7)
-
-      Divider()
-      comparisonRow(
-        Text("Friday to Sunday"),
-        mine: ratioCell(split.weekendDaysWithDrinks, of: split.weekendDays),
-        published: reference.weekendEpisodesPer100Days
-      )
-
-      Divider().opacity(0.7)
-      comparisonRow(
-        Text("Monday to Thursday"),
-        mine: ratioCell(split.otherDaysWithDrinks, of: split.otherDays),
-        published: reference.otherEpisodesPer100Days
-      )
-    }
-    .padding(.top, GlassTokens.Spacing.regular)
-    // One element, labelled with the three reviewed sentences the table's
-    // cells are the parts of: the table is a compact way to *show* them, and
-    // nothing a screen reader hears is newly worded.
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(comparisonLabel(split, reference))
-  }
-
-  private func comparisonRow(_ label: Text, mine: some View, published: Double) -> some View {
-    GridRow(alignment: .firstTextBaseline) {
-      label
-        .font(.footnote)
-        .foregroundStyle(.primary)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .gridColumnAlignment(.leading)
-
-      mine
-
-      // Default SF, deliberately: a published rate is not a numeral the user
-      // made, and the rounded face is reserved for the ones that are.
-      Text("\(Int(published.rounded())) of every 100")
-        .font(.caption)
-        .foregroundStyle(.secondary)
-    }
-    .padding(.vertical, GlassTokens.Spacing.tight)
-  }
-
-  /// The three sentences as they were reviewed, for the sizes above the default.
-  private func stackedComparison(_ split: WeekendSplit, _ reference: WeekendReference) -> some View {
-    VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-      Text(PopulationReferenceCopy.weekendLine(split))
-      Text(PopulationReferenceCopy.weekdaysLine(split))
-      Text(PopulationReferenceCopy.weekendReferenceLine(reference))
-    }
-    .font(.body)
-    .foregroundStyle(.primary)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.top, GlassTokens.Spacing.regular)
-  }
-
-  // MARK: - Parts
-
-  private func sectionLabel(_ key: LocalizedStringKey) -> some View {
-    Text(key)
-      .font(GlassTokens.Typography.sectionLabel)
-      .textCase(.uppercase)
-      .tracking(0.8)
-      .foregroundStyle(.secondary)
-  }
-
-  /// A head over a numeric column. With a `width` it is held to that width so
-  /// a two-word head breaks onto two lines; without one it sizes to its text
-  /// and the column follows.
-  private func columnHead(_ text: Text, width: CGFloat? = nil) -> some View {
-    text
-      .font(GlassTokens.Typography.columnHead)
-      .textCase(.uppercase)
-      .tracking(0.6)
-      .foregroundStyle(.primary)
-      .multilineTextAlignment(.trailing)
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(width: width, alignment: .trailing)
-  }
-
-  /// The leading column's head is empty — the rows name themselves — but it
-  /// still has to claim the slack so the numeric columns stay at the trailing
-  /// edge when the rows are short.
-  private var emptyHeadCell: some View {
-    Color.clear
-      .frame(height: 0)
-      .frame(maxWidth: .infinity)
-      .gridColumnAlignment(.leading)
-  }
-
-  /// "5 of 13" — the count that had a drink over the days available. The
-  /// leading numeral is the fact and sits a step darker; the denominator names
-  /// what it is out of. One key with both numbers, so a translation can
-  /// reorder them.
-  private func ratioCell(_ value: Int, of total: Int) -> some View {
-    Text(
-      "\(Text(verbatim: String(value)).font(GlassTokens.Typography.rowCount).foregroundColor(.primary)) of \(total)"
-    )
-    .font(.footnote)
-    .monospacedDigit()
-    .foregroundStyle(.secondary)
-  }
-
   // MARK: - Spoken
 
   /// The weekday row's one sentence: the noun the column head carries visually
@@ -331,14 +179,6 @@ struct WeekdayCard: View {
       + Text(verbatim: StandardDrink.amountPhrase(total.standardDrinks, region: region))
       + Text(verbatim: ", ")
       + Text(daysLine(total))
-  }
-
-  private func comparisonLabel(_ split: WeekendSplit, _ reference: WeekendReference) -> Text {
-    Text(PopulationReferenceCopy.weekendLine(split))
-      + Text(verbatim: " ")
-      + Text(PopulationReferenceCopy.weekdaysLine(split))
-      + Text(verbatim: " ")
-      + Text(PopulationReferenceCopy.weekendReferenceLine(reference))
   }
 
   /// "4 of 4 days" — how many of this weekday's days had a drink. One key

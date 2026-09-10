@@ -4,7 +4,9 @@
 bar reports its own facts), ADR-0018 (the population reference's rules),
 constraints 3 and 5 · **Amended by:**
 ADR-0038 (the comparison is the reader's to show, and waits for four
-weeks of range — see the amendment below)
+weeks of range — see the amendment below), ADR-0038's own 2026-09-10
+amendment (the comparison leaves this card for the Comparisons section — see
+the last amendment below)
 
 ## Context
 
@@ -281,3 +283,109 @@ above are unchanged. Two things move:
 
 Nothing is added, ranked or recomputed; the Week range shows one fewer
 block. Tier 1 pins the floor (`weekendComparisonGate`).
+
+---
+
+## Amendment (2026-09-10) — the comparison leaves this card
+
+**Status:** accepted, by ADR-0038's 2026-09-10 amendment. The figures, the
+sources, the tables and the refusals above are unchanged. What changes is
+which card the second table sits in.
+
+Trends now groups its three published comparisons under a `COMPARISONS`
+heading that names each one with the title its Settings switch carries. The
+weekend split is one of the three, so it moved into its own
+`WeekendComparisonCard` under that heading, and this card kept only the seven
+weekday rows.
+
+**The rows had to stay outside the heading**, and that is the whole reason
+for the move. They are the reader's own log, gated by nothing — ADR-0038 says
+so explicitly — so a heading reading *Comparisons* over them would misdescribe
+them. Worse, it would undo this record's own refusal: the Decision above
+declines to name a busiest day or relate one weekday to another, and the
+amendment below it explains that the aligned numeric columns exist because
+*alignment does the comparing the copy refuses to do*. The word "Comparisons"
+printed over seven weekday figures is that comparison made in the app's voice,
+which is the rank this card has never drawn.
+
+**What the move costs, named rather than hidden:** the split no longer sits
+directly beneath the seven rows it is folded from, and with both population
+comparisons shown it can be two cards below them. It never referenced those
+rows' figures and states its own denominators in every form, so no meaning is
+lost — but the adjacency was real and is gone.
+
+**Two things carried across deliberately.**
+
+1. **"Days with a drink" stays visible above the comparison table.** It headed
+   the block before the move and it is still load-bearing: without it the
+   table reads "6 of 13" and "31 of every 100" under heads saying only YOUR
+   LOG and US ADULTS, and nothing says what is counted — the weekday table's
+   own column head of that name is in another card now. It is demoted from a
+   section label to a `.caption` head **grouped with the table it names** —
+   4pt above the table, with the card's 12pt gap below the title — because
+   bound the other way round it read as a second line of the title rather than
+   as a head. It is shown only in the table form (the stacked sentences and the table's spoken label say
+   "days with a drink" themselves), and hidden from VoiceOver for the same
+   reason. Same key; it is still the weekday table's third column head.
+2. **Every measured constant moved byte-identical**, into a shared
+   `ComparisonTable` so there is one copy rather than two to re-measure:
+   `columnHead`, `emptyHeadCell`, `ratioCell` and the `>= .xLarge` fold
+   threshold, which both cards now read so they still fold together.
+   `@ScaledMetric figureColumn` (88) stays with the weekday table alone —
+   the comparison table's columns are content-sized on purpose, because a
+   fixed 74/100 left the label column 113pt on a 375pt screen where "Monday
+   to Thursday" needs 125.
+
+**The card's title changed case and dropped a weight step**, from
+`BY WEEKDAY` to "By weekday", as a consequence of the split rather than a
+decision of its own. The uppercase-tracked form it carried
+(`GlassTokens.Typography.sectionLabel`) was documented for "a card that holds
+more than one table", and this card no longer holds two; that token had no
+other caller and **retired with the split**, the role it named now living in
+the `SectionLabel` component. The shared `CardTitle` that replaced it is
+`GlassTokens.Typography.cardLabel` — footnote regular, secondary, sentence
+case, the role every other card on Trends and the calendar already titles
+itself with — plus a header trait and a wrapping rule. So all four titled
+cards read at the same weight as the summary cards above them, one step below
+the `SectionLabel` heading (footnote medium, uppercase) by **weight and case**.
+
+**Two deviations from the design reference**, `docs/design/Bar chart hover
+states design/ds/components/weekday-insights.card.html`, recorded rather than
+left to be noticed. What that file actually shows, stated exactly, because it
+is easy to over-read: it is a component sheet, not a screen — two `.panel`s in
+a light/dark `.split`, labelled "The log by weekday" and "Your split, beside
+the published rate", each drawing one of the card's two blocks as its own
+`.card` element titled in `.sect` (13px/500, tracked, uppercase — the style
+shipped here until now). The bundle's own README calls the whole thing one
+thing: "Design-system card for the redesigned By weekday card — the log table
+light, the comparison table + open source note dark." **So it does not
+anticipate the split into two cards, and it is not evidence either way**; the
+decision to split rests on ADR-0038's heading, not on this drawing.
+
+The two departures are the title style — the change above, taken so a
+one-table card does not read a step louder than its neighbours — and the
+second block's title, which is "Weekend and weekdays" (the words its Settings
+switch carries) where the sheet has "Days with a drink"; that phrase is kept
+as the head over the table.
+
+### Consequences
+
+- `WeekdayCard` holds no switch of any kind — `showsComparison` is gone — so
+  nothing in it can be gated by accident. ADR-0038's "the rows never depend on
+  it" is now structure rather than a comment.
+- The four-week floor is unchanged and still lives in
+  `WeekendSplit.isComparable`; it is now checked in `ComparisonsSection`
+  alongside the other two gates, so the heading and the card appear and
+  disappear together. Tier 1 still pins it (`weekendComparisonGate`).
+- No figure, source, threshold or string changes. No schema change, no
+  CloudKit step.
+
+### How to reopen
+
+If the adjacency turns out to matter — a reader looking for their weekend
+split under the seven rows and not finding it — the reopen is to put a second
+copy of the split back under the rows, which this record refuses on the same
+grounds it refuses a chart: two printings of one figure invite the reader to
+compare them. The likelier fix is order: the weekend card is the last of the
+three and could be the first, directly under the heading and so closest to the
+rows above it.
