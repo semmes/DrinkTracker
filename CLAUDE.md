@@ -1161,3 +1161,65 @@ Open items for v1.2:
   and in dark mode; the full sheet's drag-to-dismiss with a single detent;
   VoiceOver reading a day-sheet row ("One standard drink, 9:04 PM, no size or
   strength recorded, 1 standard drink", then "Add what it was").
+- **Trends names its three comparisons (2026-09-10, ADR-0038 and ADR-0032
+  amendments, PR #88).** The owner: *"We're missing a title for Comparisons.
+  Can you setup a Comparisons section and then headlines where we have 'Weekly
+  average, Drinking days, and weekends and weekdays' … It's important to title
+  these as they have titles and toggles within the settings page to turn them
+  on or off."* ADR-0038 had named all three **in Settings only**; on Trends
+  they were two unlabelled pairs of sentences in one card plus a block inside
+  the By weekday card, so flipping a switch made anonymous lines appear or
+  vanish. What shipped: a `COMPARISONS` heading — the shared `SectionLabel`,
+  which already existed in `DrinkDetailSheet.swift` and already carried
+  `.isHeader`, which is why no heading component was invented — over one card
+  per switch, in the switches' order, each titled with that switch's exact
+  words. **Zero new keys**: all four strings were already in the catalog and
+  already through the 1.4.3 review as the Settings titles, so a reader meets
+  the same word in both places; one key retired (the joined `"Sources: … · …"`
+  line), 323 → **322**. **The structural rule worth keeping:**
+  `ComparisonsSection` resolves all three gates once and the heading's
+  condition is the literal disjunction of them, so a heading over an empty
+  section cannot be written without deleting the `if` the cards live in —
+  ADR-0034's `asksType` lesson (the answer must never withdraw the question)
+  applied to a heading. **The move that made it possible:** the weekend
+  comparison left `WeekdayCard` for its own card, because the seven weekday
+  rows are the reader's own log, gated by nothing, and ADR-0032 refuses in its
+  Decision to relate one weekday to another — the aligned columns exist so
+  that *alignment does the comparing the copy will not*, and printing
+  "Comparisons" over them makes the copy do it. Cost, named in the amendment:
+  the split no longer sits directly under the rows it is folded from; the
+  reopen is to make it the first card under the heading, not the last. The
+  population card became two cards, so a source line that was a *function of
+  which switches were on* becomes one source per card (`yearSource` →
+  `surveySource`, identical string and key, now read by Trends and the year
+  view alike). Every measured constant moved **byte-identical** into a shared
+  `ComparisonTable` — `columnHead`, `emptyHeadCell`, `ratioCell` and the
+  `>= .xLarge` fold threshold, which both cards now read so they still fold
+  together; `@ScaledMetric figureColumn` (88) stayed with the weekday table,
+  since a property wrapper needs a `DynamicProperty` context and the
+  comparison table's columns are content-sized on purpose. "By weekday"
+  dropped to sentence case as a consequence of the split
+  (`GlassTokens.Typography.sectionLabel`'s uppercase-tracked form is
+  documented for a card holding more than one table), and the new shared
+  `CardTitle` is that role in sentence case — **the two heading levels are
+  told apart by case, never by ink** (invariant 10). **No schema change, no
+  CloudKit step, no new setting, no new figure, no share card touched.**
+  **All five CI gates green** (build, domain, integration, policy copies,
+  glyphs), which here proves *compilation only*: **no test tier reaches any of
+  these views** (app target, no `TEST_HOST`), and this was a **remote session
+  with no Swift toolchain and no simulator**, so nothing was rendered and gate
+  equivalence with the deleted card is argued from the code, not observed. The
+  catalog key was removed **by hand** in the file's three-line byte shape
+  (`xcstringstool sync` cannot run here), so this does **not** re-establish
+  "extraction and the committed catalogs agree exactly". The structure was
+  settled by a three-proposal judge panel rather than picked; the losing
+  options and why they lose are in the ADR-0038 amendment. **Tier 3/4 for the
+  owner's pass:** the eight switch states, including every comparison off (no
+  heading at all); the Week range, where the weekend card sits below its
+  four-week floor; an install under four weeks of record; **whether
+  `COMPARISONS` over "Weekly average" reads as two levels or as a stutter** —
+  worst with exactly one switch on, and the one thing here a render settles;
+  the weekend card's "Days with a drink" caption under its title; dark mode;
+  `accessibility-extra-large`, where the weekday and weekend tables now fold
+  independently at the same shared threshold; and VoiceOver stepping the five
+  headings, all of which now carry the header trait.
