@@ -334,13 +334,28 @@ lost — but the adjacency was real and is gone.
    fixed 74/100 left the label column 113pt on a 375pt screen where "Monday
    to Thursday" needs 125.
 
-**The card's title changed case**, from `BY WEEKDAY` to "By weekday", as a
-consequence of the split rather than a decision of its own:
-`GlassTokens.Typography.sectionLabel`'s uppercase-tracked form is documented
-for "a card that holds more than one table", and this card no longer holds
-two. The shared `CardTitle` gives all four titled cards on Trends the same
-sentence-case treatment, one step below the uppercase section heading above
-them.
+**The card's title changed case and dropped a weight step**, from
+`BY WEEKDAY` to "By weekday", as a consequence of the split rather than a
+decision of its own. The uppercase-tracked form it carried
+(`GlassTokens.Typography.sectionLabel`) was documented for "a card that holds
+more than one table", and this card no longer holds two; that token had no
+other caller and **retired with the split**, the role it named now living in
+the `SectionLabel` component. The shared `CardTitle` that replaced it is
+`GlassTokens.Typography.cardLabel` — footnote regular, secondary, sentence
+case, the role every other card on Trends and the calendar already titles
+itself with — plus a header trait and a wrapping rule. So all four titled
+cards read at the same weight as the summary cards above them, one step below
+the `SectionLabel` heading (footnote medium, uppercase) by **weight and case**.
+
+**One deviation from the design reference**, `docs/design/Bar chart hover
+states design/ds/components/weekday-insights.card.html`, recorded rather than
+left to be noticed: that bundle already drew these as two cards, but titled
+both in `.sect` — 13px/500, tracked, uppercase, the style shipped here until
+now — and titled the second one "Days with a drink". The shipped result
+differs twice. The title style is the change above, taken so a one-table card
+does not read a step louder than its neighbours; the second card's title is
+"Weekend and weekdays", the words its Settings switch carries, with "Days with
+a drink" kept as the head over its table.
 
 ### Consequences
 

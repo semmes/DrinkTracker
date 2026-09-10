@@ -35,28 +35,35 @@ struct WeekendComparisonCard: View {
       VStack(alignment: .leading, spacing: 0) {
         CardTitle("Weekend and weekdays")
 
-        // The measure, named once. It headed this block before the split, and
-        // it is still load-bearing: without it the table reads "6 of 13" and
-        // "31 of every 100" under heads saying only YOUR LOG and US ADULTS,
-        // and nothing says what is counted. (The weekday table's own
-        // "Days with a drink" column head is in another card now.)
-        //
-        // Only in the table form: the stacked sentences below say "days with a
-        // drink" themselves, and so does the table's spoken label, which is
-        // why this is hidden from VoiceOver rather than read twice.
-        if !isStacked {
-          Text("Days with a drink")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.top, 2)
-            .accessibilityHidden(true)
-        }
-
         if isStacked {
           stackedComparison
         } else {
-          comparisonTable
+          // The measure, named once, **grouped with the table it names** — 4pt
+          // above its own content and the card's 12pt below the title. Bound
+          // the other way round (2pt under the title, 12pt above the table) it
+          // read as a second line of the title rather than as a head: at
+          // `cardLabel` footnote regular over `.caption`, same ink, same case,
+          // same weight, one point of size apart, the two are a wrapped
+          // two-line title.
+          //
+          // It is still load-bearing: without it the table reads "6 of 13" and
+          // "31 of every 100" under heads saying only YOUR LOG and US ADULTS,
+          // and nothing says what is counted. (The weekday table's own
+          // "Days with a drink" column head is in another card now.)
+          //
+          // Only in the table form: the stacked sentences say "days with a
+          // drink" themselves, and so does the table's spoken label, which is
+          // why this is hidden from VoiceOver rather than read twice.
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Days with a drink")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+              .accessibilityHidden(true)
+
+            comparisonTable
+          }
+          .padding(.top, GlassTokens.Spacing.regular)
         }
 
         SourceDisclosure(sources: PopulationReferenceCopy.weekdaySource) {
@@ -98,7 +105,8 @@ struct WeekendComparisonCard: View {
         published: reference.otherEpisodesPer100Days
       )
     }
-    .padding(.top, GlassTokens.Spacing.regular)
+    // No top padding here: the wrapper that groups this table with the
+    // "Days with a drink" head above it carries the card's 12pt gap.
     // One element, labelled with the three reviewed sentences the table's
     // cells are the parts of: the table is a compact way to *show* them, and
     // nothing a screen reader hears is newly worded.

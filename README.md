@@ -489,9 +489,8 @@ guidelines, definitions and risk figures, live in the product contract
 ([ADR-0038](docs/decisions/0038-the-comparisons-are-the-readers-to-show.md)):
 Settings → Comparisons carries three switches, on by default — the weekly
 average (Trends and the year view together), the drinking days, and the
-weekend rate — each naming its source; the card's source line and note name
-only what is shown, and the weekend comparison waits for four weeks of range,
-so the Week range shows the seven rows alone. **And they are named where they
+weekend rate — each naming its source, and the weekend comparison waits for
+four weeks of range, so the Week range shows the seven rows alone. **And they are named where they
 are shown** (the same record's 2026-09-10 amendment): the bottom of Trends
 carries a `COMPARISONS` heading with one card per switch under it, in the
 switches' order and carrying their exact titles — Weekly average, Drinking

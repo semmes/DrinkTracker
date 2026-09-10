@@ -1226,7 +1226,13 @@ Open items for v1.2:
   four-week floor; an install under four weeks of record; **whether
   `COMPARISONS` over "Weekly average" reads as two levels or as a stutter** —
   worst with exactly one switch on, and the one thing here a render settles;
-  the weekend card's "Days with a drink" caption under its title; dark mode;
+  the weekend card's "Days with a drink" head over its table (it is grouped with
+  the table, not the title — bound the other way it read as a second line of
+  the title, a review catch); **the section's height**, which grows roughly
+  190pt with all three shown by a count of the constants, never a measurement;
+  the state where four weeks of record but no drinks in the window leaves
+  COMPARISONS over a card that says "No drinks in the last 4 weeks" (accepted,
+  recorded in the amendment); dark mode;
   `accessibility-extra-large`, where the weekday and weekend tables now fold
   independently at the same shared threshold; and VoiceOver stepping the five
   headings, all of which now carry the header trait.

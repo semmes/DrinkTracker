@@ -203,9 +203,16 @@ one body of work behind it, one-to-one with the caption on its switch.
   key is added. `PopulationReferenceCopy.yearSource` is renamed
   `surveySource` — identical string, identical key — and is now read by both
   the Trends card and the year view, so the two cannot drift.
-- Three collapsed source rows where there were two, so the bottom of Trends
-  grows by roughly one card's chrome with all three shown, and shrinks when
-  switches are off. Accepted as the price of the one-to-one with Settings.
+- Three collapsed source rows where there were two, and four card wrappers
+  where there were two. Counting the constants at the default type size — the
+  tables and the sentences are identical before and after, so they cancel —
+  the bottom of Trends grows by roughly **190pt** with all three shown: two
+  extra card wrappers, one extra 44pt source row, the heading and its gap, and
+  three 12pt inter-card gaps, less the 31pt divider block that left
+  `WeekdayCard`. That is a count, not a measurement, and nothing here could
+  render it; the height is on the tier-3 list. It shrinks as switches go off,
+  and with one comparison shown the screen is shorter than it was. Accepted as
+  the price of the one-to-one with Settings.
 - The year view's comparison card takes the same **Weekly average** title. It
   is governed by the same switch, and leaving it anonymous would make the year
   view the one surface where that setting's effect has no name. Beyond the
@@ -218,6 +225,16 @@ one body of work behind it, one-to-one with the caption on its switch.
   `cardLabel` role every other card on Trends already uses, so the four new
   titles sit at the same weight as the summary cards above them rather than a
   step louder; `CardTitle` adds only the header trait and the wrapping rule.
+- **One state where the heading stands over a card that compares nothing**,
+  named rather than gated: with four weeks of record but no drinks in the
+  window, the weekly-average card states an absence — "No drinks in the last 4
+  weeks." — because `comparison(gramsPerWeek:in:)` returns nil at zero, and a
+  reader with the other two comparisons off then sees COMPARISONS over that
+  alone. It is accepted. The card is still that switch's own surface, and
+  hiding it exactly when a reader has stopped drinking would both make the
+  switch look broken and read as the app withholding — the thing the four-week
+  floor's own silence is careful not to do. The sentence is the honest answer
+  to the comparison, not a placeholder for one.
 - No schema change, no CloudKit step, no new setting, no new figure, no
   network. No share card is touched.
 - No test tier reaches any of this — app target, and `DrinkTrackerTests` has
