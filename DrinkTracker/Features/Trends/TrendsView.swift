@@ -100,13 +100,21 @@ struct TrendsView: View {
         rangePicker
         chartCard(snapshot)
         summaryCards(snapshot)
+        // The reader's own log by weekday — outside the Comparisons section
+        // below it, and gated by nothing (ADR-0038's 2026-09-10 amendment).
         WeekdayCard(
           totals: snapshot.weekdays,
           region: settings.effectiveRegion,
-          calendar: calendar,
-          showsComparison: settings.showsWeekendComparison
+          calendar: calendar
         )
-        PopulationReferenceCard()
+        // The three published comparisons under one heading that names them.
+        // The section owns all three gates, so it renders nothing at all when
+        // the reader has turned every comparison off.
+        ComparisonsSection(
+          weekdayTotals: snapshot.weekdays,
+          region: settings.effectiveRegion,
+          calendar: calendar
+        )
       }
       .screenMargin()
       .padding(.vertical, GlassTokens.Spacing.section)

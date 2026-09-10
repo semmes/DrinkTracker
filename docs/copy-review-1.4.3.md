@@ -1297,3 +1297,29 @@ controls retire.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.3 — The comparisons are named on Trends (ADR-0038 amendment, 2026-09-10)
+
+The owner's review: the three comparisons had titles and switches in Settings
+and none on Trends. Trends now carries a `COMPARISONS` heading with one titled
+card per switch. **No string is new** — all four words were already reviewed
+above, as the Settings section title and its three switch titles, and they are
+reused verbatim so a reader meets the same word in both places. One string
+retires.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Comparisons" | *Now also* the section heading over the three cards at the bottom of Trends, having been the Settings section title | A noun naming what the section holds — the same review as its first use. It heads only cards that are on screen: with every comparison off, the heading is not rendered either. It names three published statistics, never the reader's own weekday rows, which sit outside it. |
+| "Weekly average" · "Drinking days" · "Weekend and weekdays" | *Now also* the three card titles on Trends, in the switches' order; "Weekly average" also titles the year view's comparison card | Each names the comparison it titles, in the words its switch already used. A title, not a claim: none says how the figure turned out, none ranks the three, and their order is fixed — ADR-0038 refuses ordering by what the numbers say. |
+| "By weekday" | The weekday card's title, unchanged in wording; now sentence case rather than uppercase | No copy change. The card holds one table since the weekend comparison moved out, and the uppercase form is documented for a card holding more than one. |
+| "Days with a drink" | Kept above the weekend comparison table as a caption, having been that block's section label; still the weekday table's third column head | No copy change, and the key stays in the catalog through both uses. It says what "6 of 13" and "31 of every 100" count, which the column heads "Your log" and "US adults" do not. Shown only in the table form — the stacked sentences say it themselves — and hidden from VoiceOver, which hears it in the table's spoken sentences. |
+| "Source: Alcohol Research Group, 2020 National Alcohol Survey" · "Source: NIAAA, NESARC-III, 2012–13" · "Source: Liang and Chikritzhs, 2015 (NHANES 2005–10)" | One under each card, replacing the joined line | The rule is unchanged — a published figure is never shown without saying where it came from — and each line now names exactly the one body of work behind the card it sits under, matching that switch's caption word for word. |
+| "Sources: Alcohol Research Group, 2020 National Alcohol Survey · NIAAA, NESARC-III, 2012–13" | *Retired.* It was the combined card's source line when both comparisons shared one card | Its wording was a function of which switches were on. With one source per card there is nothing left for it to say. One app key removed (323 → 322). |
+
+**Not copy, but seen by a reader:** the weekend comparison moved out of the By
+weekday card into its own titled card under the heading, so a reader's
+Friday-to-Sunday split no longer sits directly beneath the seven rows it comes
+from. Nothing is reworded, added or ranked by the move.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
