@@ -321,8 +321,10 @@ lost — but the adjacency was real and is gone.
    table reads "6 of 13" and "31 of every 100" under heads saying only YOUR
    LOG and US ADULTS, and nothing says what is counted — the weekday table's
    own column head of that name is in another card now. It is demoted from a
-   section label to a `.caption` line under the card's title, shown only in
-   the table form (the stacked sentences and the table's spoken label say
+   section label to a `.caption` head **grouped with the table it names** —
+   4pt above the table, with the card's 12pt gap below the title — because
+   bound the other way round it read as a second line of the title rather than
+   as a head. It is shown only in the table form (the stacked sentences and the table's spoken label say
    "days with a drink" themselves), and hidden from VoiceOver for the same
    reason. Same key; it is still the weekday table's third column head.
 2. **Every measured constant moved byte-identical**, into a shared
@@ -347,15 +349,24 @@ itself with — plus a header trait and a wrapping rule. So all four titled
 cards read at the same weight as the summary cards above them, one step below
 the `SectionLabel` heading (footnote medium, uppercase) by **weight and case**.
 
-**One deviation from the design reference**, `docs/design/Bar chart hover
+**Two deviations from the design reference**, `docs/design/Bar chart hover
 states design/ds/components/weekday-insights.card.html`, recorded rather than
-left to be noticed: that bundle already drew these as two cards, but titled
-both in `.sect` — 13px/500, tracked, uppercase, the style shipped here until
-now — and titled the second one "Days with a drink". The shipped result
-differs twice. The title style is the change above, taken so a one-table card
-does not read a step louder than its neighbours; the second card's title is
-"Weekend and weekdays", the words its Settings switch carries, with "Days with
-a drink" kept as the head over its table.
+left to be noticed. What that file actually shows, stated exactly, because it
+is easy to over-read: it is a component sheet, not a screen — two `.panel`s in
+a light/dark `.split`, labelled "The log by weekday" and "Your split, beside
+the published rate", each drawing one of the card's two blocks as its own
+`.card` element titled in `.sect` (13px/500, tracked, uppercase — the style
+shipped here until now). The bundle's own README calls the whole thing one
+thing: "Design-system card for the redesigned By weekday card — the log table
+light, the comparison table + open source note dark." **So it does not
+anticipate the split into two cards, and it is not evidence either way**; the
+decision to split rests on ADR-0038's heading, not on this drawing.
+
+The two departures are the title style — the change above, taken so a
+one-table card does not read a step louder than its neighbours — and the
+second block's title, which is "Weekend and weekdays" (the words its Settings
+switch carries) where the sheet has "Days with a drink"; that phrase is kept
+as the head over the table.
 
 ### Consequences
 
