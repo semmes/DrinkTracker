@@ -251,3 +251,15 @@ the three source rows read as chrome, the reopen is one card with three
 headlined blocks and dividers, which is `WeekdayCard`'s own former pattern;
 what may **not** come back is a source line whose wording depends on which
 switches are on.
+
+---
+
+### Note (2026-09-10, later the same day) — one card is titled by its measure
+
+The third card is now titled **"Days with a drink"**, not its switch's words:
+the owner read "Weekend and weekdays" over the "Days with a drink" head as one
+long title, and the rows already say Friday to Sunday and Monday to Thursday.
+The switch keeps "Weekend and weekdays". The rule above — one card per switch,
+titled with the switch's words — holds for the first two and is recorded here
+as having one exception, taken by the owner; ADR-0032's same-day amendment
+has the change and the measurements.

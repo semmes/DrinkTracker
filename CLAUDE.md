@@ -1260,3 +1260,23 @@ Open items for v1.2:
   — the "build did nothing" report that opened the day was a checkout one
   merge behind, proven by grepping the installed `DrinkTracker.debug.dylib`
   (the main executable is a stub) for a type the PR added.
+- **The weekend card is titled by its measure, at the weekday table's sizes
+  (2026-09-10, ADR-0032 amendment, PR #90).** The owner's review: the card's
+  "Weekend and weekdays" title over its "Days with a drink" head read as one
+  long title, and "the font size is also smaller here and doesn't match the
+  other chart above." Both were right. The card is now titled **"Days with a
+  drink"** and the head is gone (the Settings switch keeps "Weekend and
+  weekdays" — the one card whose title is not its switch's words; ADR-0038
+  carries the exception note), and its rows take the weekday table's sizes
+  cell for cell: labels `.subheadline` (were footnote), published rate
+  `.footnote` (was caption), the reader's count already the shared
+  `ratioCell`. **The fit was measured, not reasoned** (CoreText, calibrated
+  against ADR-0032's own earlier 125pt): "Monday to Thursday" needs 141pt and
+  the numeric columns 171, which leaves 147pt on a 390pt phone and 132 on a
+  375pt one — so the label wraps to two lines on 11 Pro / 12–13 mini / SE at
+  the default size, accepted and recorded with the reopen (a width fold, never
+  a scale factor). No string, key, setting or copy change. Verified at tier 3
+  on a booted iPhone 17 Pro, light and dark. **Tier 3/4 for the owner's
+  pass:** a 375pt phone at default size (the wrap), and "Days with a drink"
+  beside the "Drinking days" card on a real display — two cards about days,
+  which the reopen clause names.
