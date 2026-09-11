@@ -1237,7 +1237,7 @@ Open items for v1.2:
   independently at the same shared threshold; and VoiceOver stepping the five
   headings, all of which now carry the header trait.
 - **The "Compare with" picker sits inside its switch's card (2026-09-10,
-  ADR-0039 amendment).** The owner's review of the shipped Settings screen:
+  ADR-0039 amendment, PR #89).** The owner's review of the shipped Settings screen:
   the segmented column picker "should be under the weekly average toggle so
   that it's selectable when toggled on and disappears when toggled off." It
   had been a glass block of its own after all three switches — this handoff
