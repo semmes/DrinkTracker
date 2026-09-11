@@ -1323,3 +1323,21 @@ from. Nothing is reworded, added or ranked by the move.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.3 — The weekend card is titled by its measure (ADR-0032 amendment, 2026-09-10)
+
+The owner's review: "Weekend and weekdays" over the "Days with a drink" head
+read as one long title, and the rows already name the split. **No string is
+new**; one reviewed string moves up, one leaves the card and stays in Settings.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Days with a drink" | *Now* the weekend comparison card's title, having been the `.caption` head over its table; still the weekday table's third column head | No copy change. A noun phrase naming what the two rows count; no claim, no rank, no verdict. It stands alone now, so the card says what it holds in one line and the rows say which days. |
+| "Weekend and weekdays" | *No longer* the card's title; still the Settings switch that shows the card | No copy change. The switch names the split a reader can turn off; the card names the measure. |
+
+**Not copy, but seen by a reader:** the two rows and the published rate are set
+at the weekday table's own sizes (subheadline labels, footnote rate), so the
+two tables read as one instrument. Nothing is reworded.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

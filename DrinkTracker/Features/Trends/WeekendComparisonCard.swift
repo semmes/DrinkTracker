@@ -33,37 +33,22 @@ struct WeekendComparisonCard: View {
   var body: some View {
     SUCard(model: .glass) {
       VStack(alignment: .leading, spacing: 0) {
-        CardTitle("Weekend and weekdays")
+        // Titled by its measure, not by its switch (owner's review,
+        // 2026-09-10). The rows already say "Friday to Sunday" and "Monday to
+        // Thursday", so "Weekend and weekdays" over a "Days with a drink" head
+        // read as one two-line title — same ink, same case, one point of size
+        // apart. The title now does the job the head did, saying what
+        // "46 of 147" and "31 of every 100" count, so the head is gone rather
+        // than demoted. The Settings switch keeps the split's name; this is
+        // the one card whose title is not its switch's words, and ADR-0038's
+        // amendment records the exception.
+        CardTitle("Days with a drink")
 
         if isStacked {
           stackedComparison
         } else {
-          // The measure, named once, **grouped with the table it names** — 4pt
-          // above its own content and the card's 12pt below the title. Bound
-          // the other way round (2pt under the title, 12pt above the table) it
-          // read as a second line of the title rather than as a head: at
-          // `cardLabel` footnote regular over `.caption`, same ink, same case,
-          // same weight, one point of size apart, the two are a wrapped
-          // two-line title.
-          //
-          // It is still load-bearing: without it the table reads "6 of 13" and
-          // "31 of every 100" under heads saying only YOUR LOG and US ADULTS,
-          // and nothing says what is counted. (The weekday table's own
-          // "Days with a drink" column head is in another card now.)
-          //
-          // Only in the table form: the stacked sentences say "days with a
-          // drink" themselves, and so does the table's spoken label, which is
-          // why this is hidden from VoiceOver rather than read twice.
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Days with a drink")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-              .fixedSize(horizontal: false, vertical: true)
-              .accessibilityHidden(true)
-
-            comparisonTable
-          }
-          .padding(.top, GlassTokens.Spacing.regular)
+          comparisonTable
+            .padding(.top, GlassTokens.Spacing.regular)
         }
 
         SourceDisclosure(sources: PopulationReferenceCopy.weekdaySource) {
@@ -105,8 +90,8 @@ struct WeekendComparisonCard: View {
         published: reference.otherEpisodesPer100Days
       )
     }
-    // No top padding here: the wrapper that groups this table with the
-    // "Days with a drink" head above it carries the card's 12pt gap.
+    // No top padding here: the call site carries the card's 12pt gap below
+    // the title, as the weekday table's does.
     // One element, labelled with the three reviewed sentences the table's
     // cells are the parts of: the table is a compact way to *show* them, and
     // nothing a screen reader hears is newly worded.
@@ -114,10 +99,18 @@ struct WeekendComparisonCard: View {
     .accessibilityLabel(comparisonLabel)
   }
 
+  /// One row at the weekday table's own sizes, cell for cell: `.subheadline`
+  /// for the label, the shared `ratioCell` for the reader's count, `.footnote`
+  /// for the published rate — the size the ratio cell's own "of 147" already
+  /// takes. Until the owner's review (2026-09-10) the label was footnote and
+  /// the rate caption, a step below the table directly above, and the two read
+  /// as different instruments. The label column is what the two numeric
+  /// columns leave; the fit of "Monday to Thursday" at this size is measured
+  /// in ADR-0032's amendment.
   private func comparisonRow(_ label: Text, mine: some View, published: Double) -> some View {
     GridRow(alignment: .firstTextBaseline) {
       label
-        .font(.footnote)
+        .font(.subheadline)
         .foregroundStyle(.primary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .gridColumnAlignment(.leading)
@@ -127,7 +120,7 @@ struct WeekendComparisonCard: View {
       // Default SF, deliberately: a published rate is not a numeral the user
       // made, and the rounded face is reserved for the ones that are.
       Text("\(Int(published.rounded())) of every 100")
-        .font(.caption)
+        .font(.footnote)
         .foregroundStyle(.secondary)
     }
     .padding(.vertical, GlassTokens.Spacing.tight)

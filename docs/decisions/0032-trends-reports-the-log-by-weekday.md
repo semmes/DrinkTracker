@@ -389,3 +389,75 @@ grounds it refuses a chart: two printings of one figure invite the reader to
 compare them. The likelier fix is order: the weekend card is the last of the
 three and could be the first, directly under the heading and so closest to the
 rows above it.
+
+---
+
+## Amendment (2026-09-10, later the same day) — the card is titled by its measure, at the weekday table's sizes
+
+**Status:** accepted. A title and a type-size change to
+`WeekendComparisonCard`; no figure, gate, order or source changes.
+
+The owner used the split card and reported two things: *"the title is very
+long can we shorten that so it's more concise to just 'Days with a drink'
+since the breakdown already covers weekend and weekdays?"* and *"The font size
+is also smaller here and doesn't match the other chart above."*
+
+**The title.** The card was titled "Weekend and weekdays" (its switch's words,
+the amendment above) with "Days with a drink" as a `.caption` head grouped
+with the table — and the two lines, secondary ink over secondary ink, sentence
+case over sentence case, one point apart, read as one long title. The owner's
+reading is the right one, and the rows already carry the split in their own
+labels. So the card is now titled **"Days with a drink"** and the head is gone
+rather than demoted: the title does the job the head did, naming what "46 of
+147" and "31 of every 100" count. This reverses item 1 of "Two things carried
+across deliberately" above and the "second block's title" departure recorded
+under the design bundle. The Settings switch keeps **"Weekend and weekdays"**:
+the switch names the split, the card names the measure, and this is the one
+card whose title is not its switch's words — ADR-0038's amendment carries the
+exception. No string is new; "Days with a drink" was reviewed as the weekday
+table's column head and keeps that use.
+
+**The sizes.** The comparison table's rows were a step below the weekday
+table directly above them: labels at `.footnote` (13pt) where the weekday
+rows are `.subheadline` (15pt), and the published rate at `.caption` (12pt)
+where the weekday table's secondary figures are `.footnote`. The reader's
+count cell was already the shared `ratioCell`. Now the label is `.subheadline`
+and the rate `.footnote`, cell for cell the sizes of the table above, so the
+two read as one instrument; the numeral rule (rounded for the reader's counts,
+default SF for the published rate) is untouched.
+
+**The fit, measured rather than reasoned** (CoreText on the same font; the
+method reproduces this record's earlier 125pt for "Monday to Thursday" at
+footnote as 124.6):
+
+| | width |
+| --- | --- |
+| "Monday to Thursday" at subheadline | 141.2pt (was 124.6 at footnote) |
+| YOUR LOG column (head 62.3 / cell 58.3) | 62.3pt |
+| US ADULTS column (head 67.8 / "31 of every 100" at footnote 92.7) | 92.7pt (was 86.6 at caption) |
+| two 8pt gaps | 16pt |
+| label column left, from a card content width of screen − 72 | 402pt: **159**; 393pt: **150**; 390pt: **147**; 375pt: **132** |
+
+So the label fits on one line with 6pt to spare on every 390pt-and-wider
+iPhone, and **wraps onto two lines on 375pt phones** (11 Pro, 12 and 13 mini,
+SE) at the default type size, by 9pt. At the old sizes it fit there with
+13pt spare. Accepted: the grid aligns the two figures to the label's first
+baseline, so a wrapped "Monday to / Thursday" costs one line of height and
+nothing in meaning, and the alternatives are worse — the label is the paper's
+own definition and reviewed copy, so it does not shorten; a
+`minimumScaleFactor` on it would make one row's type quietly smaller on some
+phones, the fault the drink sheet's figure fix refused; and a width-keyed
+fold is more mechanism than one device class warrants. Above the default size
+the table still folds at xLarge, unchanged.
+
+Verified at tier 3 on a booted iPhone 17 Pro, light and dark: the single
+title, the two rows at the weekday table's sizes, one line each. No test tier
+reaches this view; CI proves compilation.
+
+### How to reopen
+
+If the 375pt wrap is seen and disliked, the honest fix is a fold at that
+width (the stacked sentences, as at xLarge), not a scale factor. If "Days
+with a drink" beside the "Drinking days" card reads as two cards about one
+thing, the card title can take the switch's words back and the measure return
+to the column heads — one line each, and a render question.
