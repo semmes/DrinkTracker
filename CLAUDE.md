@@ -1261,7 +1261,7 @@ Open items for v1.2:
   merge behind, proven by grepping the installed `DrinkTracker.debug.dylib`
   (the main executable is a stub) for a type the PR added.
 - **The weekend card is titled by its measure, at the weekday table's sizes
-  (2026-09-10, ADR-0032 amendment).** The owner's review: the card's
+  (2026-09-10, ADR-0032 amendment, PR #90).** The owner's review: the card's
   "Weekend and weekdays" title over its "Days with a drink" head read as one
   long title, and "the font size is also smaller here and doesn't match the
   other chart above." Both were right. The card is now titled **"Days with a
