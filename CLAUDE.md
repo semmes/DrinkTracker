@@ -1236,3 +1236,27 @@ Open items for v1.2:
   `accessibility-extra-large`, where the weekday and weekend tables now fold
   independently at the same shared threshold; and VoiceOver stepping the five
   headings, all of which now carry the header trait.
+- **The "Compare with" picker sits inside its switch's card (2026-09-10,
+  ADR-0039 amendment, PR #89).** The owner's review of the shipped Settings screen:
+  the segmented column picker "should be under the weekly average toggle so
+  that it's selectable when toggled on and disappears when toggled off." It
+  had been a glass block of its own after all three switches — this handoff
+  already *said* "sits under the weekly-average switch" since ADR-0039 landed,
+  and the code did not. Now `ComparisonToggle` takes an optional accessory
+  (the caller owns the `if`, so the toggle never reads the setting it is bound
+  to) and the weekly-average card carries the picker under a hairline while
+  the switch is on; the other two switches are unchanged. No string, key,
+  setting or copy change. Verified at tier 3 on a booted iPhone 17 Pro: on,
+  off (single row, shorter footnote), and back. **Three things learned the
+  same day.** (a) The owner reported the "Weekend and weekdays" switch "did
+  not adjust anything" on Trends — not a bug: the weekend card waits for four
+  weeks of *range* (ADR-0038, `WeekendReference.minimumDays` 28), Trends opens
+  on Week, and on Week the switch has nothing to show either way; on Month it
+  removes the card (rendered). ADR-0038's own reopen clause names the fix — "a
+  sentence in the card's place saying why, not a lower floor" — recommended to
+  the owner, not built. (b) Tooling: a synthetic tap does not flip a `Toggle`
+  here (the untouched session-pace switch ignored it too); a short drag on the
+  knob does. (c) The owner's Xcode checkout can fetch seconds *before* a merge
+  — the "build did nothing" report that opened the day was a checkout one
+  merge behind, proven by grepping the installed `DrinkTracker.debug.dylib`
+  (the main executable is a stub) for a type the PR added.

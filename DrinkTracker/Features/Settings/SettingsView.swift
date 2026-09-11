@@ -127,13 +127,17 @@ struct SettingsView: View {
   /// Which of the published comparisons appear, and which of the survey's
   /// columns the weekly average is placed against (ADR-0038, ADR-0039).
   ///
-  /// Three toggles, each naming its source, and — while the weekly average
-  /// is shown — a segmented picker for the column. The picker's segments are
-  /// the three columns the source prints and no more: a fourth that read the
-  /// total under another name would be a question asked to no effect, so the
-  /// default, "All adults", is what a reader who is neither of the other two,
-  /// or who would rather not say, already has. Every control sits on
-  /// interactive glass, the session-pace lesson.
+  /// Three toggles, each naming its source. The weekly average's carries,
+  /// inside its own card and only while it is on, the segmented picker for
+  /// the column — under the switch it depends on, so the picker appearing and
+  /// disappearing reads as that switch's own effect (owner's review,
+  /// 2026-09-10; it had been a separate block after all three switches, which
+  /// looked as if it governed all three). The picker's segments are the three
+  /// columns the source prints and no more: a fourth that read the total under
+  /// another name would be a question asked to no effect, so the default,
+  /// "All adults", is what a reader who is neither of the other two, or who
+  /// would rather not say, already has. Every control sits on interactive
+  /// glass, the session-pace lesson.
   private var comparisonsSection: some View {
     SettingsSection(title: "Comparisons", footnote: comparisonsFootnote) {
       @Bindable var settings = settings
@@ -142,7 +146,25 @@ struct SettingsView: View {
           title: "Weekly average",
           source: "Alcohol Research Group, 2020 National Alcohol Survey",
           isOn: $settings.showsWeeklyAverageComparison
-        )
+        ) {
+          if settings.showsWeeklyAverageComparison {
+            VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+              Divider()
+              Text("Compare with")
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(.secondary)
+              Picker("Compare with", selection: $settings.comparisonColumn) {
+                Text("All adults").tag(PopulationReference.Column.allAdults)
+                Text("Men").tag(PopulationReference.Column.men)
+                Text("Women").tag(PopulationReference.Column.women)
+              }
+              .pickerStyle(.segmented)
+            }
+            .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+            .padding(.bottom, GlassTokens.Spacing.regular)
+            .transition(.opacity)
+          }
+        }
         ComparisonToggle(
           title: "Drinking days",
           source: "NIAAA, NESARC-III, 2012–13",
@@ -153,24 +175,6 @@ struct SettingsView: View {
           source: "Liang and Chikritzhs, 2015 (NHANES 2005–10)",
           isOn: $settings.showsWeekendComparison
         )
-
-        if settings.showsWeeklyAverageComparison {
-          VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-            Text("Compare with")
-              .font(.footnote.weight(.medium))
-              .foregroundStyle(.secondary)
-              .padding(.horizontal, GlassTokens.Spacing.tight)
-            Picker("Compare with", selection: $settings.comparisonColumn) {
-              Text("All adults").tag(PopulationReference.Column.allAdults)
-              Text("Men").tag(PopulationReference.Column.men)
-              Text("Women").tag(PopulationReference.Column.women)
-            }
-            .pickerStyle(.segmented)
-          }
-          .padding(GlassTokens.Spacing.tight)
-          .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
-          .transition(.opacity)
-        }
       }
       .animation(.smooth(duration: 0.22), value: settings.showsWeeklyAverageComparison)
     }
@@ -508,30 +512,61 @@ struct SettingsView: View {
 /// toggle. The source is the caption because the section's rule is that a
 /// figure is never shown without saying where it came from, and that holds
 /// for the switch that shows it.
-private struct ComparisonToggle: View {
+///
+/// A switch may carry a dependent control beneath it, inside the same glass —
+/// the weekly average's "Compare with" picker (ADR-0039). One card rather than
+/// a block of its own, because the control exists only while that switch is
+/// on: placed under it, its appearing and disappearing reads as the switch's
+/// own effect. The accessory is the caller's, including its `if`, so this view
+/// never reads the setting it is bound to.
+private struct ComparisonToggle<Accessory: View>: View {
   let title: LocalizedStringKey
   let source: LocalizedStringKey
   @Binding var isOn: Bool
+  let accessory: Accessory
+
+  init(
+    title: LocalizedStringKey,
+    source: LocalizedStringKey,
+    isOn: Binding<Bool>,
+    @ViewBuilder accessory: () -> Accessory
+  ) {
+    self.title = title
+    self.source = source
+    self._isOn = isOn
+    self.accessory = accessory()
+  }
 
   var body: some View {
-    Toggle(isOn: $isOn) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text(title)
-          .font(.body)
-          .foregroundStyle(.primary)
-        Text(source)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .fixedSize(horizontal: false, vertical: true)
+    VStack(spacing: 0) {
+      Toggle(isOn: $isOn) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title)
+            .font(.body)
+            .foregroundStyle(.primary)
+          Text(source)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
       }
+      .tint(Color("AccentFill"))
+      .padding(.horizontal, GlassTokens.Spacing.cardPadding)
+      .padding(.vertical, GlassTokens.Spacing.tight)
+      .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
+
+      accessory
     }
-    .tint(Color("AccentFill"))
-    .padding(.horizontal, GlassTokens.Spacing.cardPadding)
-    .padding(.vertical, GlassTokens.Spacing.tight)
-    .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
     // interactive: a control on non-interactive glass loses taps — the rule
     // every tappable control in the app follows.
     .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+  }
+}
+
+extension ComparisonToggle where Accessory == EmptyView {
+  /// A switch with nothing beneath it — the shape two of the three take.
+  init(title: LocalizedStringKey, source: LocalizedStringKey, isOn: Binding<Bool>) {
+    self.init(title: title, source: source, isOn: isOn) { EmptyView() }
   }
 }
 
