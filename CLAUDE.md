@@ -128,7 +128,7 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-09-08:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
+**As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
 **the 1.3 train is open** — `MARKETING_VERSION` is 1.3 on main; its first
 feature (the year-in-review share card, ADR-0029) has landed, and the
@@ -1280,3 +1280,47 @@ Open items for v1.2:
   pass:** a 375pt phone at default size (the wrap), and "Days with a drink"
   beside the "Drinking days" card on a real display — two cards about days,
   which the reopen clause names.
+- **The drink sheet opens at three-quarters (2026-09-10).** The owner, on
+  Today: *"when I tap 'add specific', can the sheet height move up to be 3/4
+  coverage on the screen so users can see the abv strength slider as they're
+  logging a drink?"* Rendered on main first, on the booted iPhone 17 Pro at
+  the default size: at the medium detent — 459pt of the 874pt screen,
+  measured from the frame — the sheet opened on the type picker alone, and
+  picking Beer put SIZE's two rows of pills at the fold with STRENGTH wholly
+  beneath it; the control the sheet exists for was reachable only by a drag
+  the sheet never announced. What shipped: `.medium` → `.fraction(0.75)` in
+  `DrinkDetailSheet`'s one detent expression, so a new entry (the counter's
+  "Add specific") and adoption — the two presentations without the time
+  control — open at three-quarters, and nothing opens at the medium detent
+  any more; `.large` stays as the second detent. **It is three-quarters of
+  the sheet's full height, not of the screen:** measured 601pt of 874 (69%
+  of the screen; the large detent on this phone is ~801pt) — the literal
+  three-quarters of *this* screen would be `.fraction(0.82)` here and a
+  different number on every other phone, which is why the fraction is the
+  sheet's. This is the **third fold on that expression in four days**
+  (accessibility sizes → large, 2026-09-07; the time-control presentations →
+  large, 2026-09-09; now this), each one term to reverse and each recorded
+  the same way — the code comment, the design-system Sheet row and this
+  handoff; no ADR, as with those two. Three consequences, stated: on open
+  the scroll area is the picker over empty space until a type is tapped,
+  which is what three-quarters of an unanswered question looks like (the
+  frame went to the owner in the session); adoption rises with it on the
+  same argument — beer's defaults already showing, its slider under the
+  same fold — and is **not rendered** here, since it needs a real Health
+  import; and on a 667pt phone (the SE class iOS 26 still runs on)
+  three-quarters is ~460pt, this phone's old medium, so beer's STRENGTH
+  would sit at the fold there — computed from the measured content, not
+  rendered, and there is no SE simulator on this Mac to render it. No
+  catalog, schema, setting or copy change. **No test tier reaches this view**
+  (app target, no `TEST_HOST`) — CI proves compilation; the proof is tier 3
+  on the booted iPhone 17 Pro, before and after: the medium detent with
+  STRENGTH cut off, then the sheet at 601pt with DRINK, two rows of SIZE and
+  STRENGTH with its 0% / 15% labels above the pinned figure, the same in
+  dark mode, and an upward drag still reaching `.large`. All four gates
+  green locally (the policy-date check, the glyph generator clean, the
+  domain tests, the generic CI build, the integration tests on a second
+  simulator). **Tier 3/4 for the owner's pass:** the height under a thumb on
+  hardware in both appearances; spirit's and cocktail's pills at this
+  height; the Custom field's keyboard over the three-quarter sheet;
+  adoption's sheet on a real Health import; drag-to-dismiss from
+  three-quarters; and an SE-class screen if one is still in use.
