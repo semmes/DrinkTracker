@@ -125,3 +125,44 @@ today. If the picker reads as a gender question in real use despite the
 copy, the segment labels can name the columns as columns ("the survey's
 men's column"), or the picker can go and the Total stay — the file keeps
 the columns either way.
+
+---
+
+## Amendment (2026-09-10) — the picker sits inside its switch's card
+
+**Status:** accepted. The decision above is unchanged: the same three
+columns, the same type and default, the same sentence, the same refusal.
+This is a layout change under the record — ADR-0038's "How to reopen"
+classifies moving these controls as one — made on the owner's review of the
+shipped screen: *"the 'compare with: all adults, men, women' segment control
+should be under the weekly average toggle so that it's selectable when
+toggled on and disappears when toggled off. Grouping them together will
+create a better user experience."*
+
+As shipped, the picker was a glass block of its own *after* all three
+switches. It already came and went with the weekly-average switch, but two
+switches away from it, so its arrival read as a change to the section rather
+than as that switch's effect — and a control beneath three switches looks as
+if it governs all three, which the footnote then had to deny in words. The
+handoff had described the picker as sitting "under the weekly-average
+switch" since this record landed; the code did not.
+
+**What changed.** The picker lives inside the weekly-average switch's own
+card, under a hairline, at the card's own inset, and only while that switch
+is on. `ComparisonToggle` takes an optional accessory whose `if` belongs to
+the caller, so the toggle never reads the setting it is bound to; the other
+two switches carry none and are unchanged. No string changed, no catalog key
+moved, the setting and its default are untouched, and the footnote keeps its
+two forms. The switch's existing animation now also collapses the card.
+
+Verified at tier 3 on a booted iPhone 17 Pro, light appearance: the card with
+the picker under the switch, the card as a single row with the switch off and
+the footnote in its shorter form, and the picker returning with the switch.
+No test tier reaches `SettingsView` (app target, no `TEST_HOST`), so CI
+proves compilation. Tooling note for the next pass: a synthetic tap does not
+flip a SwiftUI `Toggle` on this simulator (the unchanged session-pace switch
+ignored the same tap), while a short drag on the knob does — ADR-0017's
+taps-versus-drags observation, seen from the injection side. Still for the
+owner's pass: dark appearance, accessibility sizes (the three segment labels
+in a card 16pt narrower than the old block), and VoiceOver reading the switch
+and then the picker as two elements of one card.
