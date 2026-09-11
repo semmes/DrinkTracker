@@ -1280,7 +1280,7 @@ Open items for v1.2:
   pass:** a 375pt phone at default size (the wrap), and "Days with a drink"
   beside the "Drinking days" card on a real display — two cards about days,
   which the reopen clause names.
-- **The drink sheet opens at three-quarters (2026-09-10).** The owner, on
+- **The drink sheet opens at three-quarters (2026-09-10, PR #91).** The owner, on
   Today: *"when I tap 'add specific', can the sheet height move up to be 3/4
   coverage on the screen so users can see the abv strength slider as they're
   logging a drink?"* Rendered on main first, on the booted iPhone 17 Pro at
