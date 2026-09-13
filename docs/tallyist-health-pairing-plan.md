@@ -1,0 +1,516 @@
+# Tallyist health pairing — feature plan
+
+Companion to `docs/tallyist-1.2-spec.md` and `docs/tallyist-watch-plan.md`.
+**Sequenced after the watch**, and deliberately not part of it: the watch
+collects this data, but the feature is entirely on the phone.
+
+Same working method as every other spec here: read "The risk" and "The four
+rules" first, in every session, then take one phase at a time.
+
+Written 2026-09-13.
+
+---
+
+## What this is, in one paragraph
+
+The user's watch already records how they slept, what their resting heart rate
+was, how variable it was, and how warm their wrist got overnight. Tallyist
+already records what they drank. This feature lets the user put one beside the
+other, on a surface they choose to open, for a metric they choose to enable,
+after the log is long enough for the comparison to mean anything. It reads
+Health and writes nothing. It concludes nothing.
+
+---
+
+## Decisions
+
+You made the first four.
+
+1. **Four metrics in scope:** sleep duration and stages, resting heart rate,
+   heart rate variability, sleeping wrist temperature. Build order is by
+   difficulty, not by that list order: resting heart rate first, because it is
+   one clean daily number on every model, then sleep, then HRV, then wrist
+   temperature, which needs a baseline decision nothing else does.
+2. **The user picks what to look at.** Trends gains a control that puts a
+   chosen Health metric beside the drink log. The app does not choose the
+   question and does not open with an answer.
+3. **The ask happens in context**, once the log is long enough to render
+   something, showing what it would look like, once. Not in onboarding. Not
+   as a form.
+4. **Its own train, after the watch.** This has its own review surface and its
+   own privacy-policy change, and mixing it into a platform launch would make
+   both harder to explain.
+
+And three this plan makes, each argued where it lands:
+
+5. **Nothing read from Health is ever stored.** Not in SwiftData, not in
+   UserDefaults, not in CloudKit. Read, compute, render, discard.
+6. **No dual-axis chart.** Two series on one set of axes is the most
+   causation-implying picture available, and this feature's whole discipline
+   is refusing to imply causation.
+7. **One toggle per metric**, defaulting off, matching the three separate
+   comparison flags ADR-0038 already established rather than one umbrella
+   switch.
+
+---
+
+## What the watch can and cannot supply
+
+Two of the four things in the original brief turned out not to exist. Recorded
+here so the question does not get reopened from memory.
+
+**Blood pressure: the watch does not measure it.** Hypertension notifications
+(Series 9 and later, Ultra 2 and later, not SE) analyse optical heart sensor
+data over 30-day periods to flag a *pattern*, and report no systolic or
+diastolic value at all. Apple states the feature "is not intended to diagnose,
+treat, or aid in the management of hypertension," and on a notification the
+user is directed to a third-party cuff. A blood pressure value reaches
+HealthKit only if the user logs it by hand from such a cuff, which makes it
+sparse, self-selected, and not a watch signal. There is no overlay to build.
+
+**Blood oxygen: available in the US only through the redesigned workaround.**
+The original feature remains under an exclusion order; the redesigned one takes
+the reading on the watch and displays it only on the paired iPhone, and a
+further USITC investigation opened in November 2025. Beyond the legal
+situation, the readings are user-initiated spot samples rather than a
+continuous nightly signal, which makes them a poor input for a night-by-night
+comparison even where they work. Out of scope, and not a close call.
+
+**What the watch actually contributes** to this feature is that it is on the
+wrist overnight. That is a behavioural ask, and it should appear in the copy
+once rather than as a recurring prompt: a user who does not sleep in their
+watch will see nothing from three of these four metrics, and the app must not
+nag them about it.
+
+---
+
+## The risk
+
+Stated first because it governs every design decision below, and because
+nothing else in this repo's roadmap carries it.
+
+Every previous feature in Tallyist reports a quantity of alcohol. The
+population reference (ADR-0018) compares drinks to drinks; the weekday card
+(ADR-0032) compares drinks to drinks; the session card (ADR-0017) counts
+drinks in a window. One axis, and a flat one: the app never had to decide
+whether more was worse, because it never showed anything that carried a
+direction.
+
+This feature introduces a second axis that carries a direction the reader
+already believes in. "6h 12m on nights with drinks, 7h 04m on nights without"
+is a verdict, and no sentence in the app has to deliver it. **Copy discipline
+does not save you here.** You could pass every 1.4.3 tone review and still have
+built a coach, because the number does the judging.
+
+Constraint 3 says the app measures and does not warn. The honest reading is
+that this feature sits right on that line, and that the line is held by
+structure rather than by wording.
+
+The counter-argument, which is also honest and is why this is worth building:
+Tallyist positions itself as a judgment-free *mindfulness* tool, and
+mindfulness means noticing. The most useful thing a person can notice about
+their drinking is what it does to them. Withholding data the user's own device
+already collected, in the name of neutrality, is its own kind of paternalism,
+and a tracker that will only ever tell you how much you drank is a less
+truthful product than one that will also show you the night after.
+
+So: build it, and let the structure hold the line.
+
+---
+
+## The four rules
+
+These are to this feature what the three hard rules of ADR-0017 are to the
+session card. They are not style preferences.
+
+**1. Both sides, never a delta headline.** Two figures, side by side, in the
+idiom the weekday and weekend cards already use. Nights with drinks, nights
+without. The reader computes the difference; the app does not put it in bold,
+does not colour it, does not prefix it with a sign, and does not say "worse".
+A difference the reader works out is an observation. A difference the app
+hands them is a verdict.
+
+**2. Correlation shown, causation never claimed.** "On nights you logged
+drinks", never "because you drank" and never "the effect of". No arrows, no
+trend lines between the two, no dual-axis chart. The two numbers sit beside
+each other and that is the whole claim.
+
+**3. A sample-size gate, in both buckets.** The population reference hides
+below four weeks. This needs more: enough nights with drinks *and* enough
+nights without, or the comparison is noise dressed as a finding. Pick the
+floor in Phase 1, defend it in the ADR, and hide the whole surface below it
+rather than showing a caveat. A number with an asterisk still gets read as a
+number.
+
+**4. Never the reverse direction.** The app must never use physiology to
+infer, predict, or question drinking. No "your resting heart rate suggests",
+no prompting to log on a night the data looks unusual, no flagging a
+discrepancy between the log and the body. That is diagnosis, it is the single
+clearest stop condition in this document, and the fact that it would be
+technically easy is exactly why it is written down.
+
+---
+
+## Stop conditions
+
+Beyond the standing list in `docs/tallyist-1.2-spec.md`. If implementation
+starts heading toward any of these, stop.
+
+- **Walking steadiness, gait, or any impairment proxy.** Inferring
+  intoxication is a medical claim and there is no version of it this product
+  can make.
+- **AFib history or irregular rhythm notifications.** Alcohol is a genuine
+  trigger and that is precisely why surfacing it here would be medical advice.
+- **Live heart rate during an active session.** That is impairment
+  monitoring on a wrist, in a bar. Retrospective only, next day at the
+  earliest.
+- **State of Mind / mood logging.** Mental health data is a different risk
+  class with different HealthKit rules and a different review posture. Not a
+  smaller version of this feature.
+- **Location, of any kind.** No new permission, no new category, no
+  surveillance shape.
+- **Any notification.** ADR-0017's third hard rule, unchanged and extended: no
+  notification about drinking, and now no notification about the body either.
+- **Storing health values anywhere.** See the architecture section; this one
+  is easy to do by accident.
+
+---
+
+## The metrics
+
+One section each. All four are read-only HealthKit reads on the phone.
+
+### Resting heart rate — build this first
+
+`HKQuantityType(.restingHeartRate)`. One value per day, computed by the watch,
+available on every model. No aggregation to invent, no night-boundary problem,
+no baseline to define. It is the cheapest of the four to build and the hardest
+to misread, which makes it the right vehicle for building the entire surface
+end to end in Phase 3.
+
+### Sleep duration and stages
+
+`HKCategoryType(.sleepAnalysis)`, with stage values (`asleepREM`, `asleepCore`,
+`asleepDeep`, `awake`) on watchOS 9 and later. The most recognisable of the
+four, and the most fiddly: a night is not a calendar day, and a sleep session
+has to be assembled from multiple category samples rather than read as one
+number. See "A drinking night is not a calendar day" below.
+
+Show duration first. Stages are a second increment and carry more
+interpretive weight per minute than duration does, so they deserve their own
+look at the copy.
+
+### Heart rate variability
+
+`HKQuantityType(.heartRateVariabilitySDNN)`. Genuinely responsive to alcohol,
+and noisy enough night to night that a reader can easily construct a story
+from randomness. Two consequences: it needs a larger sample-size floor than
+the others, and it needs the plainest possible presentation. Consider showing
+it only at the wider ranges (`.quarter`, `.year`) where the averaging does the
+work.
+
+### Sleeping wrist temperature
+
+`HKQuantityType(.appleSleepingWristTemperature)`, Series 8 and later. One clean
+nightly value and a real alcohol response, with two complications nothing else
+here has:
+
+1. **The model restriction is invisible to the user.** Someone on a Series 7
+   sees nothing and cannot tell whether that is their watch, their permissions,
+   or a bug. Handle it the same way as a denied read: show nothing, explain
+   nothing, never prompt.
+2. **The raw value is not the interesting quantity.** The Health app presents
+   wrist temperature as a deviation from the user's own baseline, because an
+   absolute figure means nothing to a reader. Tallyist would have to compute
+   its own baseline, which is a new derived statistic and therefore something
+   to define and defend rather than assume. Phase 6 decides it: the user's own
+   median over the displayed range is the obvious candidate, stated as such in
+   the UI, so the number is labelled as what it is.
+
+---
+
+## Architecture
+
+### Read, compute, render, discard
+
+**Nothing read from Health is persisted.** Not into SwiftData, not into
+UserDefaults, not into the App Group. Each render queries HealthKit for the
+displayed range, computes in memory, and throws the values away.
+
+This is not fastidiousness, it is the decision that keeps the feature small:
+
+- The SwiftData store mirrors to CloudKit. A health value written there is
+  health data in the user's iCloud database, which is a schema version, a
+  CloudKit console deployment, a migration fixture, a privacy-label question
+  and a privacy-policy rewrite, all at once.
+- It would also be redundant. HealthKit is already the durable store for this
+  data, already syncs across the user's devices, and is already where the user
+  goes to delete it.
+- And it keeps one of the app's better claims intact: revoking Health access
+  in Settings makes the feature disappear completely, with nothing left behind
+  in Tallyist to explain or purge.
+
+`HKStatisticsCollectionQuery` over the displayed range is the right shape for
+the three quantity types. Sleep needs its own assembly, below.
+
+**Two consequences to design around, both stated in the ADR:**
+
+- The pairing renders only on a device where HealthKit has the data. The drink
+  log syncs through CloudKit; Health data does not come with it. On an iPad, or
+  on a second phone that has never been paired to the watch, the feature may
+  show nothing. That is correct behaviour and should look like absence, not
+  like an error.
+- There is no cache, so a wide range means a real query. Measure it at
+  `.year` before assuming it is free.
+
+### HealthKit will not tell you a read was denied
+
+`HealthKitService` already knows this and says so twice in its own comments:
+`authorizationStatus(for:)` reports *share* permission only, and read access
+"remains invisible by design". That is a deliberate HealthKit property, so
+users cannot be probed for what data they have.
+
+For this feature it means **the app genuinely cannot distinguish** between:
+
+- the user denied the read,
+- the user granted it and has no such data,
+- the user's watch does not support the metric,
+- the user does not wear the watch to bed.
+
+All four are one state: no data. So there is exactly one correct behaviour, and
+it is the same in all four cases: **show nothing, say nothing, prompt never.**
+No "grant access to see this", no empty state explaining what they are missing,
+no badge. The toggle exists in Settings for anyone who wants to go looking; the
+in-context offer happens once. After that the app is silent about it forever.
+
+Write this into the ADR as a rule rather than leaving it as a UI detail,
+because every instinct in app design pushes the other way.
+
+### A drinking night is not a calendar day
+
+The core piece of new domain math, and the reason Phase 1 exists before any UI.
+
+The app's day boundaries are calendar days (`calendar.startOfDay`), and
+`SessionPace` deliberately works on absolute timestamps so midnight cannot
+split a sitting. Neither convention answers the question this feature asks,
+which is: *the drinks on the evening of the 14th, and the sleep that followed
+them.* That sleep mostly happens on the 15th.
+
+So Phase 1 defines a `DrinkingNight`: a window of drinks, and the sleep period
+that follows it, keyed so the two can be paired and bucketed. Three things to
+settle and pin with vectors:
+
+1. **The window.** Drinks logged between some hour on day N and some hour on
+   day N+1 belong to the night of N. A noon-to-noon or 18:00-to-06:00
+   convention are both defensible; state one.
+2. **Which sleep period.** The main sleep session whose start falls in that
+   window, not every nap in it.
+3. **Match the Health app's own attribution.** Apple attributes a sleep
+   session to a particular day, and a user who compares Tallyist's figure to
+   the Health app's and gets a different number will stop trusting both.
+   Check what Health actually does and follow it, or document the divergence
+   loudly. This is a research task before it is a coding task.
+
+Everything here is a pure function over `[LoggedDrink]` and a list of health
+samples, with `now` injected, living in `DrinkTrackerCore` and tested at tier
+1 alongside the session vectors. Time zone changes, DST, a drink at 3am, a
+night with no sleep recorded, two sleep sessions, and a nap all get cases.
+
+### Where the surface lives
+
+Trends, as a section below the existing comparison cards, with a picker for
+which metric to pair. Not the chart. The existing chart has bars and an average
+line and is about one quantity; overlaying a second series on a second axis
+would be both visually heavy and, per rule 2, exactly the wrong picture.
+
+The section shows, for the currently selected `TrendRange`, two figures side by
+side with the night counts that produced them:
+
+```
+Resting heart rate
+
+Nights you logged drinks     62 bpm     18 nights
+Nights you didn't            58 bpm     31 nights
+```
+
+The night counts are not decoration. They are what lets the reader judge how
+much the two figures are worth, which is the honest alternative to the app
+judging it for them.
+
+---
+
+## The ask
+
+Three properties, and the order matters.
+
+**It waits.** The offer does not exist until the log clears the sample-size
+gate for at least one enabled-able metric. Before that there is nothing to
+show and therefore nothing to ask for.
+
+**It shows before it asks.** The offer renders the card shape with the user's
+*drink* figures already in it and the health column empty, so what they are
+agreeing to is visible rather than described. A permission prompt for "heart
+rate" in the abstract is a different decision from one where the shape of the
+answer is on screen.
+
+**It asks once.** Declined means gone. The Settings toggles remain for anyone
+who changes their mind, and nothing in the app ever mentions it again. Given
+that a denied read is invisible anyway, a second ask would be indistinguishable
+from nagging someone who already said yes.
+
+HealthKit only prompts for types whose authorization is undetermined, so adding
+these four read types to `HealthKitService.requestAuthorization()` naturally
+produces one sheet covering only what has not been asked before. Existing users
+who already granted alcohol access see a sheet listing the four new types and
+nothing else.
+
+---
+
+## Copy
+
+House voice, plus two rules specific to this feature.
+
+- **No comparative adjective, ever.** Not worse, not better, not lower, not
+  higher, not improved. The figures are adjacent; the language is flat.
+  "Nights you logged drinks" and "Nights you didn't" are the two labels, and
+  they carry no direction.
+- **Name the source and the span in the UI**, the way the population reference
+  names its survey. "From Apple Health, last 90 days, 18 nights and 31
+  nights." A number whose provenance is visible is a fact; one that appears
+  unattributed is an assertion.
+
+Everything new goes through the 1.4.3 tone review in
+`docs/copy-review-1.4.3.md`, and this batch deserves a second pass rather than
+one, because the failure mode is a sentence that reads neutral in isolation and
+judgmental beside a number.
+
+---
+
+## Phases
+
+One session each, `docs/tallyist-1.2-spec.md`'s constraints plus "The risk",
+"The four rules" and "Stop conditions" pasted every time.
+
+**Phase 0, research, no code.** What convention does the Health app use to
+attribute a sleep session to a day? What does `appleSleepingWristTemperature`
+actually return and against what baseline does Health present it? How long does
+a year-range `HKStatisticsCollectionQuery` take on a real device? The answers
+change Phase 1's signatures, so they come first.
+
+**Phase 1, the domain.** `DrinkingNight`, the pairing, the bucketing, the
+sample-size gate, the comparison value type. Pure, in `DrinkTrackerCore`, tier
+1, with the edge cases above as vectors. No HealthKit import anywhere in this
+phase, which is what keeps invariant 9 true and what makes the whole feature
+testable without a device.
+
+**Phase 2, the read layer.** `HealthKitService` gains the four read types and
+a statistics query per metric, returning plain value types the domain layer
+consumes. Nothing persisted. Handles the no-data state as the single state it
+is.
+
+**Phase 3, resting heart rate, end to end.** The Trends section, the metric
+picker, the two-figure card, the Settings toggle, the in-context offer. One
+metric, the whole surface. This is the phase where the copy gets written and
+argued, and where ADR-0046 is written.
+
+**Phase 4, sleep duration.** Stages as a separate increment once duration is
+shipped and read correctly.
+
+**Phase 5, HRV.** Larger gate, plainest presentation, possibly wide ranges
+only.
+
+**Phase 6, wrist temperature.** Including the baseline decision, which is the
+one piece of new statistics in this feature and needs its own paragraph in the
+ADR.
+
+**Phase 7, release.** Below.
+
+---
+
+## ADRs
+
+Continuing from the watch plan's 0045:
+
+- **0046, the app pairs, it does not conclude.** The user picks the axis; both
+  figures side by side with their night counts; no delta headline, no
+  comparative language, no dual-axis chart. The argument for why structure
+  rather than copy is what holds constraint 3 here.
+- **0047, health context is read, never stored.** No SwiftData, no CloudKit, no
+  cache. What that buys, and the two consequences (device-dependence, query
+  cost).
+- **0048, a drinking night is not a calendar day.** The window, the sleep
+  attribution, matching the Health app, and the vectors.
+- **0049, the ask happens at the moment of value.** In context, once, showing
+  before asking; and the invisible-denial rule that makes silence the only
+  correct empty state.
+
+---
+
+## Release
+
+The heaviest release checklist of any feature in this repo, because it is the
+first one that changes what the app reads about a person.
+
+**The privacy policy sentence that becomes false.** `docs/privacy-policy.md`
+currently ends its Apple Health bullet with: *"Tallyist reads no other Health
+data."* That is a specific, checkable claim, and this feature breaks it. All
+three copies change in the same commit with the date bumped (ADR-0024), and
+`ci.yml`'s `policy-copies` job enforces the date agreement. Write the
+replacement as precisely as the original: which four types, read only, never
+stored, never transmitted, revocable in Health.
+
+**The usage description string.** `INFOPLIST_KEY_NSHealthShareUsageDescription`
+in `project.pbxproj`, in both the Debug and Release configurations. The current
+text is entirely about alcohol samples and will read as a mismatch to a
+reviewer looking at a sleep permission request.
+
+**App Privacy labels.** The app currently declares Data Not Collected, and that
+stays true: nothing is transmitted, nothing is stored, nothing leaves the
+device. Confirm rather than assume, and make sure the reasoning is written down
+somewhere a future session can find it.
+
+**Reviewer notes.** Expect scrutiny. An alcohol app reading sleep and cardiac
+data is a shape reviewers have seen go wrong. The notes should say what it
+does (shows the user their own two averages side by side, on a screen they
+open, for metrics they enabled), and what it does not do (no diagnosis, no
+advice, no threshold, no notification, no inference about drinking from
+physiology, nothing stored, nothing transmitted). The 1.0 Resolution Center
+response is the model for the register.
+
+**Also:** `docs/app-store-listing.md` What's New; `docs/copy-review-1.4.3.md`
+for every new string; `docs/design-system.md` for the paired-figure card;
+CLAUDE.md's Current state.
+
+---
+
+## Testing
+
+| Tier | What lands there |
+|---|---|
+| 1, domain | Night alignment, pairing, bucketing, the sample-size gate, the baseline math. The great majority of this feature. |
+| 2, repository | Nothing new. Health values are never written. |
+| 3, simulator | The card at every range and Dynamic Type size, the picker, the offer's one-time behaviour, the empty state rendering as absence. HealthKit data can be seeded in the simulator's Health app, which makes more of this reachable than it looks. |
+| 4, device | Real watch data, the Health app cross-check (does Tallyist's sleep figure match Health's for the same night?), query cost at `.year`, and the permission sheet's real content. |
+
+The Health app cross-check in tier 4 is the one that matters most and is
+easiest to skip. A figure that disagrees with the Health app is worse than no
+figure, because it makes the user distrust both.
+
+---
+
+## What I could not verify
+
+- **The Health app's sleep-day attribution convention.** Phase 0's first
+  question. Everything in Phase 1 keys off it.
+- **What `appleSleepingWristTemperature` returns** and how Health derives the
+  deviation it displays. Phase 0's second question, and the reason wrist
+  temperature is last.
+- **Query cost** for a year-range statistics collection on a real device. No
+  desk answer.
+- **Whether Health data is present on an iPad** signed into the same account,
+  which decides whether the feature renders there at all. The app ships
+  `TARGETED_DEVICE_FAMILY = "1,2"`, so this is a real surface, not a
+  hypothetical.
+- **Whether adding four read types changes anything about App Store Connect's
+  health-related questionnaires.** Worth checking before the build rather than
+  at submission.
