@@ -102,14 +102,20 @@ jobs:
   # day the token died. So the expiry is watched rather than remembered, and it
   # is read from the token itself so a rotation does not need an edit here.
   token-expiry:
-    name: Mirror token expiry
+    name: Token expiry
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     steps:
+      # No submodule here, and no contract token on the checkout: this job reads
+      # one script out of this repository and talks to the API. Fetching a private
+      # submodule with the very token whose expiry is in question would make a
+      # lapse fail as a checkout error, which is the confusion the check exists
+      # to prevent.
       - uses: actions/checkout@v5
-      - name: Warn before the mirror token expires
+      - name: Warn before a token expires
         env:
           TALLYIST_SYNC_TOKEN: ${{ secrets.TALLYIST_SYNC_TOKEN }}
+          TALLYIST_CONTRACT_TOKEN: ${{ secrets.TALLYIST_CONTRACT_TOKEN }}
         run: python3 .github/scripts/check_token_expiry.py
 
   verify:

@@ -56,6 +56,22 @@ identity derive from it, and renaming orphans the user's store (README
   rather than through a terminal — `read`/`pbpaste` routes have mangled it
   before (bracketed-paste escapes produce a stored value that fails with a
   confusing 401 rather than an obvious error).
+- **A second secret is now required for CI to run at all**, and unlike the
+  mirror token its absence is not a degradation:
+  `TALLYIST_CONTRACT_TOKEN` (fine-grained PAT, **Contents: read** on both
+  `semmes/tallyist-product` and `semmes/DrinkTracker`). `contract/` is a
+  submodule of `tallyist-product`, which is **private**, and a job's default
+  `GITHUB_TOKEN` is scoped to this repository alone — so every
+  `actions/checkout` in `ci.yml` passes this PAT as `token:`, which checkout
+  uses for the superproject *and* its submodules (hence both repos in the
+  grant). Without it all five jobs fail at their checkout step, which reads as
+  a CI outage rather than a missing credential. The same daily `token-expiry`
+  job watches this one too (`check_token_expiry.py` takes a table of tokens
+  now, and a 404 — a fine-grained PAT that authenticates but cannot see the
+  repo it is for — fails rather than warns). Two consequences worth knowing:
+  a pull request **from a fork** gets no secrets, so it fails at checkout —
+  the price of a private submodule in a public repo — and making
+  `tallyist-product` public would retire this secret entirely.
 - New user-visible copy goes through the App Store guideline **1.4.3** tone
   review — append to `docs/copy-review-1.4.3.md`. House voice: factual,
   no celebration, no judgment, no exclamation marks (one exception: the
