@@ -1,0 +1,31 @@
+# Paste this job into .github/workflows/ci.yml alongside `build`, in Phase 1.
+# It is the only compile check a remote session gets for the watch targets.
+
+  build-watch:
+    name: Build (watchOS Simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Select newest installed Xcode
+        run: |
+          # watchOS 26 needs Xcode 26 or newer. Failing here gives a clear SDK
+          # error rather than something obscure further down.
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selecting $latest"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+
+      - name: Build
+        run: |
+          # generic/platform, not a named device: runner images rotate their
+          # installed simulators and a build job needs no bootable one.
+          set -o pipefail
+          xcodebuild build \
+            -project DrinkTracker.xcodeproj \
+            -scheme DrinkTrackerWatch \
+            -destination 'generic/platform=watchOS Simulator' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
