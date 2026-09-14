@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/tallyist-design-system-a2a6b19a-c12c-47d8-9abe-c21e2c5a8671/styles.css">
+<style>
+  html, body { background: #e8e8ed; }
+  body { margin: 0; font-family: var(--font-text); color: var(--label); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: var(--t550); text-decoration: underline; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+</style>
+</helmet>
+
+<div style="max-width:1080px;margin:0 auto;padding:48px 28px 80px;display:flex;flex-direction:column;gap:28px">
+
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--label-secondary)">Design reference &middot; DrinkTrackerWatch &middot; Phase 3&ndash;6</div>
+    <h1 style="margin:0;font-size:32px;line-height:1.15;font-weight:700;letter-spacing:-.02em;text-wrap:pretty">The watch counter, and the tap that hides the number</h1>
+    <p style="margin:0;font-size:15px;line-height:1.65;color:var(--label-secondary);max-width:720px;text-wrap:pretty">Today's counter narrowed to 198&nbsp;&times;&nbsp;242&nbsp;pt, with the day's <code style="font-size:13px">DayIntensity</code> painted behind the numeral and one tap to put the digits away while the band stays lit. Dark ground only. Every value below is transcribed from shipping Swift or derived from it by a stated ratio; nothing here is eyeballed.</p>
+  </div>
+
+  <div style="padding:18px 22px;border-radius:var(--r-card);background:#fff;box-shadow:inset 0 0 0 1px var(--separator);display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Read this first</div>
+    <p style="margin:0;font-size:13.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty">This page is a <strong style="color:var(--label)">design reference drawn in HTML</strong>, not code to port. The target is a SwiftUI watchOS view in <code style="font-size:12px">DrinkTrackerWatch/</code>, built from the repo's own components and tokens. Where a value here names a Swift symbol, <strong style="color:var(--label)">call the symbol rather than copying the number</strong> &mdash; the hex codes are printed so the drawing can be checked, not so they can be pasted. <code style="font-size:12px">IntensityPalette</code> remains the only place in the app that defines literal colours (PRD invariant 10).</p>
+    <p style="margin:0;font-size:13.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Fidelity: high.</strong> Layout, type sizes, radii and colours are final and measured. Recreate them exactly. The one element that is <em>not</em> settled is marked in place: the &ldquo;Record no alcohol&rdquo; button on the empty&#8209;day screen is a proposal with no decision behind it.</p>
+  </div>
+
+  <div style="padding:18px 22px;border-radius:var(--r-card);background:#fff;box-shadow:inset 0 0 0 1px var(--separator);display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Constraints this design is built to respect</div>
+    <div style="font-size:13.5px;line-height:1.7;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">No goals, no streaks, no scores.</strong> Nothing on this screen accumulates toward anything, and no shape implies a target &mdash; which is why the band is a tile rather than a bar or an arc that fills. <strong style="color:var(--label)">Colour never grades.</strong> The ramp carries magnitude in lightness only, alcohol&#8209;free sits off it with an outline, status is shape and words first. <strong style="color:var(--label)">One tap is the fast path</strong> (invariant 1), and it cannot mean different things here and in the widget &mdash; so &#xFF0B; runs the same seed rule, read from the App Group. <strong style="color:var(--label)">Region is a display lens</strong> (invariant 3): every figure is expressed in the region the settings bridge delivered, never a US default. <strong style="color:var(--label)">Voice:</strong> factual, countable, states of the system and not the person, and no exclamation marks &mdash; the storage warning included.</div>
+  </div>
+
+  <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap">
+
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+      <div style="width:368px;height:442px">
+        <div style="transform:scale(1.7);transform-origin:0 0;width:216px;height:260px">
+          <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a);box-shadow:0 8px 24px rgba(0,0,0,.45)">
+            <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+              <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                <div style="display:flex;align-items:center;gap:4px">
+                  <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                  <div style="width:86px;height:86px;border-radius:25px;background:#3987e5;display:flex;align-items:center;justify-content:center">
+                    <span style="font-family:var(--font-rounded);font-weight:600;font-size:46px;line-height:1;font-variant-numeric:tabular-nums;color:#000">3</span>
+                  </div>
+                  <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                </div>
+                <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                <div style="margin-top:1px;font-size:11px;color:var(--label-secondary)">&#8776; 3 standard drinks</div>
+                <div style="margin-top:11px;display:flex;gap:7px;align-items:center">
+                  <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#184f95"></span><span style="font-size:9px;color:var(--label-secondary);font-variant-numeric:tabular-nums">1&ndash;2</span></div>
+                  <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#3987e5"></span><span style="font-size:9px;font-weight:600;color:var(--label);font-variant-numeric:tabular-nums">3&ndash;5</span></div>
+                  <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#9ec5f4"></span><span style="font-size:9px;color:var(--label-secondary);font-variant-numeric:tabular-nums">6&ndash;9</span></div>
+                  <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#cde2fb"></span><span style="font-size:9px;color:var(--label-secondary);font-variant-numeric:tabular-nums">10+</span></div>
+                </div>
+                <div style="margin-top:auto;font-size:10px;color:var(--label-tertiary)">Hold &#xFF0B; to say what it was</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12.5px;line-height:1.5;color:var(--label-secondary);max-width:360px;text-align:center;text-wrap:pretty"><strong style="color:var(--label)">The counter, shown.</strong> 3 drinks, band <code style="font-size:12px">.medium</code>, black ink on step 400 at 5.77:1. Drawn at 1.7&times;; every figure in the tables is in points.</div>
+    </div>
+
+    <div style="flex:1;min-width:380px;display:flex;flex-direction:column;gap:16px">
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Geometry &mdash; 45&nbsp;mm, 198&nbsp;&times;&nbsp;242&nbsp;pt</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:12.5px;line-height:1.5">
+          <span style="color:var(--label-secondary)">Screen margin</span><span>8 &mdash; watch&#8209;local; <em>not</em> <code style="font-size:11px">screenMargin</code>'s 20</span>
+          <span style="color:var(--label-secondary)">Top / bottom inset</span><span>26 / 12</span>
+          <span style="color:var(--label-secondary)">Counter row</span><span>44 &middot; 4 &middot; 86 &middot; 4 &middot; 44 = 182, the full usable width</span>
+          <span style="color:var(--label-secondary)">Tile</span><span>86 square, radius 25 continuous</span>
+          <span style="color:var(--label-secondary)">Numeral in tile</span><span>46 semibold rounded, tabular, <code style="font-size:11px">minimumScaleFactor</code> 0.6</span>
+          <span style="color:var(--label-secondary)">Numeral, no tile</span><span>56 &mdash; it takes the tile's room on an unlogged day</span>
+          <span style="color:var(--label-secondary)">Disc glyphs</span><span>&minus; 19, &#xFF0B; 21, both semibold</span>
+          <span style="color:var(--label-secondary)">Unit word</span><span>12, secondary, 7 below the row</span>
+          <span style="color:var(--label-secondary)">&#8776; line</span><span>11, secondary, 1 below the unit word</span>
+          <span style="color:var(--label-secondary)">Legend</span><span>9 swatch, radius 3, 9&#8239;pt label, 3 inner gap, 7 outer, 11 above</span>
+          <span style="color:var(--label-secondary)">Hint / toast</span><span>10, bottom&#8209;pinned; toast pill radius 12, padding 5&#8239;&times;&#8239;10</span>
+          <span style="color:var(--label-secondary)">Hidden bar</span><span>40 &times; 8, radius 4, band ink at 55%</span>
+          <span style="color:var(--label-secondary)">Session dots</span><span>9 diameter, 5 gap, max 8</span>
+        </div>
+      </div>
+
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Two ratios, so the tile can be resized honestly</div>
+        <div style="font-size:12.5px;line-height:1.6;color:var(--label-secondary);text-wrap:pretty">The phone's hero is a 68&#8239;pt numeral in a 126&#8239;pt tile at radius 36. Both watch values are that, scaled: <strong style="color:var(--label)">radius = side &times; 36&#8239;/&#8239;126</strong> &rarr; 25, and <strong style="color:var(--label)">numeral = side &times; 68&#8239;/&#8239;126</strong> &rarr; 46. If the tile ever changes size &mdash; another case, an accessibility step &mdash; re&#8209;derive from these rather than picking new numbers.</div>
+      </div>
+
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Every colour, by name</div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:12.5px;line-height:1.5">
+          <span style="color:var(--label-secondary)">Tile fill</span><span><code style="font-size:11px">IntensityPalette.fill(band, scheme: .dark)</code></span>
+          <span style="color:var(--label-secondary)">Tile ink</span><span><code style="font-size:11px">IntensityPalette.ink(band, scheme: .dark)</code> &mdash; white at <code style="font-size:11px">.low</code>, black above</span>
+          <span style="color:var(--label-secondary)">&#xFF0B; fill</span><span><code style="font-size:11px">Color("AccentFill")</code> &mdash; 500 in both modes. <em>Never</em> <code style="font-size:11px">Color.accentColor</code>: white on the dark text accent is 3.64:1</span>
+          <span style="color:var(--label-secondary)">&#xFF0B; glyph</span><span><code style="font-size:11px">.white</code></span>
+          <span style="color:var(--label-secondary)">&minus; glyph</span><span><code style="font-size:11px">Color.accentColor</code>; <code style="font-size:11px">.secondary</code> at 40% when disabled</span>
+          <span style="color:var(--label-secondary)">&minus; ground</span><span><code style="font-size:11px">glassSurface(cornerRadius: 22, interactive: true)</code></span>
+          <span style="color:var(--label-secondary)">Legend swatches</span><span>all four <code style="font-size:11px">IntensityPalette.fill</code>, always full colour &mdash; it is a key</span>
+          <span style="color:var(--label-secondary)">Alcohol&#8209;free tile</span><span><code style="font-size:11px">.primary</code> at 16% + 2&#8239;pt <code style="font-size:11px">.primary</code> at 35%</span>
+          <span style="color:var(--label-secondary)">Unlogged tile</span><span><code style="font-size:11px">.clear</code>, no stroke &mdash; absence drawn as absence</span>
+          <span style="color:var(--label-secondary)">Everything else</span><span>system semantic: <code style="font-size:11px">.primary</code>, <code style="font-size:11px">.secondary</code>, <code style="font-size:11px">.tertiary</code></span>
+        </div>
+      </div>
+
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">The dark ramp, and where the contrast floor bites</div>
+        <div style="display:grid;grid-template-columns:auto auto auto 1fr;gap:5px 14px;font-size:12px;line-height:1.5">
+          <span style="font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase">Band</span><span style="font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase">Fill</span><span style="font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase">vs&nbsp;black</span><span style="font-weight:600;font-size:11px;letter-spacing:.04em;text-transform:uppercase">Ink, and its contrast on the fill</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:3px;background:#184f95;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)"></span>1&ndash;2</span><span><code style="font-size:11px">600 #184f95</code></span><span>2.59:1</span><span>white &mdash; 6.94:1</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:3px;background:#3987e5"></span>3&ndash;5</span><span><code style="font-size:11px">400 #3987e5</code></span><span>5.77:1</span><span>black &mdash; 5.77:1</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:3px;background:#9ec5f4"></span>6&ndash;9</span><span><code style="font-size:11px">200 #9ec5f4</code></span><span>11.76:1</span><span>black &mdash; 11.76:1</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:11px;border-radius:3px;background:#cde2fb"></span>10+</span><span><code style="font-size:11px">100 #cde2fb</code></span><span>15.86:1</span><span>black &mdash; 15.86:1</span>
+        </div>
+        <div style="font-size:12.5px;line-height:1.6;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">The 2.59:1 in row one is why the session dots start at <code style="font-size:11px">.medium</code></strong> &mdash; a dot is a graphical object needing 3:1 against its ground, and <code style="font-size:11px">.low</code> does not clear it. A <code style="font-size:11px">.low</code> dot stays on the neutral outline, which is the design system's existing off&#8209;ramp channel. The <strong style="color:var(--label)">tile is exempt</strong>, and deliberately: it is 86&nbsp;pt of fill carrying a numeral at 6.94:1, not a 9&#8209;pt mark whose colour is the whole message. Recompute all four before changing any of them; a colour error here is invisible to a reviewer with normal colour vision.</div>
+      </div>
+
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Behaviour the code owns</div>
+        <div style="font-size:12.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">&#xFF0B;</strong> writes through <code style="font-size:11px">DrinkDraft.quickCount(1, from:seed:region:)</code> with region and seed read from <code style="font-size:11px">AppSettings.storedRegion()</code> / <code style="font-size:11px">storedCounterSeed()</code>. Lift the shared body into <code style="font-size:11px">Shared/</code> and call it from both here and <code style="font-size:11px">LogOneDrinkIntent</code> &mdash; a fourth copy of the seed rule will drift, which is the whole of ADR&#8209;0023's argument. <strong style="color:var(--label)">&minus;</strong> goes through <code style="font-size:11px">DrinkRepository.delete(id:)</code> on the entry returned by a new pure <code style="font-size:11px">removableNewest(in:on:calendar:)</code>; nil means the control is <em>unavailable</em>, never skipping to an older drink. <strong style="color:var(--label)">Both refetch at execution time</strong> and chain like <code style="font-size:11px">TodayView</code>'s <code style="font-size:11px">counterOps</code>, so a fast &minus; behind a &#xFF0B; removes the drink that &#xFF0B; just made rather than the one before it. <strong style="color:var(--label)">Double&nbsp;Tap</strong> is <code style="font-size:11px">.handGestureShortcut(.primaryAction)</code> on &#xFF0B; and nothing else claims it. <strong style="color:var(--label)">Haptics:</strong> <code style="font-size:11px">.click</code> on a log, <code style="font-size:11px">.failure</code> on a refusal, a distinct one for a Double&nbsp;Tap log so an unintended pinch announces itself &mdash; and never <code style="font-size:11px">.success</code>, which reads as praise.</div>
+      </div>
+
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">The hide state</div>
+        <div style="font-size:12.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty">A <code style="font-size:11px">@State</code> boolean on the counter view, toggled by a tap on the tile &mdash; 86&nbsp;pt, so no new affordance is needed. <strong style="color:var(--label)">Per&#8209;glance, not stored:</strong> it clears on launch, writes nothing to defaults, and never gates a write. When true, suppress the numeral (bar in its place), the &#8776;&nbsp;line, the four legend labels, and the session dots' fill &mdash; they fall to outlines. <strong style="color:var(--label)">Keep</strong> the tile fill, the swatches, the unit word and both controls. This is orthogonal to <code style="font-size:11px">.privacySensitive()</code>, which still applies to every figure and composes on top.</div>
+      </div>
+
+      <div style="padding:18px 20px;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Motion, and the one thing that jumps</div>
+        <div style="font-size:12.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty">The numeral rolls on a <em>value</em> change: <code style="font-size:11px">.contentTransition(.numericText(value:))</code> + <code style="font-size:11px">.snappy(duration: 0.2)</code>. The tile's fill and ink crossfade on their own clock at <code style="font-size:11px">.smooth(duration: 0.22)</code>, gated by Reduce Motion, exactly as <code style="font-size:11px">CountStepper</code> does. Hiding is a <em>subject</em> change, not a value change, so numeral&nbsp;&rarr;&nbsp;bar must <strong style="color:var(--label)">crossfade and must not roll</strong> &mdash; a roll would draw a direction the app does not assert. <strong style="color:var(--label)">Watch out:</strong> the legend re&#8209;lays&#8209;out when the labels leave, which moves the swatches. Either crossfade the whole row or pin its width so it cannot shift; do not animate the gap.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <h2 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.01em">Every state</h2>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;background:#3987e5;display:flex;align-items:center;justify-content:center">
+                      <span style="width:40px;height:8px;border-radius:4px;background:rgba(0,0,0,.55)"></span>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                  <div style="margin-top:16px;width:150px;display:flex;justify-content:space-between;align-items:center">
+                    <span style="width:9px;height:9px;border-radius:3px;background:#184f95"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#3987e5"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#9ec5f4"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#cde2fb"></span>
+                  </div>
+                  <div style="margin-top:auto;box-sizing:border-box;width:100%;padding:5px 10px;border-radius:12px;background:rgba(44,44,48,.94);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.14);text-align:center;font-size:10px;line-height:1.3;color:var(--label)">Tap again to show the count</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Hidden, just tapped.</strong> Tile untouched, so the amount never left. Gone: numeral, &#8776;&nbsp;line, all four labels. The toast takes the hint's slot for about two seconds &mdash; it reserves no row of its own.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;background:#3987e5;display:flex;align-items:center;justify-content:center">
+                      <span style="width:40px;height:8px;border-radius:4px;background:rgba(0,0,0,.55)"></span>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                  <div style="margin-top:16px;width:150px;display:flex;justify-content:space-between;align-items:center">
+                    <span style="width:9px;height:9px;border-radius:3px;background:#184f95"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#3987e5"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#9ec5f4"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#cde2fb"></span>
+                  </div>
+                  <div style="margin-top:auto;font-size:10px;color:var(--label-tertiary)">Hold &#xFF0B; to say what it was</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Hidden, at rest.</strong> The state the wrist actually sits in. A lit tile, four swatches, no digits &mdash; the owner reads their band by matching, and there is nothing on screen to read aloud.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;background:#cde2fb;display:flex;align-items:center;justify-content:center">
+                      <span style="width:40px;height:8px;border-radius:4px;background:rgba(0,0,0,.55)"></span>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                  <div style="margin-top:16px;width:150px;display:flex;justify-content:space-between;align-items:center">
+                    <span style="width:9px;height:9px;border-radius:3px;background:#184f95"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#3987e5"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#9ec5f4"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;background:#cde2fb"></span>
+                  </div>
+                  <div style="margin-top:auto;font-size:10px;color:var(--label-tertiary)">Hold &#xFF0B; to say what it was</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Hidden &mdash; a 10+ day.</strong> Step 100, the ramp's dark&#8209;mode top. Against the screen to its left: &Delta;L* 33 between the two tiles, legible across a room, not a digit anywhere.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--label-secondary);opacity:.4;font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;display:flex;align-items:center;justify-content:center">
+                      <span style="font-family:var(--font-rounded);font-weight:600;font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:var(--label)">0</span>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                  <div style="margin-top:14px;box-sizing:border-box;width:100%;min-height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;padding:0 10px">
+                    <span style="font-size:13px;font-weight:500;color:#fff;text-align:center">Record no alcohol</span>
+                  </div>
+                  <div style="margin-top:auto;font-size:10px;color:var(--label-tertiary)">Hold &#xFF0B; to say what it was</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Empty day &mdash; contains a proposal.</strong> No tile (<code style="font-size:11px">.unlogged</code> is <code style="font-size:11px">.clear</code>), so the numeral takes its room at 56; no legend, since there is no band to key. <strong style="color:var(--label)">The button is not in the plan.</strong> See open question 1 &mdash; do not build it on this drawing alone.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--label-secondary);opacity:.4;font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center">
+                      <svg width="34" height="34" viewBox="0 0 24 24" style="display:block;color:var(--label)"><path d="M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16z M8.5 12.2l2.4 2.4 4.8-4.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:9px;font-size:11px;line-height:1.35;color:var(--label-secondary);text-align:center">Recorded as no alcohol today</div>
+                  <div style="margin-top:4px;font-size:10px;line-height:1.35;color:var(--label-secondary);text-align:center">Tap the plus sign to change that.</div>
+                  <div style="margin-top:auto;font-size:10px;color:var(--label-tertiary)">Hold &#xFF0B; to say what it was</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Recorded as no alcohol.</strong> The outline channel at tile scale &mdash; neutral fill plus a 2&#8209;pt border, off the ramp so it can never read as a small amount of drinking. Copy is <code style="font-size:11px">TodayView</code>'s verbatim; glyph is <code style="font-size:11px">tally.alcoholfree</code>. A day marked from Apple Health reads &ldquo;From Apple Health&rdquo; instead of the second line and offers no way to clear it.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:22px 8px 10px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;background:#3987e5;display:flex;align-items:center;justify-content:center">
+                      <span style="font-family:var(--font-rounded);font-weight:600;font-size:46px;line-height:1;font-variant-numeric:tabular-nums;color:#000">5</span>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:6px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                  <div style="margin-top:1px;font-size:11px;color:var(--label-secondary)">&#8776; 5 standard drinks</div>
+                  <div style="margin-top:9px;display:flex;gap:7px;align-items:center">
+                    <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#184f95"></span><span style="font-size:9px;color:var(--label-secondary);font-variant-numeric:tabular-nums">1&ndash;2</span></div>
+                    <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#3987e5"></span><span style="font-size:9px;font-weight:600;color:var(--label);font-variant-numeric:tabular-nums">3&ndash;5</span></div>
+                    <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#9ec5f4"></span><span style="font-size:9px;color:var(--label-secondary);font-variant-numeric:tabular-nums">6&ndash;9</span></div>
+                    <div style="display:flex;align-items:center;gap:3px"><span style="width:9px;height:9px;border-radius:3px;background:#cde2fb"></span><span style="font-size:9px;color:var(--label-secondary);font-variant-numeric:tabular-nums">10+</span></div>
+                  </div>
+                  <div style="margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:4px">
+                    <div style="display:flex;gap:5px;align-items:center">
+                      <span style="width:9px;height:9px;border-radius:5px;background:#3987e5"></span>
+                      <span style="width:9px;height:9px;border-radius:5px;background:#3987e5"></span>
+                      <span style="width:9px;height:9px;border-radius:5px;background:#3987e5"></span>
+                      <span style="width:9px;height:9px;border-radius:5px;background:#3987e5"></span>
+                      <span style="width:9px;height:9px;border-radius:5px;background:#3987e5"></span>
+                    </div>
+                    <div style="font-size:11px;color:var(--label-secondary)"><span style="font-family:var(--font-rounded);font-weight:600;color:var(--label);font-variant-numeric:tabular-nums">5</span> &middot; 1h 12m</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Session running.</strong> Behind the watch's own toggle, off by default; the hint yields the bottom slot. Dots read the rolling two&#8209;hour window, the tile reads the day &mdash; two windows, one scale. Inside <code style="font-size:11px">TimelineView(.periodic(from:.now, by:60))</code>; never a <code style="font-size:11px">Timer</code>.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:12px 10px 0;display:flex;flex-direction:column">
+                  <div style="height:20px;display:flex;align-items:center"><span style="color:var(--accent);font-size:14px;font-weight:600;line-height:1">&#8249;</span></div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+                    <div style="height:62px;border-radius:14px;background:rgba(255,255,255,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                      <svg width="20" height="20" viewBox="0 0 24 24" style="display:block;color:var(--accent)"><path d="M5 3.5h11v15.5A2 2 0 0 1 14 21H7a2 2 0 0 1-2-2z M16 8h1.5A3.5 3.5 0 0 1 21 11.5v2a3.5 3.5 0 0 1-3.5 3.5H16v-2h1.5a1.5 1.5 0 0 0 1.5-1.5v-2A1.5 1.5 0 0 0 17.5 10H16z M7 6.5h7V8H7z" fill="currentColor" fill-rule="evenodd"></path></svg>
+                      <span style="font-size:11px;color:var(--label)">Beer</span>
+                    </div>
+                    <div style="height:62px;border-radius:14px;background:rgba(255,255,255,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                      <svg width="20" height="20" viewBox="0 0 24 24" style="display:block;color:var(--accent)"><path d="M7 3h10v4.5a5 5 0 0 1-10 0z M11 12.5h2V18h-2z M8 18h8v2H8z" fill="currentColor" fill-rule="evenodd"></path></svg>
+                      <span style="font-size:11px;color:var(--label)">Wine</span>
+                    </div>
+                    <div style="height:62px;border-radius:14px;background:rgba(255,255,255,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                      <svg width="20" height="20" viewBox="0 0 24 24" style="display:block;color:var(--accent)"><path d="M5 7h14l-1.4 12.2A2 2 0 0 1 15.6 21H8.4a2 2 0 0 1-2-1.8z M7.2 13.5h9.6V15H7.2z" fill="currentColor" fill-rule="evenodd"></path></svg>
+                      <span style="font-size:11px;color:var(--label)">Spirit</span>
+                    </div>
+                    <div style="height:62px;border-radius:14px;background:rgba(255,255,255,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                      <svg width="20" height="20" viewBox="0 0 24 24" style="display:block;color:var(--accent)"><path d="M3 3.5h18L13.2 12.8V18h3v2H7.8v-2h3v-5.2z" fill="currentColor" fill-rule="evenodd"></path></svg>
+                      <span style="font-size:11px;color:var(--label)">Cocktail</span>
+                    </div>
+                    <div style="height:62px;border-radius:14px;background:rgba(255,255,255,.10);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                      <svg width="20" height="20" viewBox="0 0 24 24" style="display:block;color:var(--accent)"><path d="M7 3h10v16a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z M8.35 12.5a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0z M10.85 12.5a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0z M13.35 12.5a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0z" fill="currentColor" fill-rule="evenodd"></path></svg>
+                      <span style="font-size:11px;color:var(--label)">Other</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Type picker &mdash; long&#8209;press &#xFF0B;.</strong> One screen deep, returns on tap, the app's only navigation. Iterate <code style="font-size:11px">selectableCases</code>, so <code style="font-size:11px">.unspecified</code> is never offered; load glyphs with <code style="font-size:11px">Image(_:)</code>, never <code style="font-size:11px">systemName:</code>. Writes the type's defaults &mdash; no size, no strength.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label);filter:brightness(.52)">
+                <div style="height:100%;box-sizing:border-box;padding:26px 8px 12px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center">
+                      <svg width="34" height="34" viewBox="0 0 24 24" style="display:block;color:rgba(255,255,255,.55)"><path d="M12 2.5c3.2 4 6.5 7.8 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.3 8.8 6.5 12 2.5z" fill="currentColor" fill-rule="evenodd"></path></svg>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drinks today</div>
+                  <div style="margin-top:16px;width:150px;display:flex;justify-content:space-between;align-items:center">
+                    <span style="width:9px;height:9px;border-radius:3px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)"></span>
+                    <span style="width:9px;height:9px;border-radius:3px;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.4)"></span>
+                  </div>
+                  <div style="margin-top:auto;font-size:10px;color:var(--label-tertiary)">Hold &#xFF0B; to say what it was</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Always&#8209;On &mdash; the system's redaction.</strong> Distinct from the user's, and stronger: <strong style="color:var(--label)">the tile's fill goes too</strong>, falling to the outline channel, because once the digits are gone the colour <em>is</em> the figure. The drop glyph returns so the screen does not read as broken; the swatches empty out. This is what <code style="font-size:11px">.privacySensitive()</code> has to produce &mdash; verify on a device, not in the simulator.</div>
+      </div>
+
+      <div style="width:227px;display:flex;flex-direction:column;gap:8px">
+        <div style="width:227px;height:273px">
+          <div style="transform:scale(1.05);transform-origin:0 0;width:216px;height:260px">
+            <div style="padding:9px;border-radius:53px;background:linear-gradient(150deg,#55585c,#2c2e31 40%,#191b1d 66%,#43454a)">
+              <div class="dark" style="width:198px;height:242px;border-radius:44px;background:#000;overflow:hidden;font-family:var(--font-text);color:var(--label)">
+                <div style="height:100%;box-sizing:border-box;padding:24px 8px 10px;display:flex;flex-direction:column;align-items:center">
+                  <div style="display:flex;align-items:center;gap:4px">
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--glass);box-shadow:inset 0 0 0 .5px var(--separator);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:19px;font-weight:600;line-height:1">&minus;</div>
+                    <div style="width:86px;height:86px;border-radius:25px;background:#184f95;display:flex;align-items:center;justify-content:center">
+                      <span style="font-family:var(--font-rounded);font-weight:600;font-size:46px;line-height:1;font-variant-numeric:tabular-nums;color:#fff">1</span>
+                    </div>
+                    <div style="width:44px;height:44px;border-radius:22px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:21px;font-weight:600;line-height:1">&#xFF0B;</div>
+                  </div>
+                  <div style="margin-top:7px;font-size:12px;color:var(--label-secondary)">drink today</div>
+                  <div style="margin-top:auto;display:flex;align-items:center;gap:6px;box-sizing:border-box;width:100%;padding:7px 10px;border-radius:14px;background:rgba(255,255,255,.10)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" style="display:block;flex:none;color:var(--label)"><path d="M12 3.2 22.2 20.6H1.8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path><path d="M12 9.4v4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><circle cx="12" cy="17.4" r="1.2" fill="currentColor"></circle></svg>
+                    <span style="font-size:10px;line-height:1.3;color:var(--label)">Not saving &mdash; storage unavailable</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Storage failed.</strong> <code style="font-size:11px">Diagnostics.isStoreInMemory</code>, in <code style="font-size:11px">SettingsView</code>'s own words, taking the legend's and the hint's room. The watch has no Settings page to bury this on, and a watch silently discarding every log is the worst outcome available here. Note the &#8776;&nbsp;line is also absent &mdash; a 1&#8209;drink day with a failed store has nothing to total.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="dark" style="border-radius:20px;background:#111113;padding:22px;display:flex;flex-direction:column;gap:16px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(235,235,245,.6)">Complications &mdash; the block travels, and so does the hiding</div>
+    <div style="display:flex;gap:24px;align-items:flex-end;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:7px;align-items:center">
+        <div style="width:78px;height:78px;border-radius:39px;background:#3987e5;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span style="font-family:var(--font-rounded);font-weight:600;font-size:30px;line-height:1;color:#000;font-variant-numeric:tabular-nums">3</span>
+          <span style="font-size:9px;color:rgba(0,0,0,.62);margin-top:1px">drinks</span>
+        </div>
+        <span style="font-size:10px;color:rgba(235,235,245,.6)">accessoryCircular</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;align-items:center">
+        <div style="width:78px;height:78px;border-radius:39px;background:#3987e5;display:flex;align-items:center;justify-content:center">
+          <span style="width:32px;height:7px;border-radius:4px;background:rgba(0,0,0,.55)"></span>
+        </div>
+        <span style="font-size:10px;color:rgba(235,235,245,.6)">&hellip; hidden</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;align-items:center">
+        <div style="width:92px;height:78px;position:relative;overflow:hidden">
+          <div style="position:absolute;left:-26px;top:-26px;width:104px;height:104px;border-radius:52px;background:#3987e5"></div>
+          <div style="position:absolute;left:14px;top:14px;display:flex;flex-direction:column;align-items:center">
+            <span style="font-family:var(--font-rounded);font-weight:600;font-size:22px;line-height:1;color:#000">3</span>
+            <span style="font-size:8px;color:rgba(0,0,0,.62);margin-top:1px">drinks</span>
+          </div>
+        </div>
+        <span style="font-size:10px;color:rgba(235,235,245,.6)">accessoryCorner</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-start">
+        <div style="width:230px;height:32px;border-radius:16px;background:rgba(255,255,255,.13);display:flex;align-items:center;gap:7px;padding:0 13px;box-sizing:border-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" style="display:block;flex:none;color:rgba(255,255,255,.9)"><path d="M12 2.5c3.2 4 6.5 7.8 6.5 11.5a6.5 6.5 0 0 1-13 0C5.5 10.3 8.8 6.5 12 2.5z" fill="currentColor" fill-rule="evenodd"></path></svg>
+          <span style="font-size:14px;color:#fff"><span style="font-family:var(--font-rounded);font-weight:600">3</span> drinks today</span>
+        </div>
+        <span style="font-size:10px;color:rgba(235,235,245,.6)">accessoryInline &mdash; text only, no block</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-start">
+        <div style="width:264px;height:118px;border-radius:22px;background:rgba(255,255,255,.13);box-sizing:border-box;padding:12px;display:flex;align-items:center;gap:12px">
+          <div style="width:70px;height:70px;border-radius:20px;background:#3987e5;display:flex;align-items:center;justify-content:center;flex:none">
+            <span style="font-family:var(--font-rounded);font-weight:600;font-size:34px;line-height:1;color:#000;font-variant-numeric:tabular-nums">3</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:12px;color:rgba(235,235,245,.65)">drinks today</span>
+            <span style="font-size:11px;color:rgba(235,235,245,.6)">&#8776; 3 standard drinks</span>
+          </div>
+          <div style="width:56px;height:56px;border-radius:28px;background:var(--accent-fill);display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;font-weight:600;flex:none">&#xFF0B;</div>
+        </div>
+        <span style="font-size:10px;color:rgba(235,235,245,.6)">accessoryRectangular &mdash; the &#xFF0B; runs LogOneDrinkIntent</span>
+      </div>
+    </div>
+    <div style="font-size:12.5px;line-height:1.6;color:rgba(235,235,245,.6);max-width:740px;text-wrap:pretty">The tile shrinks to a disc and keeps its job. <strong style="color:#fff">Session count while a session runs, today's count otherwise</strong> &mdash; the same rule the home&#8209;screen widget follows, no more. <code style="font-size:11px">StaticConfiguration</code> throughout. <strong style="color:#fff">Build the timeline with two entries</strong> &mdash; the current one, and one dated <code style="font-size:11px">session.lastDrinkAt + SessionPace.gapThreshold</code> with the post&#8209;session state, refresh policy <code style="font-size:11px">.after</code> that date &mdash; or a dead session's count sits on the face until something else triggers a reload, which is the standing number the tone rules forbid. <code style="font-size:11px">accessoryInline</code> cannot show a block at all, so it is the one family where hiding means the figure simply goes. Use <code style="font-size:11px">LogOneDrinkIntent</code> and never <code style="font-size:11px">LogDrinkIntent</code>: a promptable parameter is the bug that once broke one&#8209;tap logging, and a parameterless intent structurally cannot repeat it. No relevance&#8209;based Smart Stack surfacing &mdash; &ldquo;you usually drink around now&rdquo; is a behavioural prediction dressed as help.</div>
+  </div>
+
+  <div style="display:flex;gap:18px;flex-wrap:wrap">
+    <div style="flex:1;min-width:320px;padding:20px 22px;border-radius:var(--r-card);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:11px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Strings &mdash; for the 1.4.3 copy review</div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:5px 14px;font-size:12.5px;line-height:1.45">
+        <span>&ldquo;drinks today&rdquo; / &ldquo;drink today&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>&ldquo;&#8776; N standard drinks&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>&ldquo;1&ndash;2&rdquo; &ldquo;3&ndash;5&rdquo; &ldquo;6&ndash;9&rdquo; &ldquo;10+&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>&ldquo;Recorded as no alcohol today&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>&ldquo;Tap the plus sign to change that.&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>&ldquo;From Apple Health&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>&ldquo;Not saving &mdash; storage unavailable&rdquo;</span><span style="color:var(--label-secondary)">exists</span>
+        <span>Beer / Wine / Spirit / Cocktail / Other</span><span style="color:var(--label-secondary)">exists</span>
+        <span><strong style="color:var(--label)">&ldquo;Hold &#xFF0B; to say what it was&rdquo;</strong></span><span style="color:var(--accent)">new</span>
+        <span><strong style="color:var(--label)">&ldquo;Tap again to show the count&rdquo;</strong></span><span style="color:var(--accent)">new</span>
+        <span><strong style="color:var(--label)">&ldquo;Record no alcohol&rdquo;</strong></span><span style="color:var(--accent)">new, unresolved</span>
+        <span><strong style="color:var(--label)">Session line: &ldquo;N &middot; 1h 12m&rdquo;</strong></span><span style="color:var(--accent)">new format</span>
+        <span><strong style="color:var(--label)">&minus;&#8209;unavailable line</strong></span><span style="color:var(--accent)">new</span>
+        <span><strong style="color:var(--label)">Region&#8209;not&#8209;set line</strong></span><span style="color:var(--accent)">new</span>
+        <span><strong style="color:var(--label)">Complication name + description</strong></span><span style="color:var(--accent)">new</span>
+      </div>
+      <div style="font-size:12px;line-height:1.55;color:var(--label-secondary);text-wrap:pretty">Whole&#8209;phrase keys carrying their own count, never a number glued to a noun &mdash; the unit's name varies by region, its form by count, and word order by language. Two of these are not drawn on this page: the &minus;&#8209;unavailable line and the region&#8209;not&#8209;set line both replace the &#8776;&nbsp;line in their states.</div>
+    </div>
+
+    <div style="flex:1;min-width:320px;padding:20px 22px;border-radius:var(--r-card);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:11px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Accessibility &mdash; non&#8209;negotiable</div>
+      <div style="font-size:12.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty">The counter is <strong style="color:var(--label)">one adjustable element</strong>, not three stops: <code style="font-size:11px">accessibilityElement(children: .ignore)</code>, label &ldquo;Drinks today&rdquo;, value the count, and an <code style="font-size:11px">accessibilityAdjustableAction</code> for increment and decrement. The tile stays out of the tree entirely &mdash; the value already says the number, and the colour encodes nothing a reader needs twice.</div>
+      <div style="font-size:12.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty"><strong style="color:var(--label)">Hiding must not change what VoiceOver speaks.</strong> A screen reader is not the audience the tap protects, and silencing the value would make the feature an accessibility regression dressed as privacy. Same for the legend: each band is one element with its range as the label and <code style="font-size:11px">.isSelected</code> on the active one, labels visible or not.</div>
+      <div style="font-size:12.5px;line-height:1.65;color:var(--label-secondary);text-wrap:pretty">Both discs are 44&nbsp;pt with the hit shape <em>inside</em> the button's label &mdash; a frame applied to the Button grows the layout without growing the target. Every text style relative, <code style="font-size:11px">minHeight</code> never <code style="font-size:11px">height</code>. Colour carries nothing alone: the ramp is lightness&#8209;ordered so it survives every CVD and greyscale, alcohol&#8209;free adds an outline, and the storage warning is a symbol plus words.</div>
+    </div>
+  </div>
+
+  <div style="padding:20px 22px;border-radius:var(--r-card);background:#fff;box-shadow:inset 0 0 0 1px var(--separator);display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Open before this is built &mdash; five things, none of them cosmetic</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:12.5px;line-height:1.6;color:var(--label-secondary)">
+      <span style="font-weight:600;color:var(--label)">1</span><span><strong style="color:var(--label)">Recording a day as no alcohol has no watch path.</strong> The phone offers it on an empty day; the plan gives the watch no equivalent, and the wrist is the surface you are wearing at the end of a dry day. The button drawn on the empty&#8209;day screen is a <em>proposal</em>. Decide before Phase 3, because it changes that screen's layout.</span>
+      <span style="font-weight:600;color:var(--label)">2</span><span><strong style="color:var(--label)">The &#xFF0B; in <code style="font-size:11px">accessoryCircular</code>.</strong> Phase 6 puts an interactive &#xFF0B; in both the circular and rectangular families, but a 50&#8209;pt disc cannot hold a figure and a 44&#8209;pt target. This design keeps the figure there and leaves the &#xFF0B; to <code style="font-size:11px">accessoryRectangular</code>. Either confirm that, or make the whole circle the button and give up the count.</span>
+      <span style="font-weight:600;color:var(--label)">3</span><span><strong style="color:var(--label)">Per&#8209;glance or stored?</strong> Drawn as per&#8209;glance: nothing persisted, cleared on launch. A stored preference is discreet <em>before</em> the wrist is on the table, which is the only kind that helps &mdash; but it needs a switch, and the watch has no real Settings screen. If stored, it is watch&#8209;local by the plan's own rule: it changes what is shown, not what is computed.</span>
+      <span style="font-weight:600;color:var(--label)">4</span><span><strong style="color:var(--label)">Does hiding govern the complications?</strong> It has to, if it is stored. A face needs no unlock and is the most public surface the product has, so a setting that governed only the app would protect the one screen nobody else was looking at.</span>
+      <span style="font-weight:600;color:var(--label)">5</span><span><strong style="color:var(--label)">What <code style="font-size:11px">.privacySensitive()</code> actually renders</strong> in Always&#8209;On and at each complication size is a device question. The redaction policy here is sound; the redacted tile may not look the way this page draws it. Check it in Phase 6, not Phase 8 &mdash; the answer may send the design back.</span>
+    </div>
+  </div>
+
+  <div style="padding:20px 22px;border-radius:var(--r-card);background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--label-secondary)">Build order, against the plan's phases</div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:9px 16px;font-size:12.5px;line-height:1.6;color:var(--label-secondary)">
+      <span style="font-weight:600;color:var(--label)">Phase 3</span><span>The counter: the row, the tile, the unit word, the &#8776;&nbsp;line, the legend, the hint. &#xFF0B; and &minus; with their haptics and Double&nbsp;Tap. The storage&#8209;failure line. <strong style="color:var(--label)">Then the tap to hide</strong>, which is additive and touches no write path. Pure functions first: <code style="font-size:11px">removableNewest</code> at tier 1 before any view code.</span>
+      <span style="font-weight:600;color:var(--label)">Phase 4</span><span>The type picker, reached by long&#8209;press &#xFF0B;. Five cases, defaults only.</span>
+      <span style="font-weight:600;color:var(--label)">Phase 5</span><span>The session dot row, behind the watch's own toggle. <code style="font-size:11px">dotRow(forCount:maximum:)</code> at tier 1; the contrast table in its ADR.</span>
+      <span style="font-weight:600;color:var(--label)">Phase 6</span><span>The four complication families, the two&#8209;entry timeline, and the Always&#8209;On check that open question 5 turns on.</span>
+      <span style="font-weight:600;color:var(--label)">ADRs</span><span>0042 covers type&#8209;only specification and Double&nbsp;Tap; 0044 the dots and the ramp floor; 0045 the privacy posture. <strong style="color:var(--label)">The tap to hide needs its own record</strong> &mdash; it is a new user&#8209;visible claim about what the app shows, and it belongs with 0045. Write each one in its phase; a decision recorded after the code is a summary, not a record.</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
