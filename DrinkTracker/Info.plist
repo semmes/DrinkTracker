@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Merged into the generated Info.plist (GENERATE_INFOPLIST_FILE stays on,
+	     the way DrinkTrackerWidget/Info.plist carries its NSExtension). This
+	     key has no INFOPLIST_KEY_ build setting — Xcode injects none for it —
+	     so the INFOPLIST_KEY_UIBackgroundModes the project carried since 1.0
+	     never reached a built Info.plist (found on 2026-09-14 by reading the
+	     built bundle). Without it CloudKit's silent pushes cannot wake the
+	     app, and the store mirrors only while the app is in the foreground. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The watch app is a separate bundle inside the iOS app, and Apple
+	     evaluates each bundle on its own, so it carries its own manifest.
+	     No tracking, and no domains to declare: no analytics SDK, no
+	     advertising identifier, and no network code beyond the user's own
+	     iCloud database. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+
+	<!-- Deliberately empty, for the reason the iOS app's manifest gives: the
+	     drink log leaves the device only through the user's own private
+	     CloudKit database, which the developer cannot read. The watch writes
+	     no HealthKit data at all. -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<!-- The region and counter seed the settings bridge writes, and the
+			     diagnostics breadcrumbs, all in the App Group suite
+			     (AppGroup.defaults). CA92.1 is the App Group case: read and
+			     written only by this app and its own complication, and never
+			     leaving the group container. -->
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

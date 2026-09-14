@@ -1,6 +1,5 @@
 # Working in the watch target
 
-Copy this to `DrinkTrackerWatch/CLAUDE.md` once Xcode has created the folder.
 Claude Code reads nested CLAUDE.md files, so this is what keeps a session
 inside the watch app instead of wandering the phone app.
 
@@ -12,6 +11,8 @@ inside the watch app instead of wandering the phone app.
    phase, plus "Rules that survive to the wrist" and "Architecture".
 2. `docs/tallyist-1.2-spec.md` — "Project constraints". They are App Review
    claims, not preferences.
+3. `docs/design/watch/README.md` — the owner's design for phases 3 to 6, and
+   the answers to its five open questions (recorded at its end).
 
 ## Scope
 
@@ -22,10 +23,15 @@ Not yours without saying why first: anything in `DrinkTracker/` or `Shared/`.
 Those are the phone app and the code all four targets compile. A change there
 is a change to a shipping app that just cleared App Review.
 
-**Never edit `project.pbxproj`.** The targets already exist and these folders
-are synchronized groups, so a file written here joins the target automatically.
-There is no Swift toolchain in a remote session, so a project-file edit cannot
-be verified and a broken one is unopenable on the owner's Mac.
+**The project file.** These two folders are synchronized groups, so a file
+written here joins its target automatically and no phase after Phase 1 needs
+`project.pbxproj` at all. Editing it is allowed only in a **local** session
+with the toolchain, only for what the plan names (Phase 1's package links and
+`Shared/` memberships), and only verified the way Phase 0 was: `plutil -lint`,
+`xcodebuild -list`, both schemes built for their simulators, and
+`scripts/verify-watch-setup.py` green. A remote session never touches it — it
+cannot verify the edit, and a broken project fails as unopenable on the
+owner's Mac rather than as a build error.
 
 ## The three that are easy to get wrong
 
@@ -35,14 +41,17 @@ be verified and a broken one is unopenable on the owner's Mac.
   review.
 - **Every count is `.privacySensitive()`.** A watch face is public and
   Always-On keeps the app legible when the wrist drops. See "What the wrist
-  exposes".
+  exposes" in the plan.
 - **Asset catalog symbols, not SF Symbols.** The drink glyphs are
   `Image("tally.beer")`, never `Image(systemName:)`, which renders nothing.
+  They reach these targets through the shared catalog Phase 1 creates.
 
 ## Verifying
 
-CI is the only compile check. Say that in commit messages rather than claiming
-local verification. Before committing a phase:
+A local session has Xcode 26.6 and the watch simulators: run the gates rather
+than repeating the remote-session caveat. A remote session has no Swift
+toolchain, so CI is its only compile check — say so in commit messages rather
+than claiming local verification. Before committing a phase:
 
     python3 scripts/verify-watch-setup.py
 
