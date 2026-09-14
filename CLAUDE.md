@@ -83,8 +83,11 @@ identity derive from it, and renaming orphans the user's store (README
 ## Architecture in one paragraph
 
 `DrinkTrackerCore` (SPM, pure domain, no UI/persistence — runs on macOS in
-CI) → `Shared/` (compiled into app, widget, and test bundle: repository,
-SwiftData model, App Group, intents) → app target + widget extension.
+CI; declares iOS, macOS and watchOS) → `Shared/` (compiled into the app, both
+widgets, the watch app and the test bundle: repository, SwiftData model, App
+Group, intents, the intensity palette, and the asset catalog holding the
+`tally.*` symbols and the two accent colours) → app target + widget extension
++ watch app + watch complication.
 `DrinkTrackerTests` uses an in-memory ModelContainer, no TEST_HOST. SwiftData
 mirrors to the user's private CloudKit DB; HealthKit flows both directions
 (writes per entry; import of other apps' samples is count-based and read-only
@@ -94,8 +97,10 @@ purchases work in the simulator with no App Store Connect setup).
 
 ## CI / distribution
 
-- **GitHub Actions** verifies every PR: domain tests (macOS-native), simulator
-  build, integration tests (ADR-0008). GitHub sometimes **drops the PR webhook
+- **GitHub Actions** verifies every PR: domain tests (macOS-native), the iOS
+  simulator build (which compiles the watch targets as dependencies), the
+  watchOS simulator build, integration tests (ADR-0008), the policy-date
+  check and the glyph generator. GitHub sometimes **drops the PR webhook
   event** and no run appears — the reliable remedy is a manual
   `workflow_dispatch` of `ci.yml` on the branch (it associates with the PR).
   Never push empty commits to kick CI.
@@ -158,9 +163,10 @@ was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
 and a re-submission, and says so; **the 1.4 train is open** —
 `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
-Watch companion app**, whose Phase 0 landed the same day — see the last bullet
-of this section and `docs/tallyist-watch-plan.md`. The paragraph that follows
-is the 2026-09-10 state, kept for the record.
+Watch companion app**, whose Phases 0 and 1 landed the same day — see the last
+two bullets of this section and `docs/tallyist-watch-plan.md`; Phase 2, the
+settings bridge, is next. The paragraph that follows is the 2026-09-10 state,
+kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1444,3 +1450,55 @@ Open items for v1.2:
   `DrinkTrackerWatch` scheme on the pair from Xcode; and, on hardware after
   the 1.4 build, whether a drink logged on one device reaches another with
   the app closed.
+- **The watch's Phase 1 landed (2026-09-14, same session).** The owner opened
+  the Phase 0 project in Xcode (five targets, the scheme ran on the pair, the
+  placeholder showed), quit it, and said to start; Xcode's one-line rewrite of
+  the scheme's version attribute is committed as it wrote it. What shipped,
+  all recorded at the head of the plan's Phase 1: `.watchOS("26.0")` on the
+  package; **`BundleIdentity`** in the core package (the App Group and iCloud
+  container derived by stripping `.Widget` and `.watchkitapp` until nothing
+  matches, five tier-1 tests pinning all four identifiers to one group —
+  before this the two watch identifiers would have yielded two more groups
+  and a complication stuck on zero); `AppGroup` reduced to reading
+  `Bundle.main` and calling it; `IntensityPalette` moved to `Shared/` and the
+  thirteen symbolsets **plus `AccentColor` and `AccentFill`** into a new
+  `Shared/Assets.xcassets` compiled into all four targets, with the three
+  per-target `AccentColor` copies deleted (the iOS widget's was
+  byte-identical to the app's; the watch ones were the template's empty
+  set); the six `Shared/` files and the package on both watch targets; the
+  watch app opening the store through `SharedModelContainer.make()` with the
+  phone's in-memory fallback and printing today's count (`@Query` bounded to
+  the calendar day, `.privacySensitive()`, a DEBUG-only store-mode line);
+  the `build-watch` CI job; both watch catalogs synced with `xcstringstool`
+  from the build's `.stringsdata` (26 keys each, the shared intents' strings).
+  **All project-file edits were made with the Edit tool, one anchor at a
+  time, and proved by building** — the rule the Phase 0 bullet states.
+  **Verified locally:** the domain suite (255 tests, five new); the watch
+  scheme for the watchOS simulator with zero warnings; the iOS scheme for the
+  iOS simulator, its app, widget and watch bundles listed with `assetutil` to
+  confirm each received the symbols and both colours; the integration suite
+  on a second iPhone simulator; the verifier at 0 failing, 0 pending; the
+  glyph generator clean on its new path; and tier 3 on the paired simulators
+  with **signed** builds — the watch showing 0 over "shared, CloudKit
+  requested", its App Group container holding `default.store` and the
+  recorded store mode, and the phone's onboarding rendering the accent from
+  the shared catalog. **Not verified:** a non-zero count on the watch (its
+  store is its own and the simulator pair has no iCloud account, so nothing
+  reaches it until Phase 3 logs there or a real pair syncs) and the iOS
+  widget's accent on screen (its bundle carries it). **Two tooling lessons:**
+  a `cd` inside one of several parallel Bash calls leaked into the others
+  (xcodebuild and the verifier ran in the package directory and reported
+  missing files) — use absolute paths in parallel batches; and
+  `xcstringstool sync` cannot re-save a catalog inside the sandbox ("Could
+  not re-save"), so run it outside. **Phase 2 is next:** the settings bridge —
+  `WatchContext` in the core package with its dictionary codec and tier-1
+  round-trips, `WatchContextPublisher` on the phone beside the
+  `WidgetCenter` reload calls, `WatchContextStore` on the watch writing
+  through two new `nonisolated static` writers in `AppSettings`; no
+  project-file work. **Tier 3/4 for the owner's pass:** Run the
+  `DrinkTrackerWatch` scheme from Xcode on the pair and read the count;
+  the app's accent and the tab glyphs on the phone after the catalog move
+  (the bundle carries them; the tally hero was the one screen rendered); the
+  home-screen widget's accent; and, on real hardware with one iCloud
+  account, the watch's count catching up to the phone's — the only path the
+  wrist has, and the one thing here no simulator can show.

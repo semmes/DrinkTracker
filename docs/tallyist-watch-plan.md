@@ -675,6 +675,45 @@ is reviewable and so a later bisect can isolate it.
 One session. No UI. Ends with a watch app that launches, opens the store, and
 prints the count of today's entries in a `Text`.
 
+**Done 2026-09-14, in the same local session as Phase 0** and the same way:
+the project-file steps (the package links, the six `Shared/` memberships, the
+shared catalog and the palette's move) written into `project.pbxproj` by hand
+and proved by building. Against the six steps below, what shipped: **(1)**
+`.watchOS("26.0")`. **(2)** The derivation is `BundleIdentity` in the core
+package — `hostBundleID(from:)` strips `.Widget` and `.watchkitapp` until
+nothing matches, and `appGroupIdentifier` / `iCloudContainerIdentifier`
+prefix the result — with five tier-1 tests pinning all four identifiers to
+one group and one container; `AppGroup` now only reads `Bundle.main` and
+calls it. **(3)** `Shared/IntensityPalette.swift`, compiled into all four
+targets. **(4)** `Shared/Assets.xcassets` holds the thirteen symbolsets **and
+`AccentColor` and `AccentFill`**: the iOS widget's own `AccentColor` was a
+byte-identical copy of the app's and the two watch targets carried the
+template's empty one, so all three were deleted and the accent has one
+definition; the generator's `CATALOG` and the CI job's paths follow, and
+`assetutil` over the built app, widget and watch bundles confirmed every
+target received the symbols and both colours. **(5)** Both watch catalogs
+synced from the build's `.stringsdata` with `xcstringstool` — 26 keys each,
+the shared intents' strings, the same family the iOS widget's 35 carry — so
+a GUI build writes nothing back; no `AppShortcutsProvider` on the watch.
+**(6)** `build-watch` in `ci.yml` with the contract token line;
+`docs/watch-scaffold/` is gone. The watch app opens the store through
+`SharedModelContainer.make()` with the phone's in-memory fallback and prints
+today's count from a `@Query` bounded to the calendar day, `.privacySensitive()`,
+over a DEBUG-only line naming the store mode.
+
+**Verified:** the domain suite with its five new tests; the watch scheme for
+the watchOS simulator with zero warnings (Phase 0's "no AppIntents dependency"
+warning left with the link); the iOS scheme for the iOS simulator; the
+integration suite on a second iPhone simulator; the verifier at 0 failing, 0
+pending; the glyph generator clean on its new path; and tier 3 on the paired
+simulators with signed builds — the watch showing **0** over "shared,
+CloudKit requested", its App Group container holding `default.store` and the
+recorded store mode, and the phone rendering its accent from the shared
+catalog. **Not verified:** a count above zero on the watch — its store is its
+own, and the simulator pair has no iCloud account, so nothing reaches it until
+Phase 3 logs there or a real pair syncs (the owner's device pass) — and the
+iOS widget's accent on screen (its bundle carries it; not rendered).
+
 **1. `DrinkTrackerCore/Package.swift`.** Add `.watchOS("26.0")` to `platforms`
 — **not `.v26`**: that constant needs a newer `swift-tools-version` than the
 package's 6.0 and fails to compile ("'v26' is unavailable"), while the string
