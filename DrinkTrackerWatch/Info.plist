@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Merged into the generated Info.plist (GENERATE_INFOPLIST_FILE stays on,
+	     the way the widget extensions carry their NSExtension). This key has
+	     no INFOPLIST_KEY_ build setting — Xcode injects none for it, on any
+	     platform — so it has to live in a file. Without it CloudKit's silent
+	     pushes cannot wake the app, and the watch's only data path mirrors
+	     only while the app is open. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+</dict>
+</plist>

@@ -144,11 +144,16 @@ def main():
            + chunk(b"IHDR", struct.pack(">IIBBBBB", W, H, 8, 2, 0, 0, 0))
            + chunk(b"IDAT", zlib.compress(raw, 9))
            + chunk(b"IEND", b""))
-    out = Path(__file__).resolve().parent.parent / (
-        "DrinkTracker/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
-    )
-    out.write_bytes(png)
-    print(f"wrote {out} ({len(png):,} bytes)")
+    root = Path(__file__).resolve().parent.parent
+    for relative in (
+        "DrinkTracker/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+        # The watch app's own icon set: the same PNG, in the single-size form
+        # watchOS also accepts, so the two targets cannot carry different art.
+        "DrinkTrackerWatch/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+    ):
+        out = root / relative
+        out.write_bytes(png)
+        print(f"wrote {out} ({len(png):,} bytes)")
 
 
 if __name__ == "__main__":

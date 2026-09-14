@@ -1,5 +1,10 @@
 # Phase 0 — prompt for Claude Code
 
+**Historical.** Phase 0 completed on 2026-09-14; the hard stop on
+`project.pbxproj` below was lifted by the owner for a local session with the
+toolchain, and the rule that replaced it is in `DrinkTrackerWatch/CLAUDE.md`.
+Kept as the record of the boundary that was set.
+
 Paste the block below into a Claude Code session started in `~/DrinkTracker`.
 It covers everything Phase 0 needs that does not require the Xcode GUI, and it
 stops cleanly at the boundary rather than guessing past it.

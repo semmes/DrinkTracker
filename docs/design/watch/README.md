@@ -364,10 +364,13 @@ These are the repo's own drawn set from `docs/design/icons/icons/` — the owner
 SwiftUI view loads the compiled symbols from the asset catalog by name
 (`DrinkType.Symbol`).
 
-Phase 1 moves the eight `.symbolset` folders into `Shared/Assets.xcassets` so all
-four targets can reach them, and updates the output path in
-`scripts/make-drink-symbols.py` and the two `git diff` paths in CI's
-`drink-symbols` job. **Never hand-edit a symbolset** — regenerate it.
+Phase 1 moves the `.symbolset` folders into `Shared/Assets.xcassets` so all
+four targets can reach them — **thirteen**, not eight: the five `tally.tab.*`
+share the generator's one output path and its cross-check asserts the full set
+— and updates the output path in `scripts/make-drink-symbols.py` and the two
+`git diff` paths in CI's `drink-symbols` job. `AccentColor` and `AccentFill`
+move with them, since this design draws from both and the watch targets carry
+only an empty template accent. **Never hand-edit a symbolset** — regenerate it.
 
 `exclamationmark.triangle` on the storage strip is an SF Symbol; the HTML draws a
 geometric stand-in for it.
@@ -440,6 +443,19 @@ unit's name varies by region, its form by count, and word order by language.
    complication size is a device question. The policy here is sound; the redacted
    tile may not look the way this page draws it. Check it in Phase 6, not Phase
    8 — the answer may send the design back.
+
+### Decisions (owner, 2026-09-14)
+
+1. **Yes — the watch can record a day as no alcohol.** The drawn button is
+   the design, with the phone's exact copy. Phase 3 confirms, before it writes
+   one, that a user-set marker has no Health side effect the watch cannot
+   mirror; its ADR records the check.
+2. **As drawn:** the figure keeps the `accessoryCircular` disc and the ＋ is
+   `accessoryRectangular`'s.
+3. **Per-glance.** Nothing stored, no switch.
+4. **So hiding does not govern the complications**; the system's own
+   redaction is what protects the face.
+5. Stays a Phase 6 check.
 
 ## Build order
 

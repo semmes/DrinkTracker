@@ -168,7 +168,8 @@ accessibility behaviour for free.
 ## Layout
 
 ```
-DrinkTracker.xcodeproj      two targets: the app and the widget extension
+DrinkTracker.xcodeproj      four targets: the app, its widget extension, the
+                            watch app and its complication (plus the test bundle)
 DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persistence
   Sources/                    Region, DrinkType, StandardDrink, LoggedDrink,
                               DrinkDraft, TrendSummary, DayIntensity,
@@ -176,7 +177,8 @@ DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persi
                               PopulationReference (+ bundled JSON), LogExport,
                               DisplayStrings (+ the package's string catalog)
   Tests/                      150 tests, all passing
-Shared/                     compiled into BOTH targets
+Shared/                     compiled into the app, the widget and the test bundle
+                              (the two watch targets join in watch Phase 1)
                               AppGroup, AppSettings, DrinkEntry + AlcoholFreeDay
                               (SwiftData), SchemaVersions, DrinkRepository,
                               LogDrinkIntent (all four intents)
@@ -190,6 +192,10 @@ DrinkTracker/               App target
   Features/                   Navigation (the tab bar), Onboarding, Today,
                               DrinkDetail, Calendar, Trends, History, Settings
 DrinkTrackerWidget/         Widget extension target
+DrinkTrackerWatch/          watchOS app target — a Phase 0 stub until the
+                            phases in docs/tallyist-watch-plan.md land; its
+                            CLAUDE.md scopes a session to the watch
+DrinkTrackerWatchWidget/    watchOS complication target (same state)
 ```
 
 `Shared/` sits outside both file-system-synchronized groups and is added to each

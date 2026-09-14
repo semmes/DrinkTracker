@@ -71,6 +71,13 @@ directly, in the exact shape each one already uses. The app catalog went 221 →
 standard drink) took it to **235** while adding 2 to the widget's and 2 to the
 core package's, and rewording one intent description in both app and widget.
 
+**Two more catalogs exist since 2026-09-14**, both empty: the watch app's and
+the watch complication's (`DrinkTrackerWatch/Localizable.xcstrings`,
+`DrinkTrackerWatchWidget/Localizable.xcstrings`). Their Phase 0 stubs use
+`Text(verbatim:)` on purpose so no placeholder key outlives the view that
+introduced it; the watch's strings arrive with Phase 3 and Phase 6 and go
+through the 1.4.3 review like every other target's.
+
 Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-10 after ADR-0038's naming amendment — the Comparisons section on
 Trends: **no key was added**, because the section heading and the three card

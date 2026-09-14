@@ -1,5 +1,17 @@
 # Watch Phase 0 — runbook
 
+**Done, 2026-09-14.** Steps 0 to 2 and 5 ran as written (PRs #92 and #93).
+Steps 3, 4, 6 and 7 did not: the owner created the watch app target with
+Xcode's template and then asked Claude to do the rest, so the target's rename
+and settings, the complication target, the scheme, the entitlements, the icon
+and the catalogs were written directly into the project file in a local session
+and verified by building both schemes and launching the watch app on a paired
+simulator. What deviated from the steps below — the four template settings the
+other targets do not set, the inert background-modes setting, the `CLAUDE.md`
+that a synchronized folder copies into the bundle — is recorded at the head of
+Phase 0 in `docs/tallyist-watch-plan.md` and in CLAUDE.md's 2026-09-14
+handoff. The steps stay here as the record of the GUI route.
+
 Everything that has to happen before the first Claude Code watch session. About
 thirty minutes, most of it in Xcode.
 
