@@ -6,7 +6,7 @@ Regenerate with:  python3 scripts/make-drink-symbols.py
 
 Reads `docs/design/icons/icons/<name>.svg` (the design bundle's source art —
 24-unit grid, 2-unit safe margin, every vessel on the same baseline at y 20)
-and writes one `DrinkTracker/Assets.xcassets/tally.<name>.symbolset` per
+and writes one `Shared/Assets.xcassets/tally.<name>.symbolset` per
 glyph, each holding an SF Symbols template SVG plus its `Contents.json`.
 The names are the bundle README's: `tally.beer`, `tally.wine`, `tally.spirit`,
 `tally.cocktail`, `tally.other`, `tally.standard`, `tally.health`,
@@ -54,7 +54,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "docs" / "design" / "icons" / "icons"
 TAB_SOURCE = ROOT / "docs" / "design" / "bottom-nav" / "icons"
-CATALOG = ROOT / "DrinkTracker" / "Assets.xcassets"
+# The shared catalog, compiled into the app, both widgets and the watch app
+# (watch Phase 1): the symbols have one home, and every target reads it.
+CATALOG = ROOT / "Shared" / "Assets.xcassets"
 
 GLYPHS = ["beer", "wine", "spirit", "cocktail", "other", "standard", "health", "alcoholfree"]
 TAB_GLYPHS = ["today", "calendar", "trends", "history", "settings"]

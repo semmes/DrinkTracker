@@ -35,11 +35,13 @@ jobs:
       - name: Dates agree across the policy's copies
         run: python3 .github/scripts/check_policy_dates.py
 
-  # The drink glyphs are generated output (ADR-0036): eight .symbolset folders
-  # written by a dependency-free script from the owner's SVGs. A hand-edited
-  # symbolset, a renamed case in DrinkType.Symbol, or a stale catalog would all
-  # compile green and render nothing, so this regenerates and requires a clean
-  # tree. Linux on purpose, like the policy check: it needs only Python.
+  # The drink and tab glyphs are generated output (ADR-0036, ADR-0040): thirteen
+  # .symbolset folders written by a dependency-free script from the owner's
+  # SVGs into the shared catalog every target compiles. A hand-edited
+  # symbolset, a renamed case in DrinkType.Symbol or AppTab.symbolName, or a
+  # stale catalog would all compile green and render nothing, so this
+  # regenerates and requires a clean tree. Linux on purpose, like the policy
+  # check: it needs only Python.
   drink-symbols:
     name: Drink glyphs match their source
     runs-on: ubuntu-latest
@@ -51,8 +53,8 @@ jobs:
       - name: Regenerate the symbolsets and compare
         run: |
           python3 scripts/make-drink-symbols.py
-          git diff --exit-code -- DrinkTracker/Assets.xcassets
-          test -z "$(git status --porcelain -- DrinkTracker/Assets.xcassets)"
+          git diff --exit-code -- Shared/Assets.xcassets
+          test -z "$(git status --porcelain -- Shared/Assets.xcassets)"
 
   # Tier 1 (docs/PRD.md §4). Pure value types, no simulator and no signing —
   # DrinkTrackerCore declares .macOS(.v15) precisely so this can run natively.
@@ -74,8 +76,10 @@ jobs:
         working-directory: DrinkTrackerCore
         run: swift test
 
-  # Builds the app scheme, which builds and embeds the widget extension as a
-  # target dependency — one scheme covers both targets.
+  # Builds the app scheme, which builds and embeds the widget extension, the
+  # watch app and its complication as target dependencies — one scheme covers
+  # all four targets, so a watch target that does not compile turns this job
+  # red as well as `build-watch` below.
   #
   # CODE_SIGNING_ALLOWED=NO because the simulator needs no signing and CI has no
   # team; see README "Signing and provisioning".
@@ -115,6 +119,42 @@ jobs:
             -project DrinkTracker.xcodeproj \
             -scheme DrinkTracker \
             -destination 'generic/platform=iOS Simulator' \
+            -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO
+
+  # The watch scheme on its own, for the watchOS simulator. The job above
+  # already compiles the watch targets as dependencies of the app; this one is
+  # the compile gate a watch phase names in its commit message, and the only
+  # compile check a remote session gets for the wrist (watch Phase 1,
+  # docs/tallyist-watch-plan.md).
+  build-watch:
+    name: Build (watchOS Simulator)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.TALLYIST_CONTRACT_TOKEN }}
+
+      - name: Select newest installed Xcode
+        run: |
+          # watchOS 26 needs Xcode 26 or newer. Failing here gives a clear SDK
+          # error rather than something obscure further down.
+          latest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selecting $latest"
+          sudo xcode-select -s "$latest/Contents/Developer"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i "watch" || true
+
+      - name: Build
+        run: |
+          # generic/platform, not a named device: runner images rotate their
+          # installed simulators and a build job needs no bootable one.
+          set -o pipefail
+          xcodebuild build \
+            -project DrinkTracker.xcodeproj \
+            -scheme DrinkTrackerWatch \
+            -destination 'generic/platform=watchOS Simulator' \
             -skipPackagePluginValidation \
             CODE_SIGNING_ALLOWED=NO
 
