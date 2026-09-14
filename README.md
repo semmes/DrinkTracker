@@ -177,28 +177,31 @@ DrinkTrackerCore/           Swift package — pure domain logic, no UI, no persi
                               PopulationReference (+ bundled JSON), LogExport,
                               DisplayStrings (+ the package's string catalog)
   Tests/                      150 tests, all passing
-Shared/                     compiled into the app, the widget and the test bundle
-                              (the two watch targets join in watch Phase 1)
+Shared/                     compiled into the app, both widgets and the watch app
+                              (and, minus the intents, the test bundle)
                               AppGroup, AppSettings, DrinkEntry + AlcoholFreeDay
                               (SwiftData), SchemaVersions, DrinkRepository,
-                              LogDrinkIntent (all four intents)
+                              LogDrinkIntent (all four intents), IntensityPalette
+                              (the ramp — invariant 10), Assets.xcassets (the
+                              thirteen tally.* symbols, AccentColor, AccentFill)
 DrinkTrackerTests/          xctest bundle — 52 tests, the SwiftData layer in-memory
 DrinkTracker/               App target
   DesignSystem/               AppTheme, GlassTokens, FlowLayout, CountStepper,
-                              IntensityPalette, AppearancePreference
+                              AppearancePreference
   Persistence/                DrinkStore (HealthKit-aware wrapper)
   Services/                   HealthKitService, DrinkTrackerShortcuts, TipJar,
                               CloudKitStatusProbe
   Features/                   Navigation (the tab bar), Onboarding, Today,
                               DrinkDetail, Calendar, Trends, History, Settings
 DrinkTrackerWidget/         Widget extension target
-DrinkTrackerWatch/          watchOS app target — a Phase 0 stub until the
-                            phases in docs/tallyist-watch-plan.md land; its
-                            CLAUDE.md scopes a session to the watch
-DrinkTrackerWatchWidget/    watchOS complication target (same state)
+DrinkTrackerWatch/          watchOS app target — opens the shared store and
+                            prints today's count (watch Phase 1); the counter
+                            arrives with Phase 3 of docs/tallyist-watch-plan.md;
+                            its CLAUDE.md scopes a session to the watch
+DrinkTrackerWatchWidget/    watchOS complication target (a stub until Phase 6)
 ```
 
-`Shared/` sits outside both file-system-synchronized groups and is added to each
+`Shared/` sits outside the file-system-synchronized groups and is added to each
 target's compile phase explicitly. That's deliberate: a synchronized folder belongs
 to exactly one target, so shared sources have to live outside them.
 

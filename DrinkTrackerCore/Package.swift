@@ -9,7 +9,11 @@ let package = Package(
   defaultLocalization: "en",
   platforms: [
     .iOS(.v18),
-    .macOS(.v15)
+    .macOS(.v15),
+    // The watch app and its complication link this package (watch Phase 1).
+    // The string form on purpose: `.v26` needs a newer tools-version than 6.0
+    // and fails to compile, while this resolves to the same `watchos 26.0`.
+    .watchOS("26.0")
   ],
   products: [
     .library(name: "DrinkTrackerCore", targets: ["DrinkTrackerCore"])

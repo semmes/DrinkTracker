@@ -91,8 +91,10 @@ See [ADR-0002](decisions/0002-region-is-a-display-lens.md).
 the build. It hands the app and the widget two separate stores, and the only symptom
 is the widget showing a stale zero.
 
-**5. Both targets open the store with identical configuration.**
-`SharedModelContainer.make()` takes no options for exactly this reason.
+**5. Every process opens the store with identical configuration.**
+`SharedModelContainer.make()` takes no options for exactly this reason — the app,
+its widget, the watch app and its complication all call it and nothing else
+(four processes since the watch's Phase 1, 2026-09-14).
 *Failure mode:* a CloudKit-mirrored store opened without CloudKit still *reads*
 correctly and silently fails to *write*. This already cost real debugging time once.
 

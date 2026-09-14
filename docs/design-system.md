@@ -1,6 +1,6 @@
 # The Tallyist Design System
 
-**Status:** v1.0, reviewed · **Owner:** design · **Code home:** `DrinkTracker/DesignSystem/`
+**Status:** v1.0, reviewed · **Owner:** design · **Code home:** `DrinkTracker/DesignSystem/` — except `IntensityPalette`, at `Shared/IntensityPalette.swift` since the watch's Phase 1 (2026-09-14) so all four targets read one ramp, beside the shared catalog that holds the `tally.*` symbols and the two accent colours
 **Synced to:** claude.ai/design, project *Tallyist Design System*
 
 Tallyist's visual language is **native iOS with one voice added**. The system does

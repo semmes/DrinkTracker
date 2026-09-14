@@ -1,10 +1,12 @@
+import DrinkTrackerCore
 import Foundation
 import SwiftData
 
-/// The App Group that lets the app and the widget see the same drink log and the
-/// same region setting.
+/// The App Group that lets the app, its widget, the watch app and its
+/// complication see the same drink log and the same region setting — one group
+/// per device, since a group container is per-device.
 ///
-/// Both targets carry this identifier in their entitlements. Everything shared
+/// Every target carries this identifier in its entitlements. Everything shared
 /// between them — the SwiftData store and `AppSettings` — is anchored here rather
 /// than in each target's private container.
 enum AppGroup {
@@ -13,21 +15,14 @@ enum AppGroup {
   /// The entitlements declare `group.$(BUNDLE_ID_PREFIX).DrinkTracker`, which is
   /// built from the same prefix as the bundle identifiers in `Signing.xcconfig`.
   /// Computing it here keeps a literal from drifting out of step with that value
-  /// — a mismatch wouldn't fail to build, it would just silently give the app and
-  /// the widget two different stores.
+  /// — a mismatch wouldn't fail to build, it would just silently give two
+  /// processes two different stores.
   ///
-  /// The widget's bundle id is the app's plus `.Widget`, so the extension drops
-  /// that suffix to arrive at the same group as its host app.
-  static let identifier: String = {
-    var bundleID = Bundle.main.bundleIdentifier ?? ""
-    if bundleID.hasSuffix(widgetSuffix) {
-      bundleID = String(bundleID.dropLast(widgetSuffix.count))
-    }
-    return "group." + bundleID
-  }()
-
-  /// Must match the widget target's `PRODUCT_BUNDLE_IDENTIFIER` suffix.
-  private static let widgetSuffix = ".Widget"
+  /// Each embedded target's bundle id is its host's plus a suffix (`.Widget`,
+  /// `.watchkitapp`, `.watchkitapp.Widget`), so every process strips those to
+  /// arrive at the same group as the app. The stripping is `BundleIdentity` in
+  /// the core package, pinned at tier 1 for all four identifiers.
+  static let identifier: String = BundleIdentity.appGroupIdentifier(hostBundleID: hostBundleID)
 
   /// The iCloud container, derived the same way the App Group is.
   ///
@@ -35,11 +30,12 @@ enum AppGroup {
   /// the host app's bundle identifier with an `iCloud.` prefix — so this computes
   /// it rather than repeating the literal, for the same reason `identifier` does.
   static var iCloudContainerIdentifier: String {
-    var bundleID = Bundle.main.bundleIdentifier ?? ""
-    if bundleID.hasSuffix(widgetSuffix) {
-      bundleID = String(bundleID.dropLast(widgetSuffix.count))
-    }
-    return "iCloud." + bundleID
+    BundleIdentity.iCloudContainerIdentifier(hostBundleID: hostBundleID)
+  }
+
+  /// The host app's bundle identifier, whichever of its processes is running.
+  private static var hostBundleID: String {
+    BundleIdentity.hostBundleID(from: Bundle.main.bundleIdentifier ?? "")
   }
 
   /// Defaults visible to both targets.
