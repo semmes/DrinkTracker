@@ -10,11 +10,17 @@ to 8 below. Written against `main` at the state described in CLAUDE.md's
 2026-09-10 handoff: `MARKETING_VERSION` 1.3, all twelve 1.3 features landed,
 1.2 submitted and awaiting review.
 
-There is no watchOS anything in the repo today. `grep -ri 'watchos\|watchkit\|
-complication'` across every `.swift` and `.md` returns nothing. This is a
-greenfield platform inside an existing project, which is the easy case: no
-migration, no divergence to unwind, and a domain layer that already runs on
-macOS in CI and will therefore run anywhere.
+**Status, 2026-09-14: Phase 0 is done and merged** — the two targets exist,
+the 1.4 train is open, and the owner answered every open question (see
+"Decisions this plan assumes", the dated block after item 10, and the "Done"
+note at the head of Phase 0 for what deviated from the text below). Phase 1
+is next.
+
+When this was written there was no watchOS anything in the repo:
+`grep -ri 'watchos\|watchkit\|complication'` across every `.swift` and `.md`
+returned nothing. This is a greenfield platform inside an existing project,
+which is the easy case: no migration, no divergence to unwind, and a domain
+layer that already runs on macOS in CI and will therefore run anywhere.
 
 ---
 
@@ -67,6 +73,31 @@ reopen path attached, because both are user-visible and reversible:
     done. Bump `MARKETING_VERSION` in the first watch PR and say so in the
     commit. If you would rather ship it on 1.3, nothing else in this plan
     changes.
+
+**Confirmed by the owner on 2026-09-14**, when Phase 0 landed:
+
+- **10 stands.** 1.3 was submitted and is awaiting App Review, so it is frozen
+  the way 1.2 was; `MARKETING_VERSION` is 1.4 on main, bumped in its own commit
+  the way the 1.3 bump was.
+- **7's floor is 26.0** as written. The template had defaulted the new target
+  to 26.5, the installed SDK; 26.0 is what shipped. The App Store Connect
+  watchOS breakdown was not checked before the target was created — the floor
+  matches iOS 26's, and the check remains worth doing before the watch ships.
+- **The design's five open questions** (`docs/design/watch/README.md`, and
+  recorded at its end): **(1)** the watch **can** record a day as no alcohol —
+  Phase 3 builds the drawn button with the phone's exact copy, and confirms
+  that a user-set marker has no Health side effect the watch cannot mirror
+  before it writes one; **(2)** no ＋ in `accessoryCircular`, the figure keeps
+  the disc and the ＋ is `accessoryRectangular`'s; **(3)** hiding is
+  per-glance, nothing stored; **(4)** so it does not govern complications,
+  which the system's own redaction covers; **(5)** what `.privacySensitive()`
+  renders stays a Phase 6 check. The ADRs those phases write record them.
+- **The build settings Shared/ is compiled under must agree across all four
+  targets.** Xcode 26's template gave the watch target main-actor default
+  isolation, approachable concurrency, member-import visibility and
+  string-catalog symbol generation that the other three targets do not have;
+  the owner chose to match the three. The verifier now fails on any
+  disagreement (its `MEANING_SETTINGS` list).
 
 ---
 
@@ -434,9 +465,17 @@ No Swift toolchain here. CI is the only compile check. Say so rather than
 claiming local verification.
 ```
 
-That last rule is worth its own line: the only project-file work in this whole
-plan is Phase 0, and a session that decides to "just add a target" is the one
-way a remote session can break the project for you.
+That draft became `DrinkTrackerWatch/CLAUDE.md` in Phase 0, and the committed
+file supersedes it. Its project-file rule is the one that survived contact:
+Phase 0 was done by Claude in a **local** session with the toolchain, at the
+owner's request, and Phase 1 has project-file work of its own (the package
+links, the `Shared/` memberships, the shared catalog, `IntensityPalette`'s
+move). So the rule is not "never", it is: a **remote** session never touches
+`project.pbxproj`, because it cannot verify the edit; a local session may,
+for what the plan names, and only verified the way Phase 0 was — `plutil
+-lint`, `xcodebuild -list`, both schemes built for their simulators, the
+verifier green, and a launch on the paired simulators for anything that
+changes what a bundle contains.
 
 **3. One clone, many worktrees.** You currently have at least two checkouts of
 this repo on disk, with a LaunchAgent fast-forwarding one of them. Adding
@@ -453,8 +492,68 @@ phone feature touching `TrendsView`, `HealthKitService` and
 
 ## Phase 0 — the targets (yours, in Xcode, about twenty minutes)
 
-**Do this one yourself rather than handing it to Claude Code.** Reasons, in
-order of weight:
+**Done 2026-09-14, and not the way the text below says.** The owner created
+the watch app target with Xcode's template on 2026-09-13, then asked Claude to
+finish the rest rather than research each Xcode step; it was done by hand in
+`project.pbxproj` in a local session with Xcode 26.6, in the Phase 0 PR (three
+commits: the 1.4 bump on its own, the targets and their files, the verifier and
+docs). What the text below asks for is what shipped, with these deviations and
+findings, each recorded so the next reader does not rediscover it:
+
+- **The template's target was `DrinkTrackerWatch Watch App`** — Xcode appends
+  the suffix — and carried literal bundle identifiers (the template expands
+  its identifier macro to the *resolved* value), `MARKETING_VERSION` 1.0, a
+  26.5 floor, and four settings the other three targets do not set:
+  `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, `SWIFT_APPROACHABLE_CONCURRENCY`,
+  `SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY` and
+  `STRING_CATALOG_GENERATE_SYMBOLS`. All corrected; the four are deleted so the
+  target inherits what the app does, because `Shared/` compiled under two
+  isolation regimes means two things (the complication's timeline provider is
+  not on the main actor and could not call a main-actor `SharedModelContainer.make()`
+  synchronously), and symbol generation folds case into build errors the app
+  catalog tolerates (CLAUDE.md's localization notes).
+- **`INFOPLIST_KEY_UIBackgroundModes` is not a setting Xcode injects** — none
+  of its build specs name it, while every other key in the table is there —
+  so the iOS app's built Info.plist has **never** carried `UIBackgroundModes`
+  since 1.0, found by reading the built bundle. Both apps now carry an
+  explicit `Info.plist` (merged with the generated one, the way the widget
+  extensions carry `NSExtension`) with `remote-notification`, and the verifier
+  fails on the inert setting. WatchKit's own header names that mode for the
+  watch (`WKApplication.h`, `didReceiveRemoteNotification`). The phone-side
+  consequence, worth the owner's device pass: CloudKit's silent pushes could
+  not wake the app, so the store mirrored only while it was in the foreground.
+- **A synchronized folder copies `.md` files into the bundle.** The first
+  build shipped `CLAUDE.md` inside `DrinkTrackerWatch.app`; a
+  `membershipExceptions` entry (the same mechanism the widgets use for
+  `Info.plist`) excludes it, and the rebuilt bundle was checked.
+- The complication target was written by hand on the iOS widget's shape:
+  `com.apple.product-type.app-extension`, its own `Info.plist` with the
+  WidgetKit extension point, `SKIP_INSTALL`, the three-entry runpath, embedded
+  by the watch app through an Embed Foundation Extensions phase (`dstSubfolderSpec`
+  13) plus a target dependency. Its stub is a `StaticConfiguration` over the
+  four accessory families showing a system glyph; `kind` is final
+  (`CounterComplication`) because a placed complication's identity is its kind.
+- Both targets got an empty `Localizable.xcstrings`, a `PrivacyInfo.xcprivacy`
+  declaring the App Group defaults reason (CA92.1), the scaffold entitlements,
+  and the shared `DrinkTrackerWatch` scheme (written from the app's, build
+  action on the watch app, no testables). The icon is the iOS PNG in a
+  `watchos`-platform icon set; `scripts/make-app-icon.py` writes both now.
+- **Verified** by `plutil -lint`; `xcodebuild -list`; the resolved settings of
+  both targets; the watch scheme built for the watchOS simulator (the future
+  CI job); the iOS scheme built for the iOS simulator with the watch app at
+  `Watch/DrinkTrackerWatch.app` and the complication at its `PlugIns/`, their
+  built Info.plists read back (`WKApplication`, the companion id, 1.4, 26.0,
+  the background mode); the verifier at 0 failing; and the watch app launched
+  on a paired Series 11 / iPhone 17 Pro simulator pair created for it, showing
+  its placeholder. **One simulator lesson:** `simctl install` of the iOS app
+  on the phone does *not* put the embedded watch app on the paired watch (the
+  launch then fails with `FBSOpenApplicationServiceErrorDomain` code 4, which
+  reads as a broken app rather than a missing one); install
+  `DrinkTracker.app/Watch/DrinkTrackerWatch.app` on the watch directly, then
+  launch it by bundle id. Xcode's Run does that install for you.
+
+**The reasons below were the argument for the owner doing it by hand; the
+one that held was the second, and only for remote sessions.** Kept as written:
 
 1. Remote Claude sessions have no Swift toolchain (CLAUDE.md, "CI /
    distribution"). A hand-written watchOS target in `project.pbxproj` is a
@@ -550,11 +649,13 @@ Write `DrinkTrackerWatch/CLAUDE.md` in this same commit, from the draft in
 watch target, and it costs five minutes now against an afternoon of unpicking
 a phase that wandered into the phone app.
 
-**Also in Phase 0, and not about the watch: wire the contract submodule.** The
+**Also in Phase 0, and not about the watch: wire the contract submodule.**
+(Done in PR #93 on 2026-09-13, with the read-only token CI fetches it with —
+CLAUDE.md's process section.) The
 Android plan's Phase 0 calls for `tallyist-product` to be added to
 `tallyist-ios` at `contract/`, with a vector test target and
-`submodules: recursive` on CI's checkout. As of now there is no `.gitmodules`
-and no `.claude/` directory in this repo, so none of it has happened. It costs
+`submodules: recursive` on CI's checkout. When this was written there was no
+`.gitmodules` and no `.claude/` directory in this repo, so none of it had happened. It costs
 maybe an hour here, against code that already passes, and it is the difference
 between the `constraints-reviewer` agent existing for the watch phases and not.
 The Android port then starts with that work behind it.
@@ -574,9 +675,13 @@ is reviewable and so a later bisect can isolate it.
 One session. No UI. Ends with a watch app that launches, opens the store, and
 prints the count of today's entries in a `Text`.
 
-**1. `DrinkTrackerCore/Package.swift`.** Add `.watchOS(.v26)` to `platforms`.
-`swift test` on macOS is unaffected; a platforms entry declares a minimum, it
-does not narrow the build.
+**1. `DrinkTrackerCore/Package.swift`.** Add `.watchOS("26.0")` to `platforms`
+— **not `.v26`**: that constant needs a newer `swift-tools-version` than the
+package's 6.0 and fails to compile ("'v26' is unavailable"), while the string
+form resolves to `watchos 26.0` under 6.0 unchanged (checked with
+`swift package dump-package` on a scratch copy, 2026-09-14). `swift test` on
+macOS is unaffected; a platforms entry declares a minimum, it does not narrow
+the build.
 
 **2. `Shared/AppGroup.swift`, the derivation.** Today:
 
@@ -639,11 +744,20 @@ returns asset-catalog names (`tally.beer` and so on) that are generated by
 `ci.yml`'s `drink-symbols` job regenerates and requires that path to be clean.
 The watch's type picker needs the same eight symbols.
 
-Create `Shared/Assets.xcassets`, move the eight `.symbolset` folders into it,
-add the catalog to all four targets, and change two paths: the output path in
-`scripts/make-drink-symbols.py` and the two `git diff` paths in the
-`drink-symbols` CI job. Keep the app icon and every other asset where it is;
-only the generated symbols move.
+Create `Shared/Assets.xcassets`, move the `.symbolset` folders into it —
+**all thirteen**, not eight: the five `tally.tab.*` from ADR-0040's amendment
+share the generator's one `CATALOG` constant and `check_swift_names()` asserts
+the catalog holds the full set, so moving eight leaves the generator exiting
+non-zero — add the catalog to all four targets, and change two paths: the
+output path in `scripts/make-drink-symbols.py` and the two `git diff` paths in
+the `drink-symbols` CI job (its comment also says eight). **Move `AccentColor`
+and `AccentFill` with them.** The design draws glyphs in the accent and the ＋
+disc in the fill, and the two watch targets carry only the template's *empty*
+`AccentColor` colorset (which resolves to the system blue); copying the app's
+values in would be a second uncontrolled home for validated colours, invariant
+10's own failure mode, so the shared catalog is where they go — and delete the
+two empty template colorsets when it arrives, or the duplicate asset name is a
+build error. Keep the app icon and every other asset where it is.
 
 Verify the generator is clean afterwards, which is the one thing in this phase
 you can check without a toolchain:
@@ -1267,9 +1381,12 @@ diff against seven rules catches that before it ships.
 Stated plainly, because a plan that hides its assumptions is worse than one
 that is wrong out loud.
 
-- **No toolchain.** Nothing here has been compiled. Every Swift snippet is
-  written from the surrounding code's shape and should be treated as intent,
-  not as a patch.
+- **No toolchain, when this was written.** Nothing in the plan was compiled;
+  every Swift snippet is written from the surrounding code's shape and should
+  be treated as intent, not as a patch. Phase 0 itself was then done and
+  built in a local session with Xcode 26.6 (see its "Done" note), which is
+  also how the `.v26` and `INFOPLIST_KEY_UIBackgroundModes` errors in the
+  original text were caught.
 - **The contrast table** in Phase 5 is computed by hand from
   `IntensityPalette`'s literal values, and two of its rows reproduce figures
   this project already published, so the arithmetic is probably right. The

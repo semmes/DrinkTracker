@@ -16,6 +16,11 @@ behavioural surface optional and off or neutral. **The 1.2 train is frozen
 and awaiting App Review**; a fix that must ship in 1.2 is a new build and a
 re-submission, and says so.
 
+**1.3 was submitted and is awaiting App Review (owner, 2026-09-14), so this
+train is frozen the same way.** The 1.4 train opened the same day with the
+Apple Watch companion app — `docs/tallyist-1.4-spec.md`, which points at
+`docs/tallyist-watch-plan.md`.
+
 ## Feature A: Year in review share card — done (ADR-0029)
 
 The owner's design (the claude.ai/design project *Share Card*, bundled at

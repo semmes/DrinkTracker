@@ -103,7 +103,15 @@ purchases work in the simulator with no App Store Connect setup).
   `ci_scripts/ci_post_clone.sh` stamps unique build numbers. Manual archives
   from Xcode work too (build numbers restart per version train).
 - Remote Claude sessions have **no Swift toolchain** — CI is the only
-  compile/test check; say so rather than claiming local verification.
+  compile/test check; say so rather than claiming local verification. Local
+  sessions have Xcode 26.6, the iOS and watchOS simulators and a paired
+  watch/phone pair: run the gates and drive the app rather than repeating the
+  caveat. **`project.pbxproj` may be edited only in a local session**, only
+  for what the watch plan names, and only verified the way Phase 0 was —
+  `plutil -lint`, `xcodebuild -list`, both schemes built for their
+  simulators, `scripts/verify-watch-setup.py` green, and a launch on the
+  paired simulators when a bundle's contents change; the `Edit` tool, one
+  exact anchor at a time, never a script over the file.
 - **A schema change is also a CloudKit step.** The store mirrors to CloudKit,
   and Production learns a new attribute only when the owner deploys it
   (CloudKit Console → the app's container → Schema → *Deploy Schema
@@ -143,6 +151,16 @@ so keep them true.
 ---
 
 ## Current state (update me at end of session)
+
+**As of 2026-09-14:** v1.0 live; v1.1 approved and live (2026-09-01); 1.2
+was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
+2026-09-14), so it is frozen** — a fix that must ship in 1.3 is a new build
+and a re-submission, and says so; **the 1.4 train is open** —
+`MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
+its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
+Watch companion app**, whose Phase 0 landed the same day — see the last bullet
+of this section and `docs/tallyist-watch-plan.md`. The paragraph that follows
+is the 2026-09-10 state, kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1340,3 +1358,89 @@ Open items for v1.2:
   height; the Custom field's keyboard over the three-quarter sheet;
   adoption's sheet on a real Health import; drag-to-dismiss from
   three-quarters; and an SE-class screen if one is still in use.
+- **The watch's Phase 0 landed and opened the 1.4 train (2026-09-14).** The
+  plans merged over 2026-09-13 (PR #92 the plans and scaffolding, #93 the
+  contract submodule with the read-only CI token, #94 the owner's watch design
+  bundle at `docs/design/watch/`), the owner created the watch app target with
+  Xcode's template, and a handoff from that session listed what was wrong with
+  it. This session verified every claim in that handoff against the files (all
+  held), then — **at the owner's request, rather than the owner working
+  through Xcode** — finished Phase 0 by editing `project.pbxproj` directly in
+  this local session: the target renamed from `DrinkTrackerWatch Watch App` to
+  `DrinkTrackerWatch` (folder, product, scheme), its identifiers derived from
+  `$(BUNDLE_ID_PREFIX)`, 1.4, a 26.0 floor, display name Tallyist; the
+  `DrinkTrackerWatchWidget` complication target written by hand on the iOS
+  widget's shape and embedded in the watch app; a shared `DrinkTrackerWatch`
+  scheme; entitlements (group, iCloud container, aps — all derived, no
+  HealthKit), empty string catalogs, privacy manifests and the icon for both;
+  `DrinkTrackerWatch/CLAUDE.md` scoping watch sessions. **Owner decisions
+  taken:** the watch ships on 1.4 (1.3 is in review); the watch targets match
+  the other three targets' build settings; the watch **can** record a day as
+  no alcohol (Phase 3 builds the design's button); the design's other three
+  questions as drawn (no ＋ in the circular family, hiding per-glance, so not
+  governing complications); the sync LaunchAgent stays uninstalled (it never
+  was — `launchctl` shows none, and the verifier now says so instead of
+  assuming it). **Four things found only by building, all fixed:** (a) Xcode
+  26's template gave the new target `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`,
+  approachable concurrency, member-import visibility and
+  `STRING_CATALOG_GENERATE_SYMBOLS`, none of which the other three targets set
+  — `Shared/` compiled under two isolation regimes means two things, and the
+  first casualty would have been the complication's timeline provider calling
+  a main-actor `SharedModelContainer.make()`; deleted, and the verifier fails
+  on any disagreement across targets. (b) **`INFOPLIST_KEY_UIBackgroundModes`
+  is not a setting Xcode injects** — none of its build specs name it, while
+  every other key the project uses is there — so **the iOS app's built
+  Info.plist has never carried `UIBackgroundModes` since 1.0**: CloudKit's
+  silent pushes could not wake the app and the store mirrored only in the
+  foreground. Both apps now carry an explicit `Info.plist` merged with the
+  generated one (the widgets' `NSExtension` route) with `remote-notification`;
+  the built plists were read back to confirm. This is a phone-side behaviour
+  change App Review will see as a new Background Modes entry; the 1.4 reviewer
+  notes should say what it is for, and the owner's device pass should see
+  whether a change on one device now reaches another with the app closed.
+  (c) A synchronized folder copies `.md` files into the bundle — the first
+  build shipped `CLAUDE.md` inside the watch app; excluded with a
+  `membershipExceptions` entry, the same mechanism the widgets use for
+  `Info.plist`. (d) The plan's `.watchOS(.v26)` does not compile under the
+  package's tools-version 6.0; `.watchOS("26.0")` resolves identically (scratch
+  `dump-package`), and the verifier's pending message says so. **Also fixed:**
+  the verifier's shared-file check could not fail at all (it counted a comment
+  the pbxproj writes twice per membership against a threshold the one
+  two-membership file met exactly); it now reads memberships from each
+  target's Sources phase, and checks the display name, the background mode in
+  the plist, the complication's extension point, both embed phases plus their
+  target dependencies, the entitlements' existence, the catalogs, and the
+  settings that change what `Shared/` means. **Verified locally:**
+  `plutil -lint`; `xcodebuild -list` (five targets, the shared scheme);
+  both watch targets' resolved settings; the watch scheme built for the
+  watchOS simulator (the future CI job, one warning: no AppIntents dependency
+  yet); the iOS scheme built for the iOS simulator with the watch app at
+  `Watch/DrinkTrackerWatch.app` and the complication in its `PlugIns/`, their
+  Info.plists read back (`WKApplication`, the companion id, 1.4, 26.0,
+  `remote-notification`, no `WKWatchOnly`); the verifier at 0 failing with
+  only Phase 1's four items pending; the glyph generator clean; the icon
+  script regenerating both PNGs byte-identically; and **tier 3 — the watch
+  app installed and launched on a Series 11 (46mm) / iPhone 17 Pro simulator
+  pair created for it** (`simctl pair`), showing its placeholder. **Two
+  tooling lessons:** the auto-mode classifier refuses a script that rewrites
+  `project.pbxproj` and a compound git command that discards changes — the
+  `Edit` tool with exact anchors, and single-purpose git commands (the bump
+  was staged with `hash-object` + `update-index` so the working file kept
+  the template target), are what work; and `simctl install` of the iOS app
+  on the phone does **not** propagate the embedded watch app to the paired
+  watch — install `Watch/DrinkTrackerWatch.app` on the watch directly, or the
+  launch fails with `FBSOpenApplicationServiceErrorDomain` code 4. **Not
+  run locally:** the integration suite and the domain tests — neither
+  changes here, and CI runs both; the iOS build that CI's `build` job mirrors
+  did run. **Phase 1 is next**, and it is project-file work too (the package
+  links, the six `Shared/` memberships, the shared catalog with the thirteen
+  symbolsets *and* the two accent colorsets, `IntensityPalette`'s move), plus
+  `.watchOS("26.0")`, the `AppGroup` suffix fix with its tier-1 pins, and the
+  `build-watch` CI job from `docs/watch-scaffold/ci-build-watch.yml` (it now
+  carries the token line). **Tier 3/4 for the owner's pass:** open the
+  project in Xcode from `~/DrinkTracker-watch` and confirm the five targets
+  and the scheme read as expected (Xcode's own validation of a hand-written
+  project is the one check this session could not run); Run the
+  `DrinkTrackerWatch` scheme on the pair from Xcode; and, on hardware after
+  the 1.4 build, whether a drink logged on one device reaches another with
+  the app closed.
