@@ -27,10 +27,14 @@ struct CounterView: View {
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-  /// Everything since the start of the day the view was built on; the lower
-  /// bound only ever grows older relative to now, so the window keeps covering
-  /// today and `todaysEntries` cuts it to the current calendar day — the shape
-  /// `TodayView` arrived at after a night suspended showed yesterday as today.
+  /// Everything since the start of the day *before* the one the view was
+  /// built on; the lower bound only ever grows older relative to now, so the
+  /// window keeps covering today and `todaysEntries` cuts it to the current
+  /// calendar day — the shape `TodayView` arrived at after a night suspended
+  /// showed yesterday as today. The extra day is for the session (Phase 5):
+  /// a sitting can start before midnight, and one that reaches back past
+  /// yesterday's start would be longer than a day of drinks under four hours
+  /// apart, which the row is content to cut.
   @Query private var recentEntries: [DrinkEntry]
   @Query private var alcoholFreeDays: [AlcoholFreeDay]
 
@@ -53,10 +57,6 @@ struct CounterView: View {
   /// The tail of the counter's operations — see the type's comment.
   @State private var counterOps: Task<Void, Never>?
 
-  /// The type picker, the app's only navigation (ADR-0042): pushed by a hold
-  /// on ＋, popped by the pick.
-  @State private var showsPicker = false
-
   #if DEBUG
   @State private var cloudKitStatus: String?
   #endif
@@ -67,8 +67,18 @@ struct CounterView: View {
     case notSaved
   }
 
+  /// The type picker, the app's only navigation (ADR-0042): pushed by a hold
+  /// on ＋, popped by the pick.
+  @State private var showsPicker = false
+
+  /// The watch's own "Show session pace" (ADR-0044): watch-local, off until
+  /// set, read once here and written through `AppSettings.store`.
+  @State private var showsSessionPace = AppSettings.storedShowsSessionPace()
+
   init(now: Date = .now, calendar: Calendar = .current) {
-    _recentEntries = Query(FetchDescriptor<DrinkEntry>.since(calendar.startOfDay(for: now)))
+    let today = calendar.startOfDay(for: now)
+    let floor = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+    _recentEntries = Query(FetchDescriptor<DrinkEntry>.since(floor))
   }
 
   // MARK: - Derived facts
@@ -79,6 +89,24 @@ struct CounterView: View {
   }
 
   private var todaysDrinks: [LoggedDrink] { todaysEntries.loggedDrinks }
+
+  /// The session's raw material: everything the query holds, since a sitting
+  /// can start before midnight. Sessions are runs of absolute timestamps,
+  /// calendar-free (ADR-0017), so no day cut applies here.
+  private var sessionDrinks: [LoggedDrink] { recentEntries.loggedDrinks }
+
+  /// The rolling two-hour window's band, or nil to stay neutral — the phone
+  /// card's rule with a different floor: `.medium` and above tint the dots,
+  /// because a dot needs 3:1 against its ground and the dark ramp's `.low`
+  /// measures 2.59:1 on black (ADR-0044's table).
+  private func paceBand(now: Date) -> DayIntensity? {
+    let total = SessionPace.rollingStandardDrinks(in: sessionDrinks, now: now, region: region)
+    let band = DayIntensity.bucket(standardDrinks: total, isMarkedAlcoholFree: false, hasEntries: true)
+    switch band {
+    case .medium, .high, .veryHigh: return band
+    case .unlogged, .alcoholFree, .low: return nil
+    }
+  }
 
   /// The region the phone last sent — or the US, which is also what the phone
   /// itself computes with when none was chosen (ADR-0041).
@@ -171,6 +199,13 @@ struct CounterView: View {
         } else {
           hintSlot
             .padding(.top, 8)
+
+          // The wrist's Settings in miniature: one switch, below the fold,
+          // so the screen the user raises stays the counter (ADR-0044). Not
+          // offered while the strip owns the slot: a switch for a row that
+          // cannot appear would be a promise.
+          sessionToggle
+            .padding(.top, WatchLayout.slotToToggle)
         }
       }
       .padding(.horizontal, WatchLayout.screenMargin)
@@ -299,11 +334,25 @@ struct CounterView: View {
     }
   }
 
-  /// The bottom slot: a toast for a moment, otherwise the one hint the
-  /// counter carries — the way to the type picker — with the diagnostics line
-  /// beneath it in debug builds.
-  @ViewBuilder
+  /// The bottom slot (the design's "the hint yields the bottom slot to the
+  /// row"): a toast for a moment; otherwise the sitting's dots while a
+  /// session is active and the watch's own toggle is on (Phase 5, ADR-0044);
+  /// otherwise the one hint the counter carries, the way to the type picker.
+  /// The diagnostics line sits beneath whichever, in debug builds.
   private var hintSlot: some View {
+    VStack(spacing: 4) {
+      slotContent
+      #if DEBUG
+      Text(verbatim: debugLine)
+        .font(.system(size: 8))
+        .foregroundStyle(.tertiary)
+        .multilineTextAlignment(.center)
+      #endif
+    }
+  }
+
+  @ViewBuilder
+  private var slotContent: some View {
     if let toast {
       // The design's toast pill: the hint's size on a `.primary` 10% ground.
       Text(toastText(toast))
@@ -317,20 +366,48 @@ struct CounterView: View {
             .fill(Color.primary.opacity(0.10))
         )
         .transition(.opacity)
-    } else {
-      VStack(spacing: 4) {
-        Text("Hold ＋ to say what it was")
-          .font(.system(size: WatchLayout.hintSize))
-          .foregroundStyle(.tertiary)
-          .multilineTextAlignment(.center)
-        #if DEBUG
-        Text(verbatim: debugLine)
-          .font(.system(size: 8))
-          .foregroundStyle(.tertiary)
-          .multilineTextAlignment(.center)
-        #endif
+    } else if showsSessionPace {
+      // A 60-second clock, never a `Timer`: session existence, the elapsed
+      // time and the rolling band recompute at the cadence they change at
+      // (ADR-0017; a one-second wakeup in a frontmost watch app is a battery
+      // complaint in a review).
+      TimelineView(.periodic(from: .now, by: 60)) { context in
+        if let session = SessionPace.currentSession(in: sessionDrinks, now: context.date) {
+          SessionDotRow(
+            session: session,
+            band: paceBand(now: context.date),
+            now: context.date,
+            isCountHidden: isCountHidden
+          )
+        } else {
+          hint
+        }
       }
+    } else {
+      hint
     }
+  }
+
+  private var hint: some View {
+    Text("Hold ＋ to say what it was")
+      .font(.system(size: WatchLayout.hintSize))
+      .foregroundStyle(.tertiary)
+      .multilineTextAlignment(.center)
+  }
+
+  /// Off by default; the phone's own words for the switch. Watch-local: what
+  /// the row shows is computed the same everywhere, so this changes what is
+  /// shown and never crosses the bridge (the plan's dividing line).
+  private var sessionToggle: some View {
+    // The system's own switch row at its own size: a settings row, not
+    // counter chrome.
+    Toggle("Show session pace", isOn: Binding(
+      get: { showsSessionPace },
+      set: { on in
+        showsSessionPace = on
+        AppSettings.store(showsSessionPace: on)
+      }
+    ))
   }
 
   private func toastText(_ toast: Toast) -> LocalizedStringKey {

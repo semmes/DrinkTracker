@@ -64,6 +64,15 @@ enum WatchLayout {
   static let markedLineSize: CGFloat = 11
   static let markedLineGap: CGFloat = 4
 
+  /// The session row (the design's screen 4): 9pt dots at 5pt gaps, the
+  /// count line at 11pt, 4 beneath them; the toggle that shows the row sits
+  /// 14 under the slot, below the fold.
+  static let dotSize: CGFloat = 9
+  static let dotGap: CGFloat = 5
+  static let dotsToSessionLine: CGFloat = 4
+  static let sessionLineSize: CGFloat = 11
+  static let slotToToggle: CGFloat = 14
+
   /// The type picker (the design's screen 5): two columns of 62pt tiles at
   /// radius 14 on `.primary` at 10%, 8 apart; the glyph at 20 in the accent
   /// over the name at 11, 4 between them.

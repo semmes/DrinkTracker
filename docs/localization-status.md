@@ -77,9 +77,9 @@ complication's (`DrinkTrackerWatch/Localizable.xcstrings`,
 **27 keys** — the shared intents' strings that `Shared/LogDrinkIntent.swift`
 brings to every target that compiles it (the iOS widget's 35 are the same
 family plus its own view's), plus the Siri phrase summary that only a
-device-architecture extraction emits. The watch app's holds **46**: those 27
-and the counter's own nineteen (watch Phases 3 and 4, the same day) — fourteen reused
-verbatim from the phone's Today, Settings and calendar legend, and five new
+device-architecture extraction emits. The watch app's holds **49**: those 27
+and the counter's own twenty-two (watch Phases 3 to 5, the same day) — seventeen reused
+verbatim from the phone's Today, Settings, session card and calendar legend, and five new
 (reviewed in `docs/copy-review-1.4.3.md` under 1.4). Both were synced with
 `xcstringstool` from a **device** build's `arm64_32` `.stringsdata`, which is
 the set that carries `ExtractedAppShortcutsMetadata`; syncing from a simulator
@@ -89,7 +89,7 @@ writes a bare `%lld` key, which is no key at all — the watch uses the `Text`
 overload instead (the phone's `CountStepper` still carries that key in the app
 catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
-complication's own strings arrive with Phase 6. Six catalogs, 462 keys.
+complication's own strings arrive with Phase 6. Six catalogs, 465 keys.
 
 Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-10 after ADR-0038's naming amendment — the Comparisons section on

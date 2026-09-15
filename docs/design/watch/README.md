@@ -496,6 +496,25 @@ unit's name varies by region, its form by count, and word order by language.
 - The counter now lives in a `NavigationStack`; its row sits a few points
   higher than the Phase 3 render, inside the same insets.
 
+### Built (Phase 5, 2026-09-14) — where the code departs from this page
+
+- **As drawn** for the row: 9 pt dots at 5 pt gaps, at most eight, in the
+  rolling window's fill from `.medium` up; `N · 1h 12m` beneath at 11 pt, the
+  count rounded semibold, the time default SF; inside a 60-second
+  `TimelineView`. The row takes the hint's slot while a sitting is active.
+- **The neutral dot is a 1 pt ring in the secondary label colour**, not the
+  tile border's 35% primary: a ring that small needs its own 3:1, and white
+  at 35% on black sits on that line (3.01 unquantised, 2.998 as `#595959`)
+  where secondary is 6.4:1 (ADR-0044).
+- **The switch is on the counter itself**, the last thing on its scroll: the
+  system's own toggle row, "Show session pace", off by default. This page did
+  not draw where the toggle lives; the watch has no Settings screen.
+- **Concealed — hidden by the tap or redacted under Always-On — the row is
+  eight rings whatever the count, and the count line goes.** This page's
+  hidden state outlined the dots at their count; a row of rings at the count
+  is still a count, readable across a table up to eight, which is the leak the
+  hide exists to close. One expression to reverse (ADR-0044).
+
 ## Build order
 
 | Phase | Work |

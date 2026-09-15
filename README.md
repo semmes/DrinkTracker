@@ -200,7 +200,8 @@ DrinkTrackerWidget/         Widget extension target
 DrinkTrackerWatch/          watchOS app target — the counter over the shared
                             store (watch Phase 3: CounterView, CounterTile,
                             CounterDisc, WatchBandLegend, StorageWarningStrip,
-                            WatchHaptics, WatchLayout; Phase 4: TypePickerView) and the phone's region
+                            WatchHaptics, WatchLayout; Phase 4: TypePickerView;
+                            Phase 5: SessionDotRow) and the phone's region
                             and counter seed received over WatchConnectivity
                             (Phase 2, WatchContextStore); phases 4 to 6 of
                             docs/tallyist-watch-plan.md follow; its CLAUDE.md

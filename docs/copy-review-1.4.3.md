@@ -1393,3 +1393,25 @@ tiles say what it is — and the system's back chevron is the only chrome.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The watch's session dots (ADR-0044, 2026-09-14)
+
+Phase 5 of the watch plan: while a sitting is active and the watch's own
+switch is on, the counter's bottom slot shows one dot per drink in the session
+and a line with the count and the time since the first drink. **No string is
+new.** The switch is the phone's own words, the spoken sentence is the phone
+card's own, and the line itself is two numbers and a dot.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Show session pace" | The switch at the bottom of the counter's scroll, off by default | Reused verbatim from Settings (ADR-0017). Names what the switch shows, not why a reader would want it. |
+| "%@ drink this session" · "%@ drinks this session" | The row's VoiceOver label; singular from the displayed digits | Reused verbatim from the phone's session card (ADR-0017). A count, flat, of the current sitting only. |
+| `5 · 1h 12m` | The line under the dots | Not copy: the count and the elapsed time from the system's own formatter, joined by a middle dot. The count is the user's figure in rounded semibold; the time is the clock's in default SF. No word that could carry a judgment. |
+
+**Not copy, but seen by a reader:** the dots are shaded by the same ramp as
+the calendar from the 3–5 band up and ringed below it; hidden or under
+Always-On the row is eight rings whatever the count, and the line is gone. Nothing pulses, nothing is red, and nothing appears when the
+sitting ends — the row stops existing (ADR-0017's rules, unchanged).
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
