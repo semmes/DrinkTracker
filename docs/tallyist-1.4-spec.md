@@ -29,8 +29,8 @@ of its README.
 | 0 — the targets | **Done 2026-09-14.** Two targets, the shared scheme, entitlements, catalogs, icon, the verifier; the 1.4 bump. Recorded at the head of the plan's Phase 0. |
 | 1 — the shared layer builds for watchOS | **Done 2026-09-14.** The package declares watchOS; `BundleIdentity` pins one App Group for the four identifiers; the shared catalog and the palette; `Shared/` and the package on both watch targets; the watch app opens the store and prints today's count; the `build-watch` CI job. Recorded at the head of the plan's Phase 1. Verified on hardware the same day: the watch's count follows the phone's about four to five seconds after a log. |
 | 2 — the settings bridge | **Done 2026-09-14, ADR-0041.** `WatchContext` and its codec in the core package; the phone publishes region and counter seed over WatchConnectivity on activation, foreground and change; the watch stores them in its App Group under the keys `AppSettings` owns; the CloudKit probe runs on the wrist. Verified on the simulator pair, on activation and live. |
-| 3 — the counter, and recording a day as no alcohol | Next. |
-| 4 — specify a drink | |
+| 3 — the counter, and recording a day as no alcohol | **Done 2026-09-14, ADR-0042, ADR-0043, ADR-0045.** The counter over the shared store: ＋ through the one seed rule (`DrinkRepository.nextQuickDrink`, which Today, the day sheet and the widget now call too), − through `LoggedDrink.removableNewest` at tier 1, haptics, Double Tap, the region line, the storage strip, the tap to hide, and the no-alcohol button. Recorded at the head of the plan's Phase 3. Verified on the simulator pair by driving it. |
+| 4 — specify a drink | Next. |
 | 5 — the session, as dots | |
 | 6 — complications | |
 | 7 — the live session bridge (optional) | The measured four-to-five-second CloudKit latency argues it may not be needed; decide after an evening's use, the plan's own criterion. |
