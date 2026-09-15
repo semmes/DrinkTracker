@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ drink this session" : {
+
+    },
+    "%@ drinks this session" : {
+
+    },
     "10+" : {
 
     },
@@ -111,6 +117,9 @@
 
     },
     "Remove that drink on the phone" : {
+
+    },
+    "Show session pace" : {
 
     },
     "Size (ounces)" : {

@@ -199,6 +199,24 @@ final class AppSettings {
     defaults.set(counterSeed.rawValue, forKey: Keys.counterSeed)
   }
 
+  /// The watch's own "Show session pace" (watch Phase 5, ADR-0044): the key
+  /// the phone's `showsSessionPace` uses, read from the watch's own App
+  /// Group, so the setting is per device the way the phone's is (the plan's
+  /// divergence 2) and never crosses the settings bridge. Off until set — the
+  /// 1.2 spec's rule for every new behavioural surface.
+  nonisolated static func storedShowsSessionPace(
+    defaults: UserDefaults = AppGroup.defaults
+  ) -> Bool {
+    storedFlag(Keys.sessionPace, defaults: defaults, fallback: false)
+  }
+
+  nonisolated static func store(
+    showsSessionPace: Bool,
+    defaults: UserDefaults = AppGroup.defaults
+  ) {
+    defaults.set(showsSessionPace, forKey: Keys.sessionPace)
+  }
+
   private enum Keys {
     static let onboarding = "hasCompletedOnboarding"
     static let region = "region"
