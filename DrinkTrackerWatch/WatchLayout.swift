@@ -63,4 +63,15 @@ enum WatchLayout {
   static let rowToMarkedLine: CGFloat = 9
   static let markedLineSize: CGFloat = 11
   static let markedLineGap: CGFloat = 4
+
+  /// The type picker (the design's screen 5): two columns of 62pt tiles at
+  /// radius 14 on `.primary` at 10%, 8 apart; the glyph at 20 in the accent
+  /// over the name at 11, 4 between them.
+  static let pickerMargin: CGFloat = 10
+  static let pickerGap: CGFloat = 8
+  static let pickerTileHeight: CGFloat = 62
+  static let pickerTileRadius: CGFloat = 14
+  static let pickerGlyphSize: CGFloat = 20
+  static let pickerNameSize: CGFloat = 11
+  static let pickerGlyphToName: CGFloat = 4
 }
