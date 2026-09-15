@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "10+" : {
+
+    },
+    "1–2" : {
+
+    },
+    "3–5" : {
+
+    },
+    "6–9" : {
+
+    },
     "Beer" : {
 
     },
@@ -13,6 +25,12 @@
     "Drink Type" : {
 
     },
+    "Drinks today" : {
+
+    },
+    "From Apple Health" : {
+
+    },
     "How many" : {
 
     },
@@ -22,13 +40,13 @@
     "Log ${quantity} ${drinkType}" : {
 
     },
-    "Log a Drink" : {
-
-    },
     "Log Drinks" : {
 
     },
     "Log One Drink" : {
+
+    },
+    "Log a Drink" : {
 
     },
     "Logged %lld: %@ each." : {
@@ -53,6 +71,18 @@
     "Logs one or more drinks, asking for the type and how many." : {
 
     },
+    "No alcohol" : {
+
+    },
+    "Not logged" : {
+
+    },
+    "Not saved" : {
+
+    },
+    "Not saving — storage unavailable" : {
+
+    },
     "Nothing was logged." : {
 
     },
@@ -62,10 +92,22 @@
     "Record No Alcohol Today" : {
 
     },
+    "Record no alcohol today" : {
+
+    },
+    "Recorded as no alcohol today" : {
+
+    },
     "Recorded today as no alcohol." : {
 
     },
     "Records today as a day with no alcohol." : {
+
+    },
+    "Region not set yet" : {
+
+    },
+    "Remove that drink on the phone" : {
 
     },
     "Size (ounces)" : {
@@ -80,6 +122,12 @@
     "Strength (% ABV)" : {
 
     },
+    "Tap again to show the count" : {
+
+    },
+    "Tap the plus sign to change that." : {
+
+    },
     "Today already has drinks logged, so it wasn't recorded as no alcohol." : {
 
     },
@@ -87,6 +135,12 @@
 
     },
     "Wine" : {
+
+    },
+    "drink today" : {
+
+    },
+    "drinks today" : {
 
     }
   },

@@ -1341,3 +1341,36 @@ two tables read as one instrument. Nothing is reworded.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The watch's counter (ADR-0042, ADR-0043, ADR-0045, 2026-09-14)
+
+The Apple Watch companion app's home surface: today's count in the day's
+band, ＋, −, the unit word, the region's figure, the four bands named, and a
+hint slot that carries a two-second toast. Most of what it says is the phone's
+Today counter reused word for word — the watch catalog gets its own copy of
+each key, and every reused string is listed so the reuse is checkable. **Four
+strings are new.** One string the design named ("Hold ＋ to say what it was")
+is not shown until Phase 4 builds the picker it points at, and is reviewed
+there.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Tap again to show the count" | The hint slot for about two seconds after a tap on the tile hides the numeral (ADR-0045) | Says how to reverse what the tap just did, and nothing about why one might hide a count. Names the count as a count. No judgment about the number withheld. |
+| "Remove that drink on the phone" | The hint slot for about two seconds after a touch on the dimmed − when today's newest entry is one the watch may not remove — a Health-owned or Health-mirrored entry (ADR-0043) | Names the one place the removal can happen and nothing else. "That drink" points at the entry the − would have taken, not at the reader. States a limit of the wrist plainly rather than hiding the control, and does not call the entry a mistake. |
+| "Region not set yet" | The ≈ line's slot, on a day with drinks, until the phone has sent its settings for the first time (ADR-0041) | Reports a fact about the setting, not about the reader. Replaces a US figure that would otherwise print as if chosen. "Yet" says the phone will send it; it does not tell the reader to do anything. |
+| "Not saved" | The hint slot for about two seconds when a write fails — a ＋ or a no-alcohol record the store refused | The shortest honest statement that the tap did not land, so a failed log is not mistaken for a logged one. No apology, no instruction, no exclamation mark: the storage strip below already covers the one case house voice permits one. |
+| "drinks today" · "drink today" | The unit word under the tile; singular from the count | Reused verbatim from Today. |
+| "≈ %@" (the region's figure through `StandardDrink.liveEstimate`) | The line under the unit word | Reused verbatim; the same function the phone and the medium widget read. |
+| "1–2" · "3–5" · "6–9" · "10+" | The four legend labels under the counter, hidden with the numeral | Reused verbatim from the calendar's legend (ADR-0034), now from a `Shared/` file so the two cannot drift. "Not logged" and "No alcohol" travel with them into the catalog and are not drawn on the wrist. |
+| "Record no alcohol today" | The empty day's button, in the ≈ line's place (the owner's decision on the design's first question) | Reused verbatim from Today. |
+| "Recorded as no alcohol today" · "Tap the plus sign to change that." · "From Apple Health" | The marked day's two lines | Reused verbatim from Today (ADR-0034 amendment, ADR-0025). |
+| "Not saving — storage unavailable" | The strip at the bottom of the counter while the store is in memory (ADR-0004) | Reused verbatim from Settings. The one exception house voice grants stays unexercised: the phone's wording carries no exclamation mark, and neither does this copy of it. |
+| "Drinks today" | The counter's VoiceOver label; the value is the count | Reused verbatim from `CountStepper`. |
+
+**Not copy, but felt:** a logged drink is acknowledged by a haptic and nothing
+on screen — `.click` for a touch, a distinct `.directionUp` for a Double Tap
+so an unintended pinch announces itself, `.failure` for a refusal, never
+`.success`, which reads as praise for the act (invariant 8).
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
