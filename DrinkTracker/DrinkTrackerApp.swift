@@ -4,8 +4,9 @@ import SwiftUI
 
 @main
 struct DrinkTrackerApp: App {
-  @State private var settings = AppSettings()
+  @State private var settings: AppSettings
   @State private var health = HealthKitService()
+  @Environment(\.scenePhase) private var scenePhase
 
   /// Standard defaults on purpose — the widget is excluded (see
   /// `AppearancePreference`). Applied once at the root; sheets and covers
@@ -19,6 +20,19 @@ struct DrinkTrackerApp: App {
     AppTheme.install()
     // A CSV staged for a share sheet last session has no reason to still exist.
     LogExportFile.removeStaleExports()
+
+    // The settings bridge to a paired watch (watch Phase 2, ADR-0041): the
+    // region and counter seed cross to the wrist whenever either changes, and
+    // the publisher re-sends the current pair on activation and on every
+    // foregrounding, below. Only these two values cross, and never a row.
+    let settings = AppSettings()
+    settings.watchBridge = { region, counterSeed in
+      WatchContextPublisher.shared.publish(
+        WatchContext(region: region, counterSeed: counterSeed, sentAt: .now)
+      )
+    }
+    _settings = State(initialValue: settings)
+    WatchContextPublisher.shared.activate()
 
     #if DEBUG
     // A missing App Group doesn't fail the build — the app and widget just end up
@@ -70,6 +84,13 @@ struct DrinkTrackerApp: App {
         )
     }
     .modelContainer(container)
+    .onChange(of: scenePhase) { _, phase in
+      // Settings can change while the watch is out of reach; an application
+      // context is latest-value-wins, so re-sending the current pair on every
+      // foreground costs nothing and covers a watch paired since last time.
+      guard phase == .active else { return }
+      WatchContextPublisher.shared.publishCurrent()
+    }
   }
 }
 

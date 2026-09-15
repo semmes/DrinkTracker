@@ -151,6 +151,35 @@ enum Diagnostics {
     AppGroup.defaults.string(forKey: cloudKitStatusCodeKey)
   }
 
+  static let watchContextSentKey = "lastWatchContextSent"
+
+  /// On the phone: the last publish of the settings bridge (watch Phase 2,
+  /// ADR-0041) — what was sent and when, or what went wrong. The bridge is a
+  /// silent channel by design (latest value wins, delivered whenever the watch
+  /// is next reachable), so this is the only way to see it did anything.
+  static func recordWatchContextSent(_ description: String) {
+    AppGroup.defaults.set(description, forKey: watchContextSentKey)
+  }
+
+  static var lastWatchContextSent: String? {
+    AppGroup.defaults.string(forKey: watchContextSentKey)
+  }
+
+  static let watchContextReceivedKey = "lastWatchContextReceived"
+
+  /// On the watch: when the phone built the last context the watch applied.
+  /// `nil` means no context has ever arrived, which is how the counter (Phase
+  /// 3) tells "the region has not been set yet" from "the US, by choice" —
+  /// `AppSettings.storedRegion()` alone cannot, since it falls back to the US.
+  static func recordWatchContextReceived(sentAt: Date) {
+    AppGroup.defaults.set(sentAt.timeIntervalSince1970, forKey: watchContextReceivedKey)
+  }
+
+  static var lastWatchContextReceived: Date? {
+    (AppGroup.defaults.object(forKey: watchContextReceivedKey) as? Double)
+      .map(Date.init(timeIntervalSince1970:))
+  }
+
   /// Whether the store fell back to memory — the one state where nothing at all
   /// is being saved. Surfaced in release builds, not just diagnostics.
   static var isStoreInMemory: Bool {

@@ -9,6 +9,10 @@ import SwiftUI
 /// the phone does (ADR-0004) rather than crash-looping. On the wrist the store
 /// is the only data path (the watch plan, "Architecture"): it fills from the
 /// user's own CloudKit database, and Phase 3's counter writes to it.
+///
+/// Also activates the settings bridge (Phase 2, ADR-0041): the phone's region
+/// and counter seed arrive over WatchConnectivity and land in the App Group
+/// defaults, where every reader on the watch already looks.
 @main
 struct DrinkTrackerWatchApp: App {
   private let container: ModelContainer
@@ -29,6 +33,7 @@ struct DrinkTrackerWatchApp: App {
         )
       )
     }
+    WatchContextStore.shared.activate()
   }
 
   var body: some Scene {
