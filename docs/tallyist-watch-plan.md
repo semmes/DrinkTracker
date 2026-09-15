@@ -1218,6 +1218,60 @@ complication's tint rendering mode.
 
 One session. Needs an ADR, and the ADR needs a contrast table.
 
+**Done 2026-09-14, in the same local session as Phases 0 to 4, and recorded
+as ADR-0044.** Built as specified below: `SessionPace.dotRow(forCount:maximum:)`
+in the core package (`DotRow` carries the dots and `isTruncated`; the cap
+`dotMaximum` is 8; the dots are decided on `StandardDrink.displayed(count)`,
+the figure the line prints, rounded to the nearest dot with a half up, so
+2.45 and 2.5 both read "2.5" over three dots; seven tier-1 tests) and
+`SessionDotRow` on the watch — the dots in `IntensityPalette.fill` for the
+rolling two-hour window's band from `.medium` up and 1pt rings in the
+secondary label colour below it (four states, a ring and three fills — this
+section's "three states, the same count as the phone's chip" below
+miscounts; the chip has three), `N · 1h 12m` beneath (the count in rounded
+semibold, the elapsed time from `DateComponentsFormatter`), inside
+`TimelineView(.periodic(from: .now, by: 60))`, taking the hint's slot while
+`SessionPace.currentSession` returns a value. The contrast table was
+recomputed for the ADR from the 8-bit colours the palette's literals render
+as: it agrees with the project's published 11.75:1, 15.87:1 and 9.52:1, and
+with the table below to a unit in the second decimal — the table below was
+computed from the unquantised component literals, and no cell changes side of
+a threshold on either basis. The neutral ring's own figures — secondary label
+on black 6.36:1; white at 35%, the tile border's ink, on the 3:1 line itself
+(3.01 unquantised, 2.998 as `#595959`), which is why it was not reused — are
+in the record. **The switch** is the last thing on the counter's scroll, the
+system's own toggle row in the phone's words, off by default, stored under
+the phone's key in the watch's App Group through two new `nonisolated static`
+accessors on `AppSettings`, so it never crosses the bridge (divergence 2);
+not offered while the storage strip owns the slot. **Concealed — hidden by
+the tap or redacted under Always-On — the row draws eight rings whatever the
+count and no line**, a departure from the drawing's outlines-at-the-count,
+because rings at the count are still a count readable across a table
+(ADR-0044). The counter's query now reaches back to the start of the previous
+day so a sitting that began before midnight is one sitting. Three keys
+joined the watch catalog (49), all reused verbatim, recorded in the copy
+review's 1.4 section. No project-file work. **A five-lens adversarial review
+of the change found twelve real things before it merged** — the raw-count
+rounding, the count line surviving redaction as placeholder blocks, rings
+that still counted, the table's stated provenance, "3.00:1 exactly", the
+width rationale for the cap, the switch shown under the strip — all fixed
+above; the review's method is in the handoff.
+
+**Verified:** 276 domain tests (seven new); the watch scheme for the device
+architecture and for the simulator; the signed iOS build for the pair; 85
+integration tests on a second simulator; and **tier 3 on the simulator
+pair**: the switch off by default with the hint in the slot; scrolling to
+the switch and tapping it on; the row appearing in the slot for the three
+drinks Phase 4's run logged — three filled dots in the 3–5 band's fill (3.0
+standard drinks in the window) over "3 · 1h 19m"; the hide turning the row
+to eight rings and removing the line; the switch surviving a relaunch (read
+back from the App Group from inside the simulator) with the row still
+showing and the clock advanced to "1h 20m". **Not verified here:**
+the row disappearing four hours after the last drink (the domain's
+`currentSession` tests pin the rule); a sitting across midnight; the `.low`
+ring state and the `.high` / `.veryHigh` fills on screen (one palette call);
+Always-On redaction; VoiceOver's reading of the row; the row on a 40mm watch.
+
 **What it shows**, on the counter screen, beneath the numeral, only when the
 watch's own "Show session pace" toggle is on and only while
 `SessionPace.currentSession` returns a value:

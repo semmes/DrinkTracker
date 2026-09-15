@@ -31,8 +31,8 @@ of its README.
 | 2 — the settings bridge | **Done 2026-09-14, ADR-0041.** `WatchContext` and its codec in the core package; the phone publishes region and counter seed over WatchConnectivity on activation, foreground and change; the watch stores them in its App Group under the keys `AppSettings` owns; the CloudKit probe runs on the wrist. Verified on the simulator pair, on activation and live. |
 | 3 — the counter, and recording a day as no alcohol | **Done 2026-09-14, ADR-0042, ADR-0043, ADR-0045.** The counter over the shared store: ＋ through the one seed rule (`DrinkRepository.nextQuickDrink`, which Today, the day sheet and the widget now call too), − through `LoggedDrink.removableNewest` at tier 1, haptics, Double Tap, the region line, the storage strip, the tap to hide, and the no-alcohol button. Recorded at the head of the plan's Phase 3. Verified on the simulator pair by driving it, then on hardware by the owner the same day. |
 | 4 — specify a drink | **Done 2026-09-14.** `TypePickerView` on a hold of ＋: five tiles that log the type at its defaults through `DrinkDraft(type:)`, one screen deep, back on the pick; the "Hold ＋" hint fills the counter's slot. Recorded at the head of the plan's Phase 4. Verified on the simulator pair and read back from its store. |
-| 5 — the session, as dots | Next. |
-| 6 — complications | |
+| 5 — the session, as dots | **Done 2026-09-14, ADR-0044.** One dot per drink in the sitting up to eight, in the rolling window's band from 3–5 up and outlined below it, over "N · 1h 12m"; behind the watch's own "Show session pace" switch at the bottom of the counter's scroll, off by default; eight rings and no line while hidden or redacted. Recorded at the head of the plan's Phase 5. Verified on the simulator pair. |
+| 6 — complications | Next. |
 | 7 — the live session bridge (optional) | The measured four-to-five-second CloudKit latency argues it may not be needed; decide after an evening's use, the plan's own criterion. |
 | 8 — release | What's New (1.4), reviewer notes, the claims table re-verified against the watch, the privacy policy read against it, the watch screenshots. |
 

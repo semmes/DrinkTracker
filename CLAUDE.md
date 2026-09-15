@@ -163,10 +163,10 @@ was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
 and a re-submission, and says so; **the 1.4 train is open** —
 `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
-Watch companion app**, whose Phases 0 to 4 landed the same day — see the
-last five bullets of this section and `docs/tallyist-watch-plan.md`; Phase
-5, the session as dots, is next. The paragraph that follows is the
-2026-09-10 state, kept for the record.
+Watch companion app**, whose Phases 0 to 5 landed the same day — see the
+last six bullets of this section and `docs/tallyist-watch-plan.md`; Phase
+6, the complications, is next, and the owner's device pass waits for it.
+The paragraph that follows is the 2026-09-10 state, kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1675,3 +1675,74 @@ Open items for v1.2:
   History with its Health sample after the phone's next foreground, the five
   glyphs at 20pt on a real display, the picker on a 40/41/42mm watch, and
   VoiceOver reading a tile as its type name and nothing else.
+- **The watch's Phase 5 landed (2026-09-14, same session): the session as
+  dots, ADR-0044.** The owner's hardware pass closed Phase 4's list and asked
+  whether the remaining phases could be built back to back and tested once;
+  the answer given was Phases 5 and 6 together, then a device pass before
+  Phase 7 (the owner's own decision, after an evening's use) and Phase 8
+  (release work that needs the owner's screenshots). What shipped, recorded
+  at the head of the plan's Phase 5: `SessionPace.dotRow(forCount:maximum:)`
+  in the core package — `DotRow` (dots, `isTruncated`), the cap
+  `dotMaximum` 8, decided on `StandardDrink.displayed(count)` (the figure the
+  line prints) to the nearest dot with a half up, seven tier-1 tests — and
+  `SessionDotRow` on the watch: one dot per drink in the sitting
+  in the rolling two-hour window's fill from `.medium` up, 1pt rings in the
+  secondary label colour below it, `N · 1h 12m` beneath, inside a 60-second
+  `TimelineView`, in the counter's bottom slot while `currentSession` returns
+  a value (four states: a ring and three fills; the phone's chip has three).
+  **The contrast table is recomputed in the ADR** from the 8-bit colours the
+  palette's literals render as (2.59 / 5.77 / 11.75 / 15.87 on black; 2.10 /
+  4.68 / 9.52 / 12.86 on `#1C1C1E`), agreeing with the project's published
+  figures and with the plan's table to a unit in the second decimal — the
+  plan used the unquantised component literals; no cell changes side of a
+  threshold either way. The neutral ring is `.secondary` (6.36:1 on black)
+  because white at 35%, the tile border's ink, sits on the 3:1 line (3.01
+  unquantised, 2.998 as `#595959`). **The
+  switch lives on the counter itself** — the last thing on its scroll, the
+  system's toggle row in the phone's words, off by default — through two new
+  `nonisolated static` accessors on `AppSettings` (`storedShowsSessionPace()`,
+  `store(showsSessionPace:)`), the phone's key in the watch's own App Group,
+  never across the bridge, and not offered while the storage strip owns the
+  slot. **Concealed — hidden by the tap or redacted under Always-On — the row
+  is eight rings whatever the count and no line**, a departure from the
+  drawing's outlines-at-the-count because rings at the count are still a
+  count readable across a table (ADR-0044; one expression to reverse if the
+  owner prefers the drawing). The counter's query reaches back to the start of the previous
+  day so a sitting across midnight is one sitting. Watch catalog 46 → **49**,
+  all three reused verbatim. **No project-file work, no schema change, no
+  CloudKit step, no privacy-policy change.** **Reviewed before merging by a
+  five-lens adversarial workflow** (session parity and the hard rules; the
+  contrast arithmetic recomputed by script; privacy and the hide; SwiftUI
+  correctness; the records against the code — each finding put to two
+  skeptics told to refute it): twelve confirmed findings, all fixed before
+  the commit — the dots rounded the raw count while the line printed the
+  displayed one; the count line survived Always-On as redaction blocks the
+  width of the digits; rings at the count still counted; the table's stated
+  provenance and "3.00:1 exactly"; the cap's width rationale; the switch
+  shown under the storage strip. **That is the method to keep for Phase 6:**
+  build, then review adversarially, then verify on the pair. **Verified:** 276
+  domain tests; the watch scheme for both destinations; the signed iOS build
+  for the pair; 85 integration tests on a second simulator; tier 3 on the
+  pair — the switch off by default, scrolled to and tapped on, the row
+  appearing with three filled 3–5 dots over "3 · 1h 19m", the hide turning it
+  to eight rings and removing the line, the switch surviving a relaunch with
+  the row still up at "1h 20m". **Not
+  verified:** the row ending four hours after the last drink (tier 1 pins
+  it), a sitting across midnight, the `.low` ring and the upper fills on
+  screen, Always-On, VoiceOver, a 40mm watch. **One tooling note:** a
+  synthetic tap *does* flip a `Toggle` on the watch simulator, unlike the
+  iOS one, where only a drag across the knob does. **Phase 6 is next:** the
+  four complication families on `StaticConfiguration` (the design's table),
+  the two-entry timeline with the post-session entry, `LogOneDrinkIntent` for
+  the rectangular family's ＋ and never the parameterised intents, every
+  family `.privacySensitive()` redacting to glyph and unit word, no
+  relevance-based Smart Stack surfacing, `WidgetCenter.reloadAllTimelines()`
+  after every write (already in place); the open question 5 check of what
+  `.privacySensitive()` renders on a face is the owner's. **Tier 3/4 for the
+  owner's pass:** the switch under a thumb at the bottom of the scroll; a real
+  evening's sitting — the row appearing after the first log, the dots'
+  colour crossing 3–5 → 6–9 → 10+ as the window fills, the line's clock, and
+  the row gone four hours after the last drink with nothing left behind; the
+  `.low` ring state early in a sitting; Always-On with the row up (rings, no
+  line) and with the count hidden; VoiceOver reading the row as "3 drinks
+  this session, 1 hour, 19 minutes"; the row on a 40/41/42mm watch.
