@@ -256,18 +256,14 @@ struct LogOneDrinkIntent: AppIntent {
       let container = try SharedModelContainer.make()
       let repository = DrinkRepository(context: container.mainContext)
 
-      // Reads the same preference Today's counter does (ADR-0023), so the
-      // widget's ＋ and the app's ＋ cannot mean different things — including
-      // the default's day memory, which needs the log to find today's most
-      // recently described drink.
-      let region = AppSettings.storedRegion()
-      let seed = AppSettings.storedCounterSeed()
-      let history = ((try? container.mainContext.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
-        .loggedDrinks
-      let drink = DrinkDraft
-        .quickCount(1, from: history, seed: seed, region: region)
-        .makeLoggedDrink(region: region)
-      try repository.saveOrThrow(drink)
+      // The same rule as Today's ＋ and the watch's, through the one
+      // implementation (ADR-0042): the preference the user chose (ADR-0023),
+      // including the default's day memory, which needs the log to find
+      // today's most recently described drink.
+      let drink = try repository.logOneDrink(
+        seed: AppSettings.storedCounterSeed(),
+        region: AppSettings.storedRegion()
+      )
       Diagnostics.record("saved (one-drink)")
 
       WidgetCenter.shared.reloadAllTimelines()

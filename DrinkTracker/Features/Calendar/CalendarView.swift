@@ -315,16 +315,15 @@ struct CalendarView: View {
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
-      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
-        .loggedDrinks
       let stamp = TrendSummary.backfillTimestamp(
         on: day,
         existing: store.repository.drinks(on: day, calendar: calendar),
         calendar: calendar
       )
-      let drink = DrinkDraft
-        .quickCount(1, from: history, seed: seed, region: region, at: stamp, calendar: calendar)
-        .makeLoggedDrink(region: region)
+      // The counter's one seed rule (ADR-0042), dated into the day shown.
+      let drink = store.repository.nextQuickDrink(
+        seed: seed, region: region, at: stamp, calendar: calendar
+      )
       await store.save(drink)
     }
   }
