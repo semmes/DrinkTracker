@@ -163,10 +163,10 @@ was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
 and a re-submission, and says so; **the 1.4 train is open** —
 `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
-Watch companion app**, whose Phases 0 to 3 landed the same day — see the
-last four bullets of this section and `docs/tallyist-watch-plan.md`; Phase
-4, the type picker, is next. The paragraph that follows is the 2026-09-10
-state, kept for the record.
+Watch companion app**, whose Phases 0 to 4 landed the same day — see the
+last five bullets of this section and `docs/tallyist-watch-plan.md`; Phase
+5, the session as dots, is next. The paragraph that follows is the
+2026-09-10 state, kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1633,4 +1633,45 @@ Open items for v1.2:
   after the phone has synced it to Health, then its toast; the `.click` and
   `.failure` feel; VoiceOver stepping the counter and the legend; a UK region's
   ≈ line on the wrist; and the layout on a 40/41/42mm watch and at larger
-  text sizes — only the 46mm at the default size was rendered.
+  text sizes — only the 46mm at the default size was rendered. **The owner
+  ran the merged build on hardware the same day and reported every item in
+  that list passing.**
+- **The watch's Phase 4 landed (2026-09-14, same session): the type picker.**
+  The owner's hardware pass closed Phase 3's list and said to go on. What
+  shipped, recorded at the head of the plan's Phase 4: `TypePickerView` — two
+  columns of 62pt tiles on `.primary` at 10%, `DrinkType.selectableCases`
+  (never `allCases`; `.unspecified` is never offered) as
+  `Image(decorative: type.symbolName)` over `Text(verbatim: type.displayName)`
+  — pushed by a half-second hold on ＋ and popped by the pick, which writes
+  `DrinkDraft(type:).makeLoggedDrink(region:)` through `saveOrThrow` behind
+  the counter's other operations (ADR-0042's "specify, never refine": no
+  size, no strength). The counter now sits in a `NavigationStack`, the app's
+  only navigation; the hint "Hold ＋ to say what it was" fills the slot Phase
+  3 left empty (watch catalog 45 → **46**, reviewed under 1.4). **The hold
+  and the tap share one `Button`**, which matters because Double Tap needs a
+  control: a `LongPressGesture` runs as a simultaneous gesture beside the
+  button's own press (masked off on the −, where nothing listens), sets a
+  flag the action consumes so the release after a hold does not also log, and
+  the flag clears on the next press start and a beat after any release, so a
+  hold that ends off the disc cannot swallow the next tap. **No project-file
+  work, no schema change, no CloudKit step, no privacy-policy change.**
+  **Verified:** the watch scheme for both destinations, the signed iOS build
+  for the pair, and tier 3 on the pair **read back from the watch's store with
+  `sqlite3`** — the store is `Library/Application Support/default.store`
+  inside the App Group container (the `default.store` at the container's root
+  is an empty file): a hold opened the picker without logging (the row count
+  held), Beer wrote `beer · 12 oz · 5%` and returned to the counter at 2, a
+  plain ＋ then wrote a second beer (the day template, ADR-0023) and the tile
+  crossed into the 3–5 band. Domain and integration suites not re-run
+  locally: no package or `Shared/` change; CI runs both. **Not verified:**
+  the other four tiles' rows (one function), the picker on a smaller watch or
+  at larger text, a hold on hardware, VoiceOver over a tile. **Phase 5 is
+  next:** the session dot row behind a watch-local "Show session pace"
+  toggle, `dotRow(forCount:maximum:)` at tier 1, the contrast table in
+  ADR-0044, `TimelineView(.periodic(by: 60))` and never a `Timer`; the design's
+  screen 4. **Tier 3/4 for the owner's pass:** the hold on a real ＋ (half a
+  second; whether it reads as deliberate and whether a slow tap ever opens
+  the picker by accident), a pick landing as the right row in the phone's
+  History with its Health sample after the phone's next foreground, the five
+  glyphs at 20pt on a real display, the picker on a 40/41/42mm watch, and
+  VoiceOver reading a tile as its type name and nothing else.
