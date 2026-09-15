@@ -42,6 +42,20 @@ SYNC_AGENT_PLIST = os.path.expanduser(
 SHARED_FILES = ["AppGroup.swift", "AppSettings.swift", "DrinkEntry.swift",
                 "DrinkRepository.swift", "LogDrinkIntent.swift", "SchemaVersions.swift"]
 
+# The rest of Shared/, and which targets each file belongs to. These are not
+# "all four" like the six above: a file added to Shared/ for one surface and
+# silently left off another is a compile error at best and a drifted rule at
+# worst (the legend's words, the session's dots and the ramp are each read by
+# more than one target). Every .swift in Shared/ must appear here or above,
+# so a new shared file cannot be forgotten.
+SHARED_EXTRAS = {
+    "IntensityPalette.swift": ("DrinkTracker", "DrinkTrackerWidgetExtension",
+                               "DrinkTrackerWatch", "DrinkTrackerWatchWidget"),
+    "CloudKitStatusProbe.swift": ("DrinkTracker", "DrinkTrackerWatch"),
+    "DayIntensity+Legend.swift": ("DrinkTracker", "DrinkTrackerWatch"),
+    "SessionDots.swift": ("DrinkTrackerWatch", "DrinkTrackerWatchWidget"),
+}
+
 # Settings that change what one source file *means* when it is compiled into
 # more than one target. Shared/ is compiled into all four, so these must agree
 # — present everywhere with one value, or absent everywhere. Xcode 26's new-
@@ -366,6 +380,30 @@ def check_project():
             record(FAIL, f"Shared/ compiled into {name}",
                    f"missing {missing or 'nothing'}; DrinkTrackerCore linked: {core} — four of "
                    "the six files import the package, so both halves must land together")
+
+    # --- and the rest of Shared/ reaches exactly the targets that read it --
+    on_disk = sorted(f for f in os.listdir(os.path.join(ROOT, "Shared"))
+                     if f.endswith(".swift"))
+    unlisted = [f for f in on_disk if f not in SHARED_FILES and f not in SHARED_EXTRAS]
+    if unlisted:
+        record(FAIL, "Every Shared/ file has an expected membership",
+               f"not named in this script: {unlisted} — add it to SHARED_EXTRAS "
+               "with the targets that compile it")
+    else:
+        record(PASS, "Every Shared/ file has an expected membership",
+               f"{len(on_disk)} files")
+
+    for filename, expected in sorted(SHARED_EXTRAS.items()):
+        if filename not in on_disk:
+            record(FAIL, f"Shared/{filename}", "named here but not on disk")
+            continue
+        actual = tuple(name for name in expected
+                       if name in targets and filename in project.source_files(targets[name]))
+        if actual == expected:
+            record(PASS, f"Shared/{filename}", ", ".join(expected))
+        else:
+            record(FAIL, f"Shared/{filename}",
+                   f"expected {list(expected)}, compiled into {list(actual)}")
 
 
 # ---------------------------------------------------------------- files -----

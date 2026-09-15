@@ -1415,3 +1415,29 @@ sitting ends — the row stops existing (ADR-0017's rules, unchanged).
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The watch's complications (ADR-0046, 2026-09-14)
+
+Phase 6 of the watch plan: four complication families showing today's count
+in the day's band, the sitting as dots on the rectangular card, and a ＋ there
+that logs one drink. The complication is named by the home-screen widget's
+own two strings. **Two strings are new** — the unit nouns the circular disc
+has room for; everything else is reused.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "drinks" · "drink" | Under the count in the circular family, 9pt in the band's ink at full strength; the plural alone while redacted | The bare noun, singular from the count. The disc is too small for "drinks today", and the face is today's by construction. A count of things, not a claim about them. |
+| "Tallyist" · "See today's count and log a drink in one tap." | The complication's display name and description in the face and Smart Stack pickers | Verbatim the home-screen widget's two strings. The name was reviewed for 1.0; the description's earlier review row read "today's total", and the widget's code has said "count" since the counter became count-first (ADR-0034) without a row of its own — so this is the first review of the shipped wording. It states what the widget shows and what its one control does; the one-tap log is the rectangular card's, and the other three families show the count alone. |
+| "drinks today" · "drink today" | The rectangular card's unit word and the corner family's curved label; the plural alone while redacted or while the store cannot be opened, on every family that uses it | Reused verbatim from Today and the widget. The plural under redaction is deliberate: a singular noun beneath a glyph is a count of one. |
+| "%lld drinks today" · "%lld drink today" | The inline family's line, and the spoken label of the circular, corner and rectangular families | Reused verbatim from the home-screen widget's spoken label (ADR-0011). Whole keys carrying the count. The corner's curved label does not carry the count, which would print past redaction. |
+| "Recorded as no alcohol today" | Every family on a day recorded as no alcohol: the inline line, the corner's curved label, the rectangular card's words, and the spoken label of the disc families, beside the alcohol-free glyph | Reused verbatim from Today (ADR-0034 amendment). States the record, awards nothing. |
+| "Log one drink" | The rectangular ＋'s VoiceOver label | Reused verbatim from the home-screen widget. |
+
+**Not copy, but seen by a reader:** off the wrist every family redacts to the
+drop glyph and the plural words with the figure gone, never a blank; the
+sitting's dots go to eight rings; a store that cannot be opened shows the
+same form with no ＋. Nothing on a face accumulates: the dots leave when the
+sitting ends, and the count resets at midnight.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

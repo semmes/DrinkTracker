@@ -56,6 +56,8 @@
 		1A00000000000000000000A2 /* CloudKitStatusProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A0 /* CloudKitStatusProbe.swift */; };
 		1A00000000000000000000A4 /* DayIntensity+Legend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A3 /* DayIntensity+Legend.swift */; };
 		1A00000000000000000000A5 /* DayIntensity+Legend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A3 /* DayIntensity+Legend.swift */; };
+		1A00000000000000000000A7 /* SessionDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A6 /* SessionDots.swift */; };
+		1A00000000000000000000A8 /* SessionDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A6 /* SessionDots.swift */; };
 		A8402E9530578E8F00F34E9E /* DrinkTrackerWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A8402E8B30578E8E00F34E9E /* DrinkTrackerWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -135,6 +137,7 @@
 		1A0000000000000000000081 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A00000000000000000000A0 /* CloudKitStatusProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitStatusProbe.swift; sourceTree = "<group>"; };
 		1A00000000000000000000A3 /* DayIntensity+Legend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayIntensity+Legend.swift"; sourceTree = "<group>"; };
+		1A00000000000000000000A6 /* SessionDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDots.swift; sourceTree = "<group>"; };
 		A8402E8B30578E8E00F34E9E /* DrinkTrackerWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DrinkTrackerWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -289,6 +292,7 @@
 				1A0000000000000000000081 /* Assets.xcassets */,
 				1A00000000000000000000A0 /* CloudKitStatusProbe.swift */,
 				1A00000000000000000000A3 /* DayIntensity+Legend.swift */,
+				1A00000000000000000000A6 /* SessionDots.swift */,
 				1A0000000000000000000032 /* DrinkEntry.swift */,
 				1A0000000000000000000033 /* DrinkRepository.swift */,
 				1A0000000000000000000080 /* IntensityPalette.swift */,
@@ -581,6 +585,7 @@
 				1A0000000000000000000094 /* LogDrinkIntent.swift in Sources */,
 				1A0000000000000000000095 /* SchemaVersions.swift in Sources */,
 				1A0000000000000000000085 /* IntensityPalette.swift in Sources */,
+				1A00000000000000000000A8 /* SessionDots.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -597,6 +602,7 @@
 				1A0000000000000000000084 /* IntensityPalette.swift in Sources */,
 				1A00000000000000000000A2 /* CloudKitStatusProbe.swift in Sources */,
 				1A00000000000000000000A5 /* DayIntensity+Legend.swift in Sources */,
+				1A00000000000000000000A7 /* SessionDots.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

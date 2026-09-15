@@ -75,7 +75,13 @@ struct CounterView: View {
   /// set, read once here and written through `AppSettings.store`.
   @State private var showsSessionPace = AppSettings.storedShowsSessionPace()
 
-  init(now: Date = .now, calendar: Calendar = .current) {
+  /// Whether the app's store fell back to memory at launch — the app's own
+  /// knowledge, not the App Group's store-mode breadcrumb, which the
+  /// complication's own container also writes.
+  private let isStoreInMemory: Bool
+
+  init(isStoreInMemory: Bool = false, now: Date = .now, calendar: Calendar = .current) {
+    self.isStoreInMemory = isStoreInMemory
     let today = calendar.startOfDay(for: now)
     let floor = calendar.date(byAdding: .day, value: -1, to: today) ?? today
     _recentEntries = Query(FetchDescriptor<DrinkEntry>.since(floor))
@@ -95,17 +101,10 @@ struct CounterView: View {
   /// calendar-free (ADR-0017), so no day cut applies here.
   private var sessionDrinks: [LoggedDrink] { recentEntries.loggedDrinks }
 
-  /// The rolling two-hour window's band, or nil to stay neutral — the phone
-  /// card's rule with a different floor: `.medium` and above tint the dots,
-  /// because a dot needs 3:1 against its ground and the dark ramp's `.low`
-  /// measures 2.59:1 on black (ADR-0044's table).
+  /// The rolling two-hour window's band, or nil for the ring — the one rule
+  /// the complication reads too (`SessionDots.band`, ADR-0044).
   private func paceBand(now: Date) -> DayIntensity? {
-    let total = SessionPace.rollingStandardDrinks(in: sessionDrinks, now: now, region: region)
-    let band = DayIntensity.bucket(standardDrinks: total, isMarkedAlcoholFree: false, hasEntries: true)
-    switch band {
-    case .medium, .high, .veryHigh: return band
-    case .unlogged, .alcoholFree, .low: return nil
-    }
+    SessionDots.band(in: sessionDrinks, now: now, region: region)
   }
 
   /// The region the phone last sent — or the US, which is also what the phone
@@ -193,7 +192,7 @@ struct CounterView: View {
             .padding(.top, WatchLayout.estimateToLegend)
         }
 
-        if Diagnostics.isStoreInMemory {
+        if isStoreInMemory {
           StorageWarningStrip()
             .padding(.top, 8)
         } else {
@@ -222,6 +221,9 @@ struct CounterView: View {
       guard phase == .active else { return }
       dayChanged = Date()
       bridgeRevision += 1
+      // The face re-reads the store on every raise: the cheapest moment to
+      // catch up on what the phone logged while this app was not running.
+      WidgetCenter.shared.reloadAllTimelines()
       #if DEBUG
       Task { await refreshCloudKitStatus() }
       #endif
@@ -406,6 +408,9 @@ struct CounterView: View {
       set: { on in
         showsSessionPace = on
         AppSettings.store(showsSessionPace: on)
+        // The card's dots follow this switch (ADR-0046), and the face reads
+        // it only when a timeline is built.
+        WidgetCenter.shared.reloadAllTimelines()
       }
     ))
   }
@@ -421,7 +426,9 @@ struct CounterView: View {
   #if DEBUG
   private var debugLine: String {
     _ = bridgeRevision
-    let store = Diagnostics.storeMode ?? "store mode unknown"
+    // This app's own store, not the App Group breadcrumb: the complication's
+    // process opens its own container and overwrites that key.
+    let store = isStoreInMemory ? "IN MEMORY" : (Diagnostics.storeMode ?? "store mode unknown")
     let cloud = cloudKitStatus ?? "iCloud not checked"
     let sent = Diagnostics.lastWatchContextReceived.map {
       $0.formatted(date: .omitted, time: .shortened)
@@ -518,6 +525,9 @@ struct CounterView: View {
       do {
         let recorded = try repository.markAlcoholFreeOrThrow(Date())
         recorded ? WatchHaptics.acknowledged() : WatchHaptics.refused()
+        // The phone's store skips this reload because its widget draws
+        // nothing for a marker; the face draws the marker (ADR-0046).
+        if recorded { WidgetCenter.shared.reloadAllTimelines() }
       } catch {
         Diagnostics.record("watch no-alcohol failed: \(error)")
         WatchHaptics.refused()
