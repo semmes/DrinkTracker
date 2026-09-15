@@ -457,6 +457,31 @@ unit's name varies by region, its form by count, and word order by language.
    redaction is what protects the face.
 5. Stays a Phase 6 check.
 
+### Built (Phase 3, 2026-09-14) — where the code departs from this page
+
+- **The −-unavailable line is a toast, not a replacement for the ≈ line.**
+  The newest entry carries a Health sample as soon as the phone has been
+  opened after it was logged, so the drawn state would be up most of a day
+  and the ≈ figure gone for the duration. The − disc dims instead, and a
+  touch on it plays the refusal haptic and shows "Remove that drink on the
+  phone" in the hint slot for about two seconds (ADR-0043).
+- **The hint slot is empty until Phase 4.** "Hold ＋ to say what it was"
+  names a picker that does not exist yet. In debug builds the slot carries
+  the diagnostics line instead (store mode · iCloud · region · seed · the
+  last settings payload's time).
+- **A failed write says "Not saved"** in the same slot, the same way — a
+  state this page did not draw.
+- **The toast is a pill** at radius 12 on `.primary` at 10%, per the token
+  table, in primary ink at the hint's 10 pt.
+- **The − ground is `glassEffect(.regular.interactive(), in: .circle)`** —
+  watchOS 26's own Liquid Glass; the phone's `glassSurface` helper is the
+  phone's.
+- Everything else is as drawn: 44 · 86 · 44 at 4 pt gaps, radius 25, numeral
+  46 (56 bare), the hidden bar at 40 × 8 in the band's ink at 55%, the
+  alcohol-free tile, the Always-On fall to the outline channel with the drop
+  glyph, the legend's labels leaving at zero opacity so the swatches never
+  move, one adjustable VoiceOver element, the storage strip.
+
 ## Build order
 
 | Phase | Work |

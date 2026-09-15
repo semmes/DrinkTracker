@@ -163,10 +163,10 @@ was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
 and a re-submission, and says so; **the 1.4 train is open** —
 `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
-Watch companion app**, whose Phases 0, 1 and 2 landed the same day — see the
-last three bullets of this section and `docs/tallyist-watch-plan.md`; Phase
-3, the counter, is next. The paragraph that follows is the 2026-09-10 state,
-kept for the record.
+Watch companion app**, whose Phases 0 to 3 landed the same day — see the
+last four bullets of this section and `docs/tallyist-watch-plan.md`; Phase
+4, the type picker, is next. The paragraph that follows is the 2026-09-10
+state, kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1554,10 +1554,83 @@ Open items for v1.2:
   simulator's cfprefsd overwrites a host-side write on the app's next save.
   **Tier 4 for the owner:** change the region in Settings on the real phone
   and read the watch's debug line ("region: … · seed: … · sent …"), then the
-  same with the phone asleep in a pocket. **Phase 3 is next:** the counter —
+  same with the phone asleep in a pocket. **Phase 3 followed the same day
+  (the next bullet); it was specified here as:** the counter —
   ＋ through the shared seed rule (lift `LogOneDrinkIntent.perform()`'s body
   into `Shared/`, never a fourth copy), − through `removableNewest` at tier 1,
   haptics, Double Tap, the storage line, the no-alcohol button the owner
   chose, and the tap to hide; ADR-0042 and 0043 with it; its "region not set
   yet" line reads `Diagnostics.lastWatchContextReceived == nil`. No
   project-file work: the folder is synchronized.
+- **The watch's Phase 3 landed (2026-09-14, same session): the counter —
+  ADR-0042, ADR-0043 and ADR-0045.** The owner's hardware run of Phase 2
+  closed its tier-4 item (a region change on the phone reached the watch)
+  and reported the obvious: no way to log from the wrist yet. What shipped,
+  all recorded at the head of the plan's Phase 3: `CounterView` replaces the
+  stub — 44 · 86 · 44 at 4pt gaps, `CounterTile` painting the day's band by
+  the same two calls as the phone's hero (`DayIntensity.bucket` →
+  `IntensityPalette`), `CounterDisc` (− on watchOS 26's `glassEffect`, ＋ on
+  `AccentFill`), `WatchBandLegend`, `StorageWarningStrip`, `WatchHaptics`,
+  `WatchLayout`. **＋ runs one implementation of the seed rule**:
+  `DrinkRepository.nextQuickDrink(seed:region:at:calendar:)` and
+  `logOneDrink(seed:region:)` — and Today's ＋, the calendar's day sheet and
+  `LogOneDrinkIntent` now call them too, a refactor with identical semantics
+  (the phone builds no drink in a view any more). **− runs
+  `LoggedDrink.removableNewest`** (core, six tier-1 tests), unavailable when
+  today's newest entry is Health-owned or a mirror; the disc dims, and a touch
+  plays `.failure` and shows "Remove that drink on the phone" for two seconds
+  — a departure from the plan's and design's flat line, argued in ADR-0043.
+  **Double Tap** is `.handGestureShortcut(.primaryAction)` on the ＋ button,
+  distinguished from a touch by a press-tracking `ButtonStyle` (an activation
+  with no press in the last 0.75 s is the gesture) and given `.directionUp`
+  where a touch gets `.click`; never `.success`. **The no-alcohol button**
+  (the owner's decision) writes through `markAlcoholFreeOrThrow` with Today's
+  verbatim copy; the phone's `DrinkStore.markAlcoholFree` writes nothing to
+  Health, checked first. **The tap to hide** (ADR-0045) crossfades the numeral
+  to a bar and takes the ≈ line and legend labels to zero opacity — nothing
+  moves, nothing persists, nothing gates a write — and hiding changes nothing
+  VoiceOver says (the counter is one adjustable element, "Drinks today"). The
+  ≈ line reads "Region not set yet" until `Diagnostics.lastWatchContextReceived`
+  is non-nil; the counter re-reads the region on `.watchContextDidChange` and
+  re-cuts the day on `.NSCalendarDayChanged` and every foreground. **Three
+  render findings, fixed before merging:** the empty day drew a secondary-ink
+  0 where the design (and the phone's bare hero) draw primary; the legend was
+  drawn on the empty and the marked day, which have no band to key; and the
+  record button was a system `.bordered` capsule where the design draws a
+  full-width `AccentFill` one. `DayIntensity.legendOrder`/`legendKey` moved
+  from `IntensityCell.swift` into `Shared/DayIntensity+Legend.swift` — **one
+  project-file edit**, a `Shared/` membership (Edit tool, one anchor at a
+  time; `plutil -lint`, `xcodebuild -list`, both schemes built, the verifier
+  green). Watch catalog 27 → **45** (four new strings, reviewed under 1.4;
+  fourteen reused verbatim), synced from a **device** build's `arm64_32`
+  `.stringsdata` — the set that carries the Siri phrase key a simulator sync
+  would prune. **No schema change, no CloudKit step, no privacy-policy
+  change.** **Verified:** 269 domain tests; both schemes; 85 integration tests
+  on a second simulator; the verifier; and tier 3 on the simulator pair by
+  driving it with the simulator tool's taps — every state in the plan's
+  done-note, including the toast (frame-grabbed) and the region arriving
+  live in the running app when the phone app launched. **Not verified,
+  stated:** the − refusal against a real Health-owned entry, Double Tap,
+  Always-On, the storage strip, the haptics' feel, VoiceOver. **Four tooling
+  lessons:** (a) the simulator tool's `tap` waits for the UI to settle before
+  returning, longer than a two-second toast lives — to see anything that
+  short, start a `simctl io screenshot` loop in the background *before* the
+  tap and diff the frames by hash; (b) the tool drives the **watch** simulator
+  by UDID (`device:`) as readily as the phone — tap, screenshot; (c) `swift
+  test` must run outside the sandbox (SwiftPM's own manifest sandbox cannot
+  nest: "sandbox_apply: Operation not permitted"); (d) an interpolated literal
+  in `.accessibilityValue("\(n)")` writes a bare `%lld` key — use the `Text`
+  overload; the phone's `CountStepper` still carries that key in the app
+  catalog, a one-line fix for a later pass. **Phase 4 is next:** the type
+  picker on long-press ＋ (`DrinkType.selectableCases`, five tiles at the
+  type's defaults through `DrinkDraft(type:)`, never `.unspecified`), the
+  "Hold ＋ to say what it was" hint into the empty hint slot, the toast copy
+  already reviewed; no project-file work. **Tier 3/4 for the owner's pass:**
+  Double Tap on hardware and whether its haptic reads as different from a
+  touch; an evening of trying to provoke a phantom pinch with the app open in
+  a pocket; Always-On with the count showing (the outline tile and drop glyph)
+  and with it hidden; the − disc dimmed against a drink logged on the phone
+  after the phone has synced it to Health, then its toast; the `.click` and
+  `.failure` feel; VoiceOver stepping the counter and the legend; a UK region's
+  ≈ line on the wrist; and the layout on a 40/41/42mm watch and at larger
+  text sizes — only the 46mm at the default size was rendered.

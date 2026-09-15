@@ -992,6 +992,77 @@ including with the phone asleep.
 One session, one writer. The core loop, and the phase that most needs to feel
 right rather than merely work.
 
+**Done 2026-09-14, in the same local session as Phases 0 to 2, and recorded
+as ADR-0042, ADR-0043 and ADR-0045.** Built as specified below, with the
+owner's design as the drawing (`docs/design/watch/README.md`, whose "Built"
+section lists where the code departs from the page). What shipped: **＋**
+through `DrinkRepository.nextQuickDrink` / `logOneDrink`, the one
+implementation of the seed rule that Today's ＋, the calendar's day sheet and
+the widget's intent now also call — the lift this phase asked for, and no
+fourth copy. **−** through `LoggedDrink.removableNewest` (core package, six
+tier-1 tests: nothing today, yesterday excluded, the newest with a sample,
+the newest an import, a watch-logged entry behind an older phone-logged one,
+order independence) and `DrinkRepository.delete(id:)`. Unavailable is a
+dimmed disc that, touched, plays `.failure` and shows "Remove that drink on
+the phone" in the hint slot for about two seconds — **not** the flat line in
+the ≈ line's place that this phase and divergence 3 proposed: the newest
+entry carries a sample as soon as the phone has been opened after it was
+logged, so that line would be up most of a day and the ≈ figure gone for the
+duration (ADR-0043). **Haptics** `.click` on a touch, `.failure` on a
+refusal, `.directionUp` for a Double Tap, never `.success`. **Double Tap** is
+`.handGestureShortcut(.primaryAction)` on the ＋ disc's own button, told from
+a touch by a press-tracking `ButtonStyle`: SwiftUI does not say which input
+fired an action, so the style records when a press began and an activation
+with no press in the last three-quarters of a second is the gesture. **The
+line beneath** is `StandardDrink.liveEstimate`, or "Region not set yet" while
+`Diagnostics.lastWatchContextReceived == nil`. **The failure state** is
+`StorageWarningStrip`, Settings' own words, whenever
+`Diagnostics.isStoreInMemory`. **Privacy:** every count is
+`.privacySensitive()`; Always-On falls to the outline tile with the drop
+glyph and the legend's swatches empty to outlines; and the design's tap to
+hide — a per-glance `@State`, the owner's answer — crossfades the numeral to
+a 40 × 8 bar in the band's ink and takes the ≈ line and the legend labels to
+zero opacity so nothing moves (ADR-0045). **The no-alcohol button** on the
+empty day (the owner's answer to the design's first question) writes through
+`markAlcoholFreeOrThrow`, exactly as Siri's intent does, with Today's
+verbatim copy; `DrinkStore.markAlcoholFree` writes nothing to Health, checked
+before it was built. Every operation is chained behind the previous one
+(`counterOps`, `TodayView`'s discipline) and acts on the store at execution
+time; the counter re-cuts the day on `.NSCalendarDayChanged` and every
+foreground, and re-reads the region on `.watchContextDidChange`. Layout
+tokens are `WatchLayout`, watch-local; the − ground is watchOS 26's own
+`glassEffect`; the legend is drawn only while the day is on the ramp. Eighteen
+keys joined the watch catalog (four new strings, reviewed under 1.4 in
+`docs/copy-review-1.4.3.md`), synced from a device build's `arm64_32`
+`.stringsdata` so the Siri phrase key survives the sync. One project-file
+edit, a `Shared/` membership: `DayIntensity+Legend.swift` (the legend's order
+and words, moved out of `IntensityCell.swift`) compiled into the app and the
+watch app.
+
+**Verified:** 269 domain tests; both schemes built for their simulators, zero
+warnings in the new files; 85 integration tests on a second simulator; the
+verifier green; and **tier 3 on the simulator pair with signed builds, driven
+by taps** — the empty day (primary 0 at 56, the dimmed −, the capsule button,
+no legend); ＋ to 1 with the low-band tile and "Region not set yet" on a
+fresh install; ＋ to 2, − to 1; the hide (the bar, the labels gone with the
+swatches fixed in place, "Tap again to show the count" on screen for about
+two seconds — caught by a frame grab, because the tap tool's own settle delay
+outlasts the toast) and its reverse; − refused on the empty day with nothing
+drawn; "Record no alcohol today" to the outline tile with its two lines and
+no legend; ＋ on the marked day clearing the marker into one logged drink; and
+the phone app's launch delivering the region to the *running* watch app, the
+≈ line replacing "Region not set yet" without a relaunch. **Not verified
+here:** the − refusal against a Health-owned newest entry (the pair has no
+Health; the rule is pinned at tier 1); Double Tap and its haptic (hardware);
+Always-On redaction (hardware, the Phase 6 check); the storage strip and "Not
+saved" (nothing forces either without breaking the store); the feel of any
+haptic; two genuinely fast taps (the chaining is the phone's, unchanged);
+VoiceOver's reading of the adjustable element. Against this phase's
+acceptance: the count matched the phone's on hardware in Phase 1; ＋ with the
+phone off is tier 4 (the write is local; the pair has no iCloud account to
+mirror through); two fast taps is the chaining; − never removing an entry
+Health owns is tier 1.
+
 The screen is the phone's Today counter reduced to what a wrist can carry:
 today's count as the headline numeral, the ＋ as the primary control, the minus
 as the secondary, and one line beneath.

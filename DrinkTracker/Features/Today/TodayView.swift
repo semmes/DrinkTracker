@@ -329,8 +329,9 @@ struct TodayView: View {
   /// its day-memory revision): under the default, a day starts at one
   /// standard drink and the count follows the most recent drink the user
   /// described *today*; under the usual-drink seed, the type they log most.
-  /// The same rule as the calendar's day sheet and the widget's ＋ (see
-  /// `DrinkDraft.quickCount`).
+  /// The same rule as the widget's ＋ and the watch's, through the one
+  /// implementation — `DrinkRepository.nextQuickDrink` (ADR-0042) — and the
+  /// calendar's day sheet (see `DrinkDraft.quickCount`).
   ///
   /// History is fetched inside the op, after any pending write has committed —
   /// which is also what makes rapid taps follow a just-described drink; this
@@ -340,11 +341,7 @@ struct TodayView: View {
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
-      let history = ((try? store.repository.context.fetch(FetchDescriptor<DrinkEntry>())) ?? [])
-        .loggedDrinks
-      let drink = DrinkDraft
-        .quickCount(1, from: history, seed: seed, region: region)
-        .makeLoggedDrink(region: region)
+      let drink = store.repository.nextQuickDrink(seed: seed, region: region)
       lastLogged = await store.save(drink)
     }
   }

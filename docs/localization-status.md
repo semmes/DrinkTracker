@@ -73,14 +73,23 @@ core package's, and rewording one intent description in both app and widget.
 
 **Two more catalogs exist since 2026-09-14**: the watch app's and the watch
 complication's (`DrinkTrackerWatch/Localizable.xcstrings`,
-`DrinkTrackerWatchWidget/Localizable.xcstrings`), each holding **26 keys** —
-the shared intents' strings that `Shared/LogDrinkIntent.swift` brings to every
-target that compiles it (the iOS widget's 35 are the same family plus its own
-view's), synced with `xcstringstool` from a full watch build's `.stringsdata`
-the day the shared layer reached the watch (Phase 1). The stubs' own text is
-`Text(verbatim:)` on purpose so no placeholder key outlives the view that
-introduced it; the watch's own strings arrive with Phase 3 and Phase 6 and go
-through the 1.4.3 review like every other target's. Six catalogs, 441 keys.
+`DrinkTrackerWatchWidget/Localizable.xcstrings`). The complication's holds
+**27 keys** — the shared intents' strings that `Shared/LogDrinkIntent.swift`
+brings to every target that compiles it (the iOS widget's 35 are the same
+family plus its own view's), plus the Siri phrase summary that only a
+device-architecture extraction emits. The watch app's holds **45**: those 27
+and the counter's own eighteen (watch Phase 3, the same day) — fourteen reused
+verbatim from the phone's Today, Settings and calendar legend, and four new
+(reviewed in `docs/copy-review-1.4.3.md` under 1.4). Both were synced with
+`xcstringstool` from a **device** build's `arm64_32` `.stringsdata`, which is
+the set that carries `ExtractedAppShortcutsMetadata`; syncing from a simulator
+build would prune the phrase key the owner's device build wrote in Phase 1.
+One trap the sync caught: an interpolated literal in `accessibilityValue`
+writes a bare `%lld` key, which is no key at all — the watch uses the `Text`
+overload instead (the phone's `CountStepper` still carries that key in the app
+catalog, a one-line fix for a later pass). Diagnostics text on the watch is
+`Text(verbatim:)` on purpose so no debug line reaches a catalog; the
+complication's own strings arrive with Phase 6. Six catalogs, 461 keys.
 
 Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-10 after ADR-0038's naming amendment — the Comparisons section on

@@ -24,8 +24,10 @@ Those are the phone app and the code all four targets compile. A change there
 is a change to a shipping app that just cleared App Review.
 
 **The project file.** These two folders are synchronized groups, so a file
-written here joins its target automatically and no phase after Phase 1 needs
-`project.pbxproj` at all. Editing it is allowed only in a **local** session
+written here joins its target automatically and no phase after Phase 1 should
+need `project.pbxproj` for its own files. (Phase 3 touched it once, to compile
+a new `Shared/` file — `DayIntensity+Legend.swift` — into the watch app: a
+`Shared/` membership, inside the rule below.) Editing it is allowed only in a **local** session
 with the toolchain, only for what the plan names (Phase 1's package links and
 `Shared/` memberships), and only verified the way Phase 0 was: `plutil -lint`,
 `xcodebuild -list`, both schemes built for their simulators, and

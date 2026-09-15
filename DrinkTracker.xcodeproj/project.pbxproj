@@ -54,6 +54,8 @@
 		1A0000000000000000000099 /* DrinkTrackerCore in Frameworks */ = {isa = PBXBuildFile; productRef = 1A0000000000000000000097 /* DrinkTrackerCore */; };
 		1A00000000000000000000A1 /* CloudKitStatusProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A0 /* CloudKitStatusProbe.swift */; };
 		1A00000000000000000000A2 /* CloudKitStatusProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A0 /* CloudKitStatusProbe.swift */; };
+		1A00000000000000000000A4 /* DayIntensity+Legend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A3 /* DayIntensity+Legend.swift */; };
+		1A00000000000000000000A5 /* DayIntensity+Legend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00000000000000000000A3 /* DayIntensity+Legend.swift */; };
 		A8402E9530578E8F00F34E9E /* DrinkTrackerWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A8402E8B30578E8E00F34E9E /* DrinkTrackerWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -132,6 +134,7 @@
 		1A0000000000000000000080 /* IntensityPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntensityPalette.swift; sourceTree = "<group>"; };
 		1A0000000000000000000081 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A00000000000000000000A0 /* CloudKitStatusProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitStatusProbe.swift; sourceTree = "<group>"; };
+		1A00000000000000000000A3 /* DayIntensity+Legend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DayIntensity+Legend.swift"; sourceTree = "<group>"; };
 		A8402E8B30578E8E00F34E9E /* DrinkTrackerWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DrinkTrackerWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -285,6 +288,7 @@
 				1A0000000000000000000031 /* AppSettings.swift */,
 				1A0000000000000000000081 /* Assets.xcassets */,
 				1A00000000000000000000A0 /* CloudKitStatusProbe.swift */,
+				1A00000000000000000000A3 /* DayIntensity+Legend.swift */,
 				1A0000000000000000000032 /* DrinkEntry.swift */,
 				1A0000000000000000000033 /* DrinkRepository.swift */,
 				1A0000000000000000000080 /* IntensityPalette.swift */,
@@ -536,6 +540,7 @@
 				1A0000000000000000000061 /* SchemaVersions.swift in Sources */,
 				1A0000000000000000000082 /* IntensityPalette.swift in Sources */,
 				1A00000000000000000000A1 /* CloudKitStatusProbe.swift in Sources */,
+				1A00000000000000000000A4 /* DayIntensity+Legend.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -591,6 +596,7 @@
 				1A000000000000000000008F /* SchemaVersions.swift in Sources */,
 				1A0000000000000000000084 /* IntensityPalette.swift in Sources */,
 				1A00000000000000000000A2 /* CloudKitStatusProbe.swift in Sources */,
+				1A00000000000000000000A5 /* DayIntensity+Legend.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

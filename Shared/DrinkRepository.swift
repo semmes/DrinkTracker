@@ -49,6 +49,43 @@ struct DrinkRepository {
     try context.save()
   }
 
+  // MARK: - The counter's ＋
+
+  /// The drink the counter's ＋ logs next: one, by whichever seed the user
+  /// chose (ADR-0023 and its day-memory revision) — under the default, a day
+  /// starts at one standard drink and the count follows the most recent drink
+  /// described *that day*; under the usual-drink seed, the type they log
+  /// most. The history is fetched here, at execution time, so a tap that
+  /// lands behind a just-described drink repeats it.
+  ///
+  /// The one implementation of the rule (ADR-0042): Today's ＋, the widget's
+  /// `LogOneDrinkIntent` and the watch's ＋ all call this, and none of them
+  /// builds the drink itself — a second copy is how the rule drifts, which is
+  /// the bug the day sheet's `countSeedPreview` exists to prevent.
+  func nextQuickDrink(
+    seed: DrinkDraft.CountSeed,
+    region: Region,
+    at date: Date = Date(),
+    calendar: Calendar = .current
+  ) -> LoggedDrink {
+    let history = ((try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+    return DrinkDraft
+      .quickCount(1, from: history, seed: seed, region: region, at: date, calendar: calendar)
+      .makeLoggedDrink(region: region)
+  }
+
+  /// `nextQuickDrink`, saved — for the surfaces with no HealthKit of their
+  /// own, the widget's intent and the watch. The phone's Today goes through
+  /// `DrinkStore.save` instead, which also writes the Health sample; an entry
+  /// saved here lands with no sample id and the app mirrors it on its next
+  /// foreground (`DrinkStore.backfillHealthKit`).
+  @discardableResult
+  func logOneDrink(seed: DrinkDraft.CountSeed, region: Region) throws -> LoggedDrink {
+    let drink = nextQuickDrink(seed: seed, region: region)
+    try saveOrThrow(drink)
+    return drink
+  }
+
   func delete(id: UUID) {
     guard let existing = entry(with: id) else { return }
     context.delete(existing)
