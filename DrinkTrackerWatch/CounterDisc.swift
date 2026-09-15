@@ -20,12 +20,21 @@ struct CounterDisc: View {
   /// Drawn dimmed when false. The control still answers a touch — that is how
   /// it explains itself — so this is a look, not `.disabled`.
   var looksEnabled: Bool = true
+  /// Called when the disc is held for half a second (the ＋ opens the type
+  /// picker, ADR-0042). A press that turned into a hold does not also fire
+  /// `action` on release: the hold sets a flag the action consumes.
+  var onLongPress: (() -> Void)? = nil
   let action: (_ viaGesture: Bool) -> Void
 
   @State private var pressedAt: Date?
+  @State private var heldLong = false
 
   var body: some View {
     Button {
+      if heldLong {
+        heldLong = false
+        return
+      }
       let byTouch = pressedAt.map { Date.now.timeIntervalSince($0) < 0.75 } ?? false
       action(!byTouch)
     } label: {
@@ -37,7 +46,18 @@ struct CounterDisc: View {
         .frame(width: WatchLayout.discSide, height: WatchLayout.discSide)
         .contentShape(.circle)
     }
-    .buttonStyle(PressTrackingStyle(pressedAt: $pressedAt))
+    .buttonStyle(PressTrackingStyle(pressedAt: $pressedAt, heldLong: $heldLong))
+    // The hold, alongside the button's own press. Only the added gesture is
+    // masked off where nothing listens for it (the −), so the button's own
+    // gesture keeps working there.
+    .simultaneousGesture(
+      LongPressGesture(minimumDuration: 0.5).onEnded { _ in
+        guard let onLongPress else { return }
+        heldLong = true
+        onLongPress()
+      },
+      including: onLongPress == nil ? .subviews : .all
+    )
     // Double Tap fires the frontmost app's primary action, and ＋ is it —
     // logging with one hand occupied is the single best thing the platform
     // offers a drink tracker (the plan, decision 5; ADR-0042). Nothing else
@@ -76,15 +96,24 @@ struct CounterDisc: View {
   }
 }
 
-/// Records when a press began, so the action can tell a touch from a gesture.
+/// Records when a press began, so the action can tell a touch from a gesture,
+/// and clears the hold flag around each press so a hold that ended off the
+/// disc (no release inside it, no action) cannot swallow the next tap.
 private struct PressTrackingStyle: ButtonStyle {
   @Binding var pressedAt: Date?
+  @Binding var heldLong: Bool
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .opacity(configuration.isPressed ? 0.7 : 1)
       .onChange(of: configuration.isPressed) { _, isPressed in
-        if isPressed { pressedAt = .now }
+        if isPressed {
+          pressedAt = .now
+          heldLong = false
+        } else {
+          // After the release's own action has had its turn.
+          Task { @MainActor in heldLong = false }
+        }
       }
   }
 }

@@ -1061,7 +1061,9 @@ VoiceOver's reading of the adjustable element. Against this phase's
 acceptance: the count matched the phone's on hardware in Phase 1; ＋ with the
 phone off is tier 4 (the write is local; the pair has no iCloud account to
 mirror through); two fast taps is the chaining; − never removing an entry
-Health owns is tier 1.
+Health owns is tier 1. **Verified on hardware by the owner the same day:** the
+merged build on a real watch and phone, every item in the list above
+reported passing.
 
 The screen is the phone's Today counter reduced to what a wrist can carry:
 today's count as the headline numeral, the ＋ as the primary control, the minus
@@ -1158,6 +1160,39 @@ removes an entry Health owns.
 ## Phase 4 — specify a drink
 
 One session. Small, and mostly a picker.
+
+**Done 2026-09-14, in the same local session as Phases 0 to 3.** Built as
+specified below and as the design's screen 5 draws it: `TypePickerView`, two
+columns of 62pt tiles at radius 14 on `.primary` at 10%, iterating
+`DrinkType.selectableCases` with `Image(decorative: type.symbolName)` over
+`Text(verbatim: type.displayName)` — the fifth tile under the fold, the crown
+scrolling to it. Pushed by a half-second hold on ＋ (`navigationDestination`;
+the counter now sits in a `NavigationStack`, the app's only navigation) and
+popped by the pick, which writes `DrinkDraft(type:).makeLoggedDrink(region:)`
+through `saveOrThrow`, chained behind the counter's other operations, with
+the `.click` receipt. **The hold and the tap share one button:** a
+`LongPressGesture` runs alongside the button's own press (a simultaneous
+gesture, masked off on the − where nothing listens for it), sets a flag the
+button's action consumes so a hold does not also log on release, and the
+flag clears on the next press start and a beat after any release, so a hold
+that ends off the disc cannot swallow the next tap. The hint "Hold ＋ to say
+what it was" fills the slot Phase 3 left empty (one new key — 46 in the
+watch catalog — reviewed under 1.4). No project-file work.
+
+**Verified:** the watch scheme for both its destinations; the iOS scheme
+signed for the pair; and **tier 3 on the simulator pair, driven and then read
+back from the watch's store with `sqlite3`** (it lives at `Library/Application
+Support/default.store` inside the App Group container; the `default.store`
+at the container's root is an empty file): a hold on ＋ opened the picker
+without logging — the row count held; Beer wrote `beer · 12 oz · 5%`, the
+type's defaults and the row a two-tap phone log makes minus the Health
+sample, and returned to the counter reading 2; a plain tap on ＋ then wrote a
+second beer (the day template, ADR-0023) and the tile crossed into the 3–5
+band. **Not verified here:** the other four tiles' rows (one function, each
+type's own defaults; all five glyphs rendered); the picker at a smaller
+watch size and at larger text; a hold on hardware (the simulator's is
+synthetic); VoiceOver's reading of a tile; and the glyphs in the
+complication's tint rendering mode, which is Phase 6's to check.
 
 A second screen, reached from the counter, showing the five
 `DrinkType.selectableCases` as glyph over name, using

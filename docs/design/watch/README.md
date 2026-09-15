@@ -482,6 +482,20 @@ unit's name varies by region, its form by count, and word order by language.
   glyph, the legend's labels leaving at zero opacity so the swatches never
   move, one adjustable VoiceOver element, the storage strip.
 
+### Built (Phase 4, 2026-09-14)
+
+- **As drawn.** Two columns of 62 pt tiles at radius 14 on `.primary` at 10%,
+  the glyph at 20 pt in the accent over the name at 11 pt, iterating
+  `selectableCases`; the fifth tile under the fold. The system's back chevron
+  is the only chrome, and the picker has no title.
+- **The hold is half a second** on the ＋ disc's own button — a simultaneous
+  `LongPressGesture`, so Double Tap keeps its control — and a hold never also
+  logs on release.
+- **The hint is on** in the counter's slot from this phase: "Hold ＋ to say
+  what it was", tertiary at 10 pt, under a toast when one is showing.
+- The counter now lives in a `NavigationStack`; its row sits a few points
+  higher than the Phase 3 render, inside the same insets.
+
 ## Build order
 
 | Phase | Work |

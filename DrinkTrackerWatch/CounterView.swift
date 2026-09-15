@@ -53,6 +53,10 @@ struct CounterView: View {
   /// The tail of the counter's operations — see the type's comment.
   @State private var counterOps: Task<Void, Never>?
 
+  /// The type picker, the app's only navigation (ADR-0042): pushed by a hold
+  /// on ＋, popped by the pick.
+  @State private var showsPicker = false
+
   #if DEBUG
   @State private var cloudKitStatus: String?
   #endif
@@ -122,6 +126,18 @@ struct CounterView: View {
   // MARK: - Body
 
   var body: some View {
+    NavigationStack {
+      counter
+        .navigationDestination(isPresented: $showsPicker) {
+          TypePickerView { type in
+            logSpecific(type)
+            showsPicker = false
+          }
+        }
+    }
+  }
+
+  private var counter: some View {
     ScrollView {
       VStack(spacing: 0) {
         counterRow
@@ -194,8 +210,9 @@ struct CounterView: View {
         .contentShape(RoundedRectangle(cornerRadius: WatchLayout.tileRadius, style: .continuous))
         .onTapGesture { toggleHidden() }
 
-      // Also the Double Tap target (the disc carries the shortcut; ADR-0042).
-      CounterDisc(glyph: .plus) { viaGesture in
+      // Also the Double Tap target (the disc carries the shortcut), and held,
+      // the way to the type picker (ADR-0042).
+      CounterDisc(glyph: .plus, onLongPress: { showsPicker = true }) { viaGesture in
         addOne(viaGesture: viaGesture)
       }
     }
@@ -282,8 +299,9 @@ struct CounterView: View {
     }
   }
 
-  /// The bottom slot: a toast for a moment, the debug line otherwise in debug
-  /// builds, nothing in release builds until Phase 4's "Hold ＋" hint.
+  /// The bottom slot: a toast for a moment, otherwise the one hint the
+  /// counter carries — the way to the type picker — with the diagnostics line
+  /// beneath it in debug builds.
   @ViewBuilder
   private var hintSlot: some View {
     if let toast {
@@ -300,14 +318,18 @@ struct CounterView: View {
         )
         .transition(.opacity)
     } else {
-      #if DEBUG
-      Text(verbatim: debugLine)
-        .font(.system(size: 8))
-        .foregroundStyle(.tertiary)
-        .multilineTextAlignment(.center)
-      #else
-      EmptyView()
-      #endif
+      VStack(spacing: 4) {
+        Text("Hold ＋ to say what it was")
+          .font(.system(size: WatchLayout.hintSize))
+          .foregroundStyle(.tertiary)
+          .multilineTextAlignment(.center)
+        #if DEBUG
+        Text(verbatim: debugLine)
+          .font(.system(size: 8))
+          .foregroundStyle(.tertiary)
+          .multilineTextAlignment(.center)
+        #endif
+      }
     }
   }
 
@@ -362,6 +384,28 @@ struct CounterView: View {
         WidgetCenter.shared.reloadAllTimelines()
       } catch {
         Diagnostics.record("watch ＋ failed: \(error)")
+        WatchHaptics.refused()
+        show(.notSaved)
+      }
+    }
+  }
+
+  /// One drink of `type` at the type's defaults — what the picker writes
+  /// (ADR-0042): the entry a two-tap phone log of the type makes, minus the
+  /// Health sample the phone adds on its next foreground. Under the
+  /// standard-drink seed it also becomes the day's template, so ＋ repeats it
+  /// for the rest of the day (ADR-0023's day memory) with no stored mode.
+  private func logSpecific(_ type: DrinkType) {
+    let context = modelContext
+    enqueue {
+      let repository = DrinkRepository(context: context)
+      let drink = DrinkDraft(type: type).makeLoggedDrink(region: AppSettings.storedRegion())
+      do {
+        try repository.saveOrThrow(drink)
+        WatchHaptics.acknowledged()
+        WidgetCenter.shared.reloadAllTimelines()
+      } catch {
+        Diagnostics.record("watch typed log failed: \(error)")
         WatchHaptics.refused()
         show(.notSaved)
       }

@@ -1374,3 +1374,22 @@ so an unintended pinch announces itself, `.failure` for a refusal, never
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The watch's type picker (ADR-0042, 2026-09-14)
+
+Phase 4 of the watch plan: a hold on ＋ opens the one screen beyond the
+counter, five tiles naming the drink types, and a tap logs that type at its
+defaults and returns. **One string is new**, the hint the design named and
+Phase 3 held back until the picker it points at existed. The five type names
+are the core package's own reviewed words, drawn verbatim.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Hold ＋ to say what it was" | The counter's hint slot, whenever no toast is showing | Names the gesture and what it leads to, in the counter's own voice ("Tap to say what it was" is the phone's row hint, ADR-0034): "what it was" asks for a fact about the drink, not a reason for it. Tertiary ink at 10pt — an aside, not an instruction. No judgment, no exclamation mark. |
+| "Beer" · "Wine" · "Spirit" · "Cocktail" · "Other" | The five tiles, each under its glyph; also each tile's VoiceOver label | Reused verbatim from the core package's `DrinkType.displayName`, the same words the phone's type control shows (ADR-0035, ADR-0037). `Text(verbatim:)`, so no second copy of the keys. |
+
+**Not copy, but seen by a reader:** the picker has no title of its own — the
+tiles say what it is — and the system's back chevron is the only chrome.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
