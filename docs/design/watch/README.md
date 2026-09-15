@@ -515,6 +515,28 @@ unit's name varies by region, its form by count, and word order by language.
   is still a count, readable across a table up to eight, which is the leak the
   hide exists to close. One expression to reverse (ADR-0044).
 
+### Built (Phase 6, 2026-09-14) — where the code departs from this page
+
+- **Today's count on every family, the sitting only as dots.** The
+  complications table's "session count while a session runs" is not built:
+  the home-screen widget it cites shows today's count, and a numeral that
+  changes meaning and rises when a sitting ends is a standing number by
+  another door (ADR-0046). The rectangular card carries the Phase 5 dots
+  while a sitting runs.
+- **The rectangular card is smaller than drawn.** The real family is about
+  177 × 80 pt on a 46 mm watch, not 264 × 118: the tile and the ＋ are 44, the
+  ≈ line is not shown (the home-screen widget's small family makes the same
+  trade), and the dots sit on a row beneath. The first build at the drawn
+  sizes truncated the words on the simulator's Smart Stack.
+- **The circular and corner unit word is the bare noun**, "drinks" / "drink"
+  (two new strings, reviewed): "drinks today" does not fit a 50 pt disc.
+- **The "… hidden" circular is not built**, by the owner's fourth answer; the
+  system's redaction shows the drop glyph and the plural words with the
+  figure and the band's fill gone — on a day recorded as no alcohol too, so a
+  locked watch cannot sort dry days from drinking ones (ADR-0046).
+- The circular, corner and inline families were compiled and not rendered on
+  a face here; the rectangular card was placed and driven.
+
 ## Build order
 
 | Phase | Work |

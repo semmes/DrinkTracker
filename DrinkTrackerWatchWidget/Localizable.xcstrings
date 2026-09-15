@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld drink today" : {
+
+    },
+    "%lld drinks today" : {
+
+    },
     "Beer" : {
 
     },
@@ -22,13 +28,16 @@
     "Log ${quantity} ${drinkType}" : {
 
     },
-    "Log a Drink" : {
-
-    },
     "Log Drinks" : {
 
     },
     "Log One Drink" : {
+
+    },
+    "Log a Drink" : {
+
+    },
+    "Log one drink" : {
 
     },
     "Logged %lld: %@ each." : {
@@ -62,10 +71,16 @@
     "Record No Alcohol Today" : {
 
     },
+    "Recorded as no alcohol today" : {
+
+    },
     "Recorded today as no alcohol." : {
 
     },
     "Records today as a day with no alcohol." : {
+
+    },
+    "See today's count and log a drink in one tap." : {
 
     },
     "Size (ounces)" : {
@@ -80,6 +95,9 @@
     "Strength (% ABV)" : {
 
     },
+    "Tallyist" : {
+
+    },
     "Today already has drinks logged, so it wasn't recorded as no alcohol." : {
 
     },
@@ -87,6 +105,18 @@
 
     },
     "Wine" : {
+
+    },
+    "drink" : {
+
+    },
+    "drink today" : {
+
+    },
+    "drinks" : {
+
+    },
+    "drinks today" : {
 
     }
   },

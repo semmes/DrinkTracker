@@ -33,7 +33,6 @@ struct SessionDotRow: View {
 
   @Environment(\.redactionReasons) private var redaction
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
-  private let scheme: ColorScheme = .dark
 
   /// Hidden by the user's tap, or redacted by the system.
   private var isConcealed: Bool {
@@ -46,11 +45,10 @@ struct SessionDotRow: View {
     let row = SessionPace.dotRow(forCount: session.count)
     let dots = isConcealed ? SessionPace.dotMaximum : row.dots
     VStack(spacing: WatchLayout.dotsToSessionLine) {
-      HStack(spacing: WatchLayout.dotGap) {
-        ForEach(0..<dots, id: \.self) { _ in
-          dot
-        }
-      }
+      SessionDots(
+        count: dots, band: band, ringed: isRinged,
+        size: WatchLayout.dotSize, gap: WatchLayout.dotGap
+      )
       .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: isConcealed)
       // The count in rounded semibold — the user's own figure — and the
       // elapsed time in default SF, the clock's. Three verbatim pieces, so no
@@ -79,23 +77,6 @@ struct SessionDotRow: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(sessionLine(session.count))
     .accessibilityValue(Text(verbatim: elapsed(style: .full)))
-  }
-
-  @ViewBuilder
-  private var dot: some View {
-    if let band, !isRinged {
-      Circle()
-        .fill(IntensityPalette.fill(band, scheme: scheme))
-        .frame(width: WatchLayout.dotSize, height: WatchLayout.dotSize)
-    } else {
-      // `.secondary` rather than the tile border's 35% primary: at 9pt a
-      // 1pt ring needs its own 3:1, and secondary label ink on black is
-      // 6.4:1 where white at 35% sits on the line — 3.01:1 unquantised,
-      // 2.998:1 as the `#595959` it renders as (ADR-0044).
-      Circle()
-        .strokeBorder(.secondary, lineWidth: 1)
-        .frame(width: WatchLayout.dotSize, height: WatchLayout.dotSize)
-    }
   }
 
   /// Since the session's first drink; `start` is never after `now` (the
