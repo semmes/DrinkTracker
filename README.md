@@ -182,22 +182,27 @@ Shared/                     compiled into the app, both widgets and the watch ap
                               AppGroup, AppSettings, DrinkEntry + AlcoholFreeDay
                               (SwiftData), SchemaVersions, DrinkRepository,
                               LogDrinkIntent (all four intents), IntensityPalette
-                              (the ramp — invariant 10), Assets.xcassets (the
-                              thirteen tally.* symbols, AccentColor, AccentFill)
+                              (the ramp — invariant 10), CloudKitStatusProbe,
+                              Assets.xcassets (the thirteen tally.* symbols,
+                              AccentColor, AccentFill)
 DrinkTrackerTests/          xctest bundle — 52 tests, the SwiftData layer in-memory
 DrinkTracker/               App target
   DesignSystem/               AppTheme, GlassTokens, FlowLayout, CountStepper,
                               AppearancePreference
   Persistence/                DrinkStore (HealthKit-aware wrapper)
   Services/                   HealthKitService, DrinkTrackerShortcuts, TipJar,
-                              CloudKitStatusProbe
+                              WatchContextPublisher (the settings bridge to a
+                              paired watch, ADR-0041)
   Features/                   Navigation (the tab bar), Onboarding, Today,
                               DrinkDetail, Calendar, Trends, History, Settings
 DrinkTrackerWidget/         Widget extension target
-DrinkTrackerWatch/          watchOS app target — opens the shared store and
-                            prints today's count (watch Phase 1); the counter
-                            arrives with Phase 3 of docs/tallyist-watch-plan.md;
-                            its CLAUDE.md scopes a session to the watch
+DrinkTrackerWatch/          watchOS app target — opens the shared store, prints
+                            today's count (watch Phase 1) and receives the
+                            phone's region and counter seed over
+                            WatchConnectivity (Phase 2, WatchContextStore); the
+                            counter arrives with Phase 3 of
+                            docs/tallyist-watch-plan.md; its CLAUDE.md scopes
+                            a session to the watch
 DrinkTrackerWatchWidget/    watchOS complication target (a stub until Phase 6)
 ```
 

@@ -32,8 +32,21 @@ final class AppSettings {
       // its last timeline build; without this it kept the old unit until the
       // next log or midnight (invariant 3 reaches the widget too).
       WidgetCenter.shared.reloadAllTimelines()
+      // And the watch computes with it (invariant 3 reaches the wrist too).
+      watchBridge?(effectiveRegion, counterSeed)
     }
   }
+
+  /// Where a change to a value the watch mirrors is announced — the settings
+  /// bridge of watch Phase 2 (ADR-0041). The phone app installs
+  /// `WatchContextPublisher` here at launch; nothing else ever sets it, so on
+  /// the widgets and on the watch itself a change goes nowhere, which is
+  /// right: the phone is the source of these two values and the watch only
+  /// receives them (through `store(region:)` and `store(counterSeed:)` below).
+  /// Called with the *effective* region — the US fallback when none was
+  /// chosen — because the watch mirrors the phone's arithmetic, not its
+  /// settings screen.
+  var watchBridge: (@MainActor (Region, DrinkDraft.CountSeed) -> Void)?
 
   /// The definition all standard-drink math measures against.
   var effectiveRegion: Region { region ?? .unitedStates }
@@ -58,7 +71,11 @@ final class AppSettings {
   /// default lives in one place, instead of relying on `bool(forKey:)`
   /// returning false.
   var counterSeed: DrinkDraft.CountSeed {
-    didSet { defaults.set(counterSeed.rawValue, forKey: Keys.counterSeed) }
+    didSet {
+      defaults.set(counterSeed.rawValue, forKey: Keys.counterSeed)
+      // The watch's ＋ runs the same seed rule (invariant 1 reaches the wrist).
+      watchBridge?(effectiveRegion, counterSeed)
+    }
   }
 
   /// Whether Today shows the session pace card during an active sitting.
@@ -158,6 +175,28 @@ final class AppSettings {
   ) -> DrinkDraft.CountSeed {
     defaults.string(forKey: Keys.counterSeed)
       .flatMap(DrinkDraft.CountSeed.init(rawValue:)) ?? .standardDrink
+  }
+
+  /// The watch's half of the settings bridge (watch Phase 2, ADR-0041): the
+  /// region the phone sent, written under the same key `region` reads, so
+  /// `storedRegion()` — and the complication, which reads through it the way
+  /// the home-screen widget does — answers the same on the wrist as on the
+  /// phone with no code of its own. `Keys` stays private; these two writers
+  /// are the one door in, beside the two readers that exist for the same
+  /// off-main-actor situation.
+  nonisolated static func store(
+    region: Region,
+    defaults: UserDefaults = AppGroup.defaults
+  ) {
+    defaults.set(region.rawValue, forKey: Keys.region)
+  }
+
+  /// The counter seed the phone sent — what the watch's ＋ logs (invariant 1).
+  nonisolated static func store(
+    counterSeed: DrinkDraft.CountSeed,
+    defaults: UserDefaults = AppGroup.defaults
+  ) {
+    defaults.set(counterSeed.rawValue, forKey: Keys.counterSeed)
   }
 
   private enum Keys {

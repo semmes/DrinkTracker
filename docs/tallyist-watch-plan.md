@@ -709,10 +709,13 @@ pending; the glyph generator clean on its new path; and tier 3 on the paired
 simulators with signed builds — the watch showing **0** over "shared,
 CloudKit requested", its App Group container holding `default.store` and the
 recorded store mode, and the phone rendering its accent from the shared
-catalog. **Not verified:** a count above zero on the watch — its store is its
-own, and the simulator pair has no iCloud account, so nothing reaches it until
-Phase 3 logs there or a real pair syncs (the owner's device pass) — and the
-iOS widget's accent on screen (its bundle carries it; not rendered).
+catalog. **Verified on hardware the same day (owner):** with Xcode builds on
+a real iPhone and watch on one iCloud account, the watch's count follows the
+phone's — a drink logged on the phone appears on the wrist about four to five
+seconds later — which is the wrist's only data path and the one thing the
+simulator pair could not show. **Not verified:** the iOS widget's accent on
+screen (its bundle carries it; not rendered), and mirroring with the watch
+away from the phone on its own Wi-Fi or cellular.
 
 **1. `DrinkTrackerCore/Package.swift`.** Add `.watchOS("26.0")` to `platforms`
 — **not `.v26`**: that constant needs a newer `swift-tools-version` than the
@@ -864,6 +867,65 @@ four processes, which the new tier-1 test pins.
 
 One session. The smallest phase with the highest consequence, because both
 invariants it protects fail silently.
+
+**Done 2026-09-14, in the same local session, and recorded as ADR-0041.**
+Built as specified below, with three additions. `WatchContext` in the core
+package (`version`, `region`, `counterSeed`, `sentAt`; `dictionary` and
+`init?(dictionary:)`, property-list types only) with eight tier-1 tests —
+every region and seed round-trips; a missing or foreign version, a missing or
+unknown region or seed, a non-numeric `sentAt` and the empty context all
+decode to `nil`, never to a default; extra keys are ignored. `AppSettings`
+gained the two `nonisolated static` writers beside its readers and a
+`watchBridge` closure the phone app installs at launch, called from the
+`didSet`s of `region` and `counterSeed` with the *effective* region.
+`WatchContextPublisher` (app target) activates the session at launch and
+publishes on activation, on every foreground and through the bridge;
+`WatchContextStore` (watch) applies `receivedApplicationContext` on
+activation and `didReceiveApplicationContext` live, writes through the two
+writers, and reloads the complication's timelines. **The additions:**
+`Diagnostics.lastWatchContextSent` on the phone and `lastWatchContextReceived`
+on the watch make a silent channel readable — and the received `sentAt` being
+`nil` is how Phase 3 tells "the region has not been set yet" from "the US, by
+choice"; `CloudKitStatusProbe` moved to `Shared/` and runs on the watch at
+launch and on every foreground, so the wrist can say whether iCloud is
+reachable rather than only that mirroring was requested (the owner's own
+question on the first hardware run); and the watch's debug line shows all
+three facts (store mode, iCloud status, region · seed · sent time). No new
+user-visible copy (every new string is verbatim diagnostics), no new key in
+any catalog, no privacy-policy change — the payload is two settings between
+the user's own devices, and no row ever travels this channel.
+
+**One defect found by the pair test, fixed before merging:** after a live
+delivery the watch's App Group held the new region while the debug line on
+screen still said "not received yet" — the App Group defaults are not
+observable, so nothing redrew the view. `WatchContextStore` now posts
+`.watchContextDidChange` on the main queue after writing, and the view
+re-reads on it (and on every foreground), the way `TodayView` re-cuts the day
+on `.NSCalendarDayChanged`. **Phase 3's counter must listen to the same
+notification**: every figure it shows is expressed in the region, and a
+region that changes under a view that does not redraw is invariant 3 failing
+in the one way a screenshot can catch.
+
+**Verified:** 263 domain tests (eight new); the watch scheme for the watchOS
+simulator with zero warnings; the iOS scheme; the integration suite (85) on
+a second simulator; the verifier green; and **tier 3 on the simulator pair
+with signed builds** — a UK region and the usual-drink seed set on the phone
+reached the watch's App Group on the watch app's activation (`region =
+unitedKingdom`, `lastWatchContextReceived` equal to the phone's `sentAt`), and
+a change to Australia and the standard-drink seed with the watch app running
+arrived live within ten seconds, the watch's debug line reading both back.
+**Two simulator conditions, worth knowing before the next pair test:** the
+phone's `WCSession` reports "Watch app is not installed" (and
+`updateApplicationContext` throws) until the watch app has been installed on
+the watch, launched, and the companion registry has had about a minute —
+`simctl install` of the iOS app never installs the watch app on the paired
+watch, and real devices, which install through the phone, have no such step;
+and a simulator app's App Group defaults must be changed from *inside* the
+simulator (`xcrun simctl spawn <udid> defaults write <group plist path> …`),
+or the simulator's preferences cache overwrites a host-side write. **Tier 4,
+the owner's:** a region changed in Settings on the real phone reaching the
+real watch — the debug line is the readout — and the same with the phone
+asleep in a pocket.
 
 **The payload.** A `Codable` value type in `DrinkTrackerCore`, so it is tier-1
 testable and so both platforms cannot disagree about its shape:
@@ -1436,7 +1498,12 @@ that is wrong out loud.
 - **CloudKit latency between a phone and a paired watch** is the number Phase 7
   exists for and I have no measurement of it. It may be fast enough that the
   bridge is unnecessary. Ship Phases 1 to 6, live with it for an evening, and
-  decide then.
+  decide then. **Measured 2026-09-14 (owner, Phase 1 on hardware): about four
+  to five seconds** from a log on the phone to the count changing on the
+  wrist, both Xcode builds on one iCloud account, phone nearby. By this plan's
+  own criterion that is fast enough that Phase 7 may be unnecessary; the
+  decision still waits for an evening's use, but the number is no longer
+  unknown.
 - **Whether the watch's store mirrors reliably when the watch is on its own
   Wi-Fi or cellular**, away from the phone, is a real question with no
   desk answer. Tier 4.
