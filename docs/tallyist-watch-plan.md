@@ -1372,6 +1372,93 @@ redacts in Always-On rather than sitting there lit.
 One session. Its own target and its own gotchas, which is why it is not folded
 into Phase 5.
 
+**Done 2026-09-14, in the same local session as Phases 0 to 5, and recorded
+as ADR-0046.** `CounterComplication` replaces the stub: `StaticConfiguration`,
+the four families, the home-screen widget's two strings naming it. **The
+content rule below was not built as written, and ADR-0046 says why:** its two
+halves disagree — the home-screen widget shows today's count, not a session
+count — and a numeral that changes meaning under the reader and *rises* when
+a sitting ends is the standing number the tone rules refuse by another door.
+Every family shows **today's count in the day's band** (the tile shrunk to a
+disc, the same `DayIntensity.bucket` as the counter and the calendar cell);
+the sitting appears **only as dots**, on the rectangular card, through the
+same `SessionDots` view and band rule as the counter — moved into `Shared/`
+for the purpose, the phase's one project-file edit (a `Shared/` membership
+for the watch app and the complication, made with the Edit tool and proved by
+`plutil -lint`, `xcodebuild -list`, both schemes built and the verifier).
+**The timeline carries an entry at every moment the face would change on its
+own** — one at each drink's exit from the two-hour window, where the dots'
+band drains, and one at `lastDrinkAt + gapThreshold` carrying the
+post-session state, with the refresh at the earlier of that and the next
+midnight; otherwise the next midnight alone. (The plan below says two
+entries; the second review round found that the band would then be frozen
+for up to two hours while the counter's drains every minute.) **The ＋ is the rectangular
+card's** (the owner's answer to the design's second question), a
+`Button(intent: LogOneDrinkIntent())`. **Redacted, each family shows the drop
+glyph and the words with the figure and the band's fill gone**, never a blank;
+the design's "… hidden" circular is unbuilt by the owner's fourth answer.
+**The rectangular card is not the design's size:** the real family is about
+177 × 80pt on a 46mm watch, not 264 × 118, so the tile and the ＋ are 44 and
+the ≈ line is not shown (the home-screen widget's small family makes the same
+trade), with the dots on a row of their own beneath — found by placing the
+first build on the simulator's Smart Stack, where the unit word and ≈ line
+truncated to "drin…" and "≈ 3 st…". Nine reused keys joined the complication's
+catalog and two new unit nouns, "drinks" / "drink", went through the copy
+review — ten keys of its own, 27 → **37**. **A five-lens adversarial review of the first build found seventeen
+real things, all fixed before the commit** — chief among them that nothing
+on the watch reloaded the complication for a drink logged on the phone (the
+dominant writer: CloudKit updates the counter's query in seconds and the
+face would have sat at zero until midnight), so the watch app now observes
+`NSPersistentStoreRemoteChange` and reloads once an import settles, and
+reloads on every raise; the corner family's curved label printed the count
+past redaction (now the words only); the dots' band was frozen at build
+while the counter's drains every minute (now an entry at each drink's exit
+from the window); the no-alcohol record never reloaded the face; the card
+drew the sitting's dots whatever the watch's switch said (now it follows
+it); the circular noun at 62% of the ink measured 4.17:1 and 3.51:1 on the
+lower bands (now full ink); a failed store printed a zero with a live ＋
+(now the glyph, the words and no ＋); the singular noun survived redaction
+(now plural); `SessionDots.band` inherited the main actor from `View` and was
+called off it (now `nonisolated`); the counter's storage strip was gated on
+a breadcrumb the complication's own container overwrites (now the app's own
+knowledge). **A second round on the fixed code found eleven more**, also fixed here: a
+day recorded as no alcohol kept its check glyph and its sentence through
+redaction, so a locked watch sorted dry days from drinking ones; the spoken
+label still carried the count when the pixels did not; flipping "Show
+session pace" never reloaded the face; the card's tile spoke the count a
+second time beside its own label; the inline glyph was not decorative; the
+debug line read a breadcrumb the complication overwrites; the reload
+observer could be woken by its own reload (a one-minute floor now breaks
+that loop) and mutated its state off the main queue; and four records
+misstated the timeline's entries, the catalog delta and what the circular
+family shows. The verifier now also checks every `Shared/` file's
+memberships by name, so a file added for one surface and forgotten on
+another fails rather than compiles.
+
+**Verified:** the watch scheme for the device architecture and for the
+simulator; the signed iOS build for the pair; `plutil -lint`,
+`xcodebuild -list`, the verifier green; and **tier 3 on the simulator pair,
+on the Smart Stack**: the watch face → the stack → Edit → ＋ → Tallyist showed
+the rectangular preview; placed, the card read the real store — "3" in the
+3–5 band's tile, "drinks today", the ＋, and the sitting's three dots beneath
+(a session was running from Phase 5's drinks); **tapping the card's ＋ logged
+a drink from the face without opening the app** — the card re-rendered at 4
+with four dots, the store gained a fourth row (a beer: the day template
+repeated, the intent running the same seed rule), and the App Group's
+breadcrumbs read "saved (one-drink)" from the complication's bundle. **Not
+verified here:** the circular, corner and inline families on a face (the
+simulator's default face has no complication slots, and editing one is a
+tier-4 item); tinted rendering mode; the window-exit and post-session
+entries removing the band and the dots on time; the remote-change reload
+(the simulator pair has no iCloud account, so no import ever arrives);
+redaction off the wrist; VoiceOver over the card; the 40mm card.
+
+**Rendered after the second review round:** the card's ＋ tapped again the
+next morning wrote one standard drink (the day template resets at midnight,
+ADR-0023) and the card re-rendered as "1" in the 1–2 tile with the singular
+"drink today" and **one ring** beneath — the `.low` state ADR-0044's floor
+produces, which Phase 5 could not show on screen.
+
 **Families.** `.accessoryCircular` (the corner-of-the-face one, and the one
 most people will place), `.accessoryRectangular` (the Smart Stack card),
 `.accessoryInline` (the text line above the face), `.accessoryCorner`.

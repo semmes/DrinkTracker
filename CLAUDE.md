@@ -163,10 +163,12 @@ was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
 and a re-submission, and says so; **the 1.4 train is open** —
 `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
-Watch companion app**, whose Phases 0 to 5 landed the same day — see the
-last six bullets of this section and `docs/tallyist-watch-plan.md`; Phase
-6, the complications, is next, and the owner's device pass waits for it.
-The paragraph that follows is the 2026-09-10 state, kept for the record.
+Watch companion app**, whose Phases 0 to 6 landed the same day — see the
+last seven bullets of this section and `docs/tallyist-watch-plan.md`. **The
+owner's device pass of Phases 5 and 6 is the next step**; after it, Phase 7
+is the owner's decision (the plan's "after an evening's use") and Phase 8 is
+release work. The paragraph that follows is the 2026-09-10 state, kept for
+the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1746,3 +1748,95 @@ Open items for v1.2:
   `.low` ring state early in a sitting; Always-On with the row up (rings, no
   line) and with the count hidden; VoiceOver reading the row as "3 drinks
   this session, 1 hour, 19 minutes"; the row on a 40/41/42mm watch.
+- **The watch's Phase 6 landed (2026-09-14, same session): the complications,
+  ADR-0046.** `CounterComplication` replaces the stub — `StaticConfiguration`,
+  the four families, the home-screen widget's own two strings naming it.
+  **One decision the plan forced:** its content rule ("the session count while
+  a session is running, today's count otherwise — the same thing the
+  home-screen widget shows") contradicts itself, since the widget shows
+  today's count; built literally it would also put a numeral on the face that
+  changes meaning under the reader and *rises* when a sitting ends. So every
+  family shows **today's count in the day's band**, the tile shrunk to a disc
+  (the same `DayIntensity.bucket` as the counter and the calendar cell), and
+  the sitting appears **only as dots** on the rectangular card, through the
+  same `SessionDots` view and band rule as the counter — moved into
+  `Shared/SessionDots.swift`, the phase's **one project-file edit** (a
+  `Shared/` membership for the watch app and the complication; Edit tool,
+  `plutil -lint`, `xcodebuild -list`, both schemes, the verifier). The
+  timeline carries an entry at every moment the face would change on its own
+  — one at each drink's exit from the two-hour window, where the dots' band
+  drains, and one at `lastDrinkAt + gapThreshold` with the post-session state
+  — otherwise the next midnight. The ＋ is the rectangular card's only (the
+  owner's answer), a `Button(intent: LogOneDrinkIntent())`. Redacted, each
+  family shows the drop glyph and the words with the figure and the band's
+  fill gone; the design's hidden circular is unbuilt by the owner's fourth
+  answer. **The card is not the design's size:** the real rectangular family
+  is about 177 × 80pt on the 46mm, not 264 × 118 — the first build's card
+  truncated to "drin…" and "≈ 3 st…" on the simulator's Smart Stack — so the
+  tile and ＋ are 44, the ≈ line is dropped (the phone's small widget makes the
+  same trade), and the dots take a row beneath. Complication catalog 27 →
+  **37** — ten of its own: seven reused verbatim from the home-screen widget,
+  the marker sentence from Today, and two new unit nouns, "drinks" / "drink",
+  reviewed under 1.4. **No schema change, no CloudKit step, no privacy-policy change.**
+  **Verified:** both watch destinations, the signed iOS build, the verifier,
+  and **tier 3 on the simulator's Smart Stack** — the card placed from the
+  gallery, reading the real store ("3", the 3–5 tile, three dots for the
+  running sitting), and **its ＋ logging from the face without opening the
+  app**: the card re-rendered at 4 with four dots, the store gained the fourth
+  row (a beer — the day template, the same seed rule), and the breadcrumbs read
+  "saved (one-drink)" from the complication's bundle. **Reviewed before
+  merging by the same five-lens adversarial workflow as Phase 5, twice:** the
+  first round found seventeen real things (the plan's Phase 6 note lists
+  them), the largest being that **nothing reloaded the face for a drink
+  logged on the phone** — the dominant writer — so `DrinkTrackerWatchApp`
+  now observes `NSPersistentStoreRemoteChange` and reloads timelines once a
+  CloudKit import settles, and the counter reloads on every raise; the
+  residual (an evening logged on the phone with the watch app never run)
+  is in ADR-0046 with its reopen. Also from that round: the corner's curved
+  label no longer carries the count, the timeline gets an entry at each
+  drink's exit from the two-hour window so the card's band drains with the
+  counter's, the card's dots follow the watch's "Show session pace" switch,
+  the circular noun is full ink (62% measured under 4.5:1 on two bands), a
+  failed store shows the glyph and no ＋, redaction pluralises the nouns,
+  `SessionDots.band` is `nonisolated`, and the counter's storage strip is
+  gated on the app's own fallback rather than a breadcrumb the complication
+  overwrites. **The second round, on the fixed code, found eleven more**, all
+  fixed too: a day recorded as no alcohol kept its check glyph and its
+  sentence *through* redaction, so a locked watch on a table sorted dry days
+  from drinking ones — `showsMarker` is now `isMarked && !isFigureless`, and
+  ADR-0046 carries the argument; the hand-written accessibility label still
+  spoke the count when the pixels did not (the system redacts a numeral it
+  draws, not a label — so `spokenLabel` follows the pixels, and the ADR notes
+  the cost to a VoiceOver reader); flipping "Show session pace" never
+  reloaded the face; the card's tile spoke the count a second time beside its
+  own label; the inline glyph was not `Image(decorative:)`; the DEBUG line
+  read the breadcrumb rather than the app's own state; and
+  `StoreChangeReloader` could be woken by the reload it had just asked for
+  (the complication's container writes CloudKit bookkeeping of its own) and
+  touched its state off the main queue — it is `@MainActor`, observes on
+  `.main`, and keeps a one-minute floor between reloads. Four record
+  inaccuracies went with them (the timeline's entries in three places, the
+  catalog delta, and what the circular family shows on a marked day). **The
+  verifier now checks every `Shared/` file's memberships by name** — a table
+  of the four beyond the original six, plus a check that every `.swift` in
+  `Shared/` is named in it — so a file added for one surface and forgotten on
+  another fails rather than compiles. **Not verified:** the circular, corner and inline families on
+  a face (the simulator's default face has no slots; editing one is the
+  owner's), tinted rendering, the window-exit and post-session entries on
+  time, the remote-change reload (the pair has no iCloud account),
+  redaction off the wrist, VoiceOver, the 40mm card. **How to reach the Smart Stack on the watch
+  simulator:** press HOME (the crown) for the face, swipe up from within 4pt
+  of the bottom edge, tap Edit, tap the ＋ card, scroll the gallery to the app,
+  tap the card; the placed card's `Button(intent:)` answers a plain tap. **The
+  device pass now:** Phases 5 and 6 together — their lists are in the two
+  bullets — plus, for the face: place the circular, corner and inline families
+  and read them in full colour and in a tinted face; take the watch off with
+  the card up (the glyph and the words, the band gone, eight rings); leave a
+  sitting to end and watch the dots leave the card within a minute of the
+  four-hour mark; tap the card's ＋ on hardware and find the row in the
+  phone's History with its Health sample after the phone's next foreground.
+  **After the pass:** Phase 7 is the owner's decision (the plan says after an
+  evening's use, and the 4–5 s latency argues against it); Phase 8 is release
+  — What's New, reviewer notes with the new Background Modes entry, the claims
+  table and the privacy policy read against the watch, the owner's
+  screenshots.

@@ -184,8 +184,10 @@ Shared/                     compiled into the app, both widgets and the watch ap
                               LogDrinkIntent (all four intents), IntensityPalette
                               (the ramp — invariant 10), DayIntensity+Legend
                               (the legend's order and words — app and watch),
-                              CloudKitStatusProbe, Assets.xcassets (the thirteen
-                              tally.* symbols, AccentColor, AccentFill)
+                              SessionDots (the sitting's dots — watch app and
+                              complication), CloudKitStatusProbe,
+                              Assets.xcassets (the thirteen tally.* symbols,
+                              AccentColor, AccentFill)
 DrinkTrackerTests/          xctest bundle — 52 tests, the SwiftData layer in-memory
 DrinkTracker/               App target
   DesignSystem/               AppTheme, GlassTokens, FlowLayout, CountStepper,
@@ -206,7 +208,8 @@ DrinkTrackerWatch/          watchOS app target — the counter over the shared
                             (Phase 2, WatchContextStore); phases 4 to 6 of
                             docs/tallyist-watch-plan.md follow; its CLAUDE.md
                             scopes a session to the watch
-DrinkTrackerWatchWidget/    watchOS complication target (a stub until Phase 6)
+DrinkTrackerWatchWidget/    watchOS complication target — the four accessory
+                            families (watch Phase 6, CounterComplication)
 ```
 
 `Shared/` sits outside the file-system-synchronized groups and is added to each
