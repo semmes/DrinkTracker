@@ -19,13 +19,16 @@
     "How many?" : {
 
     },
+    "Log ${quantity} ${drinkType}" : {
+
+    },
+    "Log a Drink" : {
+
+    },
     "Log Drinks" : {
 
     },
     "Log One Drink" : {
-
-    },
-    "Log a Drink" : {
 
     },
     "Logged %lld: %@ each." : {

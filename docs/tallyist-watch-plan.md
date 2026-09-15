@@ -709,10 +709,13 @@ pending; the glyph generator clean on its new path; and tier 3 on the paired
 simulators with signed builds — the watch showing **0** over "shared,
 CloudKit requested", its App Group container holding `default.store` and the
 recorded store mode, and the phone rendering its accent from the shared
-catalog. **Not verified:** a count above zero on the watch — its store is its
-own, and the simulator pair has no iCloud account, so nothing reaches it until
-Phase 3 logs there or a real pair syncs (the owner's device pass) — and the
-iOS widget's accent on screen (its bundle carries it; not rendered).
+catalog. **Verified on hardware the same day (owner):** with Xcode builds on
+a real iPhone and watch on one iCloud account, the watch's count follows the
+phone's — a drink logged on the phone appears on the wrist about four to five
+seconds later — which is the wrist's only data path and the one thing the
+simulator pair could not show. **Not verified:** the iOS widget's accent on
+screen (its bundle carries it; not rendered), and mirroring with the watch
+away from the phone on its own Wi-Fi or cellular.
 
 **1. `DrinkTrackerCore/Package.swift`.** Add `.watchOS("26.0")` to `platforms`
 — **not `.v26`**: that constant needs a newer `swift-tools-version` than the
@@ -1436,7 +1439,12 @@ that is wrong out loud.
 - **CloudKit latency between a phone and a paired watch** is the number Phase 7
   exists for and I have no measurement of it. It may be fast enough that the
   bridge is unnecessary. Ship Phases 1 to 6, live with it for an evening, and
-  decide then.
+  decide then. **Measured 2026-09-14 (owner, Phase 1 on hardware): about four
+  to five seconds** from a log on the phone to the count changing on the
+  wrist, both Xcode builds on one iCloud account, phone nearby. By this plan's
+  own criterion that is fast enough that Phase 7 may be unnecessary; the
+  decision still waits for an evening's use, but the number is no longer
+  unknown.
 - **Whether the watch's store mirrors reliably when the watch is on its own
   Wi-Fi or cellular**, away from the phone, is a real question with no
   desk answer. Tier 4.

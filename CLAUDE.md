@@ -1482,10 +1482,19 @@ Open items for v1.2:
   with **signed** builds — the watch showing 0 over "shared, CloudKit
   requested", its App Group container holding `default.store` and the
   recorded store mode, and the phone's onboarding rendering the accent from
-  the shared catalog. **Not verified:** a non-zero count on the watch (its
-  store is its own and the simulator pair has no iCloud account, so nothing
-  reaches it until Phase 3 logs there or a real pair syncs) and the iOS
-  widget's accent on screen (its bundle carries it). **Two tooling lessons:**
+  the shared catalog. **Verified on hardware by the owner the same day:**
+  Xcode builds on a real iPhone and watch on one iCloud account — the watch's
+  count follows the phone's, a drink logged on the phone appearing on the
+  wrist about four to five seconds later. That is the first measurement of
+  the CloudKit latency Phase 7 exists for, and by the plan's own criterion it
+  argues the live-session bridge may be unnecessary; decide after an
+  evening's use. **Not verified:** the iOS widget's accent on screen (its
+  bundle carries it), and mirroring with the watch away from the phone. **The
+  owner's device build wrote one key into each watch catalog** — the Siri
+  phrase summary `Log ${quantity} ${drinkType}`, which only the
+  device-architecture extraction emits (the generic simulator build's arm64
+  `.stringsdata` set lacked `ExtractedAppShortcutsMetadata`) — and re-sorted
+  the keys; committed as Xcode wrote them, 27 keys each. **Two tooling lessons:**
   a `cd` inside one of several parallel Bash calls leaked into the others
   (xcodebuild and the verifier ran in the package directory and reported
   missing files) — use absolute paths in parallel batches; and
@@ -1496,9 +1505,7 @@ Open items for v1.2:
   `WidgetCenter` reload calls, `WatchContextStore` on the watch writing
   through two new `nonisolated static` writers in `AppSettings`; no
   project-file work. **Tier 3/4 for the owner's pass:** Run the
-  `DrinkTrackerWatch` scheme from Xcode on the pair and read the count;
   the app's accent and the tab glyphs on the phone after the catalog move
   (the bundle carries them; the tally hero was the one screen rendered); the
-  home-screen widget's accent; and, on real hardware with one iCloud
-  account, the watch's count catching up to the phone's — the only path the
-  wrist has, and the one thing here no simulator can show.
+  home-screen widget's accent; and the watch mirroring while away from the
+  phone on its own Wi-Fi or cellular.

@@ -27,13 +27,13 @@ of its README.
 | Phase | State |
 |---|---|
 | 0 — the targets | **Done 2026-09-14.** Two targets, the shared scheme, entitlements, catalogs, icon, the verifier; the 1.4 bump. Recorded at the head of the plan's Phase 0. |
-| 1 — the shared layer builds for watchOS | **Done 2026-09-14.** The package declares watchOS; `BundleIdentity` pins one App Group for the four identifiers; the shared catalog and the palette; `Shared/` and the package on both watch targets; the watch app opens the store and prints today's count; the `build-watch` CI job. Recorded at the head of the plan's Phase 1. |
+| 1 — the shared layer builds for watchOS | **Done 2026-09-14.** The package declares watchOS; `BundleIdentity` pins one App Group for the four identifiers; the shared catalog and the palette; `Shared/` and the package on both watch targets; the watch app opens the store and prints today's count; the `build-watch` CI job. Recorded at the head of the plan's Phase 1. Verified on hardware the same day: the watch's count follows the phone's about four to five seconds after a log. |
 | 2 — the settings bridge | Next. |
 | 3 — the counter, and recording a day as no alcohol | |
 | 4 — specify a drink | |
 | 5 — the session, as dots | |
 | 6 — complications | |
-| 7 — the live session bridge (optional) | |
+| 7 — the live session bridge (optional) | The measured four-to-five-second CloudKit latency argues it may not be needed; decide after an evening's use, the plan's own criterion. |
 | 8 — release | What's New (1.4), reviewer notes, the claims table re-verified against the watch, the privacy policy read against it, the watch screenshots. |
 
 **What it must not become:** a standing number on a watch face that reads as
