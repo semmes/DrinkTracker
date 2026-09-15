@@ -163,9 +163,9 @@ was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
 and a re-submission, and says so; **the 1.4 train is open** —
 `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
-Watch companion app**, whose Phases 0 and 1 landed the same day — see the last
-two bullets of this section and `docs/tallyist-watch-plan.md`; Phase 2, the
-settings bridge, is next. The paragraph that follows is the 2026-09-10 state,
+Watch companion app**, whose Phases 0, 1 and 2 landed the same day — see the
+last three bullets of this section and `docs/tallyist-watch-plan.md`; Phase
+3, the counter, is next. The paragraph that follows is the 2026-09-10 state,
 kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
@@ -1494,18 +1494,70 @@ Open items for v1.2:
   phrase summary `Log ${quantity} ${drinkType}`, which only the
   device-architecture extraction emits (the generic simulator build's arm64
   `.stringsdata` set lacked `ExtractedAppShortcutsMetadata`) — and re-sorted
-  the keys; committed as Xcode wrote them, 27 keys each. **Two tooling lessons:**
+  the keys; committed as Xcode wrote them, 27 keys each. **Two tooling lessons**
+  (a third joined them in Phase 2's bullet)**:**
   a `cd` inside one of several parallel Bash calls leaked into the others
   (xcodebuild and the verifier ran in the package directory and reported
   missing files) — use absolute paths in parallel batches; and
   `xcstringstool sync` cannot re-save a catalog inside the sandbox ("Could
-  not re-save"), so run it outside. **Phase 2 is next:** the settings bridge —
-  `WatchContext` in the core package with its dictionary codec and tier-1
-  round-trips, `WatchContextPublisher` on the phone beside the
-  `WidgetCenter` reload calls, `WatchContextStore` on the watch writing
-  through two new `nonisolated static` writers in `AppSettings`; no
-  project-file work. **Tier 3/4 for the owner's pass:** Run the
-  the app's accent and the tab glyphs on the phone after the catalog move
+  not re-save"), so run it outside. **Phase 2 followed the same day — the
+  next bullet.** **Tier 3/4 for the owner's pass:** the app's accent and
+  the tab glyphs on the phone after the catalog move
   (the bundle carries them; the tally hero was the one screen rendered); the
   home-screen widget's accent; and the watch mirroring while away from the
   phone on its own Wi-Fi or cellular.
+- **The watch's Phase 2 landed (2026-09-14, same session): the settings
+  bridge, ADR-0041.** Region and counter seed now cross from the phone to a
+  paired watch over WatchConnectivity as an application context (latest
+  value wins, delivered when the watch is next reachable). `WatchContext` in
+  the core package carries them with a plist-dictionary codec and eight
+  tier-1 tests whose one rule is that an unreadable payload decodes to
+  nothing, never a default; `AppSettings.watchBridge` (installed by the phone
+  app at launch, called from the `didSet`s with the *effective* region) plus
+  two `nonisolated static` writers beside the existing readers;
+  `WatchContextPublisher` in the app target (activation, every foreground,
+  every change) and `WatchContextStore` on the watch (activation and live
+  delivery, writing into the App Group under the keys `AppSettings` owns,
+  then a complication reload). **Nothing else crosses, and a row never does**
+  — ADR-0041 records why (`DrinkEntry` cannot be unique, so a second write
+  path is an undetectable duplicate) and the measured four-to-five-second
+  CloudKit latency that argues Phase 7's bridge may be unnecessary. Also:
+  `CloudKitStatusProbe` moved to `Shared/` and runs on the watch at launch and
+  on every foreground, so the wrist can say "iCloud: syncing" or "no iCloud
+  account" rather than only that mirroring was requested — the owner's own
+  question on the first hardware run; and `Diagnostics.lastWatchContextSent`
+  / `lastWatchContextReceived` make a silent channel readable (the received
+  `sentAt` is also how Phase 3 tells "region not set yet" from "US by
+  choice"). One project-file edit (the probe's move into `Shared/`), made
+  with the Edit tool and proved by building. No new copy, no new catalog key,
+  no privacy-policy change. **Verified:** 263 domain tests (eight new); both
+  schemes for their simulators, zero warnings in the new files; the
+  integration suite (85) on a second simulator; the verifier green; and
+  **tier 3 on the simulator pair with signed builds** — UK and the usual-drink
+  seed set on the phone reached the watch's App Group on the watch app's
+  activation, and a change to Australia and the standard-drink seed arrived
+  live with the watch app running. **That live run caught a real defect:**
+  the App Group held the new region while the debug line on screen still said
+  "not received yet", because the defaults are not observable and nothing
+  redrew the view — `WatchContextStore` now posts `.watchContextDidChange` on
+  the main queue and the view re-reads on it and on every foreground; Phase
+  3's counter must listen to the same notification, or a region change under
+  its figures is invariant 3 failing on screen. **Two simulator lessons, both
+  in the memory notes too:** the phone's
+  `WCSession` reports "Watch app is not installed" (`updateApplicationContext`
+  throws) until the watch app has been installed on the watch, launched, and
+  the companion registry has had about a minute — `simctl install` of the iOS
+  app never installs the watch app on the paired watch, and the first two
+  runs failed on exactly this before the wait fixed it; and a simulator app's
+  App Group defaults must be written from *inside* the simulator (`xcrun
+  simctl spawn <udid> defaults write <group plist path> …`), or the
+  simulator's cfprefsd overwrites a host-side write on the app's next save.
+  **Tier 4 for the owner:** change the region in Settings on the real phone
+  and read the watch's debug line ("region: … · seed: … · sent …"), then the
+  same with the phone asleep in a pocket. **Phase 3 is next:** the counter —
+  ＋ through the shared seed rule (lift `LogOneDrinkIntent.perform()`'s body
+  into `Shared/`, never a fourth copy), − through `removableNewest` at tier 1,
+  haptics, Double Tap, the storage line, the no-alcohol button the owner
+  chose, and the tap to hide; ADR-0042 and 0043 with it; its "region not set
+  yet" line reads `Diagnostics.lastWatchContextReceived == nil`. No
+  project-file work: the folder is synchronized.
