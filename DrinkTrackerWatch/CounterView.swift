@@ -448,7 +448,10 @@ struct CounterView: View {
     let sent = Diagnostics.lastWatchContextReceived.map {
       $0.formatted(date: .omitted, time: .shortened)
     } ?? "none"
-    return "\(store) · \(cloud) · \(region.rawValue) · \(AppSettings.storedCounterSeed().rawValue) · \(sent)"
+    let synced = Diagnostics.lastSyncSucceededAt.map {
+      "synced \($0.formatted(date: .omitted, time: .shortened))"
+    } ?? (Diagnostics.lastSyncFailure ?? "never synced")
+    return "\(store) · \(cloud) · \(region.rawValue) · \(AppSettings.storedCounterSeed().rawValue) · \(sent) · \(synced)"
   }
 
   private func refreshCloudKitStatus() async {

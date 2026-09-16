@@ -1455,3 +1455,23 @@ reused from a surface that already carries it, and two retire.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The app stops claiming a sync it has not seen (2026-09-15)
+
+The owner's phone and watch drifted apart on cellular for an evening while
+Settings said "Syncing with iCloud". That row was printed from
+`CKAccountStatus` alone, which only means *signed in* — `CloudKitStatusProbe`
+says so in its own comment. The app now records what
+`NSPersistentCloudKitContainer` actually did, and the strong claim is made
+only where data has moved. **Two strings are new**; the existing pair is
+unchanged and now earned.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Signed in to iCloud" | Settings → iCloud, when an account is available but nothing has synced on this device yet | States what is known and stops there. It is not a warning and not a failure: an account is signed in, and no transfer has been seen. The plain `icloud` glyph replaces the tick for the same reason — a tick is the claim in glyph form. |
+| "Your log is on this device. Nothing has synced yet — iCloud will keep trying on its own." | The footnote under that row | Two facts and no instruction: where the log is, and that the retry is the system's, not the reader's. It deliberately does not tell them to check Wi-Fi or a setting — the app does not know which of several device settings is in play, and guessing would send a reader to the wrong place. |
+| "Syncing with iCloud" · "Your log follows your iCloud account across your devices." | Unchanged wording; now shown only once an import or export has actually completed on this device | No copy change, and the sentence is true for the first time: it was previously printed on the strength of an account existing. |
+| "Last synced" · "Last sync failure" | Two rows in the Diagnostics section, test builds only | Field labels, not sentences. They name the third question the app never asked — not what the store was opened with, not whether an account exists, but whether anything moved. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

@@ -246,12 +246,25 @@ struct SettingsView: View {
     !Diagnostics.isStoreInMemory && Diagnostics.cloudKitStatusCode == "available"
   }
 
+  /// Whether this device has actually synced, rather than merely being signed
+  /// in to an account that could.
+  ///
+  /// The distinction is the one the owner's evening of 2026-09-15 turned up:
+  /// a phone and a watch drifted apart on cellular for hours while this row
+  /// said "Syncing with iCloud", because it printed that from
+  /// `CKAccountStatus` alone — which `CloudKitStatusProbe` says in its own
+  /// comment is one round trip against the local daemon and no statement
+  /// about transfers. `Diagnostics.hasEverSynced` is written from
+  /// `NSPersistentCloudKitContainer`'s own import and export events, so the
+  /// strong claim is now made only where something has moved.
+  private var hasSynced: Bool { Diagnostics.hasEverSynced }
+
   private var iCloudStatusText: LocalizedStringKey {
     if Diagnostics.isStoreInMemory {
       return "Not saving — storage unavailable"
     }
     switch Diagnostics.cloudKitStatusCode {
-    case "available": return "Syncing with iCloud"
+    case "available": return hasSynced ? "Syncing with iCloud" : "Signed in to iCloud"
     case "noAccount": return "Not syncing — no iCloud account"
     case "restricted": return "Not syncing — iCloud is restricted"
     case "temporarilyUnavailable": return "Sync temporarily unavailable"
@@ -262,7 +275,9 @@ struct SettingsView: View {
   private var iCloudStatusSymbol: String {
     if Diagnostics.isStoreInMemory { return "exclamationmark.triangle" }
     switch Diagnostics.cloudKitStatusCode {
-    case "available": return "checkmark.icloud"
+    // The tick is the claim in glyph form, so it follows the same rule as the
+    // words: a plain cloud until something has actually synced.
+    case "available": return hasSynced ? "checkmark.icloud" : "icloud"
     case "noAccount", "restricted": return "icloud.slash"
     default: return "icloud"
     }
@@ -274,7 +289,9 @@ struct SettingsView: View {
     }
     switch Diagnostics.cloudKitStatusCode {
     case "available":
-      return "Your log follows your iCloud account across your devices."
+      return hasSynced
+        ? "Your log follows your iCloud account across your devices."
+        : "Your log is on this device. Nothing has synced yet — iCloud will keep trying on its own."
     case "noAccount":
       return "Your log is kept on this device. Sign into iCloud in the Settings app to sync it across devices."
     case "restricted":
@@ -401,6 +418,20 @@ struct SettingsView: View {
         diagnosticRow(
           "iCloud sync",
           value: Diagnostics.cloudKitStatus ?? "not checked yet"
+        )
+        // Three different questions, and the third is the one that was never
+        // asked: what was requested, whether an account exists, and whether
+        // data has moved. A stall shows here as an old date beside a healthy
+        // account — which is exactly the shape of the owner's cellular
+        // evening, and was unreadable before.
+        diagnosticRow(
+          "Last synced",
+          value: Diagnostics.lastSyncSucceededAt
+            .map { $0.formatted(date: .abbreviated, time: .shortened) } ?? "never on this device"
+        )
+        diagnosticRow(
+          "Last sync failure",
+          value: Diagnostics.lastSyncFailure ?? "none since the last success"
         )
         diagnosticRow(
           "Intent last built by",

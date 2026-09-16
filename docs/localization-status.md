@@ -94,9 +94,17 @@ writes a bare `%lld` key, which is no key at all — the watch uses the `Text`
 overload instead (the phone's `CountStepper` still carries that key in the app
 catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
-complication's own strings arrive with Phase 6. Six catalogs, 473 keys.
+complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
+Current: **391 keys** — 324 app, 35 widget, 28 core, 4 shortcuts (counted
+2026-09-15 after the sync-honesty change: two app keys in, "Signed in to
+iCloud" and its footnote, synced with `xcstringstool` from a **device**
+build's `arm64` `.stringsdata` — a simulator build's set lacks
+`ExtractedAppShortcutsMetadata` and the sync would have pruned the Siri
+phrase key. A first attempt that day synced the app's catalog from the
+*watch* target's `.stringsdata` and cut it from 322 keys to 48; `git
+checkout` restored it. **The filename picks the table and the directory
+picks the target — check both.**) The previous count was **389** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-10 after ADR-0038's naming amendment — the Comparisons section on
 Trends: **no key was added**, because the section heading and the three card
 titles reuse the four keys Settings' own switches already had, and one key

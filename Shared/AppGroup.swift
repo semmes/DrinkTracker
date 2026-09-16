@@ -1,3 +1,4 @@
+import CoreData
 import DrinkTrackerCore
 import Foundation
 import SwiftData
@@ -180,6 +181,45 @@ enum Diagnostics {
       .map(Date.init(timeIntervalSince1970:))
   }
 
+  static let syncSucceededKey = "lastSyncSucceededAt"
+  static let syncFailureKey = "lastSyncFailure"
+
+  /// When CloudKit mirroring last moved data on this device, either way.
+  ///
+  /// The third question, and the only one that is actually about *syncing*.
+  /// `storeMode` says what was asked for; `cloudKitStatus` says whether the
+  /// account exists. Neither says whether a byte ever moved, and the owner's
+  /// evening of 2026-09-15 is what that gap looks like from outside: two
+  /// devices drifting apart while the Settings row said "Syncing with
+  /// iCloud", which it printed from the account status alone.
+  ///
+  /// Written from `NSPersistentCloudKitContainer`'s own event notification,
+  /// which reports each import and export with an end date and a result.
+  static func recordSyncSuccess(at date: Date) {
+    AppGroup.defaults.set(date.timeIntervalSince1970, forKey: syncSucceededKey)
+    AppGroup.defaults.removeObject(forKey: syncFailureKey)
+  }
+
+  static var lastSyncSucceededAt: Date? {
+    (AppGroup.defaults.object(forKey: syncSucceededKey) as? Double)
+      .map(Date.init(timeIntervalSince1970:))
+  }
+
+  /// The last mirroring failure, kept until something succeeds. A transient
+  /// failure that the next retry clears leaves nothing behind, which is what
+  /// makes a value here worth reading.
+  static func recordSyncFailure(_ description: String) {
+    AppGroup.defaults.set(description, forKey: syncFailureKey)
+  }
+
+  static var lastSyncFailure: String? {
+    AppGroup.defaults.string(forKey: syncFailureKey)
+  }
+
+  /// Whether anything has ever synced on this device. The difference between
+  /// "your log follows your iCloud account" as a promise and as a fact.
+  static var hasEverSynced: Bool { lastSyncSucceededAt != nil }
+
   /// Whether the store fell back to memory — the one state where nothing at all
   /// is being saved. Surfaced in release builds, not just diagnostics.
   static var isStoreInMemory: Bool {
@@ -267,6 +307,77 @@ enum SharedModelContainer {
       )
       Diagnostics.recordStoreMode("shared, no CloudKit — \(error)")
       return container
+    }
+  }
+}
+
+/// Watches what CloudKit mirroring actually does, and records it through
+/// `Diagnostics`.
+///
+/// SwiftData mirrors through `NSPersistentCloudKitContainer`, which posts an
+/// event for every setup, import and export — twice each, once when it starts
+/// and once when it ends, the ending one carrying a result. Observing it needs
+/// no container handle, no new entitlement and no polling: it is the same
+/// plain `NotificationCenter` observation the watch app already runs for
+/// `.NSPersistentStoreRemoteChange`.
+///
+/// This exists because the app had no way to tell a working sync from a
+/// stalled one. Three questions were being conflated: what the store was
+/// opened with (`Diagnostics.storeMode`), whether an iCloud account exists
+/// (`cloudKitStatus`, one round trip against the local daemon), and whether
+/// data has actually moved. Only the third is syncing, and nothing measured
+/// it — so Settings printed "Syncing with iCloud" on the strength of the
+/// second, which is how two devices could drift apart for an evening while
+/// the app said they were in step.
+///
+/// It records and does not act. Nothing here retries, forces or schedules
+/// anything: the transfers are the system's to schedule, this project sets no
+/// networking policy at all, and a record that pretended otherwise would be
+/// the same kind of claim it exists to retire.
+enum CloudKitSyncMonitor {
+  nonisolated(unsafe) private static var observer: NSObjectProtocol?
+
+  /// Idempotent, so an app may call it from `init` without guarding.
+  static func start() {
+    guard observer == nil else { return }
+    observer = NotificationCenter.default.addObserver(
+      forName: NSPersistentCloudKitContainer.eventChangedNotification,
+      object: nil,
+      queue: .main
+    ) { note in
+      guard let event = note.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
+        as? NSPersistentCloudKitContainer.Event else { return }
+      // Only the ending half of each pair carries a result.
+      guard let endDate = event.endDate else { return }
+      record(event, endedAt: endDate)
+    }
+  }
+
+  private static func record(_ event: NSPersistentCloudKitContainer.Event, endedAt: Date) {
+    guard event.succeeded else {
+      // A setup failure is the "no account" shape and is worth keeping; so is
+      // a failed transfer. Either way the description names the kind, because
+      // "export failed" and "import failed" send a reader to different places.
+      Diagnostics.recordSyncFailure("\(name(of: event.type)) failed — \(event.error?.localizedDescription ?? "no reason given")")
+      return
+    }
+    // A successful *setup* is not a byte moved: it means the mirroring
+    // delegate started, which `storeMode` already claims. Only a transfer
+    // counts as having synced.
+    switch event.type {
+    case .import, .export:
+      Diagnostics.recordSyncSuccess(at: endedAt)
+    default:
+      break
+    }
+  }
+
+  private static func name(of type: NSPersistentCloudKitContainer.EventType) -> String {
+    switch type {
+    case .setup: "setup"
+    case .import: "import"
+    case .export: "export"
+    @unknown default: "sync"
     }
   }
 }

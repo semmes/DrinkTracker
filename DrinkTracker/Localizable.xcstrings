@@ -828,6 +828,9 @@
     "Shows how many drinks you've logged in the current sitting." : {
 
     },
+    "Signed in to iCloud" : {
+
+    },
     "Size" : {
 
     },
@@ -1101,6 +1104,9 @@
 
     },
     "Your log is kept on this device. iCloud access is restricted on this device, for example by Screen Time or a device profile." : {
+
+    },
+    "Your log is on this device. Nothing has synced yet — iCloud will keep trying on its own." : {
 
     },
     "Your log is written to Health as alcoholic beverages, and what other apps record in Health appears here: their drinks, counted as logged, and a day they recorded as zero drinks, shown as no alcohol. Change access in the Health app under Sharing." : {
