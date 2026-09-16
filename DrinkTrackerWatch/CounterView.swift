@@ -65,6 +65,8 @@ struct CounterView: View {
     case tapAgainToShow
     case removeOnPhone
     case notSaved
+    /// The type a pick from the picker just wrote, by name.
+    case loggedType(String)
   }
 
   /// The type picker, the app's only navigation (ADR-0042): pushed by a hold
@@ -203,8 +205,18 @@ struct CounterView: View {
           // so the screen the user raises stays the counter (ADR-0044). Not
           // offered while the strip owns the slot: a switch for a row that
           // cannot appear would be a promise.
-          sessionToggle
-            .padding(.top, WatchLayout.slotToToggle)
+          //
+          // And not offered on a day with nothing logged (the owner's ask,
+          // 2026-09-15): the row it governs cannot exist without a drink, so
+          // on a dry day the switch is a control for nothing — and this app
+          // does not put a session surface in front of someone who is not
+          // having one. `|| showsSessionPace` keeps it reachable once turned
+          // on, so the setting can never be stranded out of reach on a dry
+          // day.
+          if !todaysEntries.isEmpty || showsSessionPace {
+            sessionToggle
+              .padding(.top, WatchLayout.slotToToggle)
+          }
         }
       }
       .padding(.horizontal, WatchLayout.screenMargin)
@@ -357,7 +369,7 @@ struct CounterView: View {
   private var slotContent: some View {
     if let toast {
       // The design's toast pill: the hint's size on a `.primary` 10% ground.
-      Text(toastText(toast))
+      toastText(toast)
         .font(.system(size: WatchLayout.hintSize))
         .foregroundStyle(.primary)
         .multilineTextAlignment(.center)
@@ -415,11 +427,14 @@ struct CounterView: View {
     ))
   }
 
-  private func toastText(_ toast: Toast) -> LocalizedStringKey {
+  /// `Text` rather than a key, because one case is a name the package has
+  /// already localized (`DrinkRow`'s reason, and `TodayDrinkRow`'s).
+  private func toastText(_ toast: Toast) -> Text {
     switch toast {
-    case .tapAgainToShow: "Tap again to show the count"
-    case .removeOnPhone: "Remove that drink on the phone"
-    case .notSaved: "Not saved"
+    case .tapAgainToShow: Text("Tap again to show the count")
+    case .removeOnPhone: Text("Remove that drink on the phone")
+    case .notSaved: Text("Not saved")
+    case .loggedType(let name): Text(verbatim: name)
     }
   }
 
@@ -433,7 +448,10 @@ struct CounterView: View {
     let sent = Diagnostics.lastWatchContextReceived.map {
       $0.formatted(date: .omitted, time: .shortened)
     } ?? "none"
-    return "\(store) · \(cloud) · \(region.rawValue) · \(AppSettings.storedCounterSeed().rawValue) · \(sent)"
+    let synced = Diagnostics.lastSyncSucceededAt.map {
+      "synced \($0.formatted(date: .omitted, time: .shortened))"
+    } ?? (Diagnostics.lastSyncFailure ?? "never synced")
+    return "\(store) · \(cloud) · \(region.rawValue) · \(AppSettings.storedCounterSeed().rawValue) · \(sent) · \(synced)"
   }
 
   private func refreshCloudKitStatus() async {
@@ -488,6 +506,14 @@ struct CounterView: View {
         try repository.saveOrThrow(drink)
         WatchHaptics.acknowledged()
         WidgetCenter.shared.reloadAllTimelines()
+        // The haptic is the receipt for ＋, where there is nothing to say
+        // that the count does not already show. A pick is different: it is
+        // the one write on the wrist that records a *fact about the drink*,
+        // and the counter has no room to carry it afterwards. So the slot
+        // names the type for a moment — the owner's ask, 2026-09-15 — and
+        // says nothing about size or strength, which are the type's defaults
+        // and not the reader's statement (ADR-0023).
+        show(.loggedType(type.displayName))
       } catch {
         Diagnostics.record("watch typed log failed: \(error)")
         WatchHaptics.refused()

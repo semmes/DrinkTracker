@@ -1441,3 +1441,37 @@ sitting ends, and the count resets at midnight.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The owner's device pass of the watch (2026-09-15)
+
+Three edits after an evening on real hardware. **No string is new**, one is
+reused from a surface that already carries it, and two retire.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Beer" · "Wine" · "Spirit" · "Cocktail" · "Other" | *Now also* the counter's hint slot for about two seconds after a pick from the type picker, naming what was just logged | Reused verbatim from the core package's `DrinkType.displayName` — the same words the picker's own tiles, the phone's rows and Siri already use, drawn through `Text(verbatim:)` so no second key exists. A noun naming the type, with no count and no verdict: it says what was saved, not how much or how it compares. The owner asked for "1 standard beer"; the count goes because one pick is one drink and the numeral above already says so, and "standard" goes because it would be true only under a US lens (invariant 3). |
+| "drinks" · "drink" | *Retired* from the circular complication, which showed the bare noun under its count | The owner removed it on the device: a 50pt disc reading "1 drink" is a sentence where a glance wants a number. The noun survives everywhere it was already said — the corner's curve, the card, the inline line, and what every family speaks to VoiceOver — so nothing a reader needs is lost. Two keys leave the complication's catalog, 37 → 35. |
+| "Show session pace" | Unchanged in wording; now shown only on a day with a drink logged, or once the switch is on | No copy change. A control that governs a row which cannot exist on a dry day should not be on a dry day's screen — and this app does not put a session surface in front of someone who is not having one. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
+
+## 1.4 — The app stops claiming a sync it has not seen (2026-09-15)
+
+The owner's phone and watch drifted apart on cellular for an evening while
+Settings said "Syncing with iCloud". That row was printed from
+`CKAccountStatus` alone, which only means *signed in* — `CloudKitStatusProbe`
+says so in its own comment. The app now records what
+`NSPersistentCloudKitContainer` actually did, and the strong claim is made
+only where data has moved. **Two strings are new**; the existing pair is
+unchanged and now earned.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Signed in to iCloud" | Settings → iCloud, when an account is available but nothing has synced on this device yet | States what is known and stops there. It is not a warning and not a failure: an account is signed in, and no transfer has been seen. The plain `icloud` glyph replaces the tick for the same reason — a tick is the claim in glyph form. |
+| "Your log is on this device. Nothing has synced yet — iCloud will keep trying on its own." | The footnote under that row | Two facts and no instruction: where the log is, and that the retry is the system's, not the reader's. It deliberately does not tell them to check Wi-Fi or a setting — the app does not know which of several device settings is in play, and guessing would send a reader to the wrong place. |
+| "Syncing with iCloud" · "Your log follows your iCloud account across your devices." | Unchanged wording; now shown only once an import or export has actually completed on this device | No copy change, and the sentence is true for the first time: it was previously printed on the strength of an account existing. |
+| "Last synced" · "Last sync failure" | Two rows in the Diagnostics section, test builds only | Field labels, not sentences. They name the third question the app never asked — not what the store was opened with, not whether an account exists, but whether anything moved. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

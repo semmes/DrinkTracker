@@ -34,6 +34,11 @@ struct DrinkTrackerApp: App {
     _settings = State(initialValue: settings)
     WatchContextPublisher.shared.activate()
 
+    // What mirroring actually does, as opposed to what it was asked for or
+    // whether an account exists. Settings reads it rather than promising a
+    // sync it has not seen (the owner's cellular evening, 2026-09-15).
+    CloudKitSyncMonitor.start()
+
     #if DEBUG
     // A missing App Group doesn't fail the build — the app and widget just end up
     // with separate stores and the widget quietly shows a stale zero. Say so.

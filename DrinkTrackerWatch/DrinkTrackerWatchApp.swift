@@ -49,6 +49,9 @@ struct DrinkTrackerWatchApp: App {
     }
     WatchContextStore.shared.activate()
     storeChanges.start()
+    // The wrist's only data path is CloudKit (ADR-0041), so whether it is
+    // moving is the one thing worth recording about it.
+    CloudKitSyncMonitor.start()
   }
 
   var body: some Scene {
@@ -101,9 +104,21 @@ final class StoreChangeReloader {
       // Coalesce the burst a CloudKit import arrives as.
       try? await Task.sleep(for: .seconds(2))
       guard !Task.isCancelled else { return }
-      let now = Date()
-      if let lastReload, now.timeIntervalSince(lastReload) < Self.minimumInterval { return }
-      lastReload = now
+      // Wait the floor out rather than dropping the change. Dropping was the
+      // first shape and it was wrong: a change arriving inside the floor is
+      // exactly the phone's next drink, and it would have stayed off the face
+      // until something else asked. The cost of deferring instead is that a
+      // reload which provokes its own notification settles into one reload a
+      // minute while the app is open — the cadence the counter's own
+      // `TimelineView` already runs at.
+      if let lastReload {
+        let since = Date().timeIntervalSince(lastReload)
+        if since < Self.minimumInterval {
+          try? await Task.sleep(for: .seconds(Self.minimumInterval - since))
+          guard !Task.isCancelled else { return }
+        }
+      }
+      lastReload = Date()
       WidgetCenter.shared.reloadAllTimelines()
     }
   }
