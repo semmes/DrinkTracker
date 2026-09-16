@@ -155,6 +155,18 @@ the user put it there; nothing pushes it forward by time or place.
   both switch to the sitting's drinks together, never the numeral alone.
 - If the ＋ is wanted in the circular family, the whole circle becomes the
   button and the count goes — the trade the design named.
-- If the face lags the phone on hardware more than a raise away, the reopen
+- ~~If the face lags the phone on hardware more than a raise away, the reopen
   is Phase 7's channel used for a reload signal rather than a row — a
-  `WCSession` message that asks the watch to reload, carrying no data.
+  `WCSession` message that asks the watch to reload, carrying no data.~~
+  **Answered and closed, 2026-09-15.** It cannot work, for a reason this
+  record should have seen: `DrinkTrackerWatchWidget` holds no `WCSession` and
+  cannot — WatchConnectivity is delivered to the *watch app*, and the face is
+  only ever redrawn by `WidgetCenter.reloadAllTimelines()` from there — so a
+  reload ping reaches the face only in the case where the app is already
+  running and already reloading. And a reload of a store CloudKit has not
+  updated yet is the same stale figure drawn again: the signal would arrive
+  ahead of the fact it is signalling. If the face lags on hardware, the two
+  things to examine are the sixty-second floor in `StoreChangeReloader` and
+  the second `NSPersistentCloudKitContainer` the provider opens on every
+  timeline build (`CounterComplication.swift:173`), both recorded as open in
+  `CLAUDE.md`. The full argument is in ADR-0041's 2026-09-15 amendment.

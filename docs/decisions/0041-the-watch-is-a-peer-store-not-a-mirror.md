@@ -107,12 +107,99 @@ real rows the union is a no-op.
   already true of two iPhones and is what "the log follows your iCloud
   account" has always meant.
 
+## Amendment, 2026-09-15 — the reopen clause fired, and the answer is still no
+
+The clause below says to build Phase 7's snapshot "if an evening's use shows
+the live number lagging the sitting — minutes, not seconds". **An evening did**
+— the owner's phone and watch drifted apart on cellular for hours — and the
+answer is still no. That needs saying plainly, because a trigger that fires and
+is then declined is a record being rewritten, not a record being followed.
+
+**The owner's ruling was the narrower question:** *"If you can improve the
+latency issue, then let's do it. If it cannot be improved don't do it."*
+
+**It cannot be improved on the leg that carries the drink.** The whole public
+surface of `NSPersistentCloudKitContainer` in the iOS 26 SDK is schema
+initialisation, record and record-ID lookup for a managed object, and three
+`can…` permission checks. There is no expedite, no priority, no "push now" and
+no "import now"; `ModelConfiguration` and `ModelContainer` expose no handle on
+the mirroring container at all. The one platform lever that does force a
+transfer is `CKSyncEngine.sendChanges` / `fetchChanges`, and adopting it means
+replacing the mirroring stack and taking `CKRecord` identity back into the app
+— which is the duplicate hazard this record exists to refuse. So the honest
+sentence is not "four to five seconds is close to the floor" (Apple publishes
+no floor) but **"there is no API, and the only lever is the thing we refused"**.
+
+**And the snapshot would not have rescued the evening that fired the clause.**
+Three facts, each checked rather than reasoned about:
+
+1. **WatchConnectivity has no route to the face.** `DrinkTrackerWatchWidget`
+   contains no `WCSession` and cannot; a WC payload is delivered to the *watch
+   app*, and the complication is only ever redrawn by
+   `WidgetCenter.reloadAllTimelines()` from that app. What was on the owner's
+   wrist during a stall is the face, with the app not running.
+   `transferCurrentComplicationUserInfo` looks like the exception and is not:
+   it is gated on `isComplicationEnabled`, a ClockKit-era property that is
+   false for a WidgetKit card, so its budget is zero and it degrades to a plain
+   `transferUserInfo`.
+2. **`sendMessage` is unavailable exactly when it would be wanted.** It
+   requires `isReachable`, which on the watch means the watch app frontmost
+   with the display awake. A person logging a drink on the phone is looking at
+   the phone. This project also never implements
+   `sessionReachabilityDidChange` and never retries, so a send into that window
+   is simply lost.
+3. **The remaining channels are explicitly not immediate.** Apple's own
+   framing for a background transfer is posting a letter: it arrives, and not
+   at a time you chose. `updateApplicationContext` — this project's shipped
+   channel — is delivered "on next launch" by the header's own words.
+
+**The design defects are independent of all that,** and each would have had to
+be solved even if the transport had been sound. The payload's
+`standardDrinks: Double` freezes a region lens onto the one figure that must
+re-express when the region changes (invariant 3). Its four-hour window is
+narrower than the watch's own query floor — the start of the previous day —
+and cannot reproduce `SessionPace.currentSession`, which chains across gaps of
+up to four hours without bound. Taken literally it feeds `sessionDrinks` and
+not `todaysEntries`, so the dots would count a drink the numeral above them
+does not. Widened to the numeral to fix that, − would remove a *different,
+older, real* drink, because `removableNewest` re-reads the store at execution
+time — with a success haptic and no toast, which is the shape ADR-0043
+rejected by name. It carries no `healthKitSampleID`, so it strips the guard
+ADR-0043 exists for, and no `AlcoholFreeDay`, so it could print a band and a
+count under "Recorded as no alcohol today".
+
+**Worth stating: the never-writes-a-row rule was never the binding
+constraint.** Nothing proposed went near it. The snapshot fails on its
+transport and on its own shape.
+
+**The clause is reworded rather than deleted.** It was written about
+wall-clock divergence between two devices nobody was looking at, and the
+number it names is one the owner obtained by staring at both at once, which is
+a test procedure and not a use. What matters to a reader is how stale the
+figure is **at the raise** — see the reopen below.
+
+**What the investigation did leave open, and did not build:** three latencies
+that *are* this app's own, none of which the snapshot addresses and none of
+which is authorised by a ruling about the four to five seconds. They are
+recorded in `CLAUDE.md` for the owner's decision: the watch face's
+sixty-second reload floor, the phone having no `.NSPersistentStoreRemoteChange`
+observer at all, and the complication opening a second
+`NSPersistentCloudKitContainer` on the shared store on every timeline build,
+which is the one hypothesis for the cellular evening that lives *inside* this
+app.
+
 ## How to reopen
 
-- If an evening's use shows the live number lagging the sitting — minutes, not
-  seconds — build Phase 7's snapshot exactly as this record describes it: a
-  display-only union in memory, never a write. The measured four to five
-  seconds is the number to beat before that is worth its code.
+- **Reworded by the 2026-09-15 amendment, which closed the original clause.**
+  The question is not how far two unobserved devices drift apart; it is how
+  stale the figure is *at the raise*, which is the only moment a reader is
+  there to be misled. So: if raising the wrist within a minute of a drink
+  logged on the phone shows the old number for longer than it takes to read
+  it, that is the trigger — and the first thing to examine is the complication
+  opening a second mirroring container on every timeline build, not a new
+  channel. Phase 7's snapshot is refused on its own merits and is not the
+  answer to a later firing of this clause; a record of why is in the
+  amendment above.
 - If duplicates ever appear across the two stores, the cause is a write
   reaching CloudKit by a second path; the fix is to remove the path, not to
   add a dedup pass.
