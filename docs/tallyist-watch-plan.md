@@ -1514,7 +1514,46 @@ comes back when it is on.
 
 ---
 
-## Phase 7 — the live session bridge
+## Phase 7 — the live session bridge — **NOT BUILT, closed 2026-09-15**
+
+> **Closed without building, on the owner's ruling** ("if you can improve the
+> latency issue, then let's do it; if it cannot be improved don't do it") and
+> on an investigation recorded in ADR-0041's 2026-09-15 amendment. Read that
+> amendment before reopening this; the short form is three things.
+>
+> **The leg that carries the drink cannot be improved.** There is no API on
+> `NSPersistentCloudKitContainer`, `ModelContainer` or `ModelConfiguration`
+> that expedites a transfer. The only platform lever is `CKSyncEngine`, which
+> means owning `CKRecord` identity — the duplicate hazard ADR-0041 refuses.
+>
+> **The transport this phase assumes does not reach what a reader looks at.**
+> WatchConnectivity is delivered to the watch *app*; the complication holds no
+> `WCSession` and cannot. `sendMessage` needs the watch app frontmost, which it
+> is not while someone logs on the phone. `updateApplicationContext` is
+> delivered "on next launch" by the header's own words.
+>
+> **Two errors in this phase's own text below, kept as written and corrected
+> here rather than silently edited.** (1) `standardDrinks: Double` in the
+> payload freezes a region lens onto a figure that must re-express when the
+> region changes — invariant 3, the one invariant the settings bridge exists
+> to keep true. (2) "the last four hours of entries" is narrower than the
+> watch's own query floor, the start of the previous day, and cannot reproduce
+> `SessionPace.currentSession`, which chains across gaps of up to four hours
+> without bound; the counter's own `@Query` comment already gives the reason.
+> Two more the acceptance criteria would not have caught: the payload carries
+> no `healthKitSampleID`, so the union strips the guard − depends on
+> (ADR-0043), and no `AlcoholFreeDay`, so it could draw a band and a count
+> under "Recorded as no alcohol today".
+>
+> **What the investigation left open** are three latencies that *are* this
+> app's own and that this phase does not address: the watch face's
+> sixty-second reload floor, the phone having no `.NSPersistentStoreRemoteChange`
+> observer at all, and the complication opening a second mirroring container on
+> every timeline build. They are the owner's to decide and are recorded in
+> `CLAUDE.md`, not here — none of them is a session bridge.
+
+The specification below is kept unbuilt, for the record.
+
 
 One session. Optional in the sense that Phases 1 to 6 ship a complete product
 without it, and worth doing because a session count that lags the sitting by

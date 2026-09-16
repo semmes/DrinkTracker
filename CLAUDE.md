@@ -166,15 +166,20 @@ its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
 Watch companion app**, whose Phases 0 to 6 landed on 2026-09-14 — see the
 last nine bullets of this section and `docs/tallyist-watch-plan.md`. **The
 owner's device pass of Phases 5 and 6 passed on 2026-09-15**, and the three
-edits it produced have landed with it; **Phase 7 is now the owner's open
-decision** (the plan's "after an evening's use", and the measured 4–5 s
-CloudKit latency argues against building it), and **Phase 8 is release
-work** — What's New, reviewer notes carrying the new Background Modes entry,
-the claims table and the privacy policy read against the watch, and the
-owner's screenshots. **One field report is open and is not a bug in this
-app:** phone and watch drifted apart on cellular for an evening — the last
-bullet of this section is the investigation and the honesty fix it
-produced. The paragraph that follows is the 2026-09-10 state, kept for
+edits it produced have landed with it. **Phase 7 was closed the same day
+without being built**, on the owner's ruling — improve the latency or do not
+build it — and on the investigation in ADR-0041's amendment: the CloudKit leg
+cannot be expedited, and WatchConnectivity cannot reach the face at all.
+**Phase 8 is the remaining work** — What's New, reviewer notes carrying the
+new Background Modes entry, the claims table and the privacy policy read
+against the watch, and the owner's screenshots. **Two things are open and
+both are the owner's.** The cellular field report: phone and watch drifted
+apart for an evening, no bug was found in the sync path, and the honesty fix
+that came out of it shipped — but the Phase 7 investigation then found one
+candidate cause that lives *inside* the app, which the earlier record denied.
+And three latencies that are this app's own, which a ruling about the four to
+five seconds does not authorise building. Both are in the last two bullets of
+this section. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
@@ -1933,6 +1938,12 @@ Open items for v1.2:
   (322 → **324**), reviewed under 1.4. **What this does not do is fix the
   stall** — nothing in the app can, and the causes are all outside it — it
   makes the next one legible, and stops the app claiming otherwise meanwhile.
+  **"The causes are all outside it" is corrected by the next bullet**: the
+  Phase 7 investigation found one candidate that is inside the app — the
+  complication opening a second `NSPersistentCloudKitContainer` on the shared
+  store on every timeline build, the collision TN3164 warns about. It is
+  unverified and it is not fixed here, but it should never have been ruled out
+  by a search that only looked outward.
   **A pre-existing gap found in passing, not fixed:** the iOS
   widget extension's entitlements carry the App Group and nothing else — no
   iCloud container — so `SharedModelContainer.make()` in that process falls to
@@ -1941,3 +1952,82 @@ Open items for v1.2:
   later) but it is a fourth process opening the shared store on different
   terms, and invariant 5 says they open it identically; fixing it is an
   entitlement change on a shipping target and wants its own decision.
+- **Phase 7 is closed without being built (2026-09-15), and three app-owned
+  latencies are open in its place.** The owner ruled: *"If you can improve the
+  latency issue, then let's do it. If it cannot be improved don't do it."* A
+  35-agent investigation (six ground-truth lenses, three independent designs
+  including a do-nothing advocate, twelve load-bearing claims each put to two
+  adversarial lenses, a synthesis and a completeness critic) answered it.
+  **The full argument is ADR-0041's 2026-09-15 amendment**; the plan's Phase 7
+  and the 1.4 spec's row are closed and point at it. The short form:
+  **(a) The leg that carries the drink cannot be expedited.** The entire public
+  surface of `NSPersistentCloudKitContainer` in the iOS 26 SDK is schema
+  initialisation, record and record-ID lookup, and three `can…` permission
+  checks — no expedite, no priority, no push-now, no import-now — and
+  `ModelContainer`/`ModelConfiguration` expose no handle on the mirroring
+  container at all (verified in the SDK headers on this Mac, not from memory).
+  The only platform lever is `CKSyncEngine.sendChanges`/`fetchChanges`, which
+  means replacing the mirroring stack and owning `CKRecord` identity — the
+  duplicate hazard ADR-0041 exists to refuse. **(b) WatchConnectivity cannot
+  reach the face**, which is what a reader looks at during a stall:
+  `DrinkTrackerWatchWidget` holds no `WCSession` and cannot, WC is delivered to
+  the watch *app*, and the complication is only ever redrawn by
+  `WidgetCenter.reloadAllTimelines()` from there. `transferCurrentComplicationUserInfo`
+  looks like the exception and is not — it is gated on `isComplicationEnabled`,
+  a ClockKit-era property that is false for a WidgetKit card, so its budget is
+  zero and it degrades to a plain `transferUserInfo`. `sendMessage` needs
+  `isReachable`, i.e. the watch app frontmost with the display awake, which is
+  exactly not the case while someone logs on the phone (and this project
+  implements no `sessionReachabilityDidChange` and no retry, so a send into
+  that window is lost). `updateApplicationContext`, the shipped channel, is
+  delivered "on next launch" by the header's own words. **(c) The phase's own
+  specification carries four defects** independent of transport, listed where
+  it is closed in the plan — the frozen region lens on `standardDrinks`, a
+  four-hour window narrower than the watch's own query floor that cannot
+  reproduce `currentSession`, the numeral/dots split, and a − that would remove
+  an older real drink; plus no `healthKitSampleID` (stripping ADR-0043's guard)
+  and no `AlcoholFreeDay`. **Two claims I had been repeating are struck as
+  unsupported:** that 4–5 s is near "a documented floor" (TN3163 publishes
+  representative log examples whose export and import overlap on one device and
+  both moved zero objects; Apple publishes no floor), and that WatchConnectivity
+  would have carried the cellular evening (the transport half is true — Apple
+  names Bluetooth and same-network Wi-Fi from the podium in WWDC21 session
+  10003 — but it cannot reach the face, and Apple's own framing for a
+  background transfer is posting a letter).
+  **What is open, and is the owner's to decide, because a ruling about the four
+  to five seconds does not authorise it:** three latencies that *are* this
+  app's own. **(1)** The watch face can sit up to ~62 s behind its own store:
+  `StoreChangeReloader` (`DrinkTrackerWatchApp.swift:79–124`) coalesces 2 s then
+  obeys a 60-second floor, and every raise, watch-side write and arriving
+  settings context refreshes that floor. The floor exists only to break a
+  self-reload loop, and a content check would charge that to the write instead
+  of to the reader. **(2)** The phone has **no** `.NSPersistentStoreRemoteChange`
+  observer at all (one hit repo-wide, on the watch), and the only
+  `reloadAllTimelines()` calls in the phone target are on the phone's own
+  writes — so a drink logged on the wrist never reloads the iPhone's
+  home-screen widget until the phone app itself writes, bounded only by
+  WidgetKit's own 15–60-minute discretion. **(3)** The complication calls
+  `SharedModelContainer.make()` on every timeline build
+  (`CounterComplication.swift:173`, uncached), so a second
+  `NSPersistentCloudKitContainer` opens on the shared store in a second process
+  routinely — the collision TN3164 warns about. **This is the one hypothesis
+  for the owner's cellular evening that lives inside this app**, it fits "did
+  not converge for hours" better than any network story, and it corrects the
+  earlier claim in this handoff that the causes were all outside the app. It is
+  unverified: `make()` never throws, Diagnostics keeps reporting "shared,
+  CloudKit requested", and `CloudKitSyncMonitor.start()` has two call sites,
+  both app targets, so a failure raised in the complication's process is
+  recorded nowhere. **Two preconditions gate (1) and (2) entirely** and only
+  the owner can check them: whether a card is actually placed on the watch face
+  or Smart Stack, and whether a Tallyist widget is on a home screen. If neither
+  is placed, neither process runs and there is nothing to improve.
+  **Deliberately not done here, and each wants its own decision:** caching the
+  complication's container (it may reduce the collision or prolong the
+  registration — a real trade, not a drive-by); giving the iOS widget extension
+  the iCloud container it lacks; switching the complication to
+  `cloudKitDatabase: .none`; and correcting `Shared/AppGroup.swift`'s
+  "writes fail silently" doc comment with its copies in `docs/PRD.md`
+  (invariant 5's failure-mode text) and `README.md` — an investigating agent
+  measured that claim false, two adversarial lenses did not settle it, and a
+  record correction on a shipping invariant should not rest on an unsettled
+  measurement.
