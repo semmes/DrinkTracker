@@ -2,6 +2,12 @@ import DrinkTrackerCore
 import Foundation
 import SwiftData
 
+/// Why a day could not be read — distinct from a day with nothing in it.
+enum DayReadError: Error {
+  /// The calendar could not produce the end of the day asked for.
+  case unrepresentableDay
+}
+
 /// SwiftData writes, with no HealthKit involvement.
 ///
 /// Shared by the app and the widget. The widget deliberately stops here: writing to
@@ -102,13 +108,25 @@ struct DrinkRepository {
 
   /// Everything logged on the given calendar day.
   func drinks(on day: Date, calendar: Calendar = .current) -> [LoggedDrink] {
+    (try? drinksOrThrow(on: day, calendar: calendar)) ?? []
+  }
+
+  /// `drinks(on:)`, for a caller that must tell *nothing logged* from *could
+  /// not read* — a surface that would otherwise draw a confident zero from a
+  /// failed fetch. ADR-0004 names exactly that as the real defect: losing the
+  /// store looks like an empty log. The home-screen widget and the watch
+  /// complication read through this (ADR-0047); everything else keeps
+  /// `drinks(on:)`, whose empty answer the refusal paths already depend on.
+  func drinksOrThrow(on day: Date, calendar: Calendar = .current) throws -> [LoggedDrink] {
     let start = calendar.startOfDay(for: day)
-    guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return [] }
+    guard let end = calendar.date(byAdding: .day, value: 1, to: start) else {
+      throw DayReadError.unrepresentableDay
+    }
     let descriptor = FetchDescriptor<DrinkEntry>(
       predicate: #Predicate { $0.loggedAt >= start && $0.loggedAt < end },
       sortBy: [SortDescriptor(\.loggedAt, order: .reverse)]
     )
-    return ((try? context.fetch(descriptor)) ?? []).map(\.logged)
+    return try context.fetch(descriptor).map(\.logged)
   }
 
   /// Total for the given day, expressed in `region`'s units.
@@ -166,6 +184,18 @@ struct DrinkRepository {
 
   func isMarkedAlcoholFree(_ day: Date, calendar: Calendar = .current) -> Bool {
     alcoholFreeDay(on: calendar.startOfDay(for: day)) != nil
+  }
+
+  /// `isMarkedAlcoholFree(_:)`, throwing where that answers `false` — so a
+  /// face cannot draw a count and a band on a day recorded as no alcohol
+  /// because the marker read failed.
+  func isMarkedAlcoholFreeOrThrow(_ day: Date, calendar: Calendar = .current) throws -> Bool {
+    let startOfDay = calendar.startOfDay(for: day)
+    var descriptor = FetchDescriptor<AlcoholFreeDay>(
+      predicate: #Predicate { $0.day == startOfDay }
+    )
+    descriptor.fetchLimit = 1
+    return try !context.fetch(descriptor).isEmpty
   }
 
   func alcoholFreeDay(on startOfDay: Date) -> AlcoholFreeDay? {

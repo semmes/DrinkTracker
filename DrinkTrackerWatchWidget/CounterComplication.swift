@@ -167,31 +167,44 @@ struct CounterProvider: TimelineProvider {
 
   /// Timeline callbacks run off the main actor, so this builds its own
   /// `ModelContext` rather than touching the container's `mainContext` —
-  /// the home-screen widget's pattern. Nil when the store cannot be opened.
+  /// the home-screen widget's pattern.
+  ///
+  /// Nil when the store cannot be *read*, not only when it cannot be opened:
+  /// a failed fetch used to draw a confident empty day, no dots, and — through
+  /// the marker read — a count and a band on a day recorded as no alcohol.
+  /// Every read on this path now throws into the unavailable entry instead
+  /// (ADR-0046, ADR-0047). And without the App Group, `make()` opens a private
+  /// store of this extension's own and returns normally, so that is checked
+  /// first.
   static func load(at now: Date) -> Snapshot? {
+    guard AppGroup.isAvailable else { return nil }
     let region = AppSettings.storedRegion()
-    guard let container = try? SharedModelContainer.make() else { return nil }
-    let context = ModelContext(container)
-    let repository = DrinkRepository(context: context)
-    let todays = repository.drinks(on: now)
-    let total = todays.reduce(0) { $0 + $1.standardDrinks(in: region) }
+    do {
+      let container = try SharedModelContainer.make()
+      let context = ModelContext(container)
+      let repository = DrinkRepository(context: context)
+      let todays = try repository.drinksOrThrow(on: now)
+      let total = todays.reduce(0) { $0 + $1.standardDrinks(in: region) }
 
-    // The sitting's raw material reaches back a day, as the counter's does,
-    // so a session that began before midnight is one session (ADR-0044).
-    let calendar = Calendar.current
-    let floor = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now)) ?? now
-    let recent = ((try? context.fetch(FetchDescriptor<DrinkEntry>.since(floor))) ?? []).loggedDrinks
+      // The sitting's raw material reaches back a day, as the counter's does,
+      // so a session that began before midnight is one session (ADR-0044).
+      let calendar = Calendar.current
+      let floor = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: now)) ?? now
+      let recent = try context.fetch(FetchDescriptor<DrinkEntry>.since(floor)).loggedDrinks
 
-    return Snapshot(
-      recent: recent,
-      todaysCount: todays.count,
-      total: total,
-      region: region,
-      isMarkedAlcoholFree: repository.isMarkedAlcoholFree(now),
-      // The card's dots follow the same switch as the counter's row: the
-      // sitting is a surface the wrist opts into (ADR-0044, ADR-0017).
-      showsSession: AppSettings.storedShowsSessionPace()
-    )
+      return try Snapshot(
+        recent: recent,
+        todaysCount: todays.count,
+        total: total,
+        region: region,
+        isMarkedAlcoholFree: repository.isMarkedAlcoholFreeOrThrow(now),
+        // The card's dots follow the same switch as the counter's row: the
+        // sitting is a surface the wrist opts into (ADR-0044, ADR-0017).
+        showsSession: AppSettings.storedShowsSessionPace()
+      )
+    } catch {
+      return nil
+    }
   }
 }
 

@@ -78,8 +78,9 @@ struct CounterView: View {
   @State private var showsSessionPace = AppSettings.storedShowsSessionPace()
 
   /// Whether the app's store fell back to memory at launch — the app's own
-  /// knowledge, not the App Group's store-mode breadcrumb, which the
-  /// complication's own container also writes.
+  /// knowledge of this launch, passed in rather than read back from the App
+  /// Group's store-mode breadcrumb, which nothing else in this process can
+  /// then write over (ADR-0047).
   private let isStoreInMemory: Bool
 
   init(isStoreInMemory: Bool = false, now: Date = .now, calendar: Calendar = .current) {
@@ -441,8 +442,8 @@ struct CounterView: View {
   #if DEBUG
   private var debugLine: String {
     _ = bridgeRevision
-    // This app's own store, not the App Group breadcrumb: the complication's
-    // process opens its own container and overwrites that key.
+    // This launch's own knowledge first; the breadcrumb is written only by
+    // this app's launch (ADR-0047), so it is safe to read for the rung.
     let store = isStoreInMemory ? "IN MEMORY" : (Diagnostics.storeMode ?? "store mode unknown")
     let cloud = cloudKitStatus ?? "iCloud not checked"
     let sent = Diagnostics.lastWatchContextReceived.map {

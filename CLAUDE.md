@@ -178,9 +178,11 @@ apart for an evening, no bug was found in the sync path, and the honesty fix
 that came out of it shipped — but the Phase 7 investigation then found one
 candidate cause that lives *inside* the app, which the earlier record denied.
 And three latencies that are this app's own, which a ruling about the four to
-five seconds does not authorise building. Both are in the last two bullets of
-this section. The paragraph that follows is the 2026-09-10 state, kept for
-the record.
+five seconds does not authorise building. Both are in the bullets near the end
+of this section. **One of those three latencies was then reported by the owner and
+fixed on 2026-09-16 (ADR-0047, the last bullet):** the phone widget never redrew
+for a drink that arrived from the watch. The paragraph that follows is the
+2026-09-10 state, kept for the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -1946,12 +1948,13 @@ Open items for v1.2:
   by a search that only looked outward.
   **A pre-existing gap found in passing, not fixed:** the iOS
   widget extension's entitlements carry the App Group and nothing else — no
-  iCloud container — so `SharedModelContainer.make()` in that process falls to
-  its `.none` rung and a drink logged from the home-screen widget's ＋ does not
-  export until the phone app next opens the store. Benign (the app exports it
-  later) but it is a fourth process opening the shared store on different
-  terms, and invariant 5 says they open it identically; fixing it is an
-  entitlement change on a shipping target and wants its own decision.
+  iCloud container — so a drink logged from the home-screen widget's ＋ does not
+  export until the phone app next runs. **Two corrections, 2026-09-16:** the
+  widget opens on the *first* rung (`.automatic`) without mirroring, not on the
+  `.none` rung this sentence first said; and "benign" was never observed — the
+  owner's field report the next day turned out to contain no widget write at
+  all. Giving the widget the entitlement was refused in ADR-0047 (TN3164: one
+  process manages sync).
 - **Phase 7 is closed without being built (2026-09-15), and three app-owned
   latencies are open in its place.** The owner ruled: *"If you can improve the
   latency issue, then let's do it. If it cannot be improved don't do it."* A
@@ -2005,8 +2008,11 @@ Open items for v1.2:
   observer at all (one hit repo-wide, on the watch), and the only
   `reloadAllTimelines()` calls in the phone target are on the phone's own
   writes — so a drink logged on the wrist never reloads the iPhone's
-  home-screen widget until the phone app itself writes, bounded only by
-  WidgetKit's own 15–60-minute discretion. **(3)** The complication calls
+  home-screen widget until the phone app itself writes — and the widget's own
+  policy is `.after(nextMidnight)`, so nothing else bounds it (an earlier
+  version of this sentence said "WidgetKit's own 15–60-minute discretion",
+  which is wrong). **Answered 2026-09-16 by ADR-0047** — the next bullet.
+  **(3)** The complication calls
   `SharedModelContainer.make()` on every timeline build
   (`CounterComplication.swift:173`, uncached), so a second
   `NSPersistentCloudKitContainer` opens on the shared store in a second process
@@ -2030,4 +2036,74 @@ Open items for v1.2:
   (invariant 5's failure-mode text) and `README.md` — an investigating agent
   measured that claim false, two adversarial lenses did not settle it, and a
   record correction on a shipping invariant should not rest on an unsettled
-  measurement.
+  measurement. **That last one was done on 2026-09-16** with direct evidence —
+  the simulator's widget extension, holding no iCloud container, wrote rows the
+  app displayed — in ADR-0004's 2026-09-16 amendment.
+- **The phone widget redraws when the phone learns something, and never draws a
+  figure it did not read (2026-09-16, ADR-0047).** The owner confirmed a card on
+  the watch face and the Smart Stack and a widget on the phone's home screen, then
+  reported: the widget "did not sync, I needed to open the app", showed 0 after the
+  app was closed while the app showed 1, and jumped to 2 only when a drink was
+  logged in the app; asked, it "stayed at 0 the whole time". **The obvious reading
+  was wrong, and so were two things I told the owner on it** — that their drink was
+  in the store all along, that their tap disproved the "writes fail silently"
+  comment, and a two-containers-in-one-process theory (about 2,200 probe reads never
+  reproduced it). A 35-agent investigation **copied both devices' App Group stores
+  and preferences off the owner's iPhone 15 Pro and watch through Xcode** (read-only;
+  the owner was told, and the copies were deleted once ADR-0047 quoted the rows) and
+  settled it: the phone had `lastIntentBuild` from the widget and **no
+  `lastWidgetLog` at all**, and none of its 843 history transactions came from the
+  widget — **the ＋ tap never reached `perform()`**, cause unknown; the "1 drink" was
+  logged in the **watch app** at 17:55:12 and imported by the phone at 17:55:59; and
+  **nothing on the phone reloads the widget when an import lands**, so it kept a 0
+  that was right when drawn. Where the receiving app was awake the sync took two to
+  three seconds either way. **What shipped:** `WidgetReloads` (app target) reloads
+  the widget when a CloudKit import *ends* successfully — no floor, because on the
+  phone only the app mirrors, so a reload cannot cause the next import — and once
+  when the app is left, at `.inactive` (still foreground, so not charged to the
+  widget's budget; `.background` only when `.inactive` was skipped). The widget draws
+  an **unavailable state** — drop glyph, "drinks today", no figure, no ＋, retry in
+  fifteen minutes — for a missing App Group, a failed open or a failed read, where it
+  used to draw a confident 0 with nothing recorded (ADR-0004's named defect, on the
+  one surface that never got the fix); the complication's failed *fetch* now reaches
+  its unavailable entry too. `DrinkRepository.drinksOrThrow(on:)` /
+  `isMarkedAlcoholFreeOrThrow(_:)` are the reads that can say they failed; every other
+  caller keeps the forgiving ones. **Only the two apps' launches write
+  `Diagnostics.storeMode`** — `open()` returns the mode and records nothing — so
+  neither an extension nor an in-process Siri intent can erase Settings' "IN MEMORY"
+  warning. **Breadcrumbs** carry process, date and time (`saved (one-drink) · Widget ·
+  09-16 19:49:49`), and Settings → Diagnostics gains a twenty-line **Widget timeline**:
+  intent steps, widget builds and what they read, every app-process reload with its
+  reason, failed imports, app activations. **How to read a ＋ tap that did nothing:**
+  find its time — `intent: entered … · Widget` means it ran; `app active` with no
+  `intent:` line means it missed the ＋ and opened the app. Read the time, not whether
+  a widget build is nearby. **Retracted, with evidence:** "a mirrored store opened
+  without CloudKit … writes fail silently" (6f759f6), in `make()`'s comment, PRD
+  invariant 5 and the README — written while the widget failed for the reason
+  17853f3 found four days later; the simulator's widget extension, with no iCloud
+  container, wrote rows the app displayed. Invariant 5's failure mode now says what is
+  real, including that identical configuration does not stop two *entitled* processes
+  both mirroring — the watch app and complication today. **Refused:** the widget iCloud
+  entitlement (TN3164). **The owner's decision, not built:** running the widget's intent
+  in the app's process so a widget drink reaches the watch without opening Tallyist —
+  no evidence it would export before suspension. **Verified:** 284 domain tests, 88
+  integration tests (three new), both schemes, the verifier, no catalog change (324 app,
+  35 widget, extracted and committed agree); **tier 3 with a before/after control** on
+  the iPhone 17 Pro — with the app open, a store change made underneath it left
+  `origin/main`'s widget stale after leaving and redrew the fix's; the ＋ redrew 0→1→2
+  with dated breadcrumbs; an "IN MEMORY — probe" store mode survived an extension build
+  and the widget's intent; the unavailable state rendered from a scratch build in light
+  and dark. **Reviewed** by five lenses with two skeptics per finding: thirteen findings
+  survived and all were fixed, including three the records had wrong (the Health sweep
+  reloads only on a real Health change, not unconditionally; the second leave reload
+  was budgeted, not free; the missed-tap signature I first wrote could not appear).
+  **A first sim test was not a test** — the store changed before the app opened and an
+  unattributed launch-time build read it — which is why every reload now records its
+  reason. **Tier 4 for the owner:** a watch drink arriving while the phone app is in
+  the background redrawing the widget on the import (the simulators have no iCloud); the
+  widget ＋ on hardware, read in the timeline; and the unexplained tap, if it recurs.
+  **Found and not fixed**, each for shared code the app's screens depend on:
+  `nextQuickDrink`'s `try?` history read, `markAlcoholFreeOrThrow`'s
+  `drinks(on:).isEmpty` backstop reading a failed fetch as empty, and the `@Query`
+  screens ignoring `fetchError` (Today's hero and the watch counter still draw a 0 on a
+  failed fetch).

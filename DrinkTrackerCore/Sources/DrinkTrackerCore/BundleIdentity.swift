@@ -45,4 +45,16 @@ public enum BundleIdentity {
   public static func iCloudContainerIdentifier(hostBundleID: String) -> String {
     "iCloud." + hostBundleID
   }
+
+  /// A short name for the process a breadcrumb came from: `app` for the host
+  /// app itself, otherwise the suffixes it carries past the host — `Widget`,
+  /// `watchkitapp`, `watchkitapp.Widget`.
+  ///
+  /// Each device keeps its own App Group, so on a phone `Widget` can only be
+  /// the home-screen widget and on a watch only the complication.
+  public static func processLabel(bundleID: String) -> String {
+    let host = hostBundleID(from: bundleID)
+    guard bundleID.count > host.count, bundleID.hasPrefix(host) else { return "app" }
+    return String(bundleID.dropFirst(host.count + 1))
+  }
 }

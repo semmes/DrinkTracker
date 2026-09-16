@@ -68,8 +68,25 @@ enum AppGroup {
 enum Diagnostics {
   static let lastWidgetLogKey = "lastWidgetLog"
 
+  /// The process a breadcrumb is being written from — `app`, `Widget`,
+  /// `watchkitapp`, `watchkitapp.Widget`.
+  static var processLabel: String {
+    BundleIdentity.processLabel(bundleID: Bundle.main.bundleIdentifier ?? "unknown")
+  }
+
+  /// Stamped with the process, the date and the time. Without them, a later
+  /// tap that ran would overwrite the evidence of an earlier one that did not,
+  /// and no reading could say which was which — the 2026-09-16 device run.
+  ///
+  /// Also appended to the timeline, so an intent that ran shows *where it ran
+  /// in order* — beside the app activations and widget builds around it —
+  /// rather than only as the last value of one key.
   static func record(_ step: String) {
-    AppGroup.defaults.set(step, forKey: lastWidgetLogKey)
+    AppGroup.defaults.set(
+      Breadcrumb.stamped(step, process: processLabel, at: .now),
+      forKey: lastWidgetLogKey
+    )
+    appendTimeline("intent: \(step)")
   }
 
   /// The last thing the widget's log intent did, if it has ever run.
@@ -94,7 +111,50 @@ enum Diagnostics {
   /// Diagnostic scaffolding. It writes on every timeline render, which is why it
   /// records something cheap.
   static func recordIntentBuild(_ description: String) {
-    AppGroup.defaults.set(description, forKey: intentBuildKey)
+    AppGroup.defaults.set(
+      Breadcrumb.stamped(description, process: processLabel, at: .now),
+      forKey: intentBuildKey
+    )
+  }
+
+  static let timelineKey = "diagnosticTimeline"
+
+  /// How many lines the timeline keeps.
+  static let timelineLimit = 20
+
+  /// A short, ordered record of the events that decide what the home-screen
+  /// widget shows: each intent step (`record`), each widget build and what it
+  /// read, each reload the app asks for and why, each CloudKit import that
+  /// fails, and each time the app comes to the front.
+  ///
+  /// A list rather than a value, because the act of reading a single value
+  /// overwrites it — opening the app to look is an app activation.
+  ///
+  /// **How to read a ＋ tap that seemed to do nothing** (ADR-0047). A tap that
+  /// ran shows `intent: entered (one-drink) · Widget` at the time of the tap.
+  /// A tap that landed outside the ＋ and opened the app shows `app active`
+  /// at that time and no `intent:` line — and *not* the absence of a widget
+  /// build, because the app asks the widget to redraw for several reasons of
+  /// its own around an activation. A tap that shows neither never reached the
+  /// app or the intent. The timeline cannot tell a missed tap from opening the
+  /// app on purpose; the time of the tap is what separates them.
+  ///
+  /// What it cannot show: a widget whose App Group does not resolve writes to
+  /// its own private defaults, which this list is not — so that failure is the
+  /// glyph on the widget with no widget lines here at all. And it is written
+  /// from two processes with no lock, so two writes in the same instant can
+  /// drop a line. Diagnostics, not a record.
+  static func appendTimeline(_ event: String) {
+    let line = Breadcrumb.stamped(event, process: processLabel, at: .now)
+    let lines = AppGroup.defaults.stringArray(forKey: timelineKey) ?? []
+    AppGroup.defaults.set(
+      Breadcrumb.appending(line, to: lines, limit: timelineLimit),
+      forKey: timelineKey
+    )
+  }
+
+  static var timeline: [String] {
+    AppGroup.defaults.stringArray(forKey: timelineKey) ?? []
   }
 
   static var lastIntentBuild: String? {
@@ -112,6 +172,16 @@ enum Diagnostics {
   /// looks exactly like "nothing has synced yet", and losing the store entirely
   /// looks like an empty log. Recording the mode is what makes them
   /// distinguishable after the fact.
+  ///
+  /// **Only the two apps' launches write it** — `DrinkTrackerApp.init` and
+  /// `DrinkTrackerWatchApp.init`, with the mode `SharedModelContainer.open()`
+  /// hands back. The key is last-writer-wins across every process in the
+  /// group, and `isStoreInMemory` — the one release-visible degraded state
+  /// (ADR-0004) — reads it, so it has to mean *how this launch opened the
+  /// store*. When `open()` itself wrote it, any later open overwrote that: an
+  /// extension a second after the app fell back to memory, or a Siri intent
+  /// running in the app's own process, would erase the warning while the app
+  /// kept writing to memory (ADR-0047).
   static func recordStoreMode(_ mode: String) {
     AppGroup.defaults.set(mode, forKey: storeModeKey)
   }
@@ -267,20 +337,33 @@ enum SharedModelContainer {
     ModelConfiguration(schema: schema, groupContainer: groupContainer, cloudKitDatabase: cloudKit)
   }
 
-  /// Builds the container both targets open.
+  /// Builds the container every process opens.
   ///
-  /// Deliberately takes no options. The app and the widget must open the store
-  /// with *identical* configuration: a CloudKit-mirrored store opened without
-  /// CloudKit will still read, but writes fail silently, which cost real debugging
-  /// time when the widget's one-tap log appeared to do nothing. Keeping a single
-  /// code path makes that divergence impossible to reintroduce.
+  /// Deliberately takes no options, so every process opens the store with
+  /// *identical* configuration (PRD invariant 5) and no call site can drift.
+  ///
+  /// **What happens in a process with no iCloud container entitlement** — the
+  /// home-screen widget, the only such process: `.automatic` opens on the
+  /// first rung *without mirroring*, and its writes land and persist. On
+  /// 2026-09-16 the simulator's widget extension wrote three `DrinkEntry` rows
+  /// whose persistent-history transactions name
+  /// `com.shawnsemmes.DrinkTracker.Widget`, and the app displayed them. The app's
+  /// own mirroring exports such rows from persistent history the next time it
+  /// runs (TN3163). An earlier comment here (6f759f6) said writes from such a
+  /// process "fail silently". That was never observed: it was written while the
+  /// widget's one-tap log was failing for a different reason, which 17853f3
+  /// found four days later — a non-optional `@Parameter` with no default, which
+  /// abandoned the tap during resolution, before `perform()` was entered. It is
+  /// retracted (ADR-0004, 2026-09-16 amendment). The argument that still points
+  /// the same way is TN3164's: one process manages sync, which is why the widget
+  /// is not given the entitlement (ADR-0047).
   ///
   /// That is also why the CloudKit fallback lives *here* rather than at the call
   /// site. The app used to carry its own fallback that dropped the group container
   /// as well as CloudKit, while the widget had no fallback at all — so one iCloud
   /// failure sent the app to a private store and left the widget with no store,
   /// which is precisely the silent split this type exists to prevent. One ladder,
-  /// both processes.
+  /// every process.
   ///
   /// Losing sync is a degradation; losing the widget is a broken feature. So the
   /// fallback keeps the App Group and gives up only the mirroring.
@@ -291,22 +374,27 @@ enum SharedModelContainer {
   /// store while iCloud availability is changing could still land on different
   /// rungs. Confirming that needs a device.
   static func make() throws -> ModelContainer {
+    try open().container
+  }
+
+  /// `make()`, plus which rung the store opened on. Records nothing: the two
+  /// apps' launches write `Diagnostics.storeMode` with the mode this returns,
+  /// and every other caller only reads it (see `recordStoreMode`).
+  static func open() throws -> (container: ModelContainer, mode: String) {
     do {
       let container = try ModelContainer(
         for: schema,
         migrationPlan: DrinkTrackerMigrationPlan.self,
         configurations: configuration(cloudKit: .automatic)
       )
-      Diagnostics.recordStoreMode("shared, CloudKit requested")
-      return container
+      return (container, "shared, CloudKit requested")
     } catch {
       let container = try ModelContainer(
         for: schema,
         migrationPlan: DrinkTrackerMigrationPlan.self,
         configurations: configuration(cloudKit: .none)
       )
-      Diagnostics.recordStoreMode("shared, no CloudKit — \(error)")
-      return container
+      return (container, "shared, no CloudKit — \(error)")
     }
   }
 }

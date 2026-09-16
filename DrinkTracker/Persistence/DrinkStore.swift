@@ -1,7 +1,6 @@
 import DrinkTrackerCore
 import Foundation
 import SwiftData
-import WidgetKit
 
 /// All writes to the drink log from inside the app.
 ///
@@ -61,7 +60,7 @@ struct DrinkStore {
       drink.healthKitSampleID = await health.save(drink)
     }
     repository.save(drink)
-    WidgetCenter.shared.reloadAllTimelines()
+    WidgetReloads.reload(because: "app saved a drink")
     return drink
   }
 
@@ -88,7 +87,7 @@ struct DrinkStore {
   @discardableResult
   func adopt(_ adopted: LoggedDrink) -> LoggedDrink {
     repository.save(adopted)
-    WidgetCenter.shared.reloadAllTimelines()
+    WidgetReloads.reload(because: "app adopted a Health drink")
     return adopted
   }
 
@@ -113,7 +112,7 @@ struct DrinkStore {
       await health.deleteSample(id: sampleID)
     }
     repository.delete(id: drink.id)
-    WidgetCenter.shared.reloadAllTimelines()
+    WidgetReloads.reload(because: "app removed a drink")
   }
 
   /// Mirrors anything logged outside the app — currently the widget — into Health.
@@ -152,6 +151,6 @@ struct DrinkStore {
     // everything, so a sweep cut short replays rather than skips.
     repository.applyExternalChanges(added: delta.added, deletedIDs: delta.deletedIDs)
     health.commit(delta)
-    WidgetCenter.shared.reloadAllTimelines()
+    WidgetReloads.reload(because: "Health changes applied")
   }
 }

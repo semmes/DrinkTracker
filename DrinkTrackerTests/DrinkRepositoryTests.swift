@@ -199,6 +199,62 @@ struct DrinkRepositoryTests {
     #expect(repository.drinks(on: start).count == 1)
   }
 
+  // MARK: - Reads that can say they failed (ADR-0047)
+
+  /// The widget and the complication read through `drinksOrThrow` so a failed
+  /// fetch cannot draw as an empty day. It must answer exactly what
+  /// `drinks(on:)` answers whenever the read works, or switching them over
+  /// would change what the two faces show.
+  @Test("The throwing day read returns what drinks(on:) returns, at both edges of the day")
+  func throwingDayReadMatches() throws {
+    let calendar = Calendar.current
+    let start = calendar.startOfDay(for: Date())
+    let nextStart = try #require(calendar.date(byAdding: .day, value: 1, to: start))
+
+    let before = drink(at: start.addingTimeInterval(-1))
+    let atStart = drink(at: start)
+    let midday = drink(at: start.addingTimeInterval(12 * 60 * 60))
+    let lastSecond = drink(at: nextStart.addingTimeInterval(-1))
+    let nextDay = drink(at: nextStart)
+    for entry in [before, atStart, midday, lastSecond, nextDay] { repository.save(entry) }
+
+    let throwing = try repository.drinksOrThrow(on: midday.loggedAt, calendar: calendar)
+    let plain = repository.drinks(on: midday.loggedAt, calendar: calendar)
+
+    #expect(throwing.map(\.id) == [lastSecond.id, midday.id, atStart.id])
+    #expect(throwing.map(\.id) == plain.map(\.id))
+  }
+
+  @Test("An empty day is an empty array from the throwing read, not an error")
+  func throwingDayReadEmptyDay() throws {
+    #expect(try repository.drinksOrThrow(on: Date()).isEmpty)
+  }
+
+  /// Checked on both sides of the marked day, in a time zone chosen to be
+  /// unlike any machine's: a predicate that matched every later day (`<=`), or
+  /// every earlier one, or a read that ignored the calendar it was handed,
+  /// would each report a day as marked that is not — and the complication
+  /// would draw "recorded as no alcohol" over a day with drinks.
+  @Test("The throwing marker read agrees with isMarkedAlcoholFree, on the day and either side of it")
+  func throwingMarkerReadMatches() throws {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = try #require(TimeZone(identifier: "Pacific/Kiritimati"))  // UTC+14
+    let day = calendar.startOfDay(for: Date()).addingTimeInterval(9 * 60 * 60)
+    let earlier = try #require(calendar.date(byAdding: .day, value: -2, to: day))
+    let later = try #require(calendar.date(byAdding: .day, value: 2, to: day))
+
+    #expect(try repository.isMarkedAlcoholFreeOrThrow(day, calendar: calendar) == false)
+
+    #expect(repository.markAlcoholFree(day, calendar: calendar))
+    #expect(try repository.isMarkedAlcoholFreeOrThrow(day, calendar: calendar))
+    #expect(repository.isMarkedAlcoholFree(day, calendar: calendar))
+
+    for unmarked in [earlier, later] {
+      #expect(try repository.isMarkedAlcoholFreeOrThrow(unmarked, calendar: calendar) == false)
+      #expect(repository.isMarkedAlcoholFree(unmarked, calendar: calendar) == false)
+    }
+  }
+
   // MARK: - Totals
 
   /// Guards PRD invariant 3: region is a display lens. These entries were logged

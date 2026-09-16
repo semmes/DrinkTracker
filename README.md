@@ -218,10 +218,17 @@ to exactly one target, so shared sources have to live outside them.
 
 ### App Group
 
-The app and widget share `group.com.shawnsemmes.DrinkTracker` — both the SwiftData store
-and `AppSettings`. **Both targets must open the store with identical configuration.**
-A CloudKit-mirrored store opened without CloudKit still *reads* fine but silently
-fails to *write*, which is why `SharedModelContainer.make()` takes no options.
+The app, the widget, the watch app and its complication share
+`group.com.shawnsemmes.DrinkTracker` — both the SwiftData store and `AppSettings`.
+**Every process opens the store through `SharedModelContainer`'s one ladder —
+`make()`, or `open()` where the caller wants the rung back — which takes no options**,
+so none can drift from the others (PRD invariant 5). The home-screen widget
+holds no iCloud container, so it opens the store without mirroring: its writes land
+and the app's mirroring exports them from persistent history the next time it
+runs (TN3163 — documented, not yet measured on a device). On the phone one
+process manages sync (ADR-0047); on the watch both the app and its complication hold
+the entitlement and both mirror, a known open item (ADR-0041). An older note here said such writes "silently
+fail"; that was never observed and is retracted (ADR-0004, 2026-09-16 amendment).
 
 The domain layer is a separate package on purpose: SwiftData's `@Model` macro only
 expands inside Xcode, so keeping the math in plain value types makes it testable

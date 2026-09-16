@@ -56,4 +56,19 @@ struct BundleIdentityTests {
     #expect(BundleIdentity.hostBundleID(from: "") == "")
     #expect(BundleIdentity.appGroupIdentifier(hostBundleID: "") == "group.")
   }
+
+  // MARK: - Which process wrote a breadcrumb
+
+  @Test(
+    "A breadcrumb names its process by what it carries past the host",
+    arguments: [
+      ("", "app"),
+      (".Widget", "Widget"),
+      (".watchkitapp", "watchkitapp"),
+      (".watchkitapp.Widget", "watchkitapp.Widget"),
+    ]
+  )
+  func processLabels(suffix: String, label: String) {
+    #expect(BundleIdentity.processLabel(bundleID: host + suffix) == label)
+  }
 }
