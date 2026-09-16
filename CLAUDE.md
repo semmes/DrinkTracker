@@ -1840,3 +1840,76 @@ Open items for v1.2:
   — What's New, reviewer notes with the new Background Modes entry, the claims
   table and the privacy policy read against the watch, the owner's
   screenshots.
+- **The owner's device pass, and four edits (2026-09-15).** Phases 5 and 6
+  passed on hardware. Three edits landed the same day, each amending the ADR
+  that decided the thing: **(a)** the **circular complication shows the
+  numeral alone** — it had carried the design's unit noun beneath the count,
+  and on a real face a 50pt disc reading "1 drink" is a sentence where a
+  glance wants a number (ADR-0046 amended; the numeral takes the room, 30 →
+  34; both bare nouns retire, complication catalog 37 → **35**). **(b)** The
+  **"Show session pace" switch appears only on a day with a drink in it**, or
+  once it is already on so the setting can never be stranded out of reach on
+  a dry day (ADR-0044 amended): the row it governs cannot exist without a
+  drink, and this app does not put a session surface in front of someone who
+  is not having one. **(c)** A **pick from the type picker names its type
+  back** — "Beer", "Wine" — in the hint slot for two seconds (ADR-0042
+  amended). The haptic stays the receipt for ＋, where the count already shows
+  what the tap did; a pick is the one write on the wrist that records a fact
+  *about the drink*, and the counter has no room to carry it. It names the
+  type and nothing else: the size and strength are the type's defaults, not
+  the reader's statement (ADR-0023). The owner's wording was "1 standard
+  beer" — the count goes because one pick is one drink, and **"standard" goes
+  because it is a US-only claim**: 12oz at 5% is one standard drink in the US
+  and about 1.7 units in the UK, and invariant 3 makes every figure follow the
+  region. No new catalog key (the type names are the package's own, through
+  `Text(verbatim:)`). Verified on the pair: the toast frame-grabbed reading
+  "Wine", the switch present with a drink logged and gone on an emptied day.
+  **(d) The fourth item is a field report, not an edit, and it is open — see
+  the next bullet.**
+- **The field report that is still open: phone and watch stopped syncing on
+  cellular (owner, 2026-09-15).** "When I was on data and not on wifi the
+  watch was not logging to the phone and they were out of sync with each
+  other… When I connected back on wifi it started working again and was
+  synced." Nothing was lost; the two converged. **A four-lens investigation
+  (config, Apple platform behaviour, what the app could observe, product
+  consequence) found no bug in the sync path and one real defect beside it.**
+  What was ruled out, with citations, so nobody re-treads it: the container
+  configuration is plain `ModelConfiguration(cloudKitDatabase: .automatic)`
+  and this project sets **no** networking policy at all — no
+  `NSPersistentCloudKitContainerOptions`, no `CKOperation.Configuration`, no
+  QoS, no `allowsCellularAccess` — so there is nothing in the code that could
+  prefer Wi-Fi; and **the watch's `UIBackgroundModes` key is correct**, not
+  the `WKBackgroundModes` three lenses suspected — Apple's `WKBackgroundModes`
+  takes only session types (workout-processing, location, self-care,
+  mindfulness, physical-therapy, alarm), so `remote-notification` belongs
+  under `UIBackgroundModes` on watchOS as on iOS, and adding the other key
+  would have been an invalid value at submission. **The live candidates are
+  all outside the app:** a device toggle that suppresses exactly this class of
+  transfer on cellular and not on Wi-Fi (Low Data Mode is set per plan *and*
+  per network, Low Power Mode, Settings → Cellular → the app, iCloud Drive
+  over cellular); SwiftData's mirroring running as discretionary transfers the
+  system may defer on an expensive path; and a one-sided loss of route — a
+  watch without its own plan reaches iCloud through the phone's tether, and a
+  break on either side stalls **both** directions, because CloudKit is the
+  only path a row travels (ADR-0041), so a two-way symptom does not imply a
+  two-way cause. **And a confound that matters for every sync test so far:**
+  `aps-environment` is `development` in all three push-capable entitlements
+  and no target sets `com.apple.developer.icloud-container-environment`, so an
+  Xcode-installed build mirrors to CloudKit **Development** and takes its
+  silent pushes over the **APNs sandbox** — best-effort delivery, not what a
+  TestFlight or App Store install gets. The 1.2 review already recorded that
+  cross-device checks need a TestFlight build; **the watch's sync has never
+  been tested on one.** **The one real defect found:** the phone's Settings
+  row prints "Syncing with iCloud" and "Your log follows your iCloud account
+  across your devices" whenever `CKAccountStatus == .available`
+  (`SettingsView.swift:246`, `:254`, `:277`) — which only means *signed in*.
+  `CloudKitStatusProbe`'s own comment says as much. The app asserts a health
+  it has never verified, which is precisely the claim the owner's evening
+  contradicted. **A pre-existing gap found in passing, not fixed:** the iOS
+  widget extension's entitlements carry the App Group and nothing else — no
+  iCloud container — so `SharedModelContainer.make()` in that process falls to
+  its `.none` rung and a drink logged from the home-screen widget's ＋ does not
+  export until the phone app next opens the store. Benign (the app exports it
+  later) but it is a fourth process opening the shared store on different
+  terms, and invariant 5 says they open it identically; fixing it is an
+  entitlement change on a shipping target and wants its own decision.
