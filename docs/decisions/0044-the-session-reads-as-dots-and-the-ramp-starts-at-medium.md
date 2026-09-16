@@ -126,6 +126,16 @@ The screen a user raises stays the counter. It is not offered while the
 storage strip owns the slot: a switch for a row that cannot appear would be
 a promise.
 
+**Amended 2026-09-15, on the owner's device pass: the switch appears only on
+a day with a drink in it.** The row it governs cannot exist without one, so
+on a dry day the switch is a control for nothing — and the argument is not
+only tidiness: this app does not put a session surface in front of someone
+who is not having a session. Someone who logs nothing for a week never meets
+the control at all. The one exception is the switch's own reachability: once
+it has been turned on it stays on screen, so the setting can never be
+stranded out of reach on a dry day. A reader who has never turned it on —
+every reader, by default — sees it only after logging.
+
 **The three hard rules hold on the wrist.** The row exists only while
 `SessionPace.currentSession` returns a value; nothing about a gap is written
 anywhere; no notification code path exists in the target. It recomputes

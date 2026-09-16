@@ -74,12 +74,15 @@ core package's, and rewording one intent description in both app and widget.
 **Two more catalogs exist since 2026-09-14**: the watch app's and the watch
 complication's (`DrinkTrackerWatch/Localizable.xcstrings`,
 `DrinkTrackerWatchWidget/Localizable.xcstrings`). The complication's holds
-**37 keys** — the shared intents' strings that `Shared/LogDrinkIntent.swift`
+**35 keys** — the shared intents' strings that `Shared/LogDrinkIntent.swift`
 brings to every target that compiles it (the iOS widget's 35 are the same
 family plus its own view's), the Siri phrase summary that only a
-device-architecture extraction emits, and, since watch Phase 6, ten of its
-own: seven reused verbatim from the home-screen widget, one from Today, and
-two new unit nouns ("drinks" / "drink"), reviewed under 1.4. The watch app's holds **49**: those 27
+device-architecture extraction emits, and, since watch Phase 6, eight of its
+own, all reused verbatim — seven from the home-screen widget and the marker
+sentence from Today. Two new unit nouns ("drinks" / "drink") were added for
+the circular family and retired the next day when the owner removed the noun
+from it on the device, which is why the complication's own keys are all
+borrowed. The watch app's holds **49**: those 27
 and the counter's own twenty-two (watch Phases 3 to 5, the same day) — seventeen reused
 verbatim from the phone's Today, Settings, session card and calendar legend, and five new
 (reviewed in `docs/copy-review-1.4.3.md` under 1.4). Both were synced with
@@ -91,7 +94,7 @@ writes a bare `%lld` key, which is no key at all — the watch uses the `Text`
 overload instead (the phone's `CountStepper` still carries that key in the app
 catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
-complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
+complication's own strings arrive with Phase 6. Six catalogs, 473 keys.
 
 Current: **389 keys** — 322 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-10 after ADR-0038's naming amendment — the Comparisons section on

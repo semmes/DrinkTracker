@@ -229,22 +229,16 @@ struct CounterComplicationView: View {
 
   // MARK: Families
 
-  /// The design's circular: the disc in the band's fill, the count at 30 in
-  /// the band's ink, the unit noun beneath in the same ink — at full
-  /// strength, not the drawing's 62%: white at 62% over the 1–2 fill
-  /// composites to 4.17:1 and black at 62% over the 3–5 fill to 3.51:1, both
-  /// under 4.5:1 for text this size (ADR-0046).
+  /// The circular: the disc in the band's fill and the count in the band's
+  /// ink, and nothing else. The design drew a unit noun beneath it and the
+  /// owner removed it on the device (2026-09-15): a 50pt disc reading
+  /// "1 drink" is a sentence where a glance wants a number, and the noun is
+  /// on the face's own label and in what VoiceOver speaks. The numeral takes
+  /// the room the noun had.
   private var circular: some View {
     ZStack {
       disc(radius: nil)
-      VStack(spacing: 1) {
-        figure(size: 30)
-        if !showsMarker {
-          unitNoun
-            .font(.system(size: 9))
-            .foregroundStyle(ink)
-        }
-      }
+      figure(size: 34)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(spokenLabel)
@@ -401,10 +395,6 @@ struct CounterComplicationView: View {
     return band == .unlogged || band == .alcoholFree || isFigureless
       ? .primary
       : IntensityPalette.ink(band, scheme: scheme)
-  }
-
-  private var unitNoun: Text {
-    Text(!isFigureless && entry.drinkCount == 1 ? "drink" : "drinks")
   }
 
   private var unitWordToday: LocalizedStringKey {

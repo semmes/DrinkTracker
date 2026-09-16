@@ -76,6 +76,23 @@ clear it (ADR-0025).
 **The haptic is the receipt.** No confirmation step, no sheet, no "logged"
 screen. The user is not looking.
 
+**Amended 2026-09-15, on the owner's device pass: a pick names its type
+back.** That rule holds for ＋, where the count on screen already shows
+everything the tap did. A pick is the one write on the wrist that records a
+*fact about the drink*, and the counter has no room to carry it afterwards —
+so the reader had no way to know the type had been saved, which matters
+precisely because they will open the phone later to add a size or a
+strength. The hint slot now carries the type's own name — "Beer", "Wine" —
+for about two seconds after a pick, through the same toast the other
+messages use. It names the type and nothing else: the size and strength that
+went with it are the type's defaults, not the reader's statement, and
+printing them back would present a default as a choice (ADR-0023's rule).
+The owner's wording was "1 standard beer"; the count is dropped because one
+pick is one drink and the numeral above says so, and "standard" is dropped
+because it would be a US-only claim — a 12oz beer at 5% is one standard
+drink in the US and about 1.7 units in the UK, and invariant 3 makes every
+figure follow the region.
+
 ## Consequences
 
 - Three surfaces, one rule, one function. A future change to the seed rule is

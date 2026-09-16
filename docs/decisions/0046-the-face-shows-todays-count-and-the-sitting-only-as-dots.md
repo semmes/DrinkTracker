@@ -62,6 +62,15 @@ own sentence beside it — on the inline line, the corner's curve and the
 card, and spoken by every family; the circular disc shows the glyph alone,
 having no room for words.
 
+**Amended 2026-09-15, on the owner's device pass: the circular family shows
+the numeral and nothing else.** It had carried the design's unit noun
+beneath the count, and on a real face a 50pt disc reading "1 drink" is a
+sentence where a glance wants a number. The noun is not lost — the face
+draws its own label under a complication, the corner's curve and the card
+still carry "drinks today", and every family speaks the full "N drinks
+today" to VoiceOver. The numeral takes the room the noun had (30 → 34).
+Both bare nouns retire from the complication's catalog.
+
 **The sitting appears only as dots**, on the rectangular card, on a row of
 its own beneath, while `SessionPace.currentSession` returns a value **and the
 watch's own "Show session pace" is on** — the sitting is a surface the wrist
