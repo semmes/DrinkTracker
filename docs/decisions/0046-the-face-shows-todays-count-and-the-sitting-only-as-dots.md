@@ -148,6 +148,18 @@ the user put it there; nothing pushes it forward by time or place.
   the record for that is ADR-0045. The design's 62% noun and its 70pt tile
   are not built, for the measured reasons above.
 
+## Amendment, 2026-09-16 — the unavailable entry covers a failed read, not only a failed open
+
+This record says a store the complication cannot read shows the glyph and no ＋.
+Only a failed `SharedModelContainer.make()` reached that entry: a failed fetch of
+today's rows drew a confident empty day, a failed fetch of the sitting's rows drew
+no dots, and a failed marker read drew a count and a band on a day recorded as no
+alcohol. `CounterProvider.load(at:)` now reads through `drinksOrThrow(on:)`, a
+throwing fetch and `isMarkedAlcoholFreeOrThrow(_:)`, and checks the App Group first
+(without it, `make()` opens a private empty store and returns normally). Any of
+them failing returns nil, which is the existing unavailable entry. The view is
+unchanged. ADR-0047 is the change that found it.
+
 ## How to reopen
 
 - If the owner wants the session count on the face after all, it is one

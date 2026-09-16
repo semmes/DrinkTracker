@@ -1,5 +1,31 @@
 # Device test — does the widget's tap reach the intent?
 
+> **Updated 2026-09-16 (ADR-0047).** This procedure dates from August, when the widget
+> carried typed Beer/Wine buttons; today it carries one ＋ that runs
+> `LogOneDrinkIntent`. Two things changed how to read it:
+>
+> - **Every reading now names its process, date and time.** "Last widget tap" reads
+>   like `saved (one-drink) · Widget · 09-16 18:57:41` and "Intent last built by" like
+>   `one-drink · com.shawnsemmes.DrinkTracker.Widget · Widget · 09-16 18:57:41`. Match
+>   the tables below on the leading word (`saved`, `entered`, `failed`) and read the
+>   process from the middle: `Widget` is the extension, `app` is the app's own process
+>   (Shortcuts or Siri). The date and time are what tell a fresh reading from a leftover
+>   one — including yesterday's at the same hour — which the note under Step 3 used to
+>   have to work around.
+> - **Settings → Diagnostics has a "Widget timeline"** — the last twenty intent steps,
+>   widget builds, reloads with their reasons, failed imports and app activations, in
+>   order. Find the time of the tap: `intent: entered (one-drink) · Widget` means it ran;
+>   `app active · app` with no `intent:` line means it landed outside the ＋ and opened
+>   the app. Read the time, not whether a widget build sits nearby — the app asks the
+>   widget to redraw for reasons of its own around an activation.
+>
+> What 2026-09-16 established on the simulator: in each state tried — the app not
+> running, suspended, and suspended under the debugger — the ＋ ran in the extension
+> (the stored rows' history names `com.shawnsemmes.DrinkTracker.Widget`) and the widget
+> redrew after its own tap. On the owner's iPhone that evening, a tap did **not**
+> reach `perform()` (build present, "Last widget tap" absent) — cause unknown, and the
+> reason the breadcrumbs now carry a time.
+
 **Tier 4 (docs/PRD.md §4).** None of this can be established in a simulator. Budget
 about ten minutes.
 

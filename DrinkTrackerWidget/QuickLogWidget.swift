@@ -40,6 +40,11 @@ struct QuickLogEntry: TimelineEntry {
   /// The same day expressed in the current region's units, for the caption.
   let total: Double
   let region: Region
+  /// The store could not be read, so there is no count to show. Drawn as the
+  /// drop glyph and the words with no figure and no ＋ — never as a zero,
+  /// which would be indistinguishable from a day with nothing logged
+  /// (ADR-0004, ADR-0047; the watch complication's Phase 6 treatment).
+  var isUnavailable = false
 
   static let placeholder = QuickLogEntry(
     date: Date(timeIntervalSince1970: 0),
@@ -47,6 +52,10 @@ struct QuickLogEntry: TimelineEntry {
     total: 2,
     region: .unitedStates
   )
+
+  static func unavailable(at date: Date, region: Region) -> QuickLogEntry {
+    QuickLogEntry(date: date, drinkCount: 0, total: 0, region: region, isUnavailable: true)
+  }
 }
 
 struct QuickLogProvider: TimelineProvider {
@@ -59,31 +68,66 @@ struct QuickLogProvider: TimelineProvider {
   }
 
   func getTimeline(in context: Context, completion: @escaping (Timeline<QuickLogEntry>) -> Void) {
-    // Refresh at the next midnight so the count resets with the day. Logging
-    // through the intent reloads the timeline directly, so there's no need to
-    // poll in between.
+    // Refresh at the next midnight so the count resets with the day. Between
+    // midnights the widget is told to redraw, not polled: the ＋ reloads it
+    // when it logs, the app reloads it on its own writes, and — since
+    // ADR-0047 — the app also reloads it when a CloudKit import lands and when
+    // the app leaves the foreground, which are the moments a drink logged on
+    // the watch or another device reaches this store. An unreadable store
+    // tries again in fifteen minutes rather than holding its glyph until
+    // midnight, the complication's policy.
     let entry = currentEntry()
     let nextMidnight = Calendar.current.nextDate(
       after: entry.date,
       matching: DateComponents(hour: 0, minute: 0),
       matchingPolicy: .nextTime
     ) ?? entry.date.addingTimeInterval(3600)
+    let refresh = entry.isUnavailable
+      ? min(nextMidnight, entry.date.addingTimeInterval(15 * 60))
+      : nextMidnight
 
-    completion(Timeline(entries: [entry], policy: .after(nextMidnight)))
+    completion(Timeline(entries: [entry], policy: .after(refresh)))
   }
 
   /// Timeline callbacks run off the main actor, so this builds its own
   /// `ModelContext` rather than touching the container's `mainContext`.
+  ///
+  /// No `try?` anywhere on the read path, on purpose. Each of the three ways
+  /// this could fail used to become `drinkCount: 0` with nothing recorded,
+  /// which reads as a day with nothing logged. Each now draws the unavailable
+  /// state. A failed open or read also leaves a line in the diagnostic
+  /// timeline saying which; a missing App Group cannot, because the timeline
+  /// lives in the App Group — that failure is the glyph on the widget with no
+  /// widget lines in Settings' timeline at all.
   private func currentEntry() -> QuickLogEntry {
     let now = Date()
     let region = AppSettings.storedRegion()
-    guard let container = try? SharedModelContainer.make() else {
-      return QuickLogEntry(date: now, drinkCount: 0, total: 0, region: region)
+
+    // Without the App Group, `make()` opens a private store of this
+    // extension's own and returns normally — an empty log that is not the
+    // user's. Check first, because nothing downstream would throw.
+    guard AppGroup.isAvailable else {
+      return .unavailable(at: now, region: region)
     }
-    let repository = DrinkRepository(context: ModelContext(container))
-    let todays = repository.drinks(on: now)
-    let total = todays.reduce(0) { $0 + $1.standardDrinks(in: region) }
-    return QuickLogEntry(date: now, drinkCount: todays.count, total: total, region: region)
+
+    let opened: (container: ModelContainer, mode: String)
+    do {
+      opened = try SharedModelContainer.open()
+    } catch {
+      Diagnostics.appendTimeline("widget: store did not open — \(error)")
+      return .unavailable(at: now, region: region)
+    }
+
+    do {
+      let repository = DrinkRepository(context: ModelContext(opened.container))
+      let todays = try repository.drinksOrThrow(on: now)
+      let total = todays.reduce(0) { $0 + $1.standardDrinks(in: region) }
+      Diagnostics.appendTimeline("widget: read \(todays.count) · \(opened.mode)")
+      return QuickLogEntry(date: now, drinkCount: todays.count, total: total, region: region)
+    } catch {
+      Diagnostics.appendTimeline("widget: read failed — \(error)")
+      return .unavailable(at: now, region: region)
+    }
   }
 }
 
@@ -111,48 +155,74 @@ struct QuickLogWidgetView: View {
       : "\(entry.drinkCount) drinks today"
   }
 
+  private var numeralSize: CGFloat { family == .systemSmall ? 44 : 40 }
+
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
       VStack(alignment: .leading, spacing: 2) {
-        Text("\(entry.drinkCount)")
-          .font(.system(size: family == .systemSmall ? 44 : 40, weight: .semibold, design: .rounded))
-          .foregroundStyle(.primary)
-          .contentTransition(.numericText(value: Double(entry.drinkCount)))
-        Text(countLabel)
-          .font(.caption2)
-          .foregroundStyle(.secondary)
-          .lineLimit(1)
-          .minimumScaleFactor(0.8)
-        if entry.total > 0 && family != .systemSmall {
-          Text(verbatim: standardDrinksCaption)
+        if entry.isUnavailable {
+          // No figure at all rather than a zero: a zero here is a claim that
+          // nothing was logged, which is the one thing this state does not
+          // know. The glyph and the words, as the watch complication draws it.
+          Image(decorative: DrinkType.Symbol.standard)
+            .font(.system(size: numeralSize * 0.75, weight: .semibold))
+            .foregroundStyle(.primary)
+            .frame(height: numeralSize, alignment: .center)
+          Text("drinks today")
             .font(.caption2)
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(.secondary)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
+        } else {
+          Text("\(entry.drinkCount)")
+            .font(.system(size: numeralSize, weight: .semibold, design: .rounded))
+            .foregroundStyle(.primary)
+            .contentTransition(.numericText(value: Double(entry.drinkCount)))
+          Text(countLabel)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+          if entry.total > 0 && family != .systemSmall {
+            Text(verbatim: standardDrinksCaption)
+              .font(.caption2)
+              .foregroundStyle(.tertiary)
+              .lineLimit(1)
+              .minimumScaleFactor(0.8)
+          }
         }
       }
       .accessibilityElement(children: .combine)
-      .accessibilityLabel(accessibilityCountLabel)
+      .accessibilityLabel(entry.isUnavailable ? "drinks today" : accessibilityCountLabel)
 
       Spacer(minLength: 0)
 
-      // No `.buttonStyle(.plain)` — in a widget that suppresses interaction
-      // handling entirely, which cost real debugging time once.
-      Button(intent: LogOneDrinkIntent()) {
-        Image(systemName: "plus")
-          .font(.system(size: family == .systemSmall ? 22 : 24, weight: .semibold))
-          .frame(
-            width: family == .systemSmall ? 52 : 60,
-            height: family == .systemSmall ? 52 : 60
-          )
-          .background(.quaternary, in: .circle)
-          .contentShape(.circle)
+      // Not offered while the store cannot be read: a ＋ beside no figure
+      // logs blind, and a tap whose effect cannot be seen invites the second
+      // tap that logs a duplicate (the complication's rule, Phase 6).
+      if !entry.isUnavailable {
+        logButton
       }
-      .buttonStyle(.borderless)
-      .tint(.accentColor)
-      .accessibilityLabel("Log one drink")
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+  }
+
+  private var logButton: some View {
+    // No `.buttonStyle(.plain)` — in a widget that suppresses interaction
+    // handling entirely, which cost real debugging time once.
+    Button(intent: LogOneDrinkIntent()) {
+      Image(systemName: "plus")
+        .font(.system(size: family == .systemSmall ? 22 : 24, weight: .semibold))
+        .frame(
+          width: family == .systemSmall ? 52 : 60,
+          height: family == .systemSmall ? 52 : 60
+        )
+        .background(.quaternary, in: .circle)
+        .contentShape(.circle)
+    }
+    .buttonStyle(.borderless)
+    .tint(.accentColor)
+    .accessibilityLabel("Log one drink")
   }
 }
 
@@ -160,4 +230,5 @@ struct QuickLogWidgetView: View {
   QuickLogWidget()
 } timeline: {
   QuickLogEntry.placeholder
+  QuickLogEntry.unavailable(at: .now, region: .unitedStates)
 }

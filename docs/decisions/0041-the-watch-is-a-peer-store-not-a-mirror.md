@@ -188,6 +188,27 @@ observer at all, and the complication opening a second
 which is the one hypothesis for the cellular evening that lives *inside* this
 app.
 
+## Amendment, 2026-09-16 — one of the three open latencies is answered
+
+The 2026-09-15 amendment left three latencies that are this app's own for the
+owner. The owner answered their precondition — a card on the watch face and a
+widget on the phone's home screen — and then reported the second one on hardware:
+the phone has no `.NSPersistentStoreRemoteChange` observer, so a drink that reaches
+the phone's store from the watch reloads nothing, and the widget keeps an old
+number. It is answered by ADR-0047: the app reloads the widget when a CloudKit
+import ends and when the app is left. Not with the watch's remote-change observer,
+because on the phone only the app mirrors, so an import-end event cannot be caused
+by a reload and needs no floor.
+
+The other two stay open and unbuilt: the watch face's sixty-second reload floor, and
+the complication opening a second mirroring container on every timeline build.
+
+The device captures that answered this also correct part of the premise. The drink
+the owner saw sync "when I opened the app" was logged in the **watch app** at
+17:55:12 and imported by the phone at 17:55:59; the phone widget's ＋ tap had never
+reached its intent at all. Where the receiving app was awake, the leg this record is
+about took two to three seconds in both directions.
+
 ## How to reopen
 
 - **Reworded by the 2026-09-15 amendment, which closed the original clause.**

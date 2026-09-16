@@ -89,14 +89,27 @@ See [ADR-0002](decisions/0002-region-is-a-display-lens.md).
 `BUNDLE_ID_PREFIX` in `Config/Signing.xcconfig`.
 *Failure mode:* a literal that drifts out of step with the entitlement does not fail
 the build. It hands the app and the widget two separate stores, and the only symptom
-is the widget showing a stale zero.
+is the widget showing a stale zero — or, since ADR-0047, its unavailable glyph when
+it is the widget's own identity that drifted and its App Group does not resolve.
 
 **5. Every process opens the store with identical configuration.**
 `SharedModelContainer.make()` takes no options for exactly this reason — the app,
-its widget, the watch app and its complication all call it and nothing else
-(four processes since the watch's Phase 1, 2026-09-14).
-*Failure mode:* a CloudKit-mirrored store opened without CloudKit still *reads*
-correctly and silently fails to *write*. This already cost real debugging time once.
+its widget, the watch app and its complication all open the store through it and
+nothing else (four processes since the watch's Phase 1, 2026-09-14). `open()` is the
+same ladder for a caller that wants the rung back; it is not a second configuration.
+*Failure mode:* two processes that open one store on different terms can disagree
+about its schema — one migrating it under the other — and neither fails loudly.
+**Identical configuration does not by itself stop two processes from both managing
+sync**: any process holding the iCloud container entitlement mirrors, so the watch
+app and its complication both do today — the multiple-container collision Apple's
+TN3164 warns against, open in ADR-0041. On the phone only the app holds the
+entitlement. This invariant's earlier failure mode, that a mirrored store opened without
+CloudKit "silently fails to write", is **retracted** (ADR-0004, 2026-09-16
+amendment): it was never observed, it was written while the widget was failing for
+a different reason, and on 2026-09-16 the widget extension — which holds no iCloud
+container and so opens the store without mirroring — wrote rows the app displayed.
+The widget is the one process on the phone that does not mirror, and that is by
+design: on the phone one process manages sync (ADR-0047).
 
 **6. HealthKit is a mirror, never a dependency.**
 `HealthKitService` returns `nil` rather than throwing; `DrinkStore.backfillHealthKit`

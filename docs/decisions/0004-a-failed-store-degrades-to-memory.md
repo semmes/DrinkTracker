@@ -139,6 +139,8 @@ Three rules the shape depends on:
   open containers of their own and would write the same breadcrumb from a
   different process — the store-mode key already has that problem, which is why
   the watch counter takes `isStoreInMemory` by init rather than reading it back.
+  *(No longer true of the store-mode key since the 2026-09-16 amendment below:
+  only the apps' launches write it. The rule for this monitor is unchanged.)*
 
 What follows from it:
 
@@ -157,6 +159,47 @@ What follows from it:
 - The failure string is a `localizedDescription` from Core Data and is not
   copy this project controls. It is confined to Diagnostics, which is
   test-build only.
+
+## Amendment, 2026-09-16 — the widget's silent zero, and a retraction
+
+**The defect this record named is closed on the two surfaces that read the store
+themselves** — the iPhone's home-screen widget and the watch complication — and it
+is **not** closed everywhere. The 2026-08 fix covered a failed *open* in the app (the
+in-memory fallback), and watch Phase 6 covered a failed open in the complication; a
+failed *fetch* was never covered, and on the app's own `@Query` screens — Today's
+hero and the watch counter — it still draws a confident zero, because neither reads
+`fetchError`. ADR-0047 lists that as found and not fixed. The iPhone's
+home-screen widget drew `drinkCount: 0` when `SharedModelContainer.make()`
+threw, when a fetch failed (`DrinkRepository.drinks(on:)` turns one into an empty
+day), and when its App Group did not resolve (`make()` then opens a private empty
+store without throwing). It now draws an unavailable state — the drop glyph and
+"drinks today", no figure, no ＋ — for all three, and the complication's failed
+fetch reaches its unavailable entry too. `DrinkRepository.drinksOrThrow(on:)` and
+`isMarkedAlcoholFreeOrThrow(_:)` are the reads that can say they failed; every
+other caller keeps the forgiving reads it already depends on. ADR-0047 has the
+field report that surfaced it.
+
+**Only the two apps' launches write `storeMode`.** It is the key `isStoreInMemory`
+reads — the one release-visible degraded state this record created — and it is
+last-writer-wins across every process in the App Group, so it must mean how *this
+launch* opened the store. When every open wrote it, an extension opening the store a
+second after the app fell back to memory would have erased the warning, and so would
+a Siri or Shortcuts intent running in the app's own process. `open()` now records
+nothing and returns the mode; `DrinkTrackerApp.init` and `DrinkTrackerWatchApp.init`
+write it. The widget reports the rung it opened on in its own diagnostic line.
+
+**Retracted: "a CloudKit-mirrored store opened without CloudKit will still read,
+but writes fail silently."** It stood in `make()`'s doc comment, in PRD invariant
+5's failure mode and in the README from 6f759f6 (2026-07-31), and it was never
+observed. It was written while the widget's one-tap log was failing, and 17853f3
+found the real cause four days later: a non-optional `@Parameter` with no default,
+which abandoned the tap during resolution, before `perform()` was entered. On
+2026-09-16 the simulator's widget extension — which holds no iCloud container and
+so opens the store without mirroring — wrote three `DrinkEntry` rows whose
+persistent-history transactions name `com.shawnsemmes.DrinkTracker.Widget`, and
+the app displayed them. Invariant 5 stands; its failure mode is rewritten to the
+risks that are real — two processes disagreeing about the schema, or both managing
+sync (TN3164).
 
 ## How to reopen
 

@@ -23,15 +23,20 @@ import WidgetKit
 @main
 struct DrinkTrackerWatchApp: App {
   private let container: ModelContainer
-  /// Whether the store fell back to memory at launch. The counter reads this
-  /// rather than the App Group's store-mode breadcrumb, which the
-  /// complication's own `SharedModelContainer.make()` also writes.
+  /// Whether the store fell back to memory at launch. The counter reads this,
+  /// the app's own knowledge of this launch, rather than reading the App
+  /// Group's store-mode breadcrumb back. Until 2026-09-16 the complication's
+  /// own container overwrote that key on every timeline build; only the two
+  /// apps' launches write it now (ADR-0047), but a value this process holds
+  /// still cannot be written over by anything else.
   private let isStoreInMemory: Bool
   private let storeChanges = StoreChangeReloader()
 
   init() {
     do {
-      container = try SharedModelContainer.make()
+      let opened = try SharedModelContainer.open()
+      container = opened.container
+      Diagnostics.recordStoreMode(opened.mode)
       isStoreInMemory = false
     } catch {
       // Launch anyway, recorded rather than swallowed: the counter shows the

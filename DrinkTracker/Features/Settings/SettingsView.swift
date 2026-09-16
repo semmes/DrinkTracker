@@ -441,6 +441,17 @@ struct SettingsView: View {
           "Last widget tap",
           value: Diagnostics.lastWidgetLog ?? "never ran"
         )
+        // Oldest first, so it reads as what happened in order (ADR-0047). At
+        // the time of a ＋ tap: `intent: entered … · Widget` means it ran;
+        // `app active` with no `intent:` line means it missed the ＋ and
+        // opened the app. Read the time, not whether a widget build is nearby
+        // — the app asks the widget to redraw for reasons of its own.
+        diagnosticRow(
+          "Widget timeline",
+          value: Diagnostics.timeline.isEmpty
+            ? "nothing recorded yet"
+            : Diagnostics.timeline.joined(separator: "\n")
+        )
       }
       .padding(GlassTokens.Spacing.cardPadding)
       .frame(maxWidth: .infinity, alignment: .leading)

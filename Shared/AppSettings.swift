@@ -31,6 +31,7 @@ final class AppSettings {
       // The medium widget's ≈ caption is in the region's unit, captured at
       // its last timeline build; without this it kept the old unit until the
       // next log or midnight (invariant 3 reaches the widget too).
+      Diagnostics.appendTimeline("reload widget — region changed")
       WidgetCenter.shared.reloadAllTimelines()
       // And the watch computes with it (invariant 3 reaches the wrist too).
       watchBridge?(effectiveRegion, counterSeed)
