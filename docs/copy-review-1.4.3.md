@@ -1475,3 +1475,20 @@ unchanged and now earned.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — Today and the watch counter stop drawing a read they did not make (2026-09-16)
+
+When the store cannot be read, Today's hero and the watch counter used to draw
+a confident 0 — the claim that nothing was logged, which is the one thing a
+failed read does not know. They now draw the unavailable state the home-screen
+widget and the complication already draw (the drop glyph and "drinks today",
+no figure, no controls), with one sentence under it. **One string is new**;
+the other is reused.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Today's drinks couldn't be read." | Under the glyph on Today and on the watch counter, while today's read has failed | A fact about what happened, in the past tense, and nothing past it: no apology, no alarm, no instruction and no promise. It does not say the drinks are lost (they may not be), does not say "try again" (the app cannot say when that would work), and does not blame the device or the reader. It names *today's drinks* rather than "your data" because today is the only thing these screens read. No exclamation mark — this is not the storage-failure warning, which remains the one exception: that one says nothing is being saved, while this one says a read failed. |
+| "drinks today" | The unit word under the glyph, always plural | Reused verbatim from the same place on both screens and from the widget's unavailable state. Plural because no count is known; a singular noun under a glyph would read as a count of one. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

@@ -99,6 +99,23 @@ struct CounterView: View {
 
   private var todaysDrinks: [LoggedDrink] { todaysEntries.loggedDrinks }
 
+  /// Whether today's last read failed, rather than finding nothing: `TodayView`'s
+  /// rule on the wrist (ADR-0004's 2026-09-16 amendment). A first fetch that
+  /// fails hands back no rows and the tile drew a confident 0; a refetch that
+  /// fails keeps rows from before the change that asked for it.
+  ///
+  /// The values are read before the errors on purpose — a query fetches when
+  /// its value is read, and `fetchError` read first answers for the fetch
+  /// before (measured). It clears when a later fetch succeeds, which happens
+  /// when the store next changes — a CloudKit import, the complication's ＋ —
+  /// or on a relaunch; on the watchOS simulator a plain re-render fetched
+  /// again too, which the phone's screen was not seen to do.
+  private var isTodayUnreadable: Bool {
+    _ = recentEntries
+    _ = alcoholFreeDays
+    return _recentEntries.fetchError != nil || _alcoholFreeDays.fetchError != nil
+  }
+
   /// The session's raw material: everything the query holds, since a sitting
   /// can start before midnight. Sessions are runs of absolute timestamps,
   /// calendar-free (ADR-0017), so no day cut applies here.
@@ -172,7 +189,10 @@ struct CounterView: View {
       VStack(spacing: 0) {
         counterRow
 
-        if isTodayMarked {
+        if isTodayUnreadable {
+          unreadableLines
+            .padding(.top, WatchLayout.rowToUnitWord)
+        } else if isTodayMarked {
           markedState
             .padding(.top, WatchLayout.rowToMarkedLine)
         } else {
@@ -190,7 +210,7 @@ struct CounterView: View {
         // The legend keys the ramp, so it is drawn only while the day is on
         // it: an empty day has no band to key and a marked day is off the
         // ramp (the design's screens 3 and 5).
-        if band != .unlogged && band != .alcoholFree {
+        if !isTodayUnreadable && band != .unlogged && band != .alcoholFree {
           WatchBandLegend(active: band, labelsHidden: isCountHidden)
             .padding(.top, WatchLayout.estimateToLegend)
         }
@@ -214,7 +234,7 @@ struct CounterView: View {
           // having one. `|| showsSessionPace` keeps it reachable once turned
           // on, so the setting can never be stranded out of reach on a dry
           // day.
-          if !todaysEntries.isEmpty || showsSessionPace {
+          if !isTodayUnreadable && (!todaysEntries.isEmpty || showsSessionPace) {
             sessionToggle
               .padding(.top, WatchLayout.slotToToggle)
           }
@@ -250,20 +270,40 @@ struct CounterView: View {
 
   private var counterRow: some View {
     HStack(spacing: WatchLayout.counterGap) {
-      CounterDisc(glyph: .minus, looksEnabled: canRemove) { _ in
-        removeNewest()
+      // Neither disc while today cannot be read — the complication's rule and
+      // the phone's: a ＋ beside no figure logs blind, and a − cannot know
+      // what it would remove. Their room is kept, so nothing moves when a read
+      // recovers, and with the ＋ goes its Double Tap shortcut.
+      if isTodayUnreadable {
+        discPlaceholder
+      } else {
+        CounterDisc(glyph: .minus, looksEnabled: canRemove) { _ in
+          removeNewest()
+        }
       }
 
-      CounterTile(count: todaysEntries.count, band: band, isCountHidden: isCountHidden)
+      CounterTile(
+        count: todaysEntries.count,
+        band: band,
+        isCountHidden: isCountHidden,
+        isUnavailable: isTodayUnreadable
+      )
         // 86pt is well over the touch floor, so the hide needs no affordance
         // and none is drawn (ADR-0045).
         .contentShape(RoundedRectangle(cornerRadius: WatchLayout.tileRadius, style: .continuous))
-        .onTapGesture { toggleHidden() }
+        .onTapGesture {
+          // Nothing to hide while there is no figure.
+          if !isTodayUnreadable { toggleHidden() }
+        }
 
       // Also the Double Tap target (the disc carries the shortcut), and held,
       // the way to the type picker (ADR-0042).
-      CounterDisc(glyph: .plus, onLongPress: { showsPicker = true }) { viaGesture in
-        addOne(viaGesture: viaGesture)
+      if isTodayUnreadable {
+        discPlaceholder
+      } else {
+        CounterDisc(glyph: .plus, onLongPress: { showsPicker = true }) { viaGesture in
+          addOne(viaGesture: viaGesture)
+        }
       }
     }
     .frame(maxWidth: .infinity)
@@ -274,8 +314,11 @@ struct CounterView: View {
     .accessibilityLabel("Drinks today")
     // The `Text` overload: an interpolated literal here would put a bare
     // "%lld" key in the catalog, which is no key at all.
-    .accessibilityValue(Text(todaysEntries.count, format: .number))
+    .accessibilityValue(
+      isTodayUnreadable ? Text(verbatim: "") : Text(todaysEntries.count, format: .number)
+    )
     .accessibilityAdjustableAction { direction in
+      guard !isTodayUnreadable else { return }
       switch direction {
       case .increment: addOne(viaGesture: false)
       case .decrement: removeNewest()
@@ -284,7 +327,30 @@ struct CounterView: View {
     }
   }
 
+  private var discPlaceholder: some View {
+    Color.clear
+      .frame(width: WatchLayout.discSide, height: WatchLayout.discSide)
+      .accessibilityHidden(true)
+  }
+
   // MARK: - Beneath the row
+
+  /// Beneath the unreadable tile: the unit word in its plural — a count of
+  /// none known, never "drink today" over a stale one — and what happened, in
+  /// the phone's words. Nothing else on the counter acts on a day it could not
+  /// read, so the no-alcohol button, the legend, the hint and the session
+  /// switch all stand down.
+  private var unreadableLines: some View {
+    VStack(spacing: WatchLayout.markedLineGap) {
+      Text("drinks today")
+        .font(.system(size: WatchLayout.unitWordSize))
+        .foregroundStyle(.secondary)
+      Text("Today's drinks couldn't be read.")
+        .font(.system(size: WatchLayout.hintSize))
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+    }
+  }
 
   private var unitWord: some View {
     Text(todaysEntries.count == 1 ? "drink today" : "drinks today")
@@ -381,6 +447,10 @@ struct CounterView: View {
             .fill(Color.primary.opacity(0.10))
         )
         .transition(.opacity)
+    } else if isTodayUnreadable {
+      // The hint names a hold on a ＋ that is not drawn, and the dots would
+      // count rows this read could not vouch for.
+      EmptyView()
     } else if showsSessionPace {
       // A 60-second clock, never a `Timer`: session existence, the elapsed
       // time and the rolling band recompute at the cadence they change at

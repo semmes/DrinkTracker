@@ -68,13 +68,22 @@ struct DrinkRepository {
   /// `LogOneDrinkIntent` and the watch's ＋ all call this, and none of them
   /// builds the drink itself — a second copy is how the rule drifts, which is
   /// the bug the day sheet's `countSeedPreview` exists to prevent.
+  ///
+  /// **Throws when the history cannot be read, rather than seeding from an
+  /// empty one** (ADR-0042's 2026-09-16 amendment). An empty history is a
+  /// real answer — a day with nothing described starts at a standard drink —
+  /// so a failed read passed off as one logs a drink the user did not
+  /// describe: an untyped standard drink after they described a beer, which
+  /// then becomes the day's newest entry and turns every later ＋ that day
+  /// into standard drinks too; or, under the usual-drink seed, a beer at
+  /// beer's defaults. The tap is reported as not saved instead.
   func nextQuickDrink(
     seed: DrinkDraft.CountSeed,
     region: Region,
     at date: Date = Date(),
     calendar: Calendar = .current
-  ) -> LoggedDrink {
-    let history = ((try? context.fetch(FetchDescriptor<DrinkEntry>())) ?? []).loggedDrinks
+  ) throws -> LoggedDrink {
+    let history = try context.fetch(FetchDescriptor<DrinkEntry>()).loggedDrinks
     return DrinkDraft
       .quickCount(1, from: history, seed: seed, region: region, at: date, calendar: calendar)
       .makeLoggedDrink(region: region)
@@ -87,7 +96,7 @@ struct DrinkRepository {
   /// foreground (`DrinkStore.backfillHealthKit`).
   @discardableResult
   func logOneDrink(seed: DrinkDraft.CountSeed, region: Region) throws -> LoggedDrink {
-    let drink = nextQuickDrink(seed: seed, region: region)
+    let drink = try nextQuickDrink(seed: seed, region: region)
     try saveOrThrow(drink)
     return drink
   }
@@ -115,8 +124,10 @@ struct DrinkRepository {
   /// not read* — a surface that would otherwise draw a confident zero from a
   /// failed fetch. ADR-0004 names exactly that as the real defect: losing the
   /// store looks like an empty log. The home-screen widget and the watch
-  /// complication read through this (ADR-0047); everything else keeps
-  /// `drinks(on:)`, whose empty answer the refusal paths already depend on.
+  /// complication read through this (ADR-0047), and so does every refusal
+  /// that asks "does this day have drinks?" — the no-alcohol marker's, in
+  /// both its user and its Health forms — because there a failed read passed
+  /// off as an empty day *is* the answer that lets the write through.
   func drinksOrThrow(on day: Date, calendar: Calendar = .current) throws -> [LoggedDrink] {
     let start = calendar.startOfDay(for: day)
     guard let end = calendar.date(byAdding: .day, value: 1, to: start) else {
@@ -156,11 +167,20 @@ struct DrinkRepository {
   /// simply stays unmarked). Out of the app it does not: an intent speaks a
   /// claim about the record and then leaves, which is the same reason
   /// `saveOrThrow` exists for drinks.
+  ///
+  /// **A day that cannot be read throws; it is never read as empty.** The
+  /// refusal above is ADR-0011's backstop — the one check that holds whatever
+  /// the view asked — and it used to read the day through `drinks(on:)`,
+  /// which turns a failed fetch into no drinks. So a failed read let a day
+  /// *with* drinks be marked; and when the save then failed too, the marker
+  /// stayed inserted in the context, where the next save that worked wrote it
+  /// (measured: a store damaged under an open connection, then restored).
+  /// Nothing is inserted until both reads have answered.
   @discardableResult
   func markAlcoholFreeOrThrow(_ day: Date, calendar: Calendar = .current) throws -> Bool {
     let startOfDay = calendar.startOfDay(for: day)
-    guard drinks(on: startOfDay, calendar: calendar).isEmpty else { return false }
-    guard alcoholFreeDay(on: startOfDay) == nil else { return true }
+    guard try drinksOrThrow(on: startOfDay, calendar: calendar).isEmpty else { return false }
+    guard try !isMarkedAlcoholFreeOrThrow(startOfDay, calendar: calendar) else { return true }
     context.insert(AlcoholFreeDay(day: startOfDay))
     try context.save()
     return true
@@ -298,10 +318,17 @@ struct DrinkRepository {
   /// marker stays theirs (no sample id, so a later deletion of the sample
   /// does not touch it), and a second zero sample on the same day — two apps,
   /// or one app twice — attaches to nothing.
+  ///
+  /// A day whose drinks cannot be read is refused, like a day that has some —
+  /// the same backstop as `markAlcoholFreeOrThrow`, where a failed read passed
+  /// off as empty let the marker through. The cost is the sample's: the sweep
+  /// commits its anchor regardless, so a zero refused this way stays unmirrored
+  /// and the day stays blank. Blank says "not known", which is what a day that
+  /// could not be read is; a marker over drinks would say something false.
   func markAlcoholFreeFromHealth(sampleID: UUID, day: Date, calendar: Calendar = .current) {
     guard alcoholFreeDay(forHealthSample: sampleID) == nil else { return }
     let startOfDay = calendar.startOfDay(for: day)
-    guard drinks(on: startOfDay, calendar: calendar).isEmpty else { return }
+    guard (try? drinksOrThrow(on: startOfDay, calendar: calendar))?.isEmpty == true else { return }
     guard alcoholFreeDay(on: startOfDay) == nil else { return }
     context.insert(AlcoholFreeDay(day: startOfDay, recordedAt: day, healthKitSampleID: sampleID))
     try? context.save()

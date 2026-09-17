@@ -181,8 +181,12 @@ And three latencies that are this app's own, which a ruling about the four to
 five seconds does not authorise building. Both are in the bullets near the end
 of this section. **One of those three latencies was then reported by the owner and
 fixed on 2026-09-16 (ADR-0047, the last bullet):** the phone widget never redrew
-for a drink that arrived from the watch. The paragraph that follows is the
-2026-09-10 state, kept for the record.
+for a drink that arrived from the watch. **The three silent-failure paths that
+investigation found in shared code were closed the same evening** (the last
+bullet): a failed read no longer lets a day with drinks be marked as no alcohol,
+no longer seeds ＋ with a guessed drink, and no longer draws a confident 0 on Today
+or the watch counter. The paragraph that follows is the 2026-09-10 state, kept for
+the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
 **1.2 is submitted to the App Store (2026-09-03) and awaiting App Review**;
@@ -2106,4 +2110,71 @@ Open items for v1.2:
   `nextQuickDrink`'s `try?` history read, `markAlcoholFreeOrThrow`'s
   `drinks(on:).isEmpty` backstop reading a failed fetch as empty, and the `@Query`
   screens ignoring `fetchError` (Today's hero and the watch counter still draw a 0 on a
-  failed fetch).
+  failed fetch). *(All three closed the same day — the next bullet.)*
+- **A read that fails is no longer read as an empty day (2026-09-16; amendments to
+  ADR-0004, ADR-0011, ADR-0025 and ADR-0042).** The three paths ADR-0047 left open,
+  plus a fourth copy of the first it missed. **(1) The no-alcohol backstop.**
+  `markAlcoholFreeOrThrow` asked `drinks(on:).isEmpty`, and `drinks(on:)` turns a
+  failed fetch into `[]`, so a day *with* drinks could be marked; and because the
+  save after it usually failed too, the marker stayed inserted in the context and the
+  next save that worked wrote it. It now reads through `drinksOrThrow` and
+  `isMarkedAlcoholFreeOrThrow` and inserts nothing until both answer; `markAlcoholFree`
+  (every in-app caller) answers `false`. `markAlcoholFreeFromHealth` had the identical
+  check and now refuses a day it cannot read — the cost, in ADR-0025's amendment, is
+  that the sweep commits its anchor anyway, so that zero stays unmirrored and the day
+  blank. **(2) The seed — a product call, made and recorded in ADR-0042's amendment:
+  `nextQuickDrink` throws.** Falling back wrote a guessed drink (an untyped standard
+  drink after a described wine, which as the day's newest entry turned every later ＋
+  that day into standard drinks; a beer for anyone under the usual-drink seed), and it
+  only ever wrote in the half-failed case where the read failed and the save did not.
+  The watch and the widget already reported a throw ("Not saved", `failed
+  (one-drink)`); Today's and the day sheet's ＋ log nothing — as for a failed save —
+  and write `… ＋ not saved — history unreadable` to the Diagnostics timeline.
+  **(3) The screens.** `Query.fetchError` exists (`_SwiftData_SwiftUI`, iOS 17 /
+  watchOS 10, in both 26.5 SDKs) and was measured before anything was designed:
+  **it must be read after the query's value** (the fetch runs on that read; read first
+  it is nil on the first render); a failed *first* fetch returns no rows, a failed
+  *later* one keeps the old rows; it clears on the next good fetch, which runs on a
+  store change or a relaunch — not on a re-render or a foreground on iOS, though a
+  re-render did re-fetch on the watchOS simulator; and **a truncated or deleted store
+  file fetches as empty with no error at all**, which nothing can catch. Today and the
+  watch counter now read both queries' errors and draw the widget's unavailable state —
+  drop glyph, "drinks today", no band, no ＋/−, no pill, no record button, no "Add
+  specific", no legend or hint or session row, no rows — plus one new sentence, "Today's
+  drinks couldn't be read." (app 324 → **325**, watch 49 → **50**; reviewed under
+  1.4.3; synced into scratch copies first and diffed: one key in, none out).
+  `CounterTile` gained `isUnavailable`, drawn exactly as redacted. **How the failure was
+  made, and the lesson worth keeping:** an in-memory store cannot fail a fetch (a model
+  missing from the schema fetches as empty; `calendar.date(byAdding:)` returned a date for
+  every extreme tried — `distantFuture`, ±infinity, NaN — so `DayReadError.unrepresentableDay`
+  could not be reached; the two unsupported predicates tried crashed the process). **Overwriting a real store file in place under its open
+  connection** throws Cocoa 259 deterministically, and writing the bytes back lets the
+  same container read and save again. `FailedReadTests` (tier 2, five tests) is built on
+  that — damage, act, restore, save, read back fresh — and **all five fail against the
+  old repository** (checked by swapping it in), including the two end-to-end ones: once
+  the store recovers, the old code wrote a marker onto a day with a drink and wrote the
+  guessed drink. **Verified locally:** 284 domain tests; 93 integration tests on the
+  iPhone 17 Pro Max simulator; the watch scheme for the watchOS simulator and the signed
+  iOS scheme for the iPhone 17 Pro, no warnings in the changed files; the verifier green
+  (after `git submodule update --init` — a fresh worktree has no `contract/`); and **tier
+  3 on both simulators over their own stores, damaged in place and restored from copies**:
+  the iPhone's ＋ held at 2 with the timeline line naming Cocoa 259, a failed "Add
+  specific" save flipped Today to the unavailable state (light, dark, AX), it stayed there
+  through a background/foreground on the restored bytes, and a relaunch read the two
+  drinks with nothing added; the watch's ＋ showed "Not saved" and the counter went
+  unavailable, and a relaunch read and logged normally. **One trap:** `sqlite3` on a
+  backup copy checkpoints its WAL into the main file and empties the WAL — harmless (the
+  copy stays consistent) but alarming; open copies with `file:…?mode=ro`. **An independent
+  review of the diff** found the Undo bar still drawn over the unavailable state (now hidden)
+  and a wrong sentence in ADR-0042's amendment (fixed), and **four things left for their own
+  change, recorded in the ADR-0004, ADR-0025 and ADR-0042 amendments:** `saveOrThrow`
+  inserts before two `try?` reads, so on a failing store a drink can later land on a day
+  still marked no alcohol, or an edit can duplicate its id; `DrinkStore.save` writes Health
+  first and swallows the failed store save, whose insert lands on the next save that works;
+  Calendar (bulk fill included — it offers recorded days and seeds from the same empty query),
+  History and Trends do not read `fetchError`; and the Health sweep commits its anchor after
+  deletions whose reads failed, losing them for good. The day sheet's `backfillTimestamp`
+  also reads through `drinks(on:)`. **Tier 3/4 for the owner:**
+  VoiceOver over both unavailable states (the simulator tool's accessibility read was
+  unavailable); the watch state on a 40/41/42mm case; and none of it has been seen on
+  hardware, where a real I/O failure is the only way to produce it.
