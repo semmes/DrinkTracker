@@ -22,9 +22,22 @@ struct HistoryView: View {
     TrendSummary.groupedByDay(entries.loggedDrinks)
   }
 
+  /// Whether the log's last read failed. A failed first fetch hands back no
+  /// rows, and this screen said "Nothing logged yet" over them; a failed later
+  /// one keeps old rows, whose swipes act on entries it did not read. Value
+  /// first, then `fetchError` (`TodayView.isTodayUnreadable` has why).
+  private var isLogUnreadable: Bool {
+    _ = entries
+    return _entries.fetchError != nil
+  }
+
   var body: some View {
+    let isUnreadable = isLogUnreadable
+
     Group {
-      if groups.isEmpty {
+      if isUnreadable {
+        UnreadableLogView()
+      } else if groups.isEmpty {
         emptyState
       } else {
         list
@@ -33,18 +46,22 @@ struct HistoryView: View {
     .navigationTitle("History")
     .navigationBarTitleDisplayMode(.large)
     .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          // Opens at the current time; the sheet's time control moves it back.
-          draft = DrinkDraft(type: .beer)
-        } label: {
-          Image(systemName: "plus")
+      // Not over a log that could not be read: this screen offers nothing
+      // that writes to it then, as Today does not.
+      if !isUnreadable {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            // Opens at the current time; the sheet's time control moves it back.
+            draft = DrinkDraft(type: .beer)
+          } label: {
+            Image(systemName: "plus")
+          }
+          .accessibilityLabel("Add a drink")
         }
-        .accessibilityLabel("Add a drink")
       }
     }
     .safeAreaInset(edge: .bottom) {
-      if let drink = deletion.recentlyDeleted {
+      if let drink = deletion.recentlyDeleted, !isUnreadable {
         UndoDeleteBar(drink: drink) {
           Task { await deletion.undo(using: store) }
         }
@@ -132,6 +149,9 @@ struct HistoryView: View {
       }
     }
     .listStyle(.insetGrouped)
+    // Rebuilt from the data after a removal that wrote nothing, whose swipe
+    // had already animated its row away (`DeletionCoordinator.failedRemovals`).
+    .id(deletion.failedRemovals)
     .scrollContentBackground(.hidden)
   }
 

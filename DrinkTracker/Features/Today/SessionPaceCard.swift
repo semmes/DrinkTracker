@@ -44,7 +44,11 @@ struct SessionPaceCard: View {
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var entries: [DrinkEntry]
 
   var body: some View {
-    if settings.showsSessionPace {
+    // Today hides this card when its own reads fail; this query fetches on its
+    // own, and a failed refetch keeps rows from before the change that asked
+    // for it — a sitting that may have ended. Value first, then `fetchError`
+    // (`TodayView.isTodayUnreadable`).
+    if settings.showsSessionPace, !isUnreadable {
       TimelineView(.periodic(from: .now, by: 60)) { context in
         if let session = SessionPace.currentSession(
           in: entries.loggedDrinks, now: context.date
@@ -53,6 +57,11 @@ struct SessionPaceCard: View {
         }
       }
     }
+  }
+
+  private var isUnreadable: Bool {
+    _ = entries
+    return _entries.fetchError != nil
   }
 
   private func card(for session: DrinkSession, now: Date) -> some View {

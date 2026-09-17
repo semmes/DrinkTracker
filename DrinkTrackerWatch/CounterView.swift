@@ -599,15 +599,24 @@ struct CounterView: View {
     let context = modelContext
     enqueue {
       let repository = DrinkRepository(context: context)
-      let today = repository.drinks(on: Date())
-      guard let target = LoggedDrink.removableNewest(in: today, on: Date()) else {
+      // A day that cannot be read, or a removal that cannot be saved, is "Not
+      // saved" like any other write here — never an empty day refused in
+      // silence, and never the acknowledging haptic for a drink still there.
+      do {
+        let today = try repository.drinksOrThrow(on: Date())
+        guard let target = LoggedDrink.removableNewest(in: today, on: Date()) else {
+          WatchHaptics.refused()
+          if !today.isEmpty { show(.removeOnPhone) }
+          return
+        }
+        try repository.deleteOrThrow(id: target.id)
+        WatchHaptics.acknowledged()
+        WidgetCenter.shared.reloadAllTimelines()
+      } catch {
+        Diagnostics.record("watch − failed: \(error)")
         WatchHaptics.refused()
-        if !today.isEmpty { show(.removeOnPhone) }
-        return
+        show(.notSaved)
       }
-      repository.delete(id: target.id)
-      WatchHaptics.acknowledged()
-      WidgetCenter.shared.reloadAllTimelines()
     }
   }
 

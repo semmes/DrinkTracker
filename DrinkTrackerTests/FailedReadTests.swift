@@ -70,7 +70,9 @@ struct FailedReadTests {
     #expect(!DrinkRepository(context: ModelContext(store.container)).isMarkedAlcoholFree(day))
   }
 
-  /// ADR-0025's copy of the same refusal, on the Health sweep's path.
+  /// ADR-0025's copy of the same refusal, on the Health sweep's path. It
+  /// throws now rather than refusing quietly, so the sweep keeps its anchor
+  /// (ADR-0025's second 2026-09-16 amendment).
   @Test("A Health zero is not mirrored onto a day whose drinks cannot be read")
   func healthZeroRefusesAnUnreadableDay() throws {
     let store = try DamageableStore()
@@ -79,7 +81,9 @@ struct FailedReadTests {
     try repository.saveOrThrow(beer(at: day))
 
     try store.damage()
-    repository.markAlcoholFreeFromHealth(sampleID: UUID(), day: day)
+    #expect(throws: (any Error).self) {
+      try repository.markAlcoholFreeFromHealth(sampleID: UUID(), day: day)
+    }
     #expect(context.insertedModelsArray.isEmpty)
 
     try store.restore()
@@ -200,6 +204,27 @@ final class DamageableStore {
       try handle.truncate(atOffset: 0)
       try handle.write(contentsOf: bytes)
       try handle.close()
+    }
+  }
+
+  /// Damages the store from inside the next save of `context`: after every
+  /// read the write made, before the write itself.
+  ///
+  /// That is the one failure `damage()` cannot produce on its own — reads
+  /// that answered and a save that does not — and it is the case in which a
+  /// write's changes are already in the context when the save fails.
+  /// SwiftData posts `ModelContext.willSave` synchronously, on the saving
+  /// thread, before any SQL runs; a store overwritten there fails the save
+  /// with SQLite's "not a database" (probed on macOS 26 before being relied
+  /// on, and the pending insert was measured still in the context after).
+  /// Fires once.
+  func damageOnNextSave(of context: ModelContext) {
+    var observer: NSObjectProtocol?
+    observer = NotificationCenter.default.addObserver(
+      forName: ModelContext.willSave, object: context, queue: nil
+    ) { [weak self] _ in
+      if let observer { NotificationCenter.default.removeObserver(observer) }
+      try? self?.damage()
     }
   }
 }

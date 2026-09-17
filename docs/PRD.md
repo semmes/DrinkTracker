@@ -113,9 +113,12 @@ design: on the phone one process manages sync (ADR-0047).
 
 **6. HealthKit is a mirror, never a dependency.**
 `HealthKitService` returns `nil` rather than throwing; `DrinkStore.backfillHealthKit`
-sweeps up anything the widget logged without a sample.
+sweeps up anything the widget logged without a sample. And Health follows the log:
+`DrinkStore.save` writes the row before its sample, and a sample no row names is
+retracted (ADR-0004's third 2026-09-16 amendment).
 *Failure mode:* a denied permission that blocks a log turns a Health integration into
-a reason the app stopped working.
+a reason the app stopped working; and a sample written ahead of a store save that then
+fails is a drink in Health the log never held, which nothing in the app can see.
 
 **7. Quantity saves N separate entries, never one entry carrying a count.**
 `DrinkDraft.makeLoggedDrinks(region:)` → `DrinkStore.save(_ drinks:)`.
@@ -195,6 +198,13 @@ about *rows* has to live here rather than in the package. Covered:
   marker (evidence beats assertion), one sweep's deletions are applied before
   its additions so a correction in the other app lands, and each mirror
   follows its own sample's deletion and nothing else's.
+- A store that fails, as distinct from one with nothing in it (`FailedReadTests`,
+  `FailedWriteTests`): a real store file overwritten under its open container, so a
+  read throws, or overwritten from inside a save, so the reads answer and only the
+  save fails; then restored, saved and read back fresh. A failed read throws rather
+  than reading as an empty day, a write changes nothing until its reads have
+  answered, a failed save leaves nothing for a later save to deliver, and a Health
+  sweep that could not read replays whole (ADR-0004's 2026-09-16 amendments).
 - The schema upgrade: real V1 store files, written by the last V1 commit,
   reopen intact under the migration plan.
 - `AppSettings` round-tripping through defaults, including `storedRegion()`'s
@@ -204,7 +214,9 @@ about *rows* has to live here rather than in the package. Covered:
 It is a standalone bundle with no `TEST_HOST`, so it reaches `Shared/` but not the
 app target. `DrinkStore.backfillHealthKit` itself is therefore **still uncovered** —
 testing it needs a host app, which drags signing and app launch into CI. Its
-repository half is covered here; the HealthKit half is not.
+repository half is covered here, including the compared sample-id record it and
+`DrinkStore.save` share; the HealthKit half, and the order `DrinkStore.save` writes
+the log and Health in, are not.
 
 **Tier 3 — Simulator.** Build the app scheme, then exercise the specific interaction and
 **state the observed numbers in the commit message.** The existing commits already do

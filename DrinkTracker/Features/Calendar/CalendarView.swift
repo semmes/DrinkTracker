@@ -55,34 +55,44 @@ struct CalendarView: View {
   private var calendar: Calendar { .current }
 
   var body: some View {
+    let isUnreadable = isLogUnreadable
+
     ZStack(alignment: .bottom) {
-      ScrollView {
-        VStack(spacing: GlassTokens.Spacing.section) {
-          monthHeader
-          weekdayHeader
-            .padding(.horizontal, -gridBleed)
-          monthGrid
-            .padding(.horizontal, -gridBleed)
-          IntensityLegend()
-          selectionHint
-          summarySection
+      if isUnreadable {
+        UnreadableLogView()
+      } else {
+        ScrollView {
+          VStack(spacing: GlassTokens.Spacing.section) {
+            monthHeader
+            weekdayHeader
+              .padding(.horizontal, -gridBleed)
+            monthGrid
+              .padding(.horizontal, -gridBleed)
+            IntensityLegend()
+            selectionHint
+            summarySection
+          }
+          .screenMargin()
+          .padding(.vertical, GlassTokens.Spacing.section)
         }
-        .screenMargin()
-        .padding(.vertical, GlassTokens.Spacing.section)
       }
 
-      VStack(spacing: GlassTokens.Spacing.tight) {
-        // The undo bar also renders inside the day sheet; here it covers the
-        // window after the sheet closes, so a removal stays recoverable.
-        if selectedDay == nil, let drink = deletion.recentlyDeleted {
-          UndoDeleteBar(drink: drink) {
-            Task { await deletion.undo(using: store) }
+      // Neither bar over a log that could not be read: each writes to days
+      // this screen can no longer say anything about.
+      if !isUnreadable {
+        VStack(spacing: GlassTokens.Spacing.tight) {
+          // The undo bar also renders inside the day sheet; here it covers the
+          // window after the sheet closes, so a removal stays recoverable.
+          if selectedDay == nil, let drink = deletion.recentlyDeleted {
+            UndoDeleteBar(drink: drink) {
+              Task { await deletion.undo(using: store) }
+            }
+            .padding(.bottom, GlassTokens.Spacing.tight)
           }
-          .padding(.bottom, GlassTokens.Spacing.tight)
-        }
-        if !barDays.isEmpty {
-          selectionBar
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+          if !barDays.isEmpty {
+            selectionBar
+              .transition(.move(edge: .bottom).combined(with: .opacity))
+          }
         }
       }
     }
@@ -92,6 +102,19 @@ struct CalendarView: View {
     // the dismiss-then-appear pops in unanimated.
     .animation(.smooth(duration: 0.25), value: selectedDay)
     .onDisappear { pendingDays = [] }
+    // The day sheet and the bulk sheet are drawn from this view's queries —
+    // the day's rows and count, which days are recorded, the seed — so once a
+    // read fails they show a record nobody read, and their controls act on
+    // it. A ＋ that then saved would leave the sheet's count where it was,
+    // inviting the second tap Today refuses to offer. Both close, and the
+    // parked run goes with them; an edit sheet stays, since what it shows is
+    // the reader's own draft.
+    .onChange(of: isUnreadable) { _, unreadable in
+      guard unreadable else { return }
+      selectedDay = nil
+      bulkSelection = nil
+      pendingDays = []
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { today = calendar.startOfDay(for: Date()) }
     }
@@ -105,26 +128,32 @@ struct CalendarView: View {
       // this button is the feature's only entrance. The image renders at
       // share time from the visible month's data; nothing is persisted and
       // nothing is recorded about whether or where it went.
-      ToolbarItem(placement: .topBarTrailing) {
-        ShareLink(
-          item: MonthShareImage(
-            grid: grid,
-            region: settings.effectiveRegion,
-            colorScheme: colorScheme,
-            calendar: calendar
-          ),
-          preview: SharePreview(
-            grid.month.formatted(.dateTime.month(.wide).year())
-          )
-        ) {
-          Image(systemName: "square.and.arrow.up")
+      //
+      // Not while the log cannot be read: the image would be a month of
+      // blank days, a record nobody read, sent somewhere it cannot be taken
+      // back from.
+      if !isLogUnreadable {
+        ToolbarItem(placement: .topBarTrailing) {
+          ShareLink(
+            item: MonthShareImage(
+              grid: grid,
+              region: settings.effectiveRegion,
+              colorScheme: colorScheme,
+              calendar: calendar
+            ),
+            preview: SharePreview(
+              grid.month.formatted(.dateTime.month(.wide).year())
+            )
+          ) {
+            Image(systemName: "square.and.arrow.up")
+          }
+          .accessibilityLabel("Share this month as an image")
         }
-        .accessibilityLabel("Share this month as an image")
+        // Its own glass shape, apart from the share button: the design draws
+        // the year as a labelled pill, not as a second icon in the share
+        // button's group (`docs/design/bottom-nav/`, ADR-0040).
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
       }
-      // Its own glass shape, apart from the share button: the design draws
-      // the year as a labelled pill, not as a second icon in the share
-      // button's group (`docs/design/bottom-nav/`, ADR-0040).
-      ToolbarSpacer(.fixed, placement: .topBarTrailing)
       ToolbarItem(placement: .topBarTrailing) {
         NavigationLink {
           YearView()
@@ -188,6 +217,19 @@ struct CalendarView: View {
 
   private var store: DrinkStore {
     DrinkStore(context: context, health: health)
+  }
+
+  /// Whether either of the log's queries last failed to read — as distinct
+  /// from a log with nothing in it, which is what a failed first fetch looks
+  /// like here: every day blank, and every one offered to bulk fill.
+  ///
+  /// The values are read first, and the order is load-bearing: a query
+  /// fetches when its value is read, and `fetchError` read before that
+  /// answers for the fetch before (TodayView's `isTodayUnreadable`).
+  private var isLogUnreadable: Bool {
+    _ = allEntries
+    _ = alcoholFreeDays
+    return _allEntries.fetchError != nil || _alcoholFreeDays.fetchError != nil
   }
 
   private var markedDays: Set<Date> {
@@ -315,22 +357,21 @@ struct CalendarView: View {
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
-      let stamp = TrendSummary.backfillTimestamp(
-        on: day,
-        existing: store.repository.drinks(on: day, calendar: calendar),
-        calendar: calendar
-      )
       // The counter's one seed rule (ADR-0042), dated into the day shown. A
-      // history that cannot be read logs nothing rather than a guessed drink
-      // (ADR-0042's 2026-09-16 amendment); the count does not move.
+      // day or a history that cannot be read logs nothing rather than a
+      // guessed drink or a guessed time (ADR-0042's and ADR-0004's 2026-09-16
+      // amendments); the count does not move.
+      let drink: LoggedDrink
       do {
-        let drink = try store.repository.nextQuickDrink(
+        let stamp = try store.repository.backfillTimestampOrThrow(on: day, calendar: calendar)
+        drink = try store.repository.nextQuickDrink(
           seed: seed, region: region, at: stamp, calendar: calendar
         )
-        await store.save(drink)
       } catch {
         Diagnostics.appendTimeline("day sheet ＋ not saved — history unreadable: \(error)")
+        return
       }
+      _ = try? await store.save(drink)
     }
   }
 
@@ -342,14 +383,16 @@ struct CalendarView: View {
     let calendar = calendar
     let region = settings.effectiveRegion
     enqueueCounterOp {
-      let stamp = TrendSummary.backfillTimestamp(
-        on: day,
-        existing: store.repository.drinks(on: day, calendar: calendar),
-        calendar: calendar
-      )
+      let stamp: Date
+      do {
+        stamp = try store.repository.backfillTimestampOrThrow(on: day, calendar: calendar)
+      } catch {
+        Diagnostics.appendTimeline("day sheet standard drink not saved — day unreadable: \(error)")
+        return
+      }
       let drink = DrinkDraft.standardDrink(region: region, at: stamp)
         .makeLoggedDrink(region: region)
-      await store.save(drink)
+      _ = try? await store.save(drink)
     }
   }
 
@@ -364,35 +407,58 @@ struct CalendarView: View {
     enqueueCounterOp {
       // Same skip as Today's minus: imported Health entries are read-only
       // mirrors, so the victim is the day's newest drink the app owns (ADR-0014).
-      guard let recent = store.repository.drinks(on: day, calendar: calendar)
-        .first(where: { !$0.isImportedFromHealth }) else { return }
+      let drinks: [LoggedDrink]
+      do {
+        drinks = try store.repository.drinksOrThrow(on: day, calendar: calendar)
+      } catch {
+        Diagnostics.appendTimeline("day sheet − not saved — day unreadable: \(error)")
+        return
+      }
+      guard let recent = drinks.first(where: { !$0.isImportedFromHealth }) else { return }
       await deletion.delete(recent, using: store)
     }
   }
 
   /// One answer, applied to every date the bulk sheet decided to write.
   ///
-  /// The sheet has already dropped days with any record, so this only ever touches
-  /// blank days — but `markAlcoholFree` still refuses a day with entries, so even a
-  /// stale selection can't produce a contradiction. Seeding is captured once before
-  /// the loop: "the same value" on every day means the same drink, not a seed that
-  /// drifts as the loop's own writes change what's most recent.
+  /// The sheet has already dropped days with any record — but it read them
+  /// from this view's query, which hands back no rows when its first fetch
+  /// fails, so the repository checks each day again as it writes:
+  /// `markAlcoholFree` refuses a day with entries, and `bulkFillDrinks` skips
+  /// a day with any record, both through reads that throw. Seeding is read
+  /// once before the loop, from the store rather than the query (ADR-0011's
+  /// 2026-09-16 amendment): "the same value" on every day means the same
+  /// drink, not a seed that drifts as the loop's own writes change what's most
+  /// recent — and not the beer at beer's defaults an empty query seeds under
+  /// the usual-drink setting.
   private func bulkFill(_ count: Int, on dates: [Date]) {
     if count == 0 {
       for date in dates { store.markAlcoholFree(date) }
       return
     }
-    let history = allEntries.loggedDrinks
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     let store = store
+    let calendar = calendar
     Task {
-      for date in dates {
-        let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: date) ?? date
-        let drinks = DrinkDraft
-          .quickCount(count, from: history, seed: seed, region: region, at: noon, calendar: calendar)
-          .makeLoggedDrinks(region: region)
-        await store.save(drinks)
+      do {
+        let history = try store.repository.historyOrThrow()
+        for date in dates {
+          let drinks = try store.repository.bulkFillDrinks(
+            count, on: date, from: history, seed: seed, region: region, calendar: calendar
+          )
+          // One drink at a time, not `store.save(_ drinks:)`: that form
+          // reports a partial batch as success, which here moved on to the
+          // next day and left this one short in silence.
+          for drink in drinks {
+            try await store.save(drink)
+          }
+        }
+      } catch {
+        // The days before this one are written, the rest are not, and this
+        // one may hold fewer than asked — a record now, so a second fill
+        // skips it; the day sheet is the way to finish it.
+        Diagnostics.appendTimeline("bulk fill stopped: \(error)")
       }
     }
   }

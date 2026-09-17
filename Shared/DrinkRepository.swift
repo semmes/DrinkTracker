@@ -32,14 +32,19 @@ struct DrinkRepository {
   /// Same as `save`, but surfaces the failure.
   ///
   /// Used by the widget's intent, where a swallowed error looks exactly like a
-  /// missed tap and there is no UI to notice the missing entry.
+  /// missed tap and there is no UI to notice the missing entry — and by every
+  /// other write that must be able to say it did not happen.
+  ///
+  /// **Both reads answer before anything changes, and a save that fails
+  /// leaves nothing behind** (ADR-0004's third 2026-09-16 amendment). The
+  /// reads used to run after the insert and through `try?`: on a store that
+  /// could not be read the day's markers read as none, so nothing was
+  /// deleted, the save failed, and the insert stayed pending in the context —
+  /// where the next save that worked wrote a drink onto a day still marked
+  /// no alcohol, the contradiction ADR-0011 forbids. An edit whose id read
+  /// failed inserted a second row with the same id the same way.
   func saveOrThrow(_ drink: LoggedDrink, calendar: Calendar = .current) throws {
-    if let existing = entry(with: drink.id) {
-      existing.apply(drink)
-    } else {
-      context.insert(DrinkEntry(drink))
-    }
-
+    let existing = try entryOrThrow(with: drink.id)
     // Evidence beats assertion: a drink landing on a day marked alcohol-free
     // removes the marker. Leaving it dormant would be worse than a visible
     // contradiction — it would resurrect the moment the entries were deleted,
@@ -48,11 +53,36 @@ struct DrinkRepository {
     // calendar backfill, and the widget's intent alike.
     // Every marker on the day, not the first: two can land on one day when
     // two devices act before CloudKit merges, and each contradicts the drink.
-    for marker in alcoholFreeDays(on: calendar.startOfDay(for: drink.loggedAt)) {
+    let markers = try alcoholFreeDaysOrThrow(on: calendar.startOfDay(for: drink.loggedAt))
+
+    if let existing {
+      existing.apply(drink)
+    } else {
+      context.insert(DrinkEntry(drink))
+    }
+    for marker in markers {
       context.delete(marker)
     }
+    try commit()
+  }
 
-    try context.save()
+  /// Saves, or puts the context back as it was and throws.
+  ///
+  /// Every write in this type ends here. A failed `ModelContext.save()` keeps
+  /// its changes pending, and the context writes them on the next save that
+  /// works — a drink the reader was never told had landed, arriving later
+  /// beside the retry they made meanwhile. Rolling back makes a thrown error
+  /// mean what it says: nothing changed. It discards every pending change in
+  /// the context, not only this write's, which is safe because no write here
+  /// leaves a change unsaved — the rule `DrinkStore.backfillHealthKit` keeps
+  /// too, by recording each sample id as its own save.
+  private func commit() throws {
+    do {
+      try context.save()
+    } catch {
+      context.rollback()
+      throw error
+    }
   }
 
   // MARK: - The counter's ＋
@@ -83,10 +113,61 @@ struct DrinkRepository {
     at date: Date = Date(),
     calendar: Calendar = .current
   ) throws -> LoggedDrink {
-    let history = try context.fetch(FetchDescriptor<DrinkEntry>()).loggedDrinks
-    return DrinkDraft
-      .quickCount(1, from: history, seed: seed, region: region, at: date, calendar: calendar)
+    DrinkDraft
+      .quickCount(1, from: try historyOrThrow(), seed: seed, region: region, at: date, calendar: calendar)
       .makeLoggedDrink(region: region)
+  }
+
+  /// The whole log, for a seed — never an empty one standing in for a read
+  /// that failed.
+  func historyOrThrow() throws -> [LoggedDrink] {
+    try context.fetch(FetchDescriptor<DrinkEntry>()).loggedDrinks
+  }
+
+  /// When the day sheet's ＋ dates a drink on `day`: now for today, else
+  /// noon or one second after the day's latest drink
+  /// (`TrendSummary.backfillTimestamp`), so the new drink is the day's newest
+  /// and ＋ then − gives back exactly what was there.
+  ///
+  /// Throws rather than reading the day as empty: an empty day is noon, so a
+  /// failed read stamped a past day's drink *before* drinks it already had,
+  /// and − then removed one of those instead of the drink just logged.
+  func backfillTimestampOrThrow(on day: Date, calendar: Calendar = .current) throws -> Date {
+    TrendSummary.backfillTimestamp(
+      on: day,
+      existing: try drinksOrThrow(on: day, calendar: calendar),
+      calendar: calendar
+    )
+  }
+
+  // MARK: - Bulk fill (ADR-0011)
+
+  /// The drinks bulk fill writes on one day: `count` of the drink `history`
+  /// seeds, at noon — or none, when the day already has a record.
+  ///
+  /// The sheet filters recorded days out before offering them, but it filters
+  /// the calendar's query, and a query that failed its first fetch hands back
+  /// no rows: every day in the run looked blank and every one was offered.
+  /// So the rule ADR-0011 states — a day with any record is skipped, always —
+  /// is also kept here, at write time, through reads that throw. `history`
+  /// is read once by the caller before its loop (`historyOrThrow`), so every
+  /// day gets the same drink rather than a seed that drifts as the loop's own
+  /// writes change what is most recent.
+  func bulkFillDrinks(
+    _ count: Int,
+    on day: Date,
+    from history: [LoggedDrink],
+    seed: DrinkDraft.CountSeed,
+    region: Region,
+    calendar: Calendar = .current
+  ) throws -> [LoggedDrink] {
+    guard count > 0 else { return [] }
+    guard try drinksOrThrow(on: day, calendar: calendar).isEmpty,
+          try !isMarkedAlcoholFreeOrThrow(day, calendar: calendar) else { return [] }
+    let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
+    return DrinkDraft
+      .quickCount(count, from: history, seed: seed, region: region, at: noon, calendar: calendar)
+      .makeLoggedDrinks(region: region, calendar: calendar)
   }
 
   /// `nextQuickDrink`, saved — for the surfaces with no HealthKit of their
@@ -102,17 +183,80 @@ struct DrinkRepository {
   }
 
   func delete(id: UUID) {
-    guard let existing = entry(with: id) else { return }
+    _ = try? deleteOrThrow(id: id)
+  }
+
+  /// Removes the entry with this id and returns it as it was stored, or nil
+  /// when there is no such entry. Throws when the entry cannot be read or the
+  /// removal cannot be saved, having changed nothing.
+  ///
+  /// The stored value is what the caller retires from Health: the row's own
+  /// sample id, not whatever a screen's snapshot of the drink carried.
+  @discardableResult
+  func deleteOrThrow(id: UUID) throws -> LoggedDrink? {
+    guard let existing = try entryOrThrow(with: id) else { return nil }
+    let removed = existing.logged
     context.delete(existing)
-    try? context.save()
+    try commit()
+    return removed
   }
 
   func entry(with id: UUID) -> DrinkEntry? {
+    try? entryOrThrow(with: id)
+  }
+
+  /// `entry(with:)`, for a write that must not read "could not look" as "no
+  /// such entry" — which is an insert of a second row with the same id.
+  func entryOrThrow(with id: UUID) throws -> DrinkEntry? {
     var descriptor = FetchDescriptor<DrinkEntry>(
       predicate: #Predicate { $0.entryID == id }
     )
     descriptor.fetchLimit = 1
-    return (try? context.fetch(descriptor))?.first
+    return try context.fetch(descriptor).first
+  }
+
+  // MARK: - The Health sample a row points at
+
+  /// Points the entry at the Health sample that now mirrors it — only if the
+  /// entry still points where the caller last saw it, and still holds the
+  /// facts the sample was written from.
+  ///
+  /// Two writers stamp sample ids, `DrinkStore.save` and
+  /// `DrinkStore.backfillHealthKit`, and each writes its sample to Health
+  /// *before* it stamps, across an await. A row written by the one can be
+  /// picked up by the other in that window; unguarded, the second stamp
+  /// overwrote the first and left its sample in Health mirroring nothing — a
+  /// doubled drink there that nothing in the app can see, since Tallyist
+  /// never imports its own samples. And a row edited in that window has new
+  /// facts, so a sample written from the old ones would mirror a drink the
+  /// log no longer holds. The comparison and the save run with no suspension
+  /// between them, so on the main actor they cannot interleave.
+  ///
+  /// - Parameter drink: the drink as it was when its sample was written. Only
+  ///   its facts and id are read; its own sample id is ignored.
+  /// - Returns: `false` when the entry is gone, no longer points at
+  ///   `expected`, or no longer holds `drink`'s facts. The caller's sample
+  ///   then mirrors nothing, and retracting it is the caller's job.
+  @discardableResult
+  func recordHealthSample(_ sampleID: UUID?, for drink: LoggedDrink, replacing expected: UUID?) throws -> Bool {
+    guard let entry = try entryOrThrow(with: drink.id),
+          entry.healthKitSampleID == expected,
+          Self.sameFacts(entry.logged, drink) else {
+      return false
+    }
+    guard sampleID != expected else { return true }
+    entry.healthKitSampleID = sampleID
+    try commit()
+    return true
+  }
+
+  /// Whether two values describe the same drink, whichever sample mirrors it.
+  private static func sameFacts(_ lhs: LoggedDrink, _ rhs: LoggedDrink) -> Bool {
+    var lhs = lhs
+    var rhs = rhs
+    lhs.healthKitSampleID = nil
+    rhs.healthKitSampleID = nil
+    return lhs == rhs
   }
 
   /// Everything logged on the given calendar day.
@@ -182,7 +326,7 @@ struct DrinkRepository {
     guard try drinksOrThrow(on: startOfDay, calendar: calendar).isEmpty else { return false }
     guard try !isMarkedAlcoholFreeOrThrow(startOfDay, calendar: calendar) else { return true }
     context.insert(AlcoholFreeDay(day: startOfDay))
-    try context.save()
+    try commit()
     return true
   }
 
@@ -193,13 +337,19 @@ struct DrinkRepository {
   /// read-only (ADR-0014). Logging a drink on the day still clears it, via
   /// `saveOrThrow`: evidence beats assertion, whoever asserted.
   func unmarkAlcoholFree(_ day: Date, calendar: Calendar = .current) {
+    try? unmarkAlcoholFreeOrThrow(day, calendar: calendar)
+  }
+
+  /// `unmarkAlcoholFree`, throwing when the day's markers cannot be read or
+  /// their removal cannot be saved — having removed nothing.
+  func unmarkAlcoholFreeOrThrow(_ day: Date, calendar: Calendar = .current) throws {
     let startOfDay = calendar.startOfDay(for: day)
-    let own = alcoholFreeDays(on: startOfDay).filter { !$0.isImportedFromHealth }
+    let own = try alcoholFreeDaysOrThrow(on: startOfDay).filter { !$0.isImportedFromHealth }
     guard !own.isEmpty else { return }
     for marker in own {
       context.delete(marker)
     }
-    try? context.save()
+    try commit()
   }
 
   func isMarkedAlcoholFree(_ day: Date, calendar: Calendar = .current) -> Bool {
@@ -230,10 +380,16 @@ struct DrinkRepository {
   /// a single device, but two devices writing before CloudKit merges can
   /// leave two, and anything that clears a day must clear them all.
   func alcoholFreeDays(on startOfDay: Date) -> [AlcoholFreeDay] {
+    (try? alcoholFreeDaysOrThrow(on: startOfDay)) ?? []
+  }
+
+  /// `alcoholFreeDays(on:)`, for a write that clears a day: read as none, a
+  /// failed fetch clears nothing and the drink lands beside the marker.
+  func alcoholFreeDaysOrThrow(on startOfDay: Date) throws -> [AlcoholFreeDay] {
     let descriptor = FetchDescriptor<AlcoholFreeDay>(
       predicate: #Predicate { $0.day == startOfDay }
     )
-    return (try? context.fetch(descriptor)) ?? []
+    return try context.fetch(descriptor)
   }
 
   /// Every marked day, as start-of-day dates.
@@ -260,15 +416,29 @@ struct DrinkRepository {
   /// passed the new sample. Deletions first is correct for every transition
   /// (drink→drink, drink→zero, zero→drink, zero→zero) and costs nothing: a
   /// sample added and deleted between sweeps is never offered as an addition.
+  ///
+  /// **Throws at the first read or save that fails, and the caller then
+  /// withholds the anchor** (ADR-0025's second 2026-09-16 amendment). The
+  /// anchor used to advance whatever happened here, and every read here went
+  /// through `try?` — so a deletion made in the other app while this store
+  /// could not be read left its mirror, a drink or a marker Tallyist offers
+  /// no way to remove, behind for good. Withheld, the next sweep offers the
+  /// whole delta again, and applying it twice is harmless in all but one
+  /// case: what already landed dedups by sample id, and a deletion finds
+  /// nothing left to delete. The exception is a zero whose marker landed and
+  /// was then cleared by a drink the reader logged and removed before the
+  /// replay — nothing carries that sample's id any more, so the replay marks
+  /// the day again, where a committed anchor would have left it blank
+  /// (recorded in ADR-0025's second 2026-09-16 amendment).
   func applyExternalChanges(
     added: [ExternalBeverageSample],
     deletedIDs: [UUID],
     calendar: Calendar = .current
-  ) {
-    removeImportedEntries(sampleIDs: deletedIDs)
-    removeImportedMarkers(sampleIDs: deletedIDs)
+  ) throws {
+    try removeImportedEntries(sampleIDs: deletedIDs)
+    try removeImportedMarkers(sampleIDs: deletedIDs)
     for sample in added {
-      importExternalSample(id: sample.id, count: sample.count, loggedAt: sample.loggedAt, calendar: calendar)
+      try importExternalSample(id: sample.id, count: sample.count, loggedAt: sample.loggedAt, calendar: calendar)
     }
   }
 
@@ -289,15 +459,18 @@ struct DrinkRepository {
   /// new. Drinks route through `saveOrThrow` so an imported drink clears a
   /// same-day marker exactly like a logged one: evidence beats assertion,
   /// whichever app recorded the evidence.
-  func importExternalSample(id: UUID, count: Double, loggedAt: Date, calendar: Calendar = .current) {
+  ///
+  /// Throws when a read or the save fails, rather than dropping the sample: a
+  /// sample dropped here is one the sweep's anchor would pass for good.
+  func importExternalSample(id: UUID, count: Double, loggedAt: Date, calendar: Calendar = .current) throws {
     guard count.isFinite else { return }
     if count == 0 {
-      markAlcoholFreeFromHealth(sampleID: id, day: loggedAt, calendar: calendar)
+      try markAlcoholFreeFromHealth(sampleID: id, day: loggedAt, calendar: calendar)
       return
     }
     guard count > 0 else { return }
-    guard entryForHealthSample(id) == nil else { return }
-    try? saveOrThrow(
+    guard try entryForHealthSample(id) == nil else { return }
+    try saveOrThrow(
       .importedFromHealth(sampleID: id, count: count, loggedAt: loggedAt),
       calendar: calendar
     )
@@ -319,19 +492,19 @@ struct DrinkRepository {
   /// does not touch it), and a second zero sample on the same day — two apps,
   /// or one app twice — attaches to nothing.
   ///
-  /// A day whose drinks cannot be read is refused, like a day that has some —
-  /// the same backstop as `markAlcoholFreeOrThrow`, where a failed read passed
-  /// off as empty let the marker through. The cost is the sample's: the sweep
-  /// commits its anchor regardless, so a zero refused this way stays unmirrored
-  /// and the day stays blank. Blank says "not known", which is what a day that
-  /// could not be read is; a marker over drinks would say something false.
-  func markAlcoholFreeFromHealth(sampleID: UUID, day: Date, calendar: Calendar = .current) {
-    guard alcoholFreeDay(forHealthSample: sampleID) == nil else { return }
+  /// A day whose drinks cannot be read is not marked — the same backstop as
+  /// `markAlcoholFreeOrThrow`, where a failed read passed off as empty let
+  /// the marker through. It throws rather than refusing, so the sweep
+  /// withholds its anchor and the zero is offered again once the day can be
+  /// read. (It used to be refused for good: the anchor advanced regardless,
+  /// and the day stayed blank.)
+  func markAlcoholFreeFromHealth(sampleID: UUID, day: Date, calendar: Calendar = .current) throws {
+    guard try alcoholFreeDay(forHealthSample: sampleID) == nil else { return }
     let startOfDay = calendar.startOfDay(for: day)
-    guard (try? drinksOrThrow(on: startOfDay, calendar: calendar))?.isEmpty == true else { return }
-    guard alcoholFreeDay(on: startOfDay) == nil else { return }
+    guard try drinksOrThrow(on: startOfDay, calendar: calendar).isEmpty else { return }
+    guard try !isMarkedAlcoholFreeOrThrow(startOfDay, calendar: calendar) else { return }
     context.insert(AlcoholFreeDay(day: startOfDay, recordedAt: day, healthKitSampleID: sampleID))
-    try? context.save()
+    try commit()
   }
 
   /// Removes mirrored entries whose external samples were deleted from Health.
@@ -339,49 +512,61 @@ struct DrinkRepository {
   /// Touches only count-based rows: a deleted sample that *this app* wrote means
   /// someone pruned the mirror in the Health app, and the log — the source of
   /// truth for the app's own entries — must not follow it.
-  func removeImportedEntries(sampleIDs: [UUID]) {
+  ///
+  /// Every id is read before anything is deleted, so a read that fails partway
+  /// leaves no deletion pending. And every match, as for markers: two devices
+  /// can each mirror the same sample before CloudKit merges, and this removed
+  /// only the first, leaving a read-only drink nothing could remove.
+  func removeImportedEntries(sampleIDs: [UUID]) throws {
     guard !sampleIDs.isEmpty else { return }
-    for id in sampleIDs {
-      if let entry = entryForHealthSample(id), entry.countedDrinks != nil {
-        context.delete(entry)
+    let mirrors = try sampleIDs
+      .flatMap { id in
+        try context.fetch(FetchDescriptor<DrinkEntry>(
+          predicate: #Predicate { $0.healthKitSampleID == id }
+        ))
       }
+      .filter { $0.countedDrinks != nil }
+    guard !mirrors.isEmpty else { return }
+    for entry in mirrors {
+      context.delete(entry)
     }
-    try? context.save()
+    try commit()
   }
 
   /// Removes no-alcohol markers whose zero-count samples were deleted from
   /// Health (ADR-0025). The user's own markers carry no sample id and can
   /// never match; deletions are reported for every source, and only the
   /// mirror follows.
-  func removeImportedMarkers(sampleIDs: [UUID]) {
+  func removeImportedMarkers(sampleIDs: [UUID]) throws {
     guard !sampleIDs.isEmpty else { return }
-    for id in sampleIDs {
-      // Every match: two devices can each mirror the same zero before CloudKit
-      // merges, and a survivor would be a Health marker nothing can remove.
-      let descriptor = FetchDescriptor<AlcoholFreeDay>(
+    // Every match: two devices can each mirror the same zero before CloudKit
+    // merges, and a survivor would be a Health marker nothing can remove.
+    let mirrors = try sampleIDs.flatMap { id in
+      try context.fetch(FetchDescriptor<AlcoholFreeDay>(
         predicate: #Predicate { $0.healthKitSampleID == id }
-      )
-      for marker in (try? context.fetch(descriptor)) ?? [] {
-        context.delete(marker)
-      }
+      ))
     }
-    try? context.save()
+    guard !mirrors.isEmpty else { return }
+    for marker in mirrors {
+      context.delete(marker)
+    }
+    try commit()
   }
 
-  func alcoholFreeDay(forHealthSample id: UUID) -> AlcoholFreeDay? {
+  func alcoholFreeDay(forHealthSample id: UUID) throws -> AlcoholFreeDay? {
     var descriptor = FetchDescriptor<AlcoholFreeDay>(
       predicate: #Predicate { $0.healthKitSampleID == id }
     )
     descriptor.fetchLimit = 1
-    return (try? context.fetch(descriptor))?.first
+    return try context.fetch(descriptor).first
   }
 
-  private func entryForHealthSample(_ id: UUID) -> DrinkEntry? {
+  private func entryForHealthSample(_ id: UUID) throws -> DrinkEntry? {
     var descriptor = FetchDescriptor<DrinkEntry>(
       predicate: #Predicate { $0.healthKitSampleID == id }
     )
     descriptor.fetchLimit = 1
-    return (try? context.fetch(descriptor))?.first
+    return try context.fetch(descriptor).first
   }
 
   // MARK: - HealthKit backfill

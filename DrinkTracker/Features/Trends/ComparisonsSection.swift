@@ -56,7 +56,10 @@ struct ComparisonsSection: View {
     let now = Date()
     let shown = resolve(now: now)
 
-    if !shown.isEmpty {
+    // Nothing over a log these queries could not read: a comparison of a range
+    // of zeros is a claim about the reader nobody read. Trends draws its own
+    // unreadable state when *its* queries fail; these two fetch separately.
+    if !shown.isEmpty, !isLogUnreadable {
       // Mapped once for both cards, as the combined card mapped it once for
       // both blocks: `loggedDrinks` walks the whole log, and reading it per
       // card would allocate a second copy of it on every body pass. Skipped
@@ -115,6 +118,14 @@ struct ComparisonsSection: View {
     /// Whether anything shown needs the whole log projected. Only the two
     /// population cards do.
     var needsLog: Bool { average != nil || days != nil }
+  }
+
+  /// Values first, then `fetchError` — the order `TodayView.isTodayUnreadable`
+  /// explains.
+  private var isLogUnreadable: Bool {
+    _ = entries
+    _ = freeDays
+    return _entries.fetchError != nil || _freeDays.fetchError != nil
   }
 
   private func resolve(now: Date) -> Shown {

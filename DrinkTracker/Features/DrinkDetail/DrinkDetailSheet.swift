@@ -17,6 +17,11 @@ struct DrinkDetailSheet: View {
   @State private var draft: DrinkDraft
   @State private var customVolumeText: String
   @State private var isSaving = false
+  /// Whether the last press of the primary action wrote nothing. The sheet
+  /// stays open with the reader's draft, because nothing reached the log or
+  /// Health (`DrinkStore.save` writes both or neither), so pressing again is
+  /// the whole recovery.
+  @State private var saveFailed = false
   @FocusState private var isCustomVolumeFocused: Bool
 
   private let onLogged: (LoggedDrink) -> Void
@@ -134,6 +139,15 @@ struct DrinkDetailSheet: View {
       // the button — hiding the number exactly while the user is changing it.
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         liveEstimate
+        if saveFailed {
+          // The watch's words for the same event: what did not happen, with no
+          // apology and no instruction — the button beneath is still there,
+          // which says what to do.
+          Text("Not saved")
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
         SUButton(model: .primary(logButtonTitle, isEnabled: canLog && !isSaving)) {
           logDrink()
         }
@@ -471,18 +485,32 @@ struct DrinkDetailSheet: View {
         abvPercent: draft.abvPercent,
         region: settings.effectiveRegion
       )
-      store.adopt(adopted)
+      let isAdopted = (try? store.adopt(adopted)) != nil
       isSaving = false
-      onLogged(adopted)
+      isAdopted ? onLogged(adopted) : reportNotSaved()
       return
     }
 
     let drinks = draft.makeLoggedDrinks(region: settings.effectiveRegion)
     Task {
-      let saved = await store.save(drinks)
+      // Nil only when nothing was saved: a batch that failed partway reports
+      // what landed and closes (`DrinkStore.save(_:)`), since pressing again
+      // would write the landed drinks a second time.
+      let saved = try? await store.save(drinks)
       isSaving = false
-      if let saved { onLogged(saved) }
+      if let saved { onLogged(saved) } else { reportNotSaved() }
     }
+  }
+
+  /// The sheet stays open over the reader's draft, says so, and speaks it:
+  /// otherwise a VoiceOver press that wrote nothing is indistinguishable from
+  /// one still in progress.
+  private func reportNotSaved() {
+    saveFailed = true
+    // `String(localized:)`, not a literal: the announcement has no localized
+    // initializer, so a bare literal binds to its `String` form, never reaches
+    // the catalog, and would be spoken in English whatever the language.
+    AccessibilityNotification.Announcement(String(localized: "Not saved")).post()
   }
 }
 

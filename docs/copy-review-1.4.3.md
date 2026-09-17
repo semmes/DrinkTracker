@@ -1492,3 +1492,21 @@ the other is reused.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The rest of the app stops drawing a log it did not read, and a save that fails says so (2026-09-16)
+
+Calendar, the year view, History and Trends folded the whole log from queries
+that hand back no rows when their first fetch fails, so a store that could not
+be read drew as a calendar of blank days, "Nothing logged yet" and a week of
+zeros. They now draw the glyph and one sentence in place of their content. And
+the drink sheet, which closed as if a drink had been logged when its save
+failed, stays open and says it was not saved. **One string is new**; the other
+is reused.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Your log couldn't be read." | Calendar, the year view, History and Trends, in place of their content, while the log's read has failed | Today's sentence, widened to what these screens read: they fold the whole log, not today's drinks, so "Today's drinks" would be false on them. A fact in the past tense and nothing past it — no apology, no alarm, no instruction, no promise, and no claim that anything is lost. "Your log" is the app's existing name for the record ("Your log follows your iCloud account across your devices"). No exclamation mark. |
+| "Not saved" | The drink sheet, above its button, after a press that wrote nothing; also spoken as a VoiceOver announcement | Reused verbatim from the watch, where it is the same event (reviewed under 1.4 with the counter). It states the outcome of the reader's own press and stops: the sheet stays open over their draft and the button is still there, so no instruction is needed, and none is given. It does not say why — the app knows only that a save failed, and a guess would send a reader to the wrong place. |
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
