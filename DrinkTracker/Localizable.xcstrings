@@ -976,6 +976,9 @@
     "Today already has drinks logged, so it wasn't recorded as no alcohol." : {
 
     },
+    "Today's drinks couldn't be read." : {
+
+    },
     "Today, %@, %@" : {
       "localizations" : {
         "en" : {

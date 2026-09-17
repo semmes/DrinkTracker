@@ -129,3 +129,27 @@ Design it as its own change, the way ADR-0016 designed adoption; don't relax
 read-only to get there. And if HealthKit ever distinguishes "recorded zero"
 from "no data" by anything other than the value, the classification here
 should read that instead.
+
+## Amendment (2026-09-16): a day that cannot be read refuses the zero
+
+The standing rule — a day with entries refuses the marker — read the day
+through `drinks(on:)`, which turns a failed fetch into an empty day, so a
+Health zero arriving while the store could not be read would mark a day that
+had drinks. `markAlcoholFreeFromHealth` now refuses a day whose drinks cannot
+be read, exactly as it refuses one that has some, through the same throwing
+read as the user's own marker (ADR-0011's amendment of the same date).
+
+**The cost is the sample's.** The sweep commits its anchor whether or not
+every addition landed, so a zero refused this way is not offered again, and
+the day stays blank. Blank means "not known", which is true of a day that
+could not be read; a marker over drinks would be false, and it would be one
+Tallyist offers no way to remove (read-only, above). A later foreground does
+not retry it. If that trade ever needs revisiting, the change is to let a
+sweep that could not read withhold its anchor — not to mark on a failed read.
+Pinned at tier 2 in `FailedReadTests`.
+
+The same unconditional commit has a larger cost this change does not touch: the
+sweep's deletions read through `try?` too (`removeImportedEntries`,
+`removeImportedMarkers`), so a sample deleted in the other app while the store
+cannot be read leaves its mirror — a drink or a marker, both read-only here —
+behind for good. Withholding the anchor is the fix for both.

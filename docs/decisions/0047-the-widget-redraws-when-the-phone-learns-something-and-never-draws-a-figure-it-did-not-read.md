@@ -175,6 +175,9 @@ Settings → Diagnostics.
   `markAlcoholFreeOrThrow` refuses a day with drinks by checking `drinks(on:).isEmpty`, so
   a failed fetch reads as empty and ADR-0011's backstop could let such a day be marked; and
   the app's `@Query` screens do not read `fetchError`. Each wants its own change.
+  *(All three addressed the same day: the marker's refusal in ADR-0011's amendment,
+  the seed in ADR-0042's, and the screens in ADR-0004's second 2026-09-16 amendment.
+  The Health zero's copy of the refusal, which this list missed, is in ADR-0025's.)*
 
 ## How to reopen
 

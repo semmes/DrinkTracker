@@ -18,7 +18,11 @@ import SwiftUI
 ///   amount of drinking;
 /// - **redacted** (Always-On, wrist down): the fill goes too, because once
 ///   the digits are gone the colour *is* the figure (ADR-0045); the drop
-///   glyph returns so the screen does not read as broken.
+///   glyph returns so the screen does not read as broken;
+/// - **unreadable** (today's read failed — ADR-0004's 2026-09-16 amendment):
+///   drawn exactly as redacted, because there is no figure to show and no
+///   band to paint, and a bare 0 would claim an empty day — the complication
+///   draws its unavailable entry the same way (ADR-0047).
 ///
 /// The user's own hide (a tap on the tile) suppresses the numeral for a
 /// struck-out bar in the band's ink and keeps the fill: the day's amount stays
@@ -27,6 +31,8 @@ struct CounterTile: View {
   let count: Int
   let band: DayIntensity
   let isCountHidden: Bool
+  /// Today could not be read: the redacted drawing, whatever the count says.
+  var isUnavailable: Bool = false
 
   @Environment(\.redactionReasons) private var redaction
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -36,7 +42,9 @@ struct CounterTile: View {
   private let scheme: ColorScheme = .dark
 
   private var isRedacted: Bool { redaction.contains(.privacy) }
-  private var hasTile: Bool { band != .unlogged || isRedacted }
+  /// Redacted by the system or unreadable: either way no figure and no band.
+  private var isFigureless: Bool { isRedacted || isUnavailable }
+  private var hasTile: Bool { band != .unlogged || isFigureless }
 
   var body: some View {
     ZStack {
@@ -45,7 +53,7 @@ struct CounterTile: View {
     }
     .frame(width: WatchLayout.tileSide, height: WatchLayout.tileSide)
     .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: band)
-    .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: isRedacted)
+    .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: isFigureless)
   }
 
   // MARK: Ground
@@ -53,7 +61,7 @@ struct CounterTile: View {
   @ViewBuilder
   private var ground: some View {
     let shape = RoundedRectangle(cornerRadius: WatchLayout.tileRadius, style: .continuous)
-    if isRedacted {
+    if isFigureless {
       // The outline channel: the design system's existing "off the ramp" state.
       shape.fill(IntensityPalette.fill(.alcoholFree, scheme: scheme))
         .overlay(shape.strokeBorder(Color.primary.opacity(0.35), lineWidth: 2))
@@ -71,7 +79,7 @@ struct CounterTile: View {
 
   @ViewBuilder
   private var content: some View {
-    if isRedacted {
+    if isFigureless {
       glyph(DrinkType.Symbol.standard)
     } else if band == .alcoholFree {
       glyph(DrinkType.Symbol.alcoholFree)

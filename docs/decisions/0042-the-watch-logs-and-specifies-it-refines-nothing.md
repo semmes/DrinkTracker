@@ -108,8 +108,72 @@ figure follow the region.
 - Phase 4's hint ("Hold ＋ to say what it was") is not shown until the picker
   it names exists.
 
+## Amendment, 2026-09-16 — ＋ does not guess a seed it could not read
+
+ADR-0047 found in passing that `nextQuickDrink` read the history through
+`try?`, so a failed fetch seeded ＋ from an *empty* history rather than
+failing, and left open whether a failed read should throw or fall back —
+a product call, made here. **＋ now throws when the history cannot be read,
+and nothing is logged.**
+
+What the fallback wrote, and why that is the wrong half of the trade:
+
+- **Under the standard-drink seed**, an empty history has no day template, so
+  a reader who had described a wine got an untyped standard drink. That row is
+  the day's newest entry, and the day template *is* the newest repeatable
+  entry (ADR-0023's revision) — so one failed read silently turned every later
+  ＋ that day, on every surface, into standard drinks. That is a change to
+  what ＋ does that the reader never asked for — the outcome ADR-0023's
+  2026-09-06 amendment guards against, reached through a write the reader did
+  not describe rather than through a stored mode. A described 16 oz IPA at 7%
+  logs as 1.0 where it is 1.9.
+- **Under the usual-drink seed**, an empty history has no plurality, so the
+  fallback logged beer at beer's defaults for anyone — a typed claim about a
+  drink, made on no evidence at all. ADR-0023's rule is that degrading to ugly
+  beats degrading to false; this degraded to false.
+- **It only wrote a row in the half-failed case.** Where a fetch fails because
+  the store is failing, the save after it fails too — it did in every failure
+  produced for this change — so the fallback bought nothing then, and wrote a
+  wrong row only where the read failed and the write did not: silently, to be
+  found in History later. (A failed save still leaves its insert pending, and
+  the next save that works writes it — ADR-0004's second 2026-09-16
+  amendment — so even the "bought nothing" case could deliver the guess late.) This record's own argument for Double Tap applies
+  unchanged: in a log whose whole value is accuracy, a wrong entry is a worse
+  bug than a missed tap, and a missed tap that says so can simply be repeated.
+
+What each ＋ now does when the history cannot be read:
+
+- **The watch** plays the refusal haptic and shows "Not saved", which it
+  already did for a failed save — `logOneDrink` threw before; it now throws
+  one step earlier.
+- **The widget's `LogOneDrinkIntent`** fails, and its breadcrumb records
+  `failed (one-drink): …`, as it did for a failed save.
+- **Today's ＋ and the calendar day sheet's ＋** log nothing — not to the
+  store and not to Health — and the count does not move, and the Diagnostics
+  timeline records `Today ＋ not saved — history unreadable` or its day-sheet
+  equivalent. No new copy. (That is less than a failed *save* does there:
+  `DrinkStore.save` writes the Health sample first and never reports the store
+  save that then fails — ADR-0004's second 2026-09-16 amendment.)
+
+Pinned at tier 2 (`FailedReadTests`), on a real store file overwritten under
+its open container: an in-memory store could not be made to fail a fetch (a
+model missing from the schema fetches as empty, and the unsupported predicates
+tried crashed the process rather than throwing), and a damaged file throws
+Cocoa error 259 deterministically. The test restores the bytes and saves, and
+checks that nothing the failed ＋ did was left pending to be written then.
+
+Not changed: the history fetch is still the whole log under both seeds, though
+the standard-drink seed reads only today's entries from it.
+
 ## How to reopen
 
+- If field reports show ＋ taps lost to failed reads — the timeline lines
+  above, or `failed (one-drink)` breadcrumbs naming a fetch rather than a save
+  — the fallback to reconsider is not "seed from nothing" but a narrower read:
+  under the standard-drink seed only today's entries matter, and a bounded
+  fetch fails less than an unbounded one. Logging a guessed drink from ＋
+  stays refused. (Bulk fill seeds from the calendar's own query and can still
+  guess on a failed read — recorded in ADR-0004's amendment, not fixed here.)
 - If field reports say people want to state a size from the wrist, the
   Digital Crown over `DrinkType.sizeOptions` is the obvious shape, and it is
   additive.

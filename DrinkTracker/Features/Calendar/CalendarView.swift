@@ -320,11 +320,17 @@ struct CalendarView: View {
         existing: store.repository.drinks(on: day, calendar: calendar),
         calendar: calendar
       )
-      // The counter's one seed rule (ADR-0042), dated into the day shown.
-      let drink = store.repository.nextQuickDrink(
-        seed: seed, region: region, at: stamp, calendar: calendar
-      )
-      await store.save(drink)
+      // The counter's one seed rule (ADR-0042), dated into the day shown. A
+      // history that cannot be read logs nothing rather than a guessed drink
+      // (ADR-0042's 2026-09-16 amendment); the count does not move.
+      do {
+        let drink = try store.repository.nextQuickDrink(
+          seed: seed, region: region, at: stamp, calendar: calendar
+        )
+        await store.save(drink)
+      } catch {
+        Diagnostics.appendTimeline("day sheet ＋ not saved — history unreadable: \(error)")
+      }
     }
   }
 

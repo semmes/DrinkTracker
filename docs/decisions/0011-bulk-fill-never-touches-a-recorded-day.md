@@ -72,3 +72,24 @@ still never touched, the sheet still says what it skips, and `markAlcoholFree`'s
 refusal still backstops both paths. The bar's cell highlight makes the rule
 visible before the action: the accent wash lands only on days a bulk action can
 write to; recorded days in the run get the ring alone.
+
+---
+
+## Amendment (2026-09-16): the backstop reads the day, or refuses
+
+"The repository remains the backstop" was not true when the read under it
+failed. `markAlcoholFree` asked whether the day had drinks through
+`drinks(on:)`, which turns a failed fetch into an empty day — so a store that
+could not be read let a day *with* drinks be marked, from bulk fill, the
+calendar's action bar, Today, Siri or the watch alike. And because the save
+that followed usually failed too, the marker stayed inserted in the context,
+where the next save that worked wrote it. ADR-0047 found it in passing.
+
+The refusal now reads through `drinksOrThrow` (and the marker check through
+`isMarkedAlcoholFreeOrThrow`), so a day that cannot be read is never marked:
+`markAlcoholFreeOrThrow` throws, and `markAlcoholFree` — the call every in-app
+path uses — answers `false`, which the views already read as "nothing
+changed". Nothing is inserted until both reads have answered. Pinned at tier 2
+in `FailedReadTests` against a store file damaged under its open container and
+then restored, which is what shows the old path's marker landing on a day with
+a drink. Nothing about what a bulk action writes has changed.

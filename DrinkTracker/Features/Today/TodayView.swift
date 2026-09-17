@@ -45,6 +45,25 @@ struct TodayView: View {
     return recentEntries.filter { Calendar.current.isDateInToday($0.loggedAt) }
   }
 
+  /// Whether today's last read failed — as distinct from a day with nothing in
+  /// it, which is what a failed query otherwise looks like here: the first
+  /// fetch that fails hands back no rows, and the hero drew a confident 0 over
+  /// them (ADR-0004's 2026-09-16 amendment). A refetch that fails keeps the
+  /// last rows it had, which is a count from before whatever change asked for
+  /// the refetch, so it is treated the same.
+  ///
+  /// The two values are read first, and that order is load-bearing: a query
+  /// fetches when its value is read, and `fetchError` read before that answers
+  /// for the fetch before — nil, on the first pass over a store that cannot be
+  /// read (measured). The error clears when a later fetch succeeds, and a
+  /// query fetches again only when the store changes: a write from this app,
+  /// the widget, Health's sweep or a CloudKit import, or a relaunch.
+  private var isTodayUnreadable: Bool {
+    _ = recentEntries
+    _ = alcoholFreeDays
+    return _recentEntries.fetchError != nil || _alcoholFreeDays.fetchError != nil
+  }
+
   @State private var draft: DrinkDraft?
   /// The imported entry being given typed details, if any (ADR-0016).
   @State private var adopting: LoggedDrink?
@@ -81,8 +100,12 @@ struct TodayView: View {
     List {
       Section {
         VStack(spacing: GlassTokens.Spacing.block) {
-          counterHero
-          SessionPaceCard()
+          if isTodayUnreadable {
+            unreadableHero
+          } else {
+            counterHero
+            SessionPaceCard()
+          }
         }
         .padding(.top, GlassTokens.Spacing.tight)
       }
@@ -95,14 +118,18 @@ struct TodayView: View {
         trailing: GlassTokens.Spacing.screenMargin
       ))
 
-      todaysDrinksSection
+      if !isTodayUnreadable {
+        todaysDrinksSection
+      }
     }
     .listStyle(.plain)
     .scrollContentBackground(.hidden)
     .scrollBounceBehavior(.basedOnSize)
     .navigationTitle("Today")
     .safeAreaInset(edge: .bottom) {
-      if let drink = deletion.recentlyDeleted {
+      // Not while today cannot be read: Undo writes the drink back, and this
+      // screen offers nothing that acts on a day it could not read.
+      if let drink = deletion.recentlyDeleted, !isTodayUnreadable {
         UndoDeleteBar(drink: drink) {
           Task { await deletion.undo(using: store) }
         }
@@ -266,6 +293,42 @@ struct TodayView: View {
     .frame(maxWidth: .infinity)
   }
 
+  /// The counter when today could not be read (ADR-0004's 2026-09-16
+  /// amendment): the drop glyph where the figure goes and the words, as the
+  /// home-screen widget and the watch complication draw the same state
+  /// (ADR-0047) — no figure, no band, and none of the controls.
+  ///
+  /// No ＋ or −, no pill, no "Record no alcohol today", no "Add specific", and
+  /// no rows beneath: each of them acts on, or states, a day this screen has
+  /// just failed to read. A ＋ beside no figure logs blind, and a tap whose
+  /// effect cannot be seen invites the second tap that logs a duplicate; the
+  /// no-alcohol button is offered on a day that *looks* empty, which is the
+  /// one thing a failed read cannot say. The sentence is the one thing added
+  /// over the widget's drawing: this is a screen someone came to act on, and
+  /// a glyph with its controls gone and no word reads as a broken app.
+  private var unreadableHero: some View {
+    VStack(spacing: GlassTokens.Spacing.tight) {
+      // The band tile's own 126pt, so the screen does not jump when a read
+      // recovers; the glyph at three quarters of the bare numeral, the
+      // widget's proportion.
+      Image(decorative: DrinkType.Symbol.standard)
+        .font(.system(size: 63, weight: .semibold))
+        .foregroundStyle(.primary)
+        .frame(minHeight: 126)
+
+      Text("drinks today")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+
+      Text("Today's drinks couldn't be read.")
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+    }
+    .frame(maxWidth: .infinity)
+    .accessibilityElement(children: .combine)
+  }
+
   /// Today's own band — the same fold and the same palette as the calendar
   /// cell for this day, so the two can never disagree about one day (ADR-0034).
   ///
@@ -336,13 +399,21 @@ struct TodayView: View {
   /// History is fetched inside the op, after any pending write has committed —
   /// which is also what makes rapid taps follow a just-described drink; this
   /// view otherwise only queries today.
+  ///
+  /// A history that cannot be read logs nothing (ADR-0042's 2026-09-16
+  /// amendment) — the count simply does not move, as it does not for a save
+  /// that fails, and the timeline says why.
   private func addOneDrink() {
     let store = store
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
-      let drink = store.repository.nextQuickDrink(seed: seed, region: region)
-      lastLogged = await store.save(drink)
+      do {
+        let drink = try store.repository.nextQuickDrink(seed: seed, region: region)
+        lastLogged = await store.save(drink)
+      } catch {
+        Diagnostics.appendTimeline("Today ＋ not saved — history unreadable: \(error)")
+      }
     }
   }
 
