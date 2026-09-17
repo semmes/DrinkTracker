@@ -447,12 +447,19 @@ Consequences:
   bytes put back under a live connection do not always make writes work again — reads
   did, but two saves failed with Cocoa 256 until the app was relaunched — so a restore
   is a relaunch, not a guarantee.
+- **Verified on hardware (the owner, 2026-09-16):** the healthy path, which is the only
+  one a working device can show, and the check the handoff asked for — logging, editing,
+  removing, undoing and adopting an Apple Health drink with Health authorized, then the
+  Health app read against the log: each drink held exactly one sample and a removed
+  drink none. Phone and watch behaved as expected. That is this amendment's order — the
+  row, then Health, then the sample id — holding on a real iPhone and watch across the
+  five writes the pass made.
 - **Not verified:** the Health sweep's withheld anchor and bulk fill at tier 3 (the first
   needs another app's samples, the second a drag the simulator tool did not attempt);
   the compare-and-set race between a save and a backfill, which needs both to straddle
-  one Health round trip; any of it on hardware or under a real I/O failure; "Your log
-  couldn't be read." in dark mode or at accessibility sizes (a system
-  `ContentUnavailableView`); VoiceOver hearing "Not saved".
+  one Health round trip; any of the failure states on hardware, which only a real I/O
+  failure produces; "Your log couldn't be read." in dark mode or at accessibility sizes
+  (a system `ContentUnavailableView`); VoiceOver hearing "Not saved".
 
 ## How to reopen
 
