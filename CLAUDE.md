@@ -189,7 +189,10 @@ or the watch counter. **The write paths that change left open were closed the sa
 night (the last bullet):** a write reads before it changes anything, a failed save
 rolls back, Health follows the log instead of leading it, the Health sweep keeps its
 anchor when it could not read, and Calendar, the year view, History and Trends stop
-drawing a log they did not read. The paragraph that follows is the 2026-09-10 state, kept for
+drawing a log they did not read. **The owner's hardware pass of those changes passed
+the same day** (the last bullet): log, edit, remove, undo and adopt with Health
+authorized, exactly one sample per drink in the Health app and none for a removed one,
+phone and watch as expected. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
@@ -2275,4 +2278,23 @@ Open items for v1.2:
   reachable on a healthy device, so the owner-visible check is the absence of change —
   logging, editing, removing, undoing and adopting on hardware with Health authorized,
   then confirming in the Health app that each drink has exactly one sample and a removed
-  one has none.
+  one has none. **Passed on hardware the same day — the next bullet.**
+- **The owner's hardware pass of the 2026-09-16 changes passed (2026-09-16).** The check
+  the bullet above asked for, in the owner's words: *"Tested and confirmed on real
+  hardware log, edit, remove, undo and add details to an Apple Health drink with Health
+  turned on. Then confirm in the Health app that each drink has exactly one sample, and a
+  removed drink has none. Watch and phone are working as expected."* That is the healthy
+  path of ADR-0004's third amendment holding on a real iPhone and watch — the row first,
+  then Health, then the sample id — with the Health app agreeing with the log after each
+  of the five writes: a new drink's one sample, an edit replacing its sample rather than
+  adding one, a removal retiring it, an Undo writing one for the restored row, and an
+  adoption leaving the other app's sample as the only one. Recorded in ADR-0004's third
+  amendment; no code change. **Still open, because a working device cannot show it:** the
+  failure states themselves on hardware, which only a real I/O failure produces; the
+  Health sweep's withheld anchor and bulk fill at tier 3; the compare-and-set race
+  between a save and a backfill; "Your log couldn't be read." in dark mode and at
+  accessibility sizes, and VoiceOver over it and over "Not saved"; the watch's
+  unavailable state on a 40/41/42mm case. **Not claimed:** ADR-0047's own tier-4 list
+  (a watch drink redrawing the phone's widget while the app is in the background, the
+  widget ＋ read in the timeline, the unexplained tap if it recurs) — the report does not
+  name the widget. Phase 8 is the remaining work on the 1.4 train.
