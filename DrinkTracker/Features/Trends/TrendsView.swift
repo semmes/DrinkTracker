@@ -94,30 +94,38 @@ struct TrendsView: View {
     // dimming decision) would multiply that by the bar count on every frame
     // of a scrub.
     let snapshot = snapshot()
+    // After the snapshot, which reads both queries: see `isLogUnreadable`.
+    let isUnreadable = isLogUnreadable
 
-    ScrollView {
-      VStack(spacing: GlassTokens.Spacing.section) {
-        rangePicker
-        chartCard(snapshot)
-        summaryCards(snapshot)
-        // The reader's own log by weekday — outside the Comparisons section
-        // below it, and gated by nothing (ADR-0038's 2026-09-10 amendment).
-        WeekdayCard(
-          totals: snapshot.weekdays,
-          region: settings.effectiveRegion,
-          calendar: calendar
-        )
-        // The three published comparisons under one heading that names them.
-        // The section owns all three gates, so it renders nothing at all when
-        // the reader has turned every comparison off.
-        ComparisonsSection(
-          weekdayTotals: snapshot.weekdays,
-          region: settings.effectiveRegion,
-          calendar: calendar
-        )
+    Group {
+      if isUnreadable {
+        UnreadableLogView()
+      } else {
+        ScrollView {
+          VStack(spacing: GlassTokens.Spacing.section) {
+            rangePicker
+            chartCard(snapshot)
+            summaryCards(snapshot)
+            // The reader's own log by weekday — outside the Comparisons section
+            // below it, and gated by nothing (ADR-0038's 2026-09-10 amendment).
+            WeekdayCard(
+              totals: snapshot.weekdays,
+              region: settings.effectiveRegion,
+              calendar: calendar
+            )
+            // The three published comparisons under one heading that names them.
+            // The section owns all three gates, so it renders nothing at all when
+            // the reader has turned every comparison off.
+            ComparisonsSection(
+              weekdayTotals: snapshot.weekdays,
+              region: settings.effectiveRegion,
+              calendar: calendar
+            )
+          }
+          .screenMargin()
+          .padding(.vertical, GlassTokens.Spacing.section)
+        }
       }
-      .screenMargin()
-      .padding(.vertical, GlassTokens.Spacing.section)
     }
     .navigationTitle("Trends")
     .navigationBarTitleDisplayMode(.large)
@@ -130,6 +138,17 @@ struct TrendsView: View {
   }
 
   // MARK: - Data
+
+  /// Whether either query last failed to read. A failed first fetch hands
+  /// back no rows, and every chart, card and comparison here folded them into
+  /// a range of zeros; a failed later fetch keeps old rows, a picture from
+  /// before whatever change asked for the new read. Values first, then
+  /// `fetchError` (`TodayView.isTodayUnreadable` has why).
+  private var isLogUnreadable: Bool {
+    _ = allEntries
+    _ = alcoholFreeDays
+    return _allEntries.fetchError != nil || _alcoholFreeDays.fetchError != nil
+  }
 
   /// One render's worth of figures, computed from the store once.
   private struct Snapshot {

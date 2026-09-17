@@ -123,6 +123,9 @@ struct TodayView: View {
       }
     }
     .listStyle(.plain)
+    // Rebuilt from the data after a removal that wrote nothing, whose swipe
+    // had already animated its row away (`DeletionCoordinator.failedRemovals`).
+    .id(deletion.failedRemovals)
     .scrollContentBackground(.hidden)
     .scrollBounceBehavior(.basedOnSize)
     .navigationTitle("Today")
@@ -402,18 +405,21 @@ struct TodayView: View {
   ///
   /// A history that cannot be read logs nothing (ADR-0042's 2026-09-16
   /// amendment) — the count simply does not move, as it does not for a save
-  /// that fails, and the timeline says why.
+  /// that fails, and the timeline says why. A failed save is written nowhere,
+  /// Health included (`DrinkStore.save` records it on the timeline).
   private func addOneDrink() {
     let store = store
     let region = settings.effectiveRegion
     let seed = settings.counterSeed
     enqueueCounterOp {
+      let drink: LoggedDrink
       do {
-        let drink = try store.repository.nextQuickDrink(seed: seed, region: region)
-        lastLogged = await store.save(drink)
+        drink = try store.repository.nextQuickDrink(seed: seed, region: region)
       } catch {
         Diagnostics.appendTimeline("Today ＋ not saved — history unreadable: \(error)")
+        return
       }
+      if let saved = try? await store.save(drink) { lastLogged = saved }
     }
   }
 
@@ -426,7 +432,7 @@ struct TodayView: View {
     let region = settings.effectiveRegion
     enqueueCounterOp {
       let drink = DrinkDraft.standardDrink(region: region).makeLoggedDrink(region: region)
-      lastLogged = await store.save(drink)
+      if let saved = try? await store.save(drink) { lastLogged = saved }
     }
   }
 
@@ -452,9 +458,16 @@ struct TodayView: View {
     enqueueCounterOp {
       // Most recent entry the app owns: imported Health entries are read-only
       // mirrors of another app's data, so minus skips past them to the newest
-      // drink logged here (ADR-0014).
-      guard let recent = store.repository.drinks(on: Date())
-        .first(where: { !$0.isImportedFromHealth }) else { return }
+      // drink logged here (ADR-0014). A day that cannot be read removes
+      // nothing, rather than reading as a day with nothing to remove.
+      let today: [LoggedDrink]
+      do {
+        today = try store.repository.drinksOrThrow(on: Date())
+      } catch {
+        Diagnostics.appendTimeline("Today − not saved — day unreadable: \(error)")
+        return
+      }
+      guard let recent = today.first(where: { !$0.isImportedFromHealth }) else { return }
       await deletion.delete(recent, using: store)
     }
   }
@@ -507,14 +520,17 @@ struct TodayView: View {
     let region = settings.effectiveRegion
     let copy = DrinkDraft.repeating(drink, region: region).makeLoggedDrink(region: region)
     // Enqueued like every other ± now that this is the pill's right segment,
-    // a thumb's width from −. `DrinkStore.save` awaits the HealthKit write
-    // *before* the row reaches the store, so an unchained repeat left a window
-    // in which − fetched the log, could not see the new drink, and deleted the
-    // previous one instead — right count, wrong entry, and a retired Health
-    // sample the user never asked to remove. `copy.loggedAt` is fixed at tap
+    // a thumb's width from −. `DrinkStore.save` used to await the HealthKit
+    // write *before* the row reached the store, so an unchained repeat left a
+    // window in which − fetched the log, could not see the new drink, and
+    // deleted the previous one instead — right count, wrong entry, and a
+    // retired Health sample the user never asked to remove. The row now lands
+    // first, but its sample id is still recorded after an await, and a −
+    // interleaved there would make the save retract the sample it just wrote;
+    // chained, ± stays in the order it was tapped. `copy.loggedAt` is fixed at tap
     // time, so waiting its turn does not move the drink.
     enqueueCounterOp {
-      lastLogged = await store.save(copy)
+      if let saved = try? await store.save(copy) { lastLogged = saved }
     }
   }
 

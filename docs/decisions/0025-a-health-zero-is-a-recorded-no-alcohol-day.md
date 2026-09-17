@@ -144,7 +144,8 @@ every addition landed, so a zero refused this way is not offered again, and
 the day stays blank. Blank means "not known", which is true of a day that
 could not be read; a marker over drinks would be false, and it would be one
 Tallyist offers no way to remove (read-only, above). A later foreground does
-not retry it. If that trade ever needs revisiting, the change is to let a
+not retry it. *(Reversed by the second amendment below: the sweep now keeps
+its anchor, and the zero is offered again.)* If that trade ever needs revisiting, the change is to let a
 sweep that could not read withhold its anchor — not to mark on a failed read.
 Pinned at tier 2 in `FailedReadTests`.
 
@@ -153,3 +154,60 @@ sweep's deletions read through `try?` too (`removeImportedEntries`,
 `removeImportedMarkers`), so a sample deleted in the other app while the store
 cannot be read leaves its mirror — a drink or a marker, both read-only here —
 behind for good. Withholding the anchor is the fix for both.
+
+## Amendment (2026-09-16, second): a sweep that could not read keeps its anchor
+
+The amendment above named the fix and did not make it: "let a sweep that
+could not read withhold its anchor". This makes it.
+
+**`applyExternalChanges` throws** at the first read or save that fails — every
+read under it now throws instead of going through `try?` — and
+`DrinkStore.syncFromHealth` then **does not commit the delta**. The next
+foreground offers the same delta again from the same anchor. Applying it twice
+is harmless in all but one case, which is what makes withholding safe: an
+addition that already landed dedups by sample id without a save, and a
+deletion finds nothing left to delete. The timeline records `Health changes
+not applied, anchor kept`.
+
+**The one case replay is not harmless**, found in review: a sweep marks a day
+from a zero, then fails on a later sample, so the anchor is kept; before the
+next foreground the reader logs a drink on that day (which clears the marker)
+and removes it again. Nothing carries the zero's sample id any more and the
+day is empty, so the replay marks it no alcohol again — where a committed
+anchor would have left it blank, the deletion-over-dormancy trade this record
+makes. It needs a failed sweep, a drink logged and removed on that exact day,
+and no foreground in between; the day then reads as what the other app
+recorded, and the reader can log on it again. Accepted rather than guarded,
+since a guard would need a record of zeros once seen, which this store does
+not keep.
+
+What that recovers:
+
+- **Deletions made in the other app while this store could not be read.** They
+  left their mirrors — a drink or a marker, both read-only here — behind for
+  good. They are now applied on the next sweep that can read.
+- **A zero offered while its day could not be read.** The amendment above
+  accepted losing it (the day stayed blank for good). It now throws, and the
+  replay marks the day once the day reads as empty.
+
+And one defect beside it, found while rewriting deletion sync: **every entry
+mirroring a deleted sample is removed**, not only the first. Markers already
+removed every match, for the reason this record gives — two devices can each
+mirror the same sample before CloudKit merges — and a drink mirrored twice
+that way survived its deletion with one read-only copy nothing in Tallyist
+could remove.
+
+Each removal reads all of its ids before deleting any, so a read that fails
+partway leaves no deletion pending; and every write saves through the
+repository's rollback (ADR-0004's third amendment of this date), so a save
+that fails leaves nothing for a later save to deliver.
+
+**Costs.** A store that stays unreadable is offered the same delta on every
+foreground — one anchored HealthKit query, which is also what a sweep with
+nothing to do costs. A sweep that failed partway has applied the changes
+before the failure; that is safe for the same reason replay is, with the same
+exception. Pinned at tier
+2 in `FailedWriteTests`: the deletion and the zero each throw on a damaged
+store and land when the delta is applied again, and a delta whose second save
+fails lands each sample exactly once on replay; the duplicate entries in
+`HealthImportTests`.

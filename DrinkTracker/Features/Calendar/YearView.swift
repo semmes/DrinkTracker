@@ -46,45 +46,53 @@ struct YearView: View {
     let grids = self.grids
     let summary = TrendSummary.yearSummary(grids, through: today, calendar: calendar)
     let yearDayCount = grids.reduce(0) { $0 + $1.days.count }
+    // After the grids, which read both queries: see `isLogUnreadable`.
+    let isUnreadable = isLogUnreadable
 
-    ScrollView {
-      VStack(spacing: GlassTokens.Spacing.section) {
-        yearHeader
+    Group {
+      if isUnreadable {
+        UnreadableLogView()
+      } else {
+        ScrollView {
+          VStack(spacing: GlassTokens.Spacing.section) {
+            yearHeader
 
-        LazyVGrid(columns: columns, spacing: GlassTokens.Spacing.section) {
-          ForEach(grids) { grid in
-            MiniMonth(grid: grid, calendar: calendar)
+            LazyVGrid(columns: columns, spacing: GlassTokens.Spacing.section) {
+              ForEach(grids) { grid in
+                MiniMonth(grid: grid, calendar: calendar)
+              }
+            }
+
+            IntensityLegend(isCompact: true)
+
+            // A year grid that is mostly blank looks like a year of not drinking.
+            // At 11pt cells the legend's "Not logged" swatch needs the words, and
+            // the card below names how many days that is.
+            Text("Blank days are days without a record, not days without alcohol.")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .fixedSize(horizontal: false, vertical: true)
+
+            RecentSummaryCard(
+              summary: summary,
+              region: settings.effectiveRegion,
+              heading: .year(year, isClipped: summary.dayCount < yearDayCount)
+            )
+
+            // A year that has ended, with a record, is compared to the same
+            // published distribution as Trends, by the same rule, in the same
+            // words (ADR-0030). Never for the year in progress: its weekly
+            // average would be a partial year's, and Trends already covers the
+            // trailing window.
+            if isReviewable(summary) {
+              YearComparisonCard(year: year, summary: summary, region: settings.effectiveRegion)
+            }
           }
-        }
-
-        IntensityLegend(isCompact: true)
-
-        // A year grid that is mostly blank looks like a year of not drinking.
-        // At 11pt cells the legend's "Not logged" swatch needs the words, and
-        // the card below names how many days that is.
-        Text("Blank days are days without a record, not days without alcohol.")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .fixedSize(horizontal: false, vertical: true)
-
-        RecentSummaryCard(
-          summary: summary,
-          region: settings.effectiveRegion,
-          heading: .year(year, isClipped: summary.dayCount < yearDayCount)
-        )
-
-        // A year that has ended, with a record, is compared to the same
-        // published distribution as Trends, by the same rule, in the same
-        // words (ADR-0030). Never for the year in progress: its weekly
-        // average would be a partial year's, and Trends already covers the
-        // trailing window.
-        if isReviewable(summary) {
-          YearComparisonCard(year: year, summary: summary, region: settings.effectiveRegion)
+          .screenMargin()
+          .padding(.vertical, GlassTokens.Spacing.section)
         }
       }
-      .screenMargin()
-      .padding(.vertical, GlassTokens.Spacing.section)
     }
     .navigationTitle(String(year))
     .navigationBarTitleDisplayMode(.large)
@@ -98,33 +106,38 @@ struct YearView: View {
       // button opens a two-item menu naming both. The year in progress keeps
       // its one tap: there is no review of a year that is not over. Never a
       // prompt, a badge, or a banner; the control is the only entrance.
-      ToolbarItem(placement: .topBarTrailing) {
-        if isReviewable(summary) {
-          Menu {
+      //
+      // Nothing to share while the log cannot be read: the image would be a
+      // blank year nobody read.
+      if !isUnreadable {
+        ToolbarItem(placement: .topBarTrailing) {
+          if isReviewable(summary) {
+            Menu {
+              yearShareLink(grids: grids) {
+                Label("Share as a calendar", systemImage: "calendar")
+              }
+              ShareLink(
+                item: YearInReviewImage(
+                  year: year,
+                  grids: grids,
+                  region: settings.effectiveRegion,
+                  colorScheme: colorScheme,
+                  calendar: calendar
+                ),
+                preview: SharePreview("\(String(year)) in review")
+              ) {
+                Label("Share as a year in review", systemImage: "chart.bar")
+              }
+            } label: {
+              Image(systemName: "square.and.arrow.up")
+            }
+            .accessibilityLabel("Share this year as an image")
+          } else {
             yearShareLink(grids: grids) {
-              Label("Share as a calendar", systemImage: "calendar")
+              Image(systemName: "square.and.arrow.up")
             }
-            ShareLink(
-              item: YearInReviewImage(
-                year: year,
-                grids: grids,
-                region: settings.effectiveRegion,
-                colorScheme: colorScheme,
-                calendar: calendar
-              ),
-              preview: SharePreview("\(String(year)) in review")
-            ) {
-              Label("Share as a year in review", systemImage: "chart.bar")
-            }
-          } label: {
-            Image(systemName: "square.and.arrow.up")
+            .accessibilityLabel("Share this year as an image")
           }
-          .accessibilityLabel("Share this year as an image")
-        } else {
-          yearShareLink(grids: grids) {
-            Image(systemName: "square.and.arrow.up")
-          }
-          .accessibilityLabel("Share this year as an image")
         }
       }
     }
@@ -137,6 +150,15 @@ struct YearView: View {
   }
 
   // MARK: - Data
+
+  /// Whether either query last failed to read — a year of blank days
+  /// otherwise, which is what a failed first fetch draws. Values first, then
+  /// `fetchError`: the order `CalendarView.isLogUnreadable` explains.
+  private var isLogUnreadable: Bool {
+    _ = allEntries
+    _ = alcoholFreeDays
+    return _allEntries.fetchError != nil || _alcoholFreeDays.fetchError != nil
+  }
 
   private var markedDays: Set<Date> {
     Set(alcoholFreeDays.map(\.day))

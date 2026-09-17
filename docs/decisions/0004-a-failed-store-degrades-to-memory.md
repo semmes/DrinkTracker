@@ -273,7 +273,8 @@ Consequences:
   breadcrumb names Cocoa 259) and the counter turned unavailable — outlined tile,
   drop glyph, no discs, the sentence — and a relaunch over the restored store read
   and logged normally. Both stores were put back from copies taken before the test.
-- **Found and not fixed — the write paths, which want their own change:**
+- **Found and not fixed — the write paths, which want their own change** *(all
+  three closed by the third 2026-09-16 amendment below)*:
   - `DrinkRepository.saveOrThrow` inserts the drink *before* its two reads (the
     existing entry by id, and the day's markers), and both read through `try?`. On a
     failing store the markers read as none, nothing is deleted, the save fails, and
@@ -291,6 +292,167 @@ Consequences:
 - **Not verified:** any of this on hardware; a real I/O failure rather than a
   damaged file; VoiceOver over either state (the simulator tool's accessibility read
   was unavailable in this session); the watch counter on a 40/41/42mm case.
+
+## Amendment, 2026-09-16 (third) — a write answers for its reads, and Health follows the log
+
+The amendment above set the rule for reads — a failed read throws, and nothing is
+inserted until the reads have answered — and listed the writes it did not reach.
+**This applies the rule to them, and adds the half a read cannot give: a save that
+fails leaves nothing behind.**
+
+**What was measured first.** SwiftData posts `ModelContext.willSave` synchronously,
+before any SQL runs, so a store overwritten from an observer of it fails the save
+*after* the write's reads have answered — the one failure a damaged file could not
+otherwise produce (a held SQLite write lock was tried first: Core Data's save waited
+on it for minutes). Probed on macOS 26: the failed save left its insert in the
+context, `ModelContext.rollback()` cleared it, and with the bytes put back the same
+context saved and a fresh one read nothing extra. `DamageableStore.damageOnNextSave`
+is that probe, for tier 2.
+
+**Decision, in the repository.**
+
+- **Every write reads first, through reads that throw, and changes nothing until they
+  have answered.** `saveOrThrow` reads the entry by id and the day's markers before it
+  inserts, applies or deletes — so a failing store no longer writes a drink onto a day
+  still marked no alcohol, and an edit whose id read fails no longer inserts a second
+  row with the same id. Removal (`deleteOrThrow`) and `unmarkAlcoholFreeOrThrow` read
+  the same way.
+- **Every write saves through one `commit()`, which rolls the context back when the
+  save fails.** A thrown error now means nothing changed, rather than "not yet".
+  Rollback discards every pending change in the context, not only the failed write's;
+  that is safe because nothing leaves a change unsaved — the one place that did,
+  `backfillHealthKit` holding sample ids across awaits, now saves each as Health answers.
+
+**Decision, in `DrinkStore` — the question the amendment above left open.**
+
+- **A save surfaces failure.** `save`, `adopt` and `delete` throw, having written
+  nothing to the log or to Health, and record the failure on the Diagnostics timeline
+  (`app save not written: …`).
+- **Health waits for the store.** The order is now: read the entry; write the row,
+  still pointing at whatever sample it already mirrors (none, for a new drink); then
+  retire and write in Health; then record the new sample id on the row. Removal is the
+  mirror image: the row goes, then its sample.
+
+The argument is an asymmetry. A row with no sample is a state the app already
+finishes on its own — every drink the widget and the watch log arrives that way, and
+`backfillHealthKit` mirrors it. A sample with no row is not: Tallyist never imports its
+own samples, so nothing in the app can see one, and Health's count is simply wrong for
+good. Writing Health first made the second state reachable from any save that then
+failed; writing the log first confines the failure to the first. **This is not
+hypothetical:** the iPhone 17 Pro simulator's Health database holds a Tallyist sample at
+20:19:23 on 2026-09-16 with no drink in the log — the time of the amendment above's own
+damaged-store pass, whose "Add specific" save failed after its sample had been written.
+
+- **The sample id is recorded by comparison** (`recordHealthSample(_:for:replacing:)`):
+  only if the row still names the sample the writer last saw, and still holds the facts
+  the sample was written from. `save` and `backfillHealthKit` both write a sample before
+  stamping it, across an await, and a row the one wrote can be picked up by the other in
+  that window; unguarded, the second stamp overwrote the first and left a sample
+  mirroring nothing. A row edited in that window is the same failure with the facts
+  instead of the id — and review found backfill held exactly that stale copy across its
+  whole sweep, writing each sample from the drink as it was when the sweep began; it now
+  reads each row at its turn. The comparison and the save run with no suspension between
+  them, on the main actor. A writer whose comparison misses, or whose stamp fails to
+  save, deletes the sample it just wrote.
+
+**What the screens do with it.**
+
+- **Today's ＋, "Record a standard drink", the repeat segment, and the day sheet's ＋:**
+  the count does not move and the timeline says why — as for a failed read already.
+  **−** on Today and the day sheet reads the day through `drinksOrThrow`: a day that
+  cannot be read removes nothing, rather than reading as a day with nothing to remove.
+- **The drink sheet** stays open over the reader's draft and shows **"Not saved"** —
+  the watch's reviewed words for the same event — above the button, and posts the same
+  words as a VoiceOver announcement (through `String(localized:)`: the announcement has
+  no localized initializer, so a bare literal would never have been translated). A batch that failed partway closes and reports what
+  landed, since pressing again would write the landed drinks twice (the rule
+  `LogDrinkIntent.write` already states for Siri).
+- **Undo** that fails offers the drink again for a fresh window, rather than dropping
+  the one thing the reader asked back.
+- **A removal that fails rebuilds the list it came from.** A destructive swipe action
+  animates its row out before the removal runs; when the removal then writes nothing the
+  data never changes, and nothing told the list to put the row back — rendered, History
+  drew one of a day's two drinks under a header still counting two, and a later render
+  hid the other one instead. `DeletionCoordinator.failedRemovals` counts those, and
+  History's and Today's lists take it as their identity.
+- **The watch's −** reads and removes through the throwing forms and says "Not saved",
+  like every other write on the wrist; it used to acknowledge a removal whose save had
+  failed.
+- **Calendar, the year view, History and Trends read `fetchError`**, values first, and
+  while either query has failed draw `UnreadableLogView` — the drop glyph and **"Your
+  log couldn't be read."** — in place of their content, with nothing that writes or
+  shares: no grid (so no drag and no bulk fill), no selection or Undo bar, no share
+  button, no ＋ on History — and on the calendar an open day sheet or bulk sheet closes,
+  since each shows the record the failed read no longer vouches for (an edit sheet
+  stays: it shows the reader's own draft). Trends' Comparisons section and Today's session card read
+  their own queries' errors and draw nothing. Recovery is Today's: the next fetch that
+  works, on a store change or a relaunch.
+- **The day sheet's timestamp** reads the day through `backfillTimestampOrThrow`: a
+  failed read used to stamp a past day's drink at noon, before drinks the day already
+  had, so − then removed one of those instead of the drink just logged.
+- **Bulk fill** is ADR-0011's 2026-09-16 amendment (the second of that date); **the
+  Health sweep** is ADR-0025's.
+
+Consequences:
+
+- **Two saves where there was one**, whenever a Health sample is written: the row, then
+  its sample id. That is a second store transaction, and a second CloudKit export when
+  the two do not coalesce. With Health not authorized nothing changes — no sample is
+  written and there is no second save.
+- **A phone-logged drink is unsampled for as long as Health takes to answer**, tens of
+  milliseconds. Two things can see it in that window, and both need CloudKit to export
+  the first save without the second: a second iPhone on the account, whose backfill
+  would mirror it too (the watch and the widget already expose their drinks to that for
+  longer), and the watch's −, which ADR-0043 allows on an unsampled row and which would
+  leave the sample in Health.
+- **An edit whose sample-id save fails** keeps the drink's new facts in the log, retracts
+  the fresh sample, and leaves the row naming the retired one — Health lacks that drink
+  until its next edit, and backfill does not see it because its id is not nil. The same
+  holds if the app stops between the two saves of an undo. The failure needs the store to
+  save and then fail within one Health round trip.
+- **Rollback is context-wide.** A future change that holds a model mutation unsaved
+  across an await brings back the loss `backfillHealthKit` had, and the `commit()` comment
+  says so.
+- **What tier 2 pins** (`FailedWriteTests`, on a real store file): a drink refused on a
+  marked day it could not read; an edit that does not duplicate; a failed drink save and a
+  failed marker save leaving nothing for a later save; a removal, a sample-id record, bulk
+  fill and the day sheet's timestamp refusing a failing store; the comparison in
+  `recordHealthSample`, over the id and over an edit; and the sweep's replay. The tests in the first suite go through
+  calls the repository already had and were run against the old repository, where each
+  failed on the expectation it exists for except the control, which passes on both.
+  `DrinkStore` is app-target code no test tier reaches, so the Health order is
+  argued here and exercised at tier 3, not pinned.
+- **What the tier-3 pass showed**, on the iPhone 17 Pro and Series 11 (46mm) simulators
+  over their own stores, damaged in place and restored from copies (and put back to the
+  copies taken before the pass): "Add specific" pressed over the damaged store showed
+  "Not saved" and kept the sheet, Today's ＋ left the count at 2, and neither reached
+  Health — the timeline read `app save not written — entry unreadable: … Code=259` and
+  `Today ＋ not saved — history unreadable`; Calendar, the year view, Trends and History,
+  each opened for the first time over the damaged store, drew "Your log couldn't be
+  read." with no grid, share button or ＋; with the bytes put back, one ＋ saved, History
+  recovered on that store change, and the store held exactly the one new drink, whose
+  row names the single Health sample written for it. Adoption over the damaged store
+  showed "Not saved". A removal whose read failed and a removal whose *save* failed —
+  the damage landed between them — each left the drink in the store and offered no
+  Undo, and the second's Health sample was still there after; the second is what showed
+  the swipe's stale list, and after the fix both rows stayed drawn. A removal on a healthy store followed by damage and Undo
+  refused the save and offered the drink again. On the watch, − over the damaged store
+  showed "Not saved" (frame-grabbed), the counter turned unavailable on the re-render,
+  and the drink was still in the store after. Health's own database agreed throughout:
+  a sample retired only after its row was removed, and none written for a save that
+  failed.
+- **Two harness notes.** A removal's Health write takes long enough that a tool driving
+  the simulator cannot reliably land inside the 10-second Undo window; a background
+  watcher that damaged the store on the removal's WAL write is what got there. And
+  bytes put back under a live connection do not always make writes work again — reads
+  did, but two saves failed with Cocoa 256 until the app was relaunched — so a restore
+  is a relaunch, not a guarantee.
+- **Not verified:** the Health sweep's withheld anchor and bulk fill at tier 3 (the first
+  needs another app's samples, the second a drag the simulator tool did not attempt);
+  the compare-and-set race between a save and a backfill, which needs both to straddle
+  one Health round trip; any of it on hardware or under a real I/O failure; "Your log
+  couldn't be read." in dark mode or at accessibility sizes (a system
+  `ContentUnavailableView`); VoiceOver hearing "Not saved".
 
 ## How to reopen
 
@@ -314,3 +476,12 @@ reads fine after a relaunch — the fix is a new read on foregrounding, by re-cr
 the screen's queries, not a write made to provoke one. And if a store ever reads as
 empty with no error on a device that had a log, the truncated-file case above is the
 first thing to check; no screen can distinguish it, so the evidence is the file.
+
+On the third 2026-09-16 amendment: if the window in which a phone-logged drink is
+unsampled shows up in the field — a drink doubled in Health beside a second iPhone on the
+account, or a Tallyist sample left behind by a watch − — the change to weigh is to name
+the sample before saving it: an `HKQuantitySample` carries its UUID from creation, so the
+row can be written already pointing at it, the sample saved after, and the id cleared if
+Health refuses. That is one store save in the common case, at the price of a row that
+briefly names a sample Health does not yet hold. Writing Health before the log again is
+not the answer; the asymmetry above is why.

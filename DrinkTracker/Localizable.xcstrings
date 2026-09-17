@@ -623,6 +623,9 @@
     "Not logged" : {
 
     },
+    "Not saved" : {
+
+    },
     "Not saving to Health" : {
 
     },
@@ -1086,6 +1089,9 @@
 
     },
     "Your log" : {
+
+    },
+    "Your log couldn't be read." : {
 
     },
     "Your log follows your iCloud account across your devices." : {

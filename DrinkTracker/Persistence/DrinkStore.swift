@@ -7,6 +7,15 @@ import SwiftData
 /// Persistence itself lives in the shared `DrinkRepository`; this adds the parts
 /// only the app can do — mirroring to HealthKit, and retiring the old Health sample
 /// when an entry is edited.
+///
+/// **The log is written first, and Health follows it** (ADR-0004's third
+/// 2026-09-16 amendment). A row waiting for its sample is a state the app
+/// already finishes on its own — it is how every drink the widget and the
+/// watch log arrives, and `backfillHealthKit` mirrors it. A sample for a drink
+/// the log does not hold is not: Tallyist never imports its own samples, so
+/// nothing in the app can see it, and Health's count is simply wrong for good.
+/// The save used to write Health first and then swallow a store save that
+/// failed, which is how the second state was reached.
 @MainActor
 struct DrinkStore {
   let repository: DrinkRepository
@@ -20,8 +29,11 @@ struct DrinkStore {
   /// Saves a drink, replacing the existing entry when the draft came from Edit.
   ///
   /// Returns the persisted value so callers can show the "last logged" line.
+  /// Throws, having written nothing to the log or to Health, when the entry
+  /// cannot be read or the save fails; the failure is on the Diagnostics
+  /// timeline.
   @discardableResult
-  func save(_ drink: LoggedDrink) async -> LoggedDrink {
+  func save(_ drink: LoggedDrink) async throws -> LoggedDrink {
     var drink = drink
 
     // Retire the old sample before writing the replacement, so an edit never
@@ -45,22 +57,68 @@ struct DrinkStore {
     // decision is `HealthSampleRetirement` (tier 1); a draft's
     // `makeLoggedDrink` never carries a sample id, so only a value read back
     // from the store can supply one here.
-    let retirement = HealthSampleRetirement(
-      existingSampleID: repository.entry(with: drink.id)?.healthKitSampleID,
-      incomingSampleID: drink.healthKitSampleID
-    )
+    //
+    // A throwing read: an entry that could not be read is not a new drink.
+    let retirement: HealthSampleRetirement
+    do {
+      retirement = HealthSampleRetirement(
+        existingSampleID: try repository.entryOrThrow(with: drink.id)?.healthKitSampleID,
+        incomingSampleID: drink.healthKitSampleID
+      )
+    } catch {
+      Diagnostics.appendTimeline("app save not written — entry unreadable: \(error)")
+      throw error
+    }
+
+    // The log first. Until Health answers, the row keeps pointing at the
+    // sample it already mirrors — none, for a new drink, which is the state a
+    // widget-logged drink waits in for backfill.
+    drink.healthKitSampleID = retirement.sampleToRetire
+    do {
+      try repository.saveOrThrow(drink)
+    } catch {
+      Diagnostics.appendTimeline("app save not written: \(error)")
+      throw error
+    }
+    WidgetReloads.reload(because: "app saved a drink")
+
+    // Then Health.
+    let written = drink.healthKitSampleID
     if let oldSampleID = retirement.sampleToRetire {
       switch retirement.resolution(after: await health.deleteSample(id: oldSampleID)) {
       case .writeFresh:
         drink.healthKitSampleID = await health.save(drink)
-      case .keep(let sampleID):
-        drink.healthKitSampleID = sampleID
+      case .keep:
+        return drink
       }
     } else {
       drink.healthKitSampleID = await health.save(drink)
     }
-    repository.save(drink)
-    WidgetReloads.reload(because: "app saved a drink")
+    guard drink.healthKitSampleID != written else { return drink }
+
+    // Then the row learns which sample mirrors it — unless something else
+    // mirrored, edited or removed it while Health answered, in which case this
+    // sample mirrors nothing and goes (`recordHealthSample`). A save that
+    // fails here does not undo the drink: it is in the log, which is the
+    // record. The sample goes instead, so Health never holds one the row does
+    // not name; for a new drink the row is still unsampled and backfill
+    // mirrors it later, and for an edit Health lacks the drink until its next
+    // edit.
+    let recorded: Bool
+    do {
+      recorded = try repository.recordHealthSample(
+        drink.healthKitSampleID, for: drink, replacing: written
+      )
+    } catch {
+      Diagnostics.appendTimeline("Health sample not recorded on the row: \(error)")
+      recorded = false
+    }
+    if !recorded {
+      if let orphan = drink.healthKitSampleID {
+        await health.deleteSample(id: orphan)
+      }
+      drink.healthKitSampleID = written
+    }
     return drink
   }
 
@@ -68,11 +126,20 @@ struct DrinkStore {
   ///
   /// Each is written individually so every one gets its own HealthKit sample and
   /// stays separately editable.
+  ///
+  /// Throws only when nothing was saved. A failure partway leaves the earlier
+  /// drinks written, and saying the whole thing failed would invite the retry
+  /// that writes them twice — the rule `LogDrinkIntent.write` states for Siri.
   @discardableResult
-  func save(_ drinks: [LoggedDrink]) async -> LoggedDrink? {
+  func save(_ drinks: [LoggedDrink]) async throws -> LoggedDrink? {
     var saved: LoggedDrink?
     for drink in drinks {
-      saved = await save(drink)
+      do {
+        saved = try await save(drink)
+      } catch {
+        guard saved != nil else { throw error }
+        return saved
+      }
     }
     return saved
   }
@@ -85,8 +152,13 @@ struct DrinkStore {
   /// writing our own would double-count the drink in Health. Adoption changes
   /// what the *log* knows, and Health already knows everything it should.
   @discardableResult
-  func adopt(_ adopted: LoggedDrink) -> LoggedDrink {
-    repository.save(adopted)
+  func adopt(_ adopted: LoggedDrink) throws -> LoggedDrink {
+    do {
+      try repository.saveOrThrow(adopted)
+    } catch {
+      Diagnostics.appendTimeline("adoption not written: \(error)")
+      throw error
+    }
     WidgetReloads.reload(because: "app adopted a Health drink")
     return adopted
   }
@@ -107,12 +179,29 @@ struct DrinkStore {
     repository.unmarkAlcoholFree(day)
   }
 
-  func delete(_ drink: LoggedDrink) async {
-    if let sampleID = drink.healthKitSampleID {
+  /// Removes a drink from the log, then retires its Health sample — in that
+  /// order, for the reason the type's comment gives.
+  ///
+  /// Returns the drink as it was stored, whose sample id is the one retired,
+  /// so an undo re-saves exactly that. Throws, having removed nothing from
+  /// either, when the entry cannot be read or the removal cannot be saved. It
+  /// used to retire the sample first and then swallow a failed removal, which
+  /// left a row pointing at a sample Health no longer had — a drink backfill
+  /// never mirrors again, because its id is not nil.
+  @discardableResult
+  func delete(_ drink: LoggedDrink) async throws -> LoggedDrink {
+    let removed: LoggedDrink
+    do {
+      removed = try repository.deleteOrThrow(id: drink.id) ?? drink
+    } catch {
+      Diagnostics.appendTimeline("app removal not written: \(error)")
+      throw error
+    }
+    if let sampleID = removed.healthKitSampleID {
       await health.deleteSample(id: sampleID)
     }
-    repository.delete(id: drink.id)
     WidgetReloads.reload(because: "app removed a drink")
+    return removed
   }
 
   /// Mirrors anything logged outside the app — currently the widget — into Health.
@@ -123,16 +212,37 @@ struct DrinkStore {
   ///
   /// Cheap to call repeatedly: with Health denied nothing is ever written, the ids
   /// stay nil, and each pass is one fetch that changes nothing.
+  ///
+  /// Each sample id is saved as soon as Health answers, never held unsaved
+  /// across the next await: a store write that fails meanwhile rolls the
+  /// context back (`DrinkRepository`'s `commit`), and an id discarded that way
+  /// would be mirrored a second time on the next sweep. The ids are read as
+  /// values, not models, so a row removed while Health answers is a missed
+  /// compare rather than a write to a deleted model.
   func backfillHealthKit() async {
     guard health.authorization == .authorized else { return }
-    for entry in repository.awaitingHealthKitSync() {
-      // The save suspends; a sweep that ran meanwhile may have filled the slot.
-      guard entry.healthKitSampleID == nil else { continue }
-      if let sampleID = await health.save(entry.logged) {
-        entry.healthKitSampleID = sampleID
+    for id in repository.awaitingHealthKitSync().map(\.entryID) {
+      // Read again at its turn, never from the list above: an earlier turn's
+      // Health write suspends, and meanwhile a save may have mirrored this
+      // row, or an edit changed what it says.
+      guard let row = try? repository.entryOrThrow(with: id),
+            row.healthKitSampleID == nil else { continue }
+      let drink = row.logged
+      guard let sampleID = await health.save(drink) else { continue }
+      do {
+        // Only if the row still has no sample and still says what the sample
+        // was written from: `save` may have mirrored it, or the reader edited
+        // or removed it, while Health answered.
+        guard try repository.recordHealthSample(sampleID, for: drink, replacing: nil) else {
+          await health.deleteSample(id: sampleID)
+          continue
+        }
+      } catch {
+        await health.deleteSample(id: sampleID)
+        Diagnostics.appendTimeline("Health backfill stopped: \(error)")
+        return
       }
     }
-    try? repository.context.save()
   }
 
   /// The other direction: mirrors alcohol data other apps put in Health into the
@@ -148,9 +258,16 @@ struct DrinkStore {
     guard let delta = await health.fetchExternalChanges() else { return }
     // The repository owns the order (deletions first — see
     // `applyExternalChanges`); the anchor advances only once it has applied
-    // everything, so a sweep cut short replays rather than skips.
-    repository.applyExternalChanges(added: delta.added, deletedIDs: delta.deletedIDs)
-    health.commit(delta)
+    // everything, so a sweep cut short replays rather than skips — and so
+    // does a sweep whose reads or saves failed, which is why a throw here
+    // withholds the commit (ADR-0025's second 2026-09-16 amendment).
+    do {
+      try repository.applyExternalChanges(added: delta.added, deletedIDs: delta.deletedIDs)
+      health.commit(delta)
+    } catch {
+      Diagnostics.appendTimeline("Health changes not applied, anchor kept: \(error)")
+    }
+    // Either way: a sweep that stopped partway may still have changed the log.
     WidgetReloads.reload(because: "Health changes applied")
   }
 }

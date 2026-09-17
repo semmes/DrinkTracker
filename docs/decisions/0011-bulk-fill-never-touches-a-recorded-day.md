@@ -93,3 +93,46 @@ changed". Nothing is inserted until both reads have answered. Pinned at tier 2
 in `FailedReadTests` against a store file damaged under its open container and
 then restored, which is what shows the old path's marker landing on a day with
 a drink. Nothing about what a bulk action writes has changed.
+
+---
+
+## Amendment (2026-09-16, second): the rule is kept where the write happens
+
+The amendment above made the marker's backstop read the day or refuse. The
+drinks half of bulk fill had no backstop at all, and it read from the wrong
+place. The sheet's skip filter and the seed both came from the calendar's
+`@Query`, and a query whose first fetch fails hands back no rows: every day in
+a dragged run looked blank, every one was offered, and — under the usual-drink
+seed, with no history to take a plurality from — each was queued a beer at
+beer's defaults. ADR-0004's second amendment of this date found it.
+
+Three changes, each closing a different route to the same write:
+
+- **The calendar draws nothing to drag while its log cannot be read.** It reads
+  both queries' `fetchError` and draws "Your log couldn't be read." in place of
+  the grid, with no selection bar and no share button (ADR-0004's third
+  amendment of this date), so the run cannot be selected from an empty query.
+- **The seed is read from the store, once, when the sheet is applied**
+  (`DrinkRepository.historyOrThrow`), and a failed read stops the fill. Once
+  before the loop, as before, so every day still gets the same drink.
+- **Each day is checked again as it is written.** `bulkFillDrinks` answers
+  with no drinks for a day that has entries or a marker, through reads that
+  throw — the rule this record states, "a day with any record is skipped,
+  always", kept at the one point every route passes. It also closes the older
+  gap the amendment above did not mention: a selection that went stale under a
+  CloudKit import could write drinks onto a day that had meanwhile gained a
+  record, where only the marker path refused.
+
+A write that fails stops the fill; the days before it are written and the
+rest are not, and the Diagnostics timeline says `bulk fill stopped`. The day
+it stopped on may hold fewer drinks than asked — it now has a record, so a
+second fill skips it, and the day sheet is the way to finish it. The drinks
+are saved one at a time for exactly that: `DrinkStore.save(_ drinks:)` reports
+a partial batch as success, and the first cut used it, which moved on to the
+next day and left the short one unannounced (found in review). And a sheet
+already open when the calendar's read fails — this one or the day sheet —
+closes, since both show the record that read no longer vouches for.
+Nothing about what a bulk action writes to a blank day has changed. Pinned at
+tier 2 in `FailedWriteTests` (a failing history or day throws; a day with
+drinks or a marker gets nothing; a blank day gets the history's drink, not
+beer's defaults).

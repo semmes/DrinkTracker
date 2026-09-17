@@ -153,7 +153,9 @@ What each ＋ now does when the history cannot be read:
   timeline records `Today ＋ not saved — history unreadable` or its day-sheet
   equivalent. No new copy. (That is less than a failed *save* does there:
   `DrinkStore.save` writes the Health sample first and never reports the store
-  save that then fails — ADR-0004's second 2026-09-16 amendment.)
+  save that then fails — ADR-0004's second 2026-09-16 amendment. *Closed by
+  ADR-0004's third amendment of that date: a failed save now writes nothing to
+  the log or to Health, and the count does not move for it either.*)
 
 Pinned at tier 2 (`FailedReadTests`), on a real store file overwritten under
 its open container: an in-memory store could not be made to fail a fetch (a
@@ -172,8 +174,10 @@ the standard-drink seed reads only today's entries from it.
   — the fallback to reconsider is not "seed from nothing" but a narrower read:
   under the standard-drink seed only today's entries matter, and a bounded
   fetch fails less than an unbounded one. Logging a guessed drink from ＋
-  stays refused. (Bulk fill seeds from the calendar's own query and can still
-  guess on a failed read — recorded in ADR-0004's amendment, not fixed here.)
+  stays refused. (Bulk fill seeded from the calendar's own query and could
+  still guess on a failed read — recorded in ADR-0004's amendment, not fixed
+  here. *Closed by ADR-0011's second 2026-09-16 amendment: bulk fill reads its
+  seed from the store, and a read that fails stops it.*)
 - If field reports say people want to state a size from the wrist, the
   Digital Crown over `DrinkType.sizeOptions` is the obvious shape, and it is
   additive.
