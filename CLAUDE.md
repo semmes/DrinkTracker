@@ -109,7 +109,10 @@ purchases work in the simulator with no App Store Connect setup).
   from Xcode work too (build numbers restart per version train).
 - Remote Claude sessions have **no Swift toolchain** — CI is the only
   compile/test check; say so rather than claiming local verification. Local
-  sessions have Xcode 26.6, the iOS and watchOS simulators and a paired
+  sessions have Xcode (27.0 since 2026-09-18, 26.6 before — check
+  `xcodebuild -version`, because CI's runner is not the same toolchain and two
+  domain tests already disagree; the handoff bullet "The circular complication
+  is a tile…"), the iOS and watchOS simulators and a paired
   watch/phone pair: run the gates and drive the app rather than repeating the
   caveat. **`project.pbxproj` may be edited only in a local session**, only
   for what the watch plan names, and only verified the way Phase 0 was —
@@ -180,19 +183,26 @@ candidate cause that lives *inside* the app, which the earlier record denied.
 And three latencies that are this app's own, which a ruling about the four to
 five seconds does not authorise building. Both are in the bullets near the end
 of this section. **One of those three latencies was then reported by the owner and
-fixed on 2026-09-16 (ADR-0047, the last bullet):** the phone widget never redrew
-for a drink that arrived from the watch. **The three silent-failure paths that
-investigation found in shared code were closed the same evening** (the bullet
-before the last): a failed read no longer lets a day with drinks be marked as no alcohol,
+fixed on 2026-09-16 (ADR-0047; the bullet "The phone widget redraws…"):** the phone
+widget never redrew for a drink that arrived from the watch. **The three
+silent-failure paths that investigation found in shared code were closed the same
+evening** (the bullet "A read that fails…"): a failed read no longer lets a day with
+drinks be marked as no alcohol,
 no longer seeds ＋ with a guessed drink, and no longer draws a confident 0 on Today
 or the watch counter. **The write paths that change left open were closed the same
-night (the last bullet):** a write reads before it changes anything, a failed save
+night (the bullet "A write answers for its reads…"):** a write reads before it changes anything, a failed save
 rolls back, Health follows the log instead of leading it, the Health sweep keeps its
 anchor when it could not read, and Calendar, the year view, History and Trends stop
 drawing a log they did not read. **The owner's hardware pass of those changes passed
-the same day** (the last bullet): log, edit, remove, undo and adopt with Health
+the same day** (the bullet after it): log, edit, remove, undo and adopt with Health
 authorized, exactly one sample per drink in the Health app and none for a removed one,
-phone and watch as expected. The paragraph that follows is the 2026-09-10 state, kept for
+phone and watch as expected. **On 2026-09-18 the owner's design made the circular
+complication a tile instead of a disc, and its tinted-face check found — and fixed —
+a count no tinted face could read (the bullet "The circular complication is a
+tile…", ADR-0046 amended); this Mac's toolchain is now Xcode 27.0, which changes two
+local results, also there.** These
+pointers name their bullets rather than count from the end, because every new bullet
+made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
 
 **As of 2026-09-10:** v1.0 live; **v1.1 approved and live (2026-09-01)**;
@@ -2298,3 +2308,83 @@ Open items for v1.2:
   (a watch drink redrawing the phone's widget while the app is in the background, the
   widget ＋ read in the timeline, the unexplained tap if it recurs) — the report does not
   name the widget. Phase 8 is the remaining work on the 1.4 train.
+- **The circular complication is a tile, and a tinted face keeps the count (2026-09-18,
+  ADR-0046 amended; two commits, separable).** The owner dropped a design handoff for the
+  `accessoryCircular` family: stop filling the slot with the band at a 34pt count, and draw
+  the rectangular card's own rounded tile in a clear slot, so the face shows the mark the
+  calendar does. **What shipped:** `tile(side:)` in `CounterComplication.swift` is the one
+  view both families draw — the card at 44, the circular at `floor(d × 0.83 × 2) / 2` of the
+  slot it *reads* from its geometry, corner `side × 13 / 44` continuous, the figure at the
+  card's 24 and the glyphs at 18 whatever the side; the geometry is `ComplicationTile` in
+  the core package with eight tier-1 tests (the design's table, the two sizes the system
+  really asks for, and a sweep asserting the corner stays a pixel inside the circular mask
+  from 36 to 56pt); the neutral ground is the card's `.quaternary` instead of
+  `AccessoryWidgetBackground`; the numeral gained `lineLimit(1)`. The corner family keeps
+  its disc (out of the design's scope; reopen path in the ADR). **"The repo wins" was the
+  handoff's own rule** — its numbers were measured from screenshots without the code — so:
+  24 semibold, not the measured 23 bold; the app's `tally.alcoholfree`, not
+  `checkmark.circle`; the *style* `.quaternary`, which measures exactly the `#252526` the
+  design sampled, rather than a literal (invariant 10); and redaction keeps this ADR's drop
+  glyph, with the tile's shape kept as the design asks. **The handoff is committed at
+  `docs/design/watch/circular-complication-handoff.md`, not where the owner dropped it**
+  (`docs/` in `~/DrinkTracker-watch`, untracked): git aborts a pull when an untracked copy
+  is in the way *even if it is byte-identical* — probed in a scratch repo — so the same path
+  would have broken the owner's next pull. Their copy is theirs to delete.
+  **Verified on two throwaway simulators** (Series 11 46mm, SE 3 40mm; created for this and
+  deleted after — the working pair was never booted), both families placed on one Modular
+  face, pixel boxes read from screenshots by script: the tile is 42.0pt in the 51pt slot and
+  34.5 in the 42pt one, centred, no lit pixel within 0.7pt of the mask; the figure's box is
+  identical in the circular tile and the card's in every state ("0" 12.0 × 17.0pt, "16"
+  24.5 × 17.0, the mark 13.0 × 13.0); grounds `#252526` / `#184F95` / `#3987E5` / `#9EC5F4` /
+  `#CDE2FB`; "100" shrinks onto one line; and **the card's row is pixel-identical to a
+  control build of `main`** — the rectangular complication does not change. The design's
+  clearance table was recomputed from SwiftUI's own continuous-corner path and agrees to the
+  hundredth; its "never below 0.65" holds for its rows and is 0.56 between them.
+  **The second commit is what the design's own check — "one tinted face" — found.** On a
+  tinted face WidgetKit keeps alpha and nothing else of a view's colour, so the band's solid
+  fill became a bright block with the count on it at **1.34:1** (circular) and **1.64:1**
+  (card), and the card's ＋ a blank disc (**1.29:1**); a control build of `main` draws the
+  same on its disc, so this dates from Phase 6, whose note lists tinted rendering as
+  unverified. `isTinted` (`widgetRenderingMode != .fullColor`) now makes every ground
+  translucent — tile, corner disc, the ＋'s disc — and leaves the figures solid: **9.18:1,
+  7.53:1 and 11.55:1** on the same face, California's cream tint reads, and full colour is
+  pixel-identical with and without it. The cost, in the ADR with its arithmetic: a tinted
+  face shows no band (opacity cannot carry four steps — by 50% a tinted numeral is under
+  3:1). **Found and left alone, because the design says the rectangular complication does
+  not change:** on the 40mm the card is 152 to 162pt wide and its words truncate ("drinks
+  t…", "Recorded as no al…"); the likely repair is a second line, in the ADR's reopen list.
+  **This Mac is now on Xcode 27.0 / Swift 6.4, and two domain tests fail here that pass in
+  CI:** "Package localization" reads `Bundle.module.url(forResource: "Localizable",
+  withExtension: "xcstrings")`, which is nil under this toolchain — shown on an untouched
+  extract of `main` (284 tests, the same two issues), so it is the toolchain, and it will
+  reach CI when the runner image moves. Not fixed here. **The verifier had one false
+  failure, fixed:** its stale-worktree check flagged the lock an isolated session holds on
+  its *own* worktree; it now exempts the checkout it runs from and still fails on any other
+  locked entry. **Gates, locally:** 292 domain tests, 290 passing and those two; both
+  CI-form builds under Xcode 27 with no warning in the changed files; 110 integration tests
+  on the iPhone 17 Pro Max simulator; the verifier 0 failing, 0 pending; the glyph generator
+  clean; the policy dates agree. No catalog, schema, CloudKit, privacy-policy or
+  project-file change. **Five tooling lessons.** (a) Placing a complication on a simulator's
+  face is drivable with the tool — Phase 6 left it to the owner — by long-press, swipe to
+  New, ＋, Data Rich, Modular, GET then ADD, swipe to Complications, tap a slot; but a freshly
+  installed complication is *not offered in that list* until the simulator is restarted.
+  (b) The simulator tool cannot turn the Digital
+  Crown, which is the only way the editor changes a face's colour; a simulator's faces are
+  JSON (`data/Library/NanoTimeKit/CollectionStores/GlobalStores/LibraryFaces/Faces/<uuid>/
+  face.json`, `customization.color`, e.g. `gossamer.color4` for Modular), editable with the
+  simulator shut down — **a scratch simulator only**. (c) chronod's log names the size the
+  system asks each family for (`CounterComplication:accessoryCircular::51.00/51.00/25.50`):
+  51 and 46 on the 46mm, 42 and 37 on the 40mm, the corner 34 and 32, the card 196 × 80.5
+  and 162 × 69. (d) When the tool has no access to a device (its permission prompt went
+  unanswered for the second simulator), copy the first scratch simulator's
+  `Library/NanoTimeKit` and App Group store onto it with both shut down, then
+  `simctl launch` and `simctl terminate` the app — the raise reloads the complication and
+  the terminate returns to the face, no tap needed. (e) After a simulator restarts, the
+  tool's `screenshot` fails with `captureFailed` while its taps still land; read the screen
+  with `xcrun simctl io <udid> screenshot`. **Tier 3/4 for the owner's pass:** the tile on
+  their own faces and case size (41, 42, 45 and 49mm slots were computed, not rendered); a
+  tinted face on hardware in their own tint, and whether a dim tile with the count in the
+  tint is the look they want there — the ADR names the alternative; Always-On and the watch
+  off the wrist (the simulator offers neither; nothing in either path changed); the X-Large
+  face, which the system scales from the circular's own size; VoiceOver, whose labels are
+  untouched. Phase 8 is still the remaining work on the 1.4 train.

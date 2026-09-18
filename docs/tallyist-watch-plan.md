@@ -1459,6 +1459,25 @@ ADR-0023) and the card re-rendered as "1" in the 1–2 tile with the singular
 "drink today" and **one ring** beneath — the `.low` state ADR-0044's floor
 produces, which Phase 5 could not show on screen.
 
+**Changed 2026-09-18, on the owner's design
+(`docs/design/watch/circular-complication-handoff.md`; ADR-0046's amendment
+of that date is the record):** the circular family no longer fills its slot —
+it draws the card's own tile at 0.83 of the slot's diameter with the card's
+13-on-44 corner and the card's 24pt figure, through one `tile(side:)` both
+families share, the geometry in `ComplicationTile` at tier 1. And the two
+things this note left unverified were finally rendered, on throwaway
+simulators: the circular family on a face, on the 46mm and the 40mm, in every
+state; and a **tinted** face, which found the count at 1.3:1 on a flattened
+fill and the card's ＋ a blank disc — since Phase 6, in every family — and
+fixed both by making the grounds translucent there. **How the faces were
+reached, for the next session:** a freshly installed complication is not
+offered in the face editor until the simulator is restarted; the simulator
+tool cannot turn the Digital Crown, so a tint is set by editing the face's
+`customization.color` in `data/Library/NanoTimeKit/CollectionStores/
+GlobalStores/LibraryFaces/Faces/<uuid>/face.json` with the simulator shut
+down (a scratch simulator only); and the sizes the system asks each family
+for are in chronod's log (`CounterComplication:accessoryCircular::51.00/…`).
+
 **Families.** `.accessoryCircular` (the corner-of-the-face one, and the one
 most people will place), `.accessoryRectangular` (the Smart Stack card),
 `.accessoryInline` (the text line above the face), `.accessoryCorner`.

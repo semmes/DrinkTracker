@@ -71,6 +71,12 @@ still carry "drinks today", and every family speaks the full "N drinks
 today" to VoiceOver. The numeral takes the room the noun had (30 → 34).
 Both bare nouns retire from the complication's catalog.
 
+**Amended 2026-09-18, on the owner's design: the circular family draws the
+card's tile, not a disc**, in a clear slot, with the figure at the card's own
+size (34 → 24) — and on a tinted face every family's ground goes translucent
+so the count can be read. The amendment of that date, below, is the record;
+"the tile shrunk to a disc" now describes the corner family alone.
+
 **The sitting appears only as dots**, on the rectangular card, on a row of
 its own beneath, while `SessionPace.currentSession` returns a value **and the
 watch's own "Show session pace" is on** — the sitting is a surface the wrist
@@ -160,13 +166,144 @@ throwing fetch and `isMarkedAlcoholFreeOrThrow(_:)`, and checks the App Group fi
 them failing returns nil, which is the existing unavailable entry. The view is
 unchanged. ADR-0047 is the change that found it.
 
-## How to reopen
+## Amendment, 2026-09-18 — the circular slot draws the card's tile, and a tinted face keeps the count
+
+Two changes, separable, in two commits. The first is the owner's design
+(`docs/design/watch/circular-complication-handoff.md`); the second is what
+that design's own acceptance check — "one tinted face" — found.
+
+### The tile
+
+The circular family filled its whole slot with the band and set the count at
+34. Beside the card's 44pt tile with its 24pt figure it read larger and
+louder than the surface it belongs to, and a disc is not the shape this
+product marks a day with: the calendar cell, the counter's tile and the card
+are all the rounded square. Now the slot is clear and holds **the card's own
+tile**: side `floor(d × 0.83 × 2) / 2` for a slot of diameter `d`, corner
+`side × 13 / 44`, continuous, centred; the numeral at the card's 24 and the
+glyphs at its 18, whatever the side — a smaller tile is a smaller ground,
+not a smaller number. One function, `tile(side:)`, draws it for both
+families, so they cannot drift apart again; the geometry is
+`ComplicationTile` in the core package, pinned at tier 1. The neutral ground
+is the card's `.quaternary`, no longer `AccessoryWidgetBackground`. The slot
+is read from the view's geometry and never assumed.
+
+**Why 0.83, checked rather than taken.** Flattening SwiftUI's own
+`RoundedRectangle(cornerRadius:style: .continuous)` path, a 44pt tile at 13
+reaches 25.753pt from its centre (25.728 if the corner were an arc); the 46mm
+slot's radius is 25.5, so a copy of the card's tile would lose four corners
+to the system's mask. At 0.83, against every size the system asks for — read
+from its own log on the simulators, 51 and 46 on the 46mm, 42 and 37 on the
+40mm — and the design's other rows:
+
+| Slot | Tile | Corner | Clear of the mask |
+|---|---|---|---|
+| 51 | 42 | 12.41 | 0.92 |
+| 50 | 41.5 | 12.26 | 0.71 |
+| 47 | 39 | 11.52 | 0.67 |
+| 46 | 38 | 11.23 | 0.76 |
+| 44.5 | 36.5 | 10.78 | 0.89 |
+| 42 | 34.5 | 10.19 | 0.81 |
+| 40 | 33 | 9.75 | 0.68 |
+| 37 | 30.5 | 9.01 | 0.65 |
+
+The design's six rows agree with it to the hundredth. Its "never below 0.65"
+holds for the rows and not between them: the least over 37 to 51pt in
+quarter points is 0.56, at 38 — still more than a pixel, which is what
+matters, and what the tier-1 sweep asserts (half a point, 36 to 56pt). The
+extra-large family is requested at the circular's own size and scaled by the
+face, so it needs no rule of its own.
+
+**Where the repository won, by the design's own instruction** ("the repo
+wins"; its numbers were measured from screenshots without the code). The
+numeral is the card's 24 semibold, not the measured 23 bold. The no-alcohol
+mark is the app's own `tally.alcoholfree` at 18 — 13pt across as drawn, where
+12.5 was measured — not `checkmark.circle` (ADR-0036 reserves that glyph's
+meaning). The neutral is the *style* `.quaternary`, which measures `#252526`
+on a black face — exactly the value the design sampled from the card — so the
+two match without a literal colour (invariant 10). Redacted, the tile keeps
+its shape, as the design asks, and shows the drop glyph with the band's fill
+gone, which is this record's rule, rather than "the numeral redacts". And the
+numeral gained `lineLimit(1)` beside its existing `minimumScaleFactor(0.6)`,
+the design's own edge case: "100" shrinks onto one line, edge to edge in the
+tile, as it already did on the card.
+
+**Measured on the simulators** (Series 11 46mm and SE 3 40mm, Modular, both
+families on one face; pixel boxes read from screenshots by script). The tile
+is 84 × 84px = 42.0pt in the 51pt slot and 69px = 34.5pt in the 42pt one,
+centred, no lit pixel within 0.7pt of the mask. The figure's pixel box is
+identical in the circular tile and the card's on the same face in every
+state: "0" 12.0 × 17.0pt, "1" 7.5 × 16.5, "16" 24.5 × 17.0, the mark 13.0 ×
+13.0. Grounds: `#252526` at 0 and on a day recorded as no alcohol, `#184F95`
+at 1, `#3987E5` at 3, `#9EC5F4` at 6, `#CDE2FB` at 16 — the ramp, untouched.
+And the card's row is pixel-identical between `main`'s build and this one in
+full colour: the rectangular complication does not change.
+
+**Not changed:** the corner family keeps its disc. It was outside the
+design's scope, its slot is 32 to 34pt, and a tile there is a separate
+drawing.
+
+### A tinted face
+
+On a tinted face WidgetKit keeps each view's alpha and nothing else of its
+colour: everything accentable is drawn in the face's tint and everything
+else in one flat ink. The band's solid fill therefore became a bright block
+with the count on it in the tint — measured on a Modular tinted pale teal,
+**1.34:1** in the circular slot and **1.64:1** on the card, and on California's
+cream all but invisible — and the card's ＋ became a blank disc, its white
+glyph and blue fill being one ink there (**1.29:1**). A control build of
+`main` draws the same 1.34:1 on its full-circle disc, so this predates the
+tile: Phase 6 listed tinted rendering as unverified, and the device pass of
+2026-09-15 looked at a tinted face without recording which tint or which
+day — a neutral day, or a strong tint, reads.
+
+`CounterComplicationView.isTinted` (`widgetRenderingMode != .fullColor`) now
+makes every ground translucent and leaves every figure solid: the tile and
+the corner's disc take the neutral ground whatever the band, and the ＋'s
+disc takes the tile's. After: **9.18:1**, **7.53:1** and **11.55:1** on the
+same face, and California reads. Full colour is pixel-identical with and
+without the rule.
+
+**The cost: a tinted face shows no band.** The system has taken the colour,
+and opacity cannot stand in for it. The translucent ground is 16% of the
+flat ink; four steps a reader could tell apart would have to climb to about
+50%, where a pale-teal numeral computes to 2.85:1 and cream to 3.31:1 (30% —
+5.67 and 6.59; 40% — 3.96 and 4.59). The count is what survives a tint, which
+is the design's own accessibility rule: status never depends on colour
+alone.
+
+### Found, and left alone
+
+On the 40mm the rectangular family is 152 to 162pt wide (194 to 196 on the
+46mm) and the card's words truncate — "drinks t…", "Recorded as no al…".
+Phase 6 listed the 40mm card as unverified; the design for this change says
+the rectangular complication does not change, so it does not here. The
+likely repair is two lines for the unit words, as the marker's sentence
+already has.
+
+### Not verified
+
+Always-On and redaction off the wrist (the simulator offers neither); the
+X-Large face; tints other than the two above; anything on hardware.
 
 - If the owner wants the session count on the face after all, it is one
   rule in `CounterProvider.Snapshot.entry`: the numeral and the band would
   both switch to the sitting's drinks together, never the numeral alone.
 - If the ＋ is wanted in the circular family, the whole circle becomes the
   button and the count goes — the trade the design named.
+- If the corner should be a tile too, it is `tile(side:)` at
+  `ComplicationTile.side(forSlotDiameter:)` of its 32 to 34pt slot — 26.5 to
+  28pt — and its figure (22 today) has to come down with it: "16" at 22 is
+  about 22pt wide. That is a drawing to make, not a constant to change.
+- If a tinted face should show the band after all, opacity is not the route
+  (the 2026-09-18 amendment has the arithmetic). The one that keeps a solid
+  tile readable in any tint is to cut the numeral *out* of it — the tile and
+  the figure in one accent group, the figure drawn with `.destinationOut` in
+  a compositing group — which is untried against WidgetKit's flattening, and
+  on a photo face makes the numeral whatever is behind it. Reversing the
+  tinted rule itself is one expression, `isTinted`.
+- If the card's words should fit the 40mm, give the unit words the second
+  line the marker's sentence has; the card's width there is 152 to 162pt.
 - ~~If the face lags the phone on hardware more than a raise away, the reopen
   is Phase 7's channel used for a reload signal rather than a row — a
   `WCSession` message that asks the watch to reload, carrying no data.~~
