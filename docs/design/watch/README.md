@@ -537,6 +537,20 @@ unit's name varies by region, its form by count, and word order by language.
 - The circular, corner and inline families were compiled and not rendered on
   a face here; the rectangular card was placed and driven.
 
+### Changed (2026-09-18) — the circular family is a tile, not a disc
+
+The owner's later design, `circular-complication-handoff.md` beside this
+page, supersedes its `accessoryCircular` row (and the 2026-09-15 device pass had already
+removed its "drinks" noun): the slot is clear and holds the rectangular
+card's own tile — side 0.83 of the slot's diameter floored to the half
+point, corner 13 on 44, the card's 24 pt figure — so the face shows the
+rounded mark the calendar does. On a tinted face every family's ground goes
+translucent and the figures stay solid, because the system flattens a solid
+fill and the count on it into two inks a reader cannot tell apart. The
+corner keeps its disc. ADR-0046's amendment of that date has the geometry,
+the measurements and where the code kept its own values over the handoff's
+measured ones.
+
 ## Build order
 
 | Phase | Work |

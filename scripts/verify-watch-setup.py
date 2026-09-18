@@ -488,6 +488,10 @@ def check_git():
     listing = git("worktree", "list") or ""
     for line in listing.splitlines():
         record(INFO, "worktree", line)
+    # A session isolated in a worktree holds a lock on it for as long as it
+    # runs, so the checkout this script runs from is in use, not stale: only
+    # a lock on some *other* entry is one nobody may be holding any more.
+    here = os.path.realpath(git("rev-parse", "--show-toplevel") or ".")
     stale = []
     for line in listing.splitlines():
         if not line.strip():
@@ -495,7 +499,7 @@ def check_git():
         path = line.split()[0]
         if "prunable" in line:
             stale.append(f"{path} (prunable)")
-        elif "locked" in line:
+        elif "locked" in line and os.path.realpath(path) != here:
             stale.append(f"{path} (locked)")
         elif not os.path.isdir(path):
             stale.append(f"{path} (missing)")

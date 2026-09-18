@@ -5,12 +5,12 @@ import SwiftUI
 import WidgetKit
 
 /// The watch complication (watch Phase 6; ADR-0045, ADR-0046): today's count
-/// in the day's band on every family — the tile shrunk to a disc, keeping its
-/// job — with the sitting's dots on the rectangular card while a session
-/// runs and the watch's own "Show session pace" is on, and a ＋ there that
-/// logs one drink through `LogOneDrinkIntent` without opening the app.
-/// `StaticConfiguration` throughout, like `QuickLogWidget`, and the same two
-/// strings name it.
+/// in the day's band on every family — one tile on the rectangular card and
+/// in the circular slot, a disc in the corner — with the sitting's dots on
+/// the rectangular card while a session runs and the watch's own "Show
+/// session pace" is on, and a ＋ there that logs one drink through
+/// `LogOneDrinkIntent` without opening the app. `StaticConfiguration`
+/// throughout, like `QuickLogWidget`, and the same two strings name it.
 ///
 /// Every count is `.privacySensitive()`, and redacted — the watch off the
 /// wrist — each family shows the drop glyph and the plural words with the
@@ -215,8 +215,19 @@ struct CounterComplicationView: View {
 
   @Environment(\.widgetFamily) private var family
   @Environment(\.redactionReasons) private var redaction
+  @Environment(\.widgetRenderingMode) private var renderingMode
 
   private let scheme: ColorScheme = .dark
+
+  /// A tinted face keeps each view's alpha and nothing else of its colour:
+  /// every fill is drawn in one flat ink and whatever is accentable in the
+  /// face's tint. A band's solid fill then became a bright block with the
+  /// count at 1.3:1 on it, and the ＋ a blank disc — white glyph and blue
+  /// fill are one ink there (both measured on a tinted Modular, 2026-09-18;
+  /// the full-circle disc before it did the same). So on a tinted face the
+  /// grounds go translucent and the figures stay solid: the count survives a
+  /// tint, and the band, being colour, does not.
+  private var isTinted: Bool { renderingMode != .fullColor }
 
   /// Redacted by the system, or nothing to show: the figure goes, the band's
   /// fill with it (once the digits are gone the colour is the figure), and
@@ -242,16 +253,18 @@ struct CounterComplicationView: View {
 
   // MARK: Families
 
-  /// The circular: the disc in the band's fill and the count in the band's
-  /// ink, and nothing else. The design drew a unit noun beneath it and the
-  /// owner removed it on the device (2026-09-15): a 50pt disc reading
-  /// "1 drink" is a sentence where a glance wants a number, and the noun is
-  /// on the face's own label and in what VoiceOver speaks. The numeral takes
-  /// the room the noun had.
+  /// The circular: the card's own tile in a clear slot, and nothing else —
+  /// so on the face it reads as the calendar's rounded mark, not as a disc
+  /// (the owner's design, 2026-09-18; ADR-0046's amendment of that date). It
+  /// had filled the whole circle with the band and set the count at 34; the
+  /// tile is as large as the round mask allows and the figure is the card's.
+  /// The slot's size is the watch's and the face's, so it is read, never
+  /// assumed. No unit noun, by the owner's device pass (2026-09-15): the face
+  /// draws its own label, and VoiceOver speaks the whole sentence.
   private var circular: some View {
-    ZStack {
-      disc(radius: nil)
-      figure(size: 34)
+    GeometryReader { slot in
+      tile(side: ComplicationTile.side(forSlotDiameter: min(slot.size.width, slot.size.height)))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(spokenLabel)
@@ -304,15 +317,11 @@ struct CounterComplicationView: View {
   private var rectangular: some View {
     VStack(alignment: .leading, spacing: 4) {
       HStack(spacing: 8) {
-        ZStack {
-          disc(radius: 13)
-          figure(size: 24)
-        }
-        .frame(width: 44, height: 44)
-        // The words beside it carry the count to VoiceOver; the tile would
-        // otherwise speak it a second time, which the disc families avoid by
-        // being one element.
-        .accessibilityHidden(true)
+        tile(side: ComplicationTile.cardSide)
+          // The words beside it carry the count to VoiceOver; the tile would
+          // otherwise speak it a second time, which the circular and corner
+          // families avoid by being one element.
+          .accessibilityHidden(true)
 
         Text(showsMarker ? "Recorded as no alcohol today" : unitWordToday)
           .font(.system(size: 11))
@@ -332,7 +341,7 @@ struct CounterComplicationView: View {
               .font(.system(size: 22, weight: .semibold))
               .foregroundStyle(.white)
               .frame(width: 44, height: 44)
-              .background(Color("AccentFill"), in: .circle)
+              .background(plusGround, in: .circle)
               .contentShape(.circle)
           }
           .buttonStyle(.borderless)
@@ -357,13 +366,28 @@ struct CounterComplicationView: View {
 
   // MARK: Parts
 
-  /// The band's fill, or the system's translucent ground on a day with no
-  /// band to show — unlogged, recorded as no alcohol (off the ramp), or
-  /// figureless, when the colour would be the figure.
+  /// The count's tile, the one view the rectangular card and the circular
+  /// slot both draw, so the two cannot drift apart again: the ground at the
+  /// card's own corner proportion, and the figure at the card's own size
+  /// whatever the side — a smaller tile is a smaller ground, not a smaller
+  /// number (`ComplicationTile`, tier-1 tested).
+  private func tile(side: CGFloat) -> some View {
+    ZStack {
+      disc(radius: ComplicationTile.cornerRadius(forSide: side))
+      figure(size: 24)
+    }
+    .frame(width: side, height: side)
+  }
+
+  /// The band's fill, or a translucent ground on a day with no band to show
+  /// — unlogged, recorded as no alcohol (off the ramp), figureless, when the
+  /// colour would be the figure, or on a tinted face, where it cannot be
+  /// drawn (`isTinted`). A radius draws the tile; none, the corner family's
+  /// disc on the system's own ground.
   @ViewBuilder
   private func disc(radius: CGFloat?) -> some View {
     let band = entry.band
-    if !isFigureless, band != .unlogged, band != .alcoholFree {
+    if !isFigureless, !isTinted, band != .unlogged, band != .alcoholFree {
       if let radius {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
           .fill(IntensityPalette.fill(band, scheme: scheme))
@@ -396,6 +420,8 @@ struct CounterComplicationView: View {
       Text(entry.drinkCount, format: .number)
         .font(.system(size: size, weight: .semibold, design: .rounded))
         .monospacedDigit()
+        // Three digits shrink to fit the tile and never wrap inside it.
+        .lineLimit(1)
         .minimumScaleFactor(0.6)
         .foregroundStyle(ink)
         .privacySensitive()
@@ -405,9 +431,15 @@ struct CounterComplicationView: View {
 
   private var ink: Color {
     let band = entry.band
-    return band == .unlogged || band == .alcoholFree || isFigureless
+    return band == .unlogged || band == .alcoholFree || isFigureless || isTinted
       ? .primary
       : IntensityPalette.ink(band, scheme: scheme)
+  }
+
+  /// The ＋'s disc: the accent fill, or on a tinted face the tile's own
+  /// translucent ground, so the glyph is not drawn in the ink of its disc.
+  private var plusGround: AnyShapeStyle {
+    isTinted ? AnyShapeStyle(.quaternary) : AnyShapeStyle(Color("AccentFill"))
   }
 
   private var unitWordToday: LocalizedStringKey {
