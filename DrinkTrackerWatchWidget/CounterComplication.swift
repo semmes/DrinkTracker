@@ -215,8 +215,19 @@ struct CounterComplicationView: View {
 
   @Environment(\.widgetFamily) private var family
   @Environment(\.redactionReasons) private var redaction
+  @Environment(\.widgetRenderingMode) private var renderingMode
 
   private let scheme: ColorScheme = .dark
+
+  /// A tinted face keeps each view's alpha and nothing else of its colour:
+  /// every fill is drawn in one flat ink and whatever is accentable in the
+  /// face's tint. A band's solid fill then became a bright block with the
+  /// count at 1.3:1 on it, and the ＋ a blank disc — white glyph and blue
+  /// fill are one ink there (both measured on a tinted Modular, 2026-09-18;
+  /// the full-circle disc before it did the same). So on a tinted face the
+  /// grounds go translucent and the figures stay solid: the count survives a
+  /// tint, and the band, being colour, does not.
+  private var isTinted: Bool { renderingMode != .fullColor }
 
   /// Redacted by the system, or nothing to show: the figure goes, the band's
   /// fill with it (once the digits are gone the colour is the figure), and
@@ -330,7 +341,7 @@ struct CounterComplicationView: View {
               .font(.system(size: 22, weight: .semibold))
               .foregroundStyle(.white)
               .frame(width: 44, height: 44)
-              .background(Color("AccentFill"), in: .circle)
+              .background(plusGround, in: .circle)
               .contentShape(.circle)
           }
           .buttonStyle(.borderless)
@@ -369,13 +380,14 @@ struct CounterComplicationView: View {
   }
 
   /// The band's fill, or a translucent ground on a day with no band to show
-  /// — unlogged, recorded as no alcohol (off the ramp), or figureless, when
-  /// the colour would be the figure. A radius draws the tile; none, the
-  /// corner family's disc on the system's own ground.
+  /// — unlogged, recorded as no alcohol (off the ramp), figureless, when the
+  /// colour would be the figure, or on a tinted face, where it cannot be
+  /// drawn (`isTinted`). A radius draws the tile; none, the corner family's
+  /// disc on the system's own ground.
   @ViewBuilder
   private func disc(radius: CGFloat?) -> some View {
     let band = entry.band
-    if !isFigureless, band != .unlogged, band != .alcoholFree {
+    if !isFigureless, !isTinted, band != .unlogged, band != .alcoholFree {
       if let radius {
         RoundedRectangle(cornerRadius: radius, style: .continuous)
           .fill(IntensityPalette.fill(band, scheme: scheme))
@@ -419,9 +431,15 @@ struct CounterComplicationView: View {
 
   private var ink: Color {
     let band = entry.band
-    return band == .unlogged || band == .alcoholFree || isFigureless
+    return band == .unlogged || band == .alcoholFree || isFigureless || isTinted
       ? .primary
       : IntensityPalette.ink(band, scheme: scheme)
+  }
+
+  /// The ＋'s disc: the accent fill, or on a tinted face the tile's own
+  /// translucent ground, so the glyph is not drawn in the ink of its disc.
+  private var plusGround: AnyShapeStyle {
+    isTinted ? AnyShapeStyle(.quaternary) : AnyShapeStyle(Color("AccentFill"))
   }
 
   private var unitWordToday: LocalizedStringKey {
