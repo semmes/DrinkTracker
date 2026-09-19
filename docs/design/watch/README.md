@@ -551,6 +551,24 @@ corner keeps its disc. ADR-0046's amendment of that date has the geometry,
 the measurements and where the code kept its own values over the handoff's
 measured ones.
 
+### Changed (2026-09-18, again) — the rectangular card is fourteen sizes, not one
+
+"About 177 × 80 pt on a 46 mm watch", above, was one figure for a family the
+system sizes per case *and* per host: a face gives the card from 150 pt of
+content (40 mm) to 184 (49 mm), the Smart Stack from 138 to 176. Drawn for the
+46 mm, the row cut its words short on the 40 mm ("drinks t…"; "drink…" under
+a 3 in its Smart Stack), on the 41 mm and in the 44 mm's stack. The tile and
+the ＋ keep their 44 everywhere — the ＋ is a touch target — so the words
+give: under 172 pt of content they take the whole column between the two, the
+gaps close from 8 to the counter's own 4, the unit words may take two lines
+and the no-alcohol sentence four, and they wrap before they shrink. The 45 mm's
+face and the 46 and 49 mm, in both contexts, are drawn exactly as before. No
+copy changed. ADR-0046's second amendment of that date has the fourteen
+widths, the measurements, and what could only be emulated. **A design question
+it leaves open:** a drawing of the card at 138 pt would say whether 4 pt gaps
+and a four-line sentence are what the owner wants on the smallest watch, or
+only what fits.
+
 ## Build order
 
 | Phase | Work |

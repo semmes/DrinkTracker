@@ -77,6 +77,14 @@ size (34 → 24) — and on a tinted face every family's ground goes translucent
 so the count can be read. The amendment of that date, below, is the record;
 "the tile shrunk to a disc" now describes the corner family alone.
 
+**Amended 2026-09-18, a second time: the rectangular card's words wrap on a
+narrow card.** "The tile at 44, the unit word and a 44pt ＋" was drawn for one
+width, and the family has fourteen; under 172pt of content — every card but
+the 45mm's face and the 46 and 49mm — the words take the whole column between
+the tile and the ＋, the gaps close to 4, and the words wrap before they
+shrink. The 46mm is drawn exactly as it was, in both of its contexts. The
+second amendment of that date, below, is the record.
+
 **The sitting appears only as dots**, on the rectangular card, on a row of
 its own beneath, while `SessionPace.currentSession` returns a value **and the
 watch's own "Show session pace" is on** — the sitting is a surface the wrist
@@ -279,12 +287,181 @@ On the 40mm the rectangular family is 152 to 162pt wide (194 to 196 on the
 Phase 6 listed the 40mm card as unverified; the design for this change says
 the rectangular complication does not change, so it does not here. The
 likely repair is two lines for the unit words, as the marker's sentence
-already has.
+already has. **Repaired the same day — the next amendment.** "152 to 162pt"
+are the family's two *sizes* on the 40mm, the Smart Stack's and the face's,
+not a range of one; its content is 138 and 150.
 
 ### Not verified
 
 Always-On and redaction off the wrist (the simulator offers neither); the
 X-Large face; tints other than the two above; anything on hardware.
+
+## Amendment, 2026-09-18 (second) — the card's words wrap on a narrow card, and the 46mm does not change
+
+The amendment above found the rectangular card's words cut short on a 40mm
+watch and left them. This is the repair. It changes no copy and neither 44.
+
+### The card is not one size
+
+The row was the tile at 44, the words, a `Spacer` and the ＋ at 44 in an
+`HStack` at 8 — and a Spacer keeps a gap on each side of itself, so the words
+were left the content less 112pt. What the content *is* had never been
+measured: this record's Context has "about 177 × 80pt on a 46mm watch", one
+figure for a family that has two sizes there and twelve elsewhere.
+
+The system's own figures, read from chronod's host metrics (`chrono.sql`,
+`HostConfigs`: the face's host is `com.apple.nanotimekit.WidgetHost`, the
+Smart Stack's `com.apple.NanoHomeScreen.WidgetHost`) on a throwaway watchOS
+26.5 simulator of every case size — the family's size less its safe-area
+insets. A logging build measured the two it could reach, the 40mm's face and
+the 46mm's, at 150 × 57 and 181 × 65.5: the metrics, exactly. watchOS 27.0
+gives the 40, 42, 44, 46 and 49mm the same.
+
+| Case | On a face | In the Smart Stack | The words' column as it was |
+|---|---|---|---|
+| 40mm | 150 × 57 | 138 × 55.5 | 38 · 26 |
+| 41mm | 158.5 × 60 | 151 × 55.5 | 46.5 · 39 |
+| 42mm | 163 × 59.5 | 162 × 55.5 | 51 · 50 |
+| 44mm | 171 × 65 | 158 × 58.5 | 59 · 46 |
+| 45mm | 179 × 68 | 165 × 58.5 | 67 · 53 |
+| 46mm | 181 × 65.5 | 175 × 58.5 | 69 · 63 |
+| 49mm | 184 × 69.5 | 176 × 60 | 72 · 64 |
+
+The words, as ink at the card's 11pt, measured from renders: "drinks today"
+is 58.0pt on one line ("drinks" 28.5, "today" 26.5), "drink today" 52.5, and
+the sentence's "Recorded" — the one thing on the card that cannot wrap — 45.0,
+with "Recorded as no", the longer line of its two-line break, 72.4 (67.5 at
+the 0.93 the 46mm draws it). At the 0.8 floor one line of the unit words
+needs 46.4 and the sentence's two lines 58.
+
+So the old row cut the unit words short on the 40mm — rendered on its face:
+"drinks t…", "drink to…", "Recorded / as no al…"; emulated in its Smart
+Stack's box (below): **"drink…" under a 3**, the plural's own "s" gone — and
+by the same arithmetic in the 41mm's and the 44mm's Smart Stacks. It shrank
+them on the 41mm's face, the 42mm and the 45mm's stack. And it cut the
+sentence short on eight of the fourteen cards, everything under 170pt. The
+defect was never the 40mm's alone; it was seen there because that is where
+someone looked.
+
+### The decision
+
+**One width decides, and the 46mm is on the far side of it.** A card is
+*wide* when the old row would leave the words 60pt — "drinks today" on one
+line at full size, and a point — which is 172pt of content: the 45mm's face,
+and the 46 and 49mm in both contexts. A wide card is drawn by the same views,
+in the same order, with the same modifiers as before. Every other card is
+*narrow*: nine, from 171pt down to 138. The 46mm's stack is three points over
+the line. The card a point under it is the 44mm's face, the one card where
+either row holds the words — the old row left it 59pt — so it is the right
+card to have beside it.
+
+**Narrow, the words give, because nothing else may.** The tile is the day's
+mark and the ＋ is a touch target; both keep their 44. So the words take the
+whole column between them — the Spacer goes, and its second gap with it; the
+gaps close from 8 to **4**, the watch counter's own gap between its discs and
+its tile; the unit words may take two lines and the sentence four. They wrap
+before they shrink, and the floor stays 0.8. The column is the content less
+96: 42 to 75pt.
+
+**Why 4 and not 6.** Only the 40mm's Smart Stack needs it. "Recorded" is
+45pt, and that card's column is 34 at a gap of 8 — under the word's 36 at the
+floor, so the sentence could not be whole there at all — 38 at 6, and 42 at
+4. Six was built first and rendered: the sentence drew at 0.81, on the floor
+with nothing to spare, and beside a dots row (a sitting that began before
+midnight, on a day since recorded as no alcohol) SwiftUI stopped fitting four
+lines and cut it to "Recorded / as no al…" again. At 4 it draws at 0.90, and
+at 0.86 beside the dots, whole in both.
+
+**The width is read, never assumed** — the card's own `GeometryReader`, as
+the circular family reads its slot. The arithmetic is `ComplicationCard` in
+the core package, pinned at tier 1 against all fourteen widths: which cards
+are wide; that a wide card's column is the old one; that every narrow column
+holds "drinks" at full size and "Recorded" within a tenth of it; why the gap
+is 4; where the threshold sits among the cards; and that the narrow row
+never leaves the words less than the wide one would.
+
+### The 46mm does not change
+
+Measured, not argued. On a throwaway 46mm simulator, the card in a Modular
+face's centre slot in full colour, `main` at 89c276b against this change,
+every pixel beneath the clock — 132,288 of them, every channel, no tolerance
+— in ten states: 0, 1, 3, 6, 16 and 100 drinks, a day recorded as no alcohol,
+and 1, 3 and 16 with a running sitting's dots beneath. **None differs.** The
+two binaries do differ, and the same comparison flags 7,924 pixels between
+two different states, so it is not blind.
+
+That is the face. The 46mm's other context is its Smart Stack, which no
+simulator shows without a hand (below), so its content box — 175 × 58.5 — was
+emulated on the face with `main`'s row and with this one under one wrapper,
+in nine states, and the 49mm stack's box and the 45mm face's in two each:
+**thirteen frames, none differs.** The control: in the 40mm stack's box the
+same two builds differ by 1,121 pixels, all of them in the words.
+
+### Rendered
+
+**For real, on a throwaway 40mm simulator's Modular face** (150 × 57), full
+colour. "drinks / today" on two lines at full size — the same 28.5 and 26.5pt
+of ink as on the 46mm. "drink today" on one line: 52.5 in a 54pt column,
+4.5pt from the tile and 5 from the ＋ — so on this face the words go to two
+lines as the count goes to 2. The sentence on four lines at full size, its
+block 49.5pt tall inside the 57. Ten states in all: 0, 1, 3, 6, 16 and 100
+drinks, the recorded day, and 1, 3 and 16 with a running sitting's dots
+beneath. Against `main`, every changed pixel on the 40mm lies inside the
+words' box: the tile and the ＋ are where they were. And on a tinted face
+(`gossamer.color4`), where the words wrap the same and the tinted rule above
+holds.
+
+**Emulated, for the contexts no simulator will show.** A scratch build —
+never committed; it lived in a copy of the tree — pads the card down to a
+content size named in the App Group's defaults and outlines the box, so the
+46mm's face can stand in for any smaller card. It was checked against the
+real thing first: the 40mm face's 150 × 57 emulated on the 46mm puts the
+words within a pixel of where the real 40mm puts them. Then all nine narrow
+cards, with the unit words, the singular, the sentence, and the sentence
+beside a dots row — 36 frames, all whole:
+
+- The unit words are at full size on every narrow card: one line on six (the
+  41mm's face, the 42mm, the 44mm, the 45mm's stack), two on the 40mm's pair
+  and the 41mm's stack.
+- The sentence is at full size on every card but the 40mm's Smart Stack
+  (0.90): four lines on the 40mm and in the 41mm's stack; three on the 41mm's
+  face, the 42mm, and in the 44 and 45mm's stacks; two on the 44mm's face.
+- Beside a dots row it shrinks to fit the height, 0.84 to 1.00, and is whole
+  on all nine.
+
+### What it costs
+
+- The mid-sized watches change too, not only the 40mm. On the 41, 42 and
+  44mm, and in the 45mm's Smart Stack, the words now sit 4pt from the tile
+  instead of 8 and are drawn at full size where the old row shrank them. On
+  some of those cards the unit words were whole as they were — smaller on the
+  42mm and in the 45mm's stack, full size on the 44mm's face — and those
+  change anyway, because one rule is better than three and what the first
+  two get is larger type.
+- On the 40mm's face and in the 41mm's stack the singular fits one line and
+  the plural does not, so the words change shape between 1 and 2. They wrap
+  only when they must; a forced break would be a change to reviewed copy.
+- Four lines of 11pt are 49.5pt, taller than the 44pt tile beside them. It
+  fits every content box it occurs in; the least room is 1.5pt, in the 41mm's
+  stack.
+- The widths are English's. A translation re-measures the four constants in
+  the tests; the rule does not care what the words are.
+
+### Not verified
+
+Any Smart Stack for real. A simulator opens it only under a swipe or the
+crown; the tool that drives taps asks the owner for each device, and the
+owner was away — so every stack above is its *content box, emulated on a
+face*, which cannot show the stack's own ground and corner, or anything the
+stack does to a card while it scrolls. The 41, 42, 44, 45 and 49mm on their
+own simulators: their metrics were read from their own, their boxes emulated
+on the 46mm. Bold Text, which widens "Recorded" (the tightest card gives it
+42pt where the floor needs 36). Redaction and the unavailable state on a
+narrow card — the same "drinks today", and when unavailable no ＋ beside it,
+so a wider column. Always-On; VoiceOver, where no label changed; anything on
+hardware.
+
+## How to reopen
 
 - If the owner wants the session count on the face after all, it is one
   rule in `CounterProvider.Snapshot.entry`: the numeral and the band would
@@ -302,8 +479,25 @@ X-Large face; tints other than the two above; anything on hardware.
   a compositing group — which is untried against WidgetKit's flattening, and
   on a photo face makes the numeral whatever is behind it. Reversing the
   tinted rule itself is one expression, `isTinted`.
-- If the card's words should fit the 40mm, give the unit words the second
-  line the marker's sentence has; the card's width there is 152 to 162pt.
+- ~~If the card's words should fit the 40mm, give the unit words the second
+  line the marker's sentence has; the card's width there is 152 to 162pt.~~
+  **Answered 2026-09-18**, in the second amendment of that date — and the
+  second line alone would not have done it: in the 40mm's Smart Stack the old
+  row left the words 26pt, and "drinks" is 28.5.
+- If the narrow row's 4pt gaps read as cramped on a mid-sized watch, the row
+  can take a middle tier — 8 wherever the column still holds "Recorded" at
+  full size, which is every narrow card but the 40mm's Smart Stack. The cost
+  is the one-line unit words on the 41mm's face and in the 44mm's stack,
+  which need the 4. It is `ComplicationCard.narrowGap` and one more
+  threshold; the tests' table says which cards move.
+- If four lines beside a 44pt tile is too tall, the limit is
+  `ComplicationCard.lineLimit(isMarker:isNarrow:)`. Three lines shrinks the
+  sentence to about 0.93 on the 40mm's face, and cannot hold the 40mm's
+  Smart Stack at all: "Recorded as" is 58pt in a 42pt column, 0.72.
+- If a real Smart Stack on a small watch disagrees with its emulated box, the
+  width the card was given is one log line away — the geometry is already
+  read — and the fourteen widths in `ComplicationCardTests` are what to
+  correct first.
 - ~~If the face lags the phone on hardware more than a raise away, the reopen
   is Phase 7's channel used for a reload signal rather than a row — a
   `WCSession` message that asks the watch to reload, carrying no data.~~

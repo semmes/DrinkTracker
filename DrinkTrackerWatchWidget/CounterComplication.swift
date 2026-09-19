@@ -314,53 +314,72 @@ struct CounterComplicationView: View {
   /// the design drew it at, so the tile and the ＋ are 44 and the ≈ line is
   /// not shown — the same trade the home-screen widget's small family makes
   /// — and the dots take a row of their own beneath.
+  ///
+  /// And it is not one size: 181pt of content on a 46mm face, 138 in a 40mm
+  /// Smart Stack, where this row truncated its words ("drinks t…", "Recorded
+  /// as no al…"). The tile and the ＋ keep their 44 — the ＋ is a touch
+  /// target — so on a card too narrow for one line at full size the words
+  /// give instead: they wrap, they take the whole column between the two, and
+  /// the gaps close to the watch counter's 4 (`ComplicationCard`, tier-1
+  /// tested against every case size's width). A wide card — the 46mm in both
+  /// of its contexts — is drawn exactly as it always was. The width is the
+  /// system's, so it is read, never assumed.
   private var rectangular: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      HStack(spacing: 8) {
-        tile(side: ComplicationTile.cardSide)
-          // The words beside it carry the count to VoiceOver; the tile would
-          // otherwise speak it a second time, which the circular and corner
-          // families avoid by being one element.
-          .accessibilityHidden(true)
+    GeometryReader { card in
+      let isNarrow = ComplicationCard.isNarrow(contentWidth: card.size.width)
 
-        Text(showsMarker ? "Recorded as no alcohol today" : unitWordToday)
-          .font(.system(size: 11))
-          .foregroundStyle(.secondary)
-          .lineLimit(showsMarker ? 2 : 1)
-          .minimumScaleFactor(0.8)
-          .accessibilityLabel(spokenLabel)
+      VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: isNarrow ? ComplicationCard.narrowGap : ComplicationCard.gap) {
+          tile(side: ComplicationTile.cardSide)
+            // The words beside it carry the count to VoiceOver; the tile would
+            // otherwise speak it a second time, which the circular and corner
+            // families avoid by being one element.
+            .accessibilityHidden(true)
 
-        Spacer(minLength: 0)
+          Text(showsMarker ? "Recorded as no alcohol today" : unitWordToday)
+            .font(.system(size: 11))
+            .foregroundStyle(.secondary)
+            .lineLimit(ComplicationCard.lineLimit(isMarker: showsMarker, isNarrow: isNarrow))
+            .minimumScaleFactor(ComplicationCard.minimumScale)
+            // Narrow, the words fill the column themselves, so the Spacer —
+            // and the second gap it keeps — can go.
+            .frame(maxWidth: isNarrow ? .infinity : nil, alignment: .leading)
+            .accessibilityLabel(spokenLabel)
 
-        // No `.buttonStyle(.plain)` — in a widget that suppresses interaction
-        // handling entirely (the home-screen widget's lesson). No ＋ while
-        // the store cannot be opened: the intent would fail against it.
-        if !entry.isUnavailable {
-          Button(intent: LogOneDrinkIntent()) {
-            Image(systemName: "plus")
-              .font(.system(size: 22, weight: .semibold))
-              .foregroundStyle(.white)
-              .frame(width: 44, height: 44)
-              .background(plusGround, in: .circle)
-              .contentShape(.circle)
+          if !isNarrow {
+            Spacer(minLength: 0)
           }
-          .buttonStyle(.borderless)
-          .accessibilityLabel("Log one drink")
+
+          // No `.buttonStyle(.plain)` — in a widget that suppresses interaction
+          // handling entirely (the home-screen widget's lesson). No ＋ while
+          // the store cannot be opened: the intent would fail against it.
+          if !entry.isUnavailable {
+            Button(intent: LogOneDrinkIntent()) {
+              Image(systemName: "plus")
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: ComplicationCard.plusSide, height: ComplicationCard.plusSide)
+                .background(plusGround, in: .circle)
+                .contentShape(.circle)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Log one drink")
+          }
+        }
+
+        if let session = entry.session {
+          let row = SessionPace.dotRow(forCount: session.count)
+          SessionDots(
+            count: isFigureless ? SessionPace.dotMaximum : row.dots,
+            band: entry.sessionBand,
+            ringed: entry.sessionBand == nil || isFigureless,
+            size: 6, gap: 4
+          )
+          .accessibilityHidden(true)
         }
       }
-
-      if let session = entry.session {
-        let row = SessionPace.dotRow(forCount: session.count)
-        SessionDots(
-          count: isFigureless ? SessionPace.dotMaximum : row.dots,
-          band: entry.sessionBand,
-          ringed: entry.sessionBand == nil || isFigureless,
-          size: 6, gap: 4
-        )
-        .accessibilityHidden(true)
-      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     .containerBackground(.fill.tertiary, for: .widget)
   }
 

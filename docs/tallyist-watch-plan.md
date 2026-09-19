@@ -1478,6 +1478,26 @@ GlobalStores/LibraryFaces/Faces/<uuid>/face.json` with the simulator shut
 down (a scratch simulator only); and the sizes the system asks each family
 for are in chronod's log (`CounterComplication:accessoryCircular::51.00/…`).
 
+**Changed again 2026-09-18 (ADR-0046's second amendment of that date is the
+record):** "the 40mm card", the last thing this note left unverified, was
+rendered and was broken — the words cut to "drinks t…" on a 40mm face, and to
+"drink…" under a 3 in its Smart Stack's content box — and the same arithmetic
+cuts them on the 41mm and in the 44mm's stack. The family has fourteen widths
+(seven cases, a face and the Smart Stack), 181pt of content down to 138. Under
+172 the card's words now take the whole column between the tile and the ＋,
+the gaps close to the counter's 4, and the words wrap before they shrink; the
+46mm is pixel-identical, in both of its contexts. The rule is
+`ComplicationCard` in the core package, pinned against all fourteen widths.
+**How it was reached without a single tap, for the next session:** a face
+holding the complication can be *written* — a `face.json` beside the library's
+`manifest.plist`, the widget recorded as `"type": 56` with its container,
+extension and kind, with the simulator shut down; what each host gives each
+family (size and safe-area insets) is a keyed archive in
+`data/Library/chronod/chrono.sql`, table `HostConfigs`; a scratch store can be
+seeded with `sqlite3`, and a raise and terminate of the app reloads the face;
+and a context that cannot be shown — any Smart Stack — can have its *content
+box* emulated on a face by a scratch build that pads the card down to it.
+
 **Families.** `.accessoryCircular` (the corner-of-the-face one, and the one
 most people will place), `.accessoryRectangular` (the Smart Stack card),
 `.accessoryInline` (the text line above the face), `.accessoryCorner`.
