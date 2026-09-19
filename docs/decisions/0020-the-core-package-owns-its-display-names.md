@@ -82,6 +82,71 @@ record amends it with an explicit split (user decision, from three options):
   language with the app — which is the intent, and is now stated in the
   export's own documentation.
 
+## Amendment, 2026-09-18 — what `swift test` puts in the bundle depends on the build system
+
+The first consequence above says SwiftPM copies `.xcstrings` into the bundle
+verbatim. That was a fact about SwiftPM's *native build system*, not about
+SwiftPM. From Swift 6.4 (Xcode 27.0) `swift test` builds with Swift Build —
+Xcode's engine — by default, and it treats the catalog as Xcode always has.
+Read from both builds' products, same sources, on one Mac:
+
+| | native (Swift 6.3.3, Xcode 26.6) | Swift Build (Swift 6.4, Xcode 27.0) |
+|---|---|---|
+| products | `.build/arm64-apple-macosx/debug` | `.build/out/Products/Debug` |
+| the bundle | flat | `Contents/Resources/`, code-signed |
+| the catalog in it | `Localizable.xcstrings`, verbatim | `en.lproj/Localizable.strings`, compiled, all 28 keys |
+| `xcstringstool generate-symbols` | not run | run over the source catalog |
+
+On Swift 6.4, `--build-system native` still produces the left column, which is
+how the build system was told apart from the compiler: one compiler, one set of
+sources, 292 passing under native and 290 under the default. The flag prints
+that it is deprecated and will be removed, so it is a way to check both shapes
+locally and not a fix.
+
+**What broke, and the fix.** Two tests in "Package localization" parsed the
+catalog out of `Bundle.module`, and failed where there is no `.xcstrings` to
+parse — locally under Xcode 27, while CI's domain job, on the runner image's
+default Xcode 26.6, stayed green. They now read the catalog from the source
+tree, relative to `#filePath`. That is the file they were always about: the keys
+a person typed, and the file `generate-symbols` reads. The bundle was a route to
+it that one build system happened to offer. No scheme or test plan includes the
+package's tests, so `swift test` from a checkout is the only way they run, and a
+compile-time path holds there. `bundleCarriesTheCatalog` still checks the
+bundle, in whichever form it takes.
+
+**Two alternatives, probed rather than argued.** Declaring the catalog a second
+time as a `.copy` resource of the test target builds on Swift 6.4, and gives that
+target a `Bundle.module` of its own, which shadows the package's inside the
+tests under both build systems — with no diagnostic. `bundleCarriesTheCatalog`
+then passes while inspecting `DrinkTrackerCore_DrinkTrackerCoreTests.bundle`: the
+name contains "DrinkTrackerCore" and the copied catalog is in it, so the one test
+that guards the package's real bundle would guard nothing. Trying the bundle
+first and falling back to the source tree leaves which path ran to the
+toolchain, which is the disagreement this removes.
+
+**The tests still fail when they should.** In a scratch copy, under each build
+system, the untouched catalog passes all 292, and each of these turns the run
+red: adding ADR-0023's "Standard drink", deleting "Cocktail", adding a
+positional key, emptying the strings table, renaming the file. Under Swift Build
+the collision never reaches its test — `generate-symbols` fails the build first,
+with the error that once failed CI — so there the test is a second guard; under
+native nothing generates symbols and it is the only one at tier 1. Under native
+the renamed catalog's predecessor also stayed in the bundle from the build
+before, so a bundle read can pass on a file the source no longer has.
+
+**The consequence this changes.** "`swift test` resolves every lookup to its
+key" is now true only under native; under Swift Build a lookup goes through the
+compiled table. For English that is the same text — 27 of the 28 values are
+their keys, and the summary line's positional value renders identically, which
+is why the same 292 tests pass on both — so CI is still unaffected today. It
+stops being free when a second language lands: with a French value added in a
+scratch copy, Swift Build put `fr.lproj/Localizable.strings` in the test bundle
+and native compiled nothing. Under native the exact-English assertions could
+never meet a translation; under Swift Build they can, on a Mac whose language
+has one. That last step is ordinary bundle behaviour and was not measured here.
+CI's runners are English, so it would first show on a translator's own machine
+— worth knowing before step 5 of `docs/localization-status.md` begins.
+
 ## How to reopen
 
 - If the domain ever needs a string that is genuinely *presentational* —
