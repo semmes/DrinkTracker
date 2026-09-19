@@ -167,7 +167,98 @@ checks that nothing the failed ＋ did was left pending to be written then.
 Not changed: the history fetch is still the whole log under both seeds, though
 the standard-drink seed reads only today's entries from it.
 
+## Amendment, 2026-09-19 — the row fits the case it is on
+
+This record gave the wrist "the counter — the one number, ＋, −" and left its
+measurements to the design, which drew the row once: 44 · 86 · 44 at 4pt gaps
+inside 8pt margins, 198pt, "the one arrangement that fits the usable width".
+That is a 45mm's screen. A 40mm's is 162pt and a 41mm's 176, and there the
+row ran off the glass — by 10pt a side on the 40mm, each disc cut to 34pt of
+its 44pt target, and by 3 on the 41mm — and took the column with it, since a
+column is as wide as its widest child: "Record no alcohol today" ran edge to
+edge, and the marked day's second line with it. On the 44 and 42mm the row
+fitted the glass with 1 and 2.5pt to spare. Found on 2026-09-18, on a
+throwaway simulator, while rendering the complication; Phase 3 had listed the
+small cases as unrendered, and the owner's hardware pass was on a larger one.
+
+**The discs never give.** Both are touch targets, and ＋ is the control this
+record exists for: 44pt on every case. What gives, in the order that costs
+the reader least, is **the margins first** — from the drawn 8 until the row
+stands its own 4pt gap from the glass, no tighter to the edge than it is to
+itself — **and then the tile.** Inside the tile the design's own two ratios
+re-derive the corner and the numeral (side × 36 / 126 and × 68 / 126, the
+phone's hero; its instruction is to "re-derive from these rather than picking
+new numbers"), and the pieces it gives no ratio for — the bare numeral, the
+hidden bar, the glyph — scale from their drawn size on the drawn 86. The
+arithmetic is `CounterRow` in the core package, twelve tier-1 tests over
+every case's width; the watch reads its width from the view's own geometry
+(`CounterMetrics`), never from a device table.
+
+**What the view is given is not the screen.** watchOS keeps 2pt of the glass
+clear on each side before the app lays anything out — measured from renders
+of every case below but the Ultra 2: the full-width button stands 10pt from
+the glass on a 46mm, inside an 8pt margin — so a 40mm's view is 158pt wide. The rule takes both numbers, the
+view's width and its safe-area inset, so that "a gap from the glass" means
+the glass. The first build took the width alone, stood the row 6pt off and
+cost the tile 4pt; the render, measured, is what found it.
+
+| Case | Screen | Column's margin | Tile | Numeral | Row, from the glass |
+|---|---|---|---|---|---|
+| 40mm | 162 | 2 | 58 | 31 | 4 |
+| 41mm | 176 | 2 | 72 | 39 | 4 |
+| 44mm | 184 | 2 | 80 | 43 | 4 |
+| 42mm | 187 | 2 | 83 | 45 | 4 |
+| 45mm | 198 | 6 | 86 | 46 | 8 |
+| 49mm, Ultra and Ultra 2 | 205 | 8 | 86 | 46 | 11.5 |
+| 46mm | 208 | 8 | 86 | 46 | 13 |
+| 49mm, Ultra 3 | 211 | 8 | 86 | 46 | 14.5 |
+
+Every width was read from that case's own simulator. Memory had the Ultra 3
+at the earlier Ultras' 205.
+
+**The large cases do not change — measured.** On throwaway 45mm, 46mm and
+49mm (Ultra 3) simulators, `main` at d4f5bb5 against this change, every pixel
+of the screen but the status bar's clock, in eleven states each — 0, 1, 3, 6,
+16 and 100 drinks; a day recorded as no alcohol, by the user and from Health;
+and 1, 3 and 16 with the session row: **none differs** (176,418, 189,904 and
+199,606 pixels a frame). The binaries differ, and the same comparison flags
+29,557 pixels between two different states. The 45mm is identical for a
+reason worth keeping: the old row overflowed its 8pt padding there by 2pt a
+side, which put it — and the column it stretched — the drawn 8pt from the
+glass, and the rule's 6 with the system's 2 land in the same place on
+purpose. The Ultra 2's width was read and not rendered; it takes the same
+values as the Ultra 3.
+
+**Rendered on throwaway simulators**, signed builds, the store seeded with
+`sqlite3`: the 40, 41, 42 and 44mm in those eleven states, before and after,
+the row measured 4pt from the glass on all four and both discs 44pt wide. And
+on the 40mm, by taps: the − dimmed beside a Health-owned newest drink and its
+refusal ("Remove that drink on the phone", two lines in its pill) — which
+Phase 3 could not reach; the hide, its bar 27 × 5.5 in the 58pt tile and the
+legend's labels gone with the swatches unmoved, and its toast; the type
+picker, unchanged, since its columns were always flexible; a pick's toast;
+the real ≈ line; the session switch under the fold; and the storage strip, by
+making the scratch store unopenable — also unreached since Phase 3.
+
+**What it costs.** The tile is the hero, and on a 40mm it is 58pt beside 44pt
+discs — 1.3 to 1 where the design drew nearly 2 to 1 — with the count at 31pt
+rather than 46. "Record no alcohol today" takes two lines in its capsule on
+the 40 and 41mm. The 42 and 44mm give 3 and 6pt of tile to stand 4pt from the
+glass rather than 2.5 and 1.
+
+**Not verified:** the unreadable state, which needs a fetch to fail under an
+open store — its lines are centred and wrap in the same column; Always-On and
+redaction; Double Tap; VoiceOver, where no label changed and the tile's tap
+target is 58pt at its least; anything on hardware, where the owner's watch is
+a larger case.
+
 ## How to reopen
+
+- If 58pt is too little hero on a 40mm, that is a drawing to make and not a
+  constant to change: the discs cannot shrink, so a larger tile means a row
+  that is not three across — the tile over its two discs, say.
+  `CounterRow.tileSide` is where the three-across answer lives, and its tests
+  hold every case's width.
 
 - If field reports show ＋ taps lost to failed reads — the timeline lines
   above, or `failed (one-drink)` breadcrumbs naming a fetch rather than a save

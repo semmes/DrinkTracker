@@ -215,7 +215,9 @@ repaired (the bullet "The card's words wrap on a narrow card…", ADR-0046's sec
 amendment): the rectangular card cut its words short on the 40mm — and, it turned out,
 on the 41mm and in the 44mm's Smart Stack — and now wraps them; the 46mm is
 pixel-identical. It also found the watch *app's* counter clipped on 40 and 41mm
-screens, which is open and is in that bullet.** These
+screens.** **That was repaired on 2026-09-19 (the bullet "The counter's row fits the
+case it is on…", ADR-0042 amended): the discs keep their 44pt, the margins and then
+the tile give, and the 45, 46 and 49mm are pixel-identical.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2510,7 +2512,8 @@ Open items for v1.2:
   screen is 162 wide (the 41mm's 176): on the scratch 40mm the − and ＋ discs and the
   "Record no alcohol today" capsule run off both edges. "The one arrangement that fits the
   usable width" is true of the 46mm it was drawn on; Phase 3 listed the smaller cases as
-  unrendered and the owner's hardware is larger. **The whole session ran without one tap**
+  unrendered and the owner's hardware is larger. *(Repaired 2026-09-19 — the bullet "The
+  counter's row fits the case it is on…".)* **The whole session ran without one tap**
   — the simulator tool's per-device permission prompt went unanswered for every device —
   and these are what made that possible. (a) **A face can be written, not only edited:**
   with the simulator shut down, add `Faces/<new uuid>/face.json` (`"face type":
@@ -2543,3 +2546,70 @@ Open items for v1.2:
   the four-line sentence by eye; Bold Text, which widens "Recorded" (the tightest card gives
   it 42pt where the floor needs 36); redaction and Always-On on a narrow card; VoiceOver,
   where no label changed. Phase 8 is still the remaining work on the 1.4 train.
+- **The counter's row fits the case it is on (2026-09-19, ADR-0042 amended; the fix, a
+  test comment corrected, and the records).** The defect the bullet "The card's words wrap
+  on a narrow card…" found and left for its own session. The design drew the watch counter's row once — 44 · 86 · 44 at 4pt gaps inside
+  8pt margins, 198pt, "the one arrangement that fits the usable width" — and 198pt is a
+  45mm's screen. A 40mm's is 162 and a 41mm's 176: there the row ran off the glass (each
+  disc cut to 34pt of its 44pt target on the 40mm) and took the column with it, because a
+  column is as wide as its widest child — "Record no alcohol today" ran edge to edge, and
+  the marked day's second line. On the 44 and 42mm it fitted the glass with 1 and 2.5pt to
+  spare. **What shipped:** `CounterRow` in the core package (twelve tier-1 tests over every
+  case's width) and `CounterMetrics` in the watch target, which reads the view's own
+  geometry. **Both discs are touch targets and are 44pt on every case; the margins give
+  first, until the row stands its own 4pt gap from the glass, and then the tile** — 58pt on
+  a 40mm, 72 on a 41, 80 on a 44, 83 on a 42, the drawn 86 from the 45mm up. Inside the
+  tile the design's own two ratios re-derive the corner and the numeral (side × 36 / 126
+  and × 68 / 126 — its README says to "re-derive from these rather than picking new
+  numbers"), and the bare numeral, the hidden bar and the glyph, which have no ratio, scale
+  from their drawn size on 86. `WatchLayout` keeps what is the same on every case, and
+  aliases the disc and the gap to the core's so no number has two homes. No copy, catalog,
+  schema, CloudKit, privacy-policy or project-file change. **The large cases do not change,
+  measured:** throwaway 45mm, 46mm and 49mm (Ultra 3) simulators, `main` at d4f5bb5 against
+  the change, every pixel of the screen but the status bar's clock, eleven states each (0,
+  1, 3, 6, 16, 100; a day recorded as no alcohol, by the user and from Health; 1, 3 and 16
+  with the session row): none differs, and the same comparison flags 29,557 pixels between
+  two different states. **Rendered:** the 40, 41, 42 and 44mm in those eleven states before
+  and after, the row measured 4pt from the glass and the discs 44pt on all four; and on the
+  40mm by taps — the tool was granted this time — the − dimmed beside a Health-owned newest
+  drink and its two-line refusal toast, the hide (its bar 27 × 5.5 in the 58pt tile) and its
+  toast, the type picker (unchanged: its columns were always flexible), a pick's toast, the
+  real ≈ line, the session switch under the fold, and the storage strip. Two of those were
+  on Phase 3's unverified list since 2026-09-14. **Costs, in the ADR:** on a 40mm the tile
+  is 58pt beside 44pt discs, 1.3 to 1 where the design drew nearly 2 to 1, and the count is
+  31pt, not 46; "Record no alcohol today" takes two lines in its capsule on the 40 and
+  41mm; the 42 and 44mm give 3 and 6pt of tile to stand 4pt off the glass. If 58pt is too
+  little hero, that is a drawing — the discs cannot shrink, so a larger tile means a row
+  that is not three across — and the design README carries the question. **Three things
+  measuring taught, each of which a calculation had wrong.** (a) **The view is not the
+  screen.** watchOS keeps 2pt of the glass clear on each side before the app lays anything
+  out (every case rendered: the full-width button stands 10pt from the glass on a 46mm,
+  inside an 8pt margin), so a 40mm's view is 158pt. The first build took the width alone, stood the
+  row 6pt off the glass and cost the tile 4pt; the rule now takes the width *and*
+  `GeometryProxy.safeAreaInsets`, which does report it. (b) **A prediction that the 45mm
+  would change was wrong,** and the reason is worth keeping: there the old row overflowed
+  its 8pt padding by 2pt a side, which put it — and the column it stretched — the drawn 8pt
+  from the glass; the rule's 6 and the system's 2 land in the same place, so the 45mm is
+  pixel-identical. (c) **Memory had the Ultra 3 at the earlier Ultras' 205pt; it is 211.**
+  A case's screen is one `simctl create`, boot, `io screenshot` and delete away — pixels
+  over two — and the tests' table holds only widths read that way (162, 176, 184, 187, 198,
+  205, 208, 211). **How the states were reached:** the store seeded with `sqlite3` as in
+  the bullet above, plus `ZHEALTHKITSAMPLEID` on the newest row for the dimmed −;
+  `lastWatchContextReceived` (a double) in the App Group's plist so the ≈ line prints a
+  figure instead of "Region not set yet"; the session row by `showsSessionPace`; the strip
+  by overwriting a *scratch* store with garbage so both of `open()`'s rungs throw (then
+  deleting it); toasts by a background `simctl io screenshot` loop started before the tap.
+  The clock is masked out of the comparison (the top 16% of the right half); seeding drink
+  times 20 seconds off the minute keeps the session line's "1h 55m" the same in a before
+  and an after run minutes apart. Seven watch simulators will not all run at once on this
+  Mac — four at a time. **Gates, locally (Xcode 27.0):** 317 domain tests, all passing;
+  the watch scheme signed for the simulator and the iOS scheme in CI's form, no warning in
+  the changed files; 110 integration tests on the iPhone 17 Pro Max simulator; the verifier
+  0 failing, 0 pending; the glyph generator clean; the policy dates agree. **Not verified:**
+  the unreadable state (it needs a fetch to fail under an open store; its lines are centred
+  and wrap in the same column); Always-On and redaction; Double Tap; VoiceOver, where no label
+  changed; the Ultra 2, whose width was read and not rendered; anything on hardware — and
+  the owner's watch is a larger case, so **tier 4 for the owner's pass** is mostly a
+  borrowed 40 or 41mm: the row under a thumb, whether 58pt still reads as the hero, the
+  two-line capsule, and Double Tap on a small case. Phase 8 is still the remaining work on
+  the 1.4 train.

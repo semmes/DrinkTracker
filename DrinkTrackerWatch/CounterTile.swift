@@ -1,7 +1,8 @@
 import DrinkTrackerCore
 import SwiftUI
 
-/// The 86pt tile behind the count: the day's own band, painted from
+/// The tile behind the count — 86pt as drawn, less on a case too narrow for
+/// the drawn row (`CounterMetrics`) — the day's own band, painted from
 /// `IntensityPalette` by name over `DayIntensity.bucket` — the same two calls
 /// as the phone's hero and the calendar cell, so one day can never read one
 /// amount on the wrist and another on the phone (ADR-0034; PRD invariant 10).
@@ -33,6 +34,8 @@ struct CounterTile: View {
   let isCountHidden: Bool
   /// Today could not be read: the redacted drawing, whatever the count says.
   var isUnavailable: Bool = false
+  /// The tile's side on this screen, and everything inside it that follows.
+  let metrics: CounterMetrics
 
   @Environment(\.redactionReasons) private var redaction
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -51,7 +54,7 @@ struct CounterTile: View {
       ground
       content
     }
-    .frame(width: WatchLayout.tileSide, height: WatchLayout.tileSide)
+    .frame(width: metrics.tileSide, height: metrics.tileSide)
     .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: band)
     .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: isFigureless)
   }
@@ -60,7 +63,7 @@ struct CounterTile: View {
 
   @ViewBuilder
   private var ground: some View {
-    let shape = RoundedRectangle(cornerRadius: WatchLayout.tileRadius, style: .continuous)
+    let shape = RoundedRectangle(cornerRadius: metrics.tileRadius, style: .continuous)
     if isFigureless {
       // The outline channel: the design system's existing "off the ramp" state.
       shape.fill(IntensityPalette.fill(.alcoholFree, scheme: scheme))
@@ -99,7 +102,7 @@ struct CounterTile: View {
     // A number the user made: rounded, tabular. Formatted, not localized — no
     // catalog key. `.privacySensitive()` is what redacts it under Always-On.
     Text(count, format: .number)
-      .font(.system(size: hasTile ? WatchLayout.numeralSize : WatchLayout.bareNumeralSize,
+      .font(.system(size: hasTile ? metrics.numeralSize : metrics.bareNumeralSize,
                     weight: .semibold, design: .rounded))
       .monospacedDigit()
       .minimumScaleFactor(0.6)
@@ -112,16 +115,16 @@ struct CounterTile: View {
   }
 
   private var hiddenBar: some View {
-    RoundedRectangle(cornerRadius: WatchLayout.hiddenBarRadius, style: .continuous)
+    RoundedRectangle(cornerRadius: metrics.hiddenBarRadius, style: .continuous)
       .fill(IntensityPalette.ink(band, scheme: scheme).opacity(0.55))
-      .frame(width: WatchLayout.hiddenBar.width, height: WatchLayout.hiddenBar.height)
+      .frame(width: metrics.hiddenBar.width, height: metrics.hiddenBar.height)
   }
 
   private func glyph(_ name: String) -> some View {
     // `Image(decorative:)`: a catalog symbol speaks its asset name to VoiceOver
     // otherwise, and the counter's own label already says the number.
     Image(decorative: name)
-      .font(.system(size: WatchLayout.tileGlyphSize, weight: .semibold))
+      .font(.system(size: metrics.tileGlyphSize, weight: .semibold))
       .foregroundStyle(.primary)
   }
 }
