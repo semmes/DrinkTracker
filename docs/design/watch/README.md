@@ -569,6 +569,25 @@ it leaves open:** a drawing of the card at 138 pt would say whether 4 pt gaps
 and a four-line sentence are what the owner wants on the smallest watch, or
 only what fits.
 
+### Changed (2026-09-19) — the counter's row follows the case
+
+This page is drawn at 198 × 242 pt, which is a 45 mm watch, and its row — 44 ·
+86 · 44 at 4 pt gaps, "the full usable width" — is wider than a 40 mm screen
+(162 pt) or a 41 mm's (176): there it ran off both edges and took the column
+under it along. Both discs are touch targets and stay 44 on every case. The
+margins give first, until the row stands its own 4 pt gap from the glass, and
+then the tile: 58 pt on a 40 mm, 72 on a 41, 80 on a 44, 83 on a 42, and the
+drawn 86 from the 45 mm up, where nothing moved — pixel for pixel. Inside the
+tile this page's own two ratios do what they were recorded for: the corner is
+side × 36 / 126 and the numeral side × 68 / 126, to the point (17 and 31 on the
+40 mm's tile); the bare numeral, the hidden bar and the glyph, which have no
+ratio here, scale from their drawn size on the drawn 86. ADR-0042's amendment
+of that date has the table and the measurements. **A design question it leaves
+open:** on a 40 mm the tile is 58 pt beside 44 pt discs, 1.3 to 1 where this
+page draws nearly 2 to 1. If that is too little hero, the answer is a drawing
+of the counter at 162 pt — the discs cannot shrink, so a larger tile means a
+row that is not three across.
+
 ## Build order
 
 | Phase | Work |

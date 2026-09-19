@@ -1065,6 +1065,20 @@ Health owns is tier 1. **Verified on hardware by the owner the same day:** the
 merged build on a real watch and phone, every item in the list above
 reported passing.
 
+**Changed 2026-09-19 (ADR-0042's amendment of that date is the record):** the
+row this phase built is the design's 44 · 86 · 44, 182pt, and that is wider
+than a 40mm's screen (162pt) or a 41mm's (176) — it ran off both edges there
+and took the column with it, and nobody had looked: this note rendered the
+46mm, and the owner's watch is a larger case. The discs keep their 44
+everywhere; the margins give first, until the row stands its 4pt gap from the
+glass, and then the tile (58 on a 40mm, 72, 80 and 83 on the 41, 44 and
+42mm), its corner and numeral re-derived from the design's own two ratios.
+The rule is `CounterRow` in the core package. The 45, 46 and 49mm are
+pixel-identical. Two of the items this note left unverified were rendered on
+the way: the − refusal against a Health-owned newest drink, by seeding one
+into a scratch store, and the storage strip, by making a scratch store
+unopenable.
+
 The screen is the phone's Today counter reduced to what a wrist can carry:
 today's count as the headline numeral, the ＋ as the primary control, the minus
 as the secondary, and one line beneath.
