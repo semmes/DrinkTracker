@@ -414,6 +414,14 @@ confirmation that sync writes what the GUI would.
 Steps 1–4 are prerequisites. Translating before them produces strings that are
 grammatical in English and broken everywhere else.
 
+One thing step 5 will meet that steps 1–4 did not (ADR-0020's 2026-09-18
+amendment): from Swift 6.4, `swift test` compiles the package catalog into the
+test bundle, one `.lproj` per language, where the older build system copied the
+file in and compiled nothing. The domain tests assert exact English, and until
+now no translation could reach them. After the first one lands they can, on a
+Mac set to that language — CI's runners are English, so CI will not be where it
+shows.
+
 ## Why this is worth doing at all
 
 The app ships three regional definitions of a standard drink — US, UK, Australian —

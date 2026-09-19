@@ -110,9 +110,16 @@ purchases work in the simulator with no App Store Connect setup).
 - Remote Claude sessions have **no Swift toolchain** — CI is the only
   compile/test check; say so rather than claiming local verification. Local
   sessions have Xcode (27.0 since 2026-09-18, 26.6 before — check
-  `xcodebuild -version`, because CI's runner is not the same toolchain and two
-  domain tests already disagree; the handoff bullet "The circular complication
-  is a tile…"), the iOS and watchOS simulators and a paired
+  `xcodebuild -version`, because CI's runner is not the same toolchain, and the
+  difference that has bitten is SwiftPM's, not the compiler's: from Swift 6.4
+  `swift test` builds with Swift Build, Xcode's engine, where 6.3 used
+  SwiftPM's native build system, and the two put different things in a
+  package's bundle. `swift test --build-system native` still gives the older
+  shape on 6.4, deprecated, so **run both when a change touches the package's
+  resources or its catalog**; CI's domain job takes the runner image's default
+  Xcode, 26.6 today, while the three `xcodebuild` jobs select the newest
+  installed, so they will reach Xcode 27 first; the handoff bullet "`swift test`
+  builds the package the way Xcode does…"), the iOS and watchOS simulators and a paired
   watch/phone pair: run the gates and drive the app rather than repeating the
   caveat. **`project.pbxproj` may be edited only in a local session**, only
   for what the watch plan names, and only verified the way Phase 0 was —
@@ -200,7 +207,10 @@ phone and watch as expected. **On 2026-09-18 the owner's design made the circula
 complication a tile instead of a disc, and its tinted-face check found — and fixed —
 a count no tinted face could read (the bullet "The circular complication is a
 tile…", ADR-0046 amended); this Mac's toolchain is now Xcode 27.0, which changes two
-local results, also there.** These
+local results, also there.** **Those two results were fixed the same day (the bullet
+"`swift test` builds the package the way Xcode does…", ADR-0020 amended): the domain
+suite is green under both of SwiftPM's build systems, so local sessions and CI agree
+again.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2357,7 +2367,9 @@ Open items for v1.2:
   CI:** "Package localization" reads `Bundle.module.url(forResource: "Localizable",
   withExtension: "xcstrings")`, which is nil under this toolchain — shown on an untouched
   extract of `main` (284 tests, the same two issues), so it is the toolchain, and it will
-  reach CI when the runner image moves. Not fixed here. **The verifier had one false
+  reach CI when the runner image moves. Not fixed here. *(Fixed the same day — the next
+  bullet, which also corrects the cause: the resource is still in the bundle, compiled.)*
+  **The verifier had one false
   failure, fixed:** its stale-worktree check flagged the lock an isolated session holds on
   its *own* worktree; it now exempts the checkout it runs from and still fails on any other
   locked entry. **Gates, locally:** 292 domain tests, 290 passing and those two; both
@@ -2388,3 +2400,53 @@ Open items for v1.2:
   off the wrist (the simulator offers neither; nothing in either path changed); the X-Large
   face, which the system scales from the circular's own size; VoiceOver, whose labels are
   untouched. Phase 8 is still the remaining work on the 1.4 train.
+- **`swift test` builds the package the way Xcode does, and the catalog tests read the
+  catalog (2026-09-18, ADR-0020 amended).** The two "Package localization" failures the
+  bullet above left open. **The cause is not the one that bullet implies: the resource is
+  not missing.** From Swift 6.4 SwiftPM's default build system is **Swift Build**, Xcode's
+  engine (`.build/.buildSystem_debug` reads `swiftbuild`; there is a `manifest.pif`), and it
+  does to the package's catalog what Xcode does for the shipping app: compiles it to
+  `en.lproj/Localizable.strings`, all 28 keys, in a `Contents/Resources` bundle. Swift
+  6.3.3's native build system copied `Localizable.xcstrings` in verbatim, flat. Both bundles
+  were read side by side, because this worktree still held a Sep 16 build by 6.3.3 — the
+  compiler CI's domain job runs today (image `macos-26-arm64` 20260907, Xcode 26.6, 292
+  passing). **The A/B that separates build system from compiler:** on 6.4,
+  `swift test --build-system native` passes 292 and the bare command 290. **What shipped:**
+  the two tests read the catalog from the source tree — `sourceCatalogKeys()`, up from
+  `#filePath` — which is the file they were always about and the one
+  `xcstringstool generate-symbols` reads; the helper also refuses an empty strings table,
+  which would have let the collision test pass having compared nothing.
+  `bundleCarriesTheCatalog` is unchanged and still guards the bundle in either form. No
+  `Package.swift` change, no second resource, no fallback. **Both alternatives were probed,
+  not argued** (the amendment has them): a `.copy` of the catalog on the test target builds
+  on 6.4 — *I had assumed SwiftPM would refuse a path outside the target; it does not* — and
+  gives the test target a `Bundle.module` of its own that silently shadows the package's
+  inside the tests, under both build systems, so `bundleCarriesTheCatalog` passed while
+  inspecting `DrinkTrackerCore_DrinkTrackerCoreTests.bundle`; and a bundle-then-source
+  fallback leaves which path ran to the toolchain. **The tests still fail when they
+  should:** in a scratch copy under each build system the control is green at 292, and
+  adding ADR-0023's "Standard drink", deleting "Cocktail", adding a positional key,
+  emptying the table and renaming the file each turn the run red. **Worth knowing:** under
+  Swift Build the collision never reaches its test — `swift test` now runs
+  `generate-symbols` itself and the build stops with the error that once failed CI — so on
+  6.4 the test is a second guard, and on CI's 6.3.3 it is the only one at tier 1. **One
+  consequence for later, half measured:** ADR-0020's "CI resolves every lookup to its key"
+  is now true only under native. With a French value added in a scratch copy, Swift Build
+  put `fr.lproj` in the test bundle and native compiled nothing, so after the first
+  translation the exact-English domain assertions can meet it on a Mac set to that
+  language; the Foundation half was not measured, and `docs/localization-status.md` carries
+  the note beside step 5. **Verified locally:** 292 of 292 under Swift Build, under native,
+  and by the bare `cd DrinkTrackerCore && swift test` that CI and the README use, no
+  warnings; the policy-date check and the glyph generator clean. **Not re-run locally,
+  because nothing they compile changed:** the two `xcodebuild` builds, the integration
+  suite and the watch verifier; CI ran all of them on the PR, and **CI green there (Xcode
+  26.6 / Swift 6.3.3) is the older-toolchain half of the proof.** No catalog, schema,
+  CloudKit, privacy-policy, project-file or `Package.swift` change. **Three tooling
+  lessons.** (a) `swift test --filter` matches test *identifiers*
+  (`PackageLocalizationTests`), not the display names in `@Suite("…")`; a display-name
+  filter runs nothing and still exits 0, under "No matching test cases were run". (b) The
+  two build systems share one `.build` without colliding — `arm64-apple-macosx/debug` and
+  `out/Products/Debug` — and the `debug` symlink points at whichever ran last, so read
+  products by their real path. (c) The native build system leaves a resource the source no
+  longer has in an incremental bundle (a renamed catalog sat beside its predecessor); Swift
+  Build removes it. Phase 8 is still the remaining work on the 1.4 train.
