@@ -19,8 +19,9 @@ struct CounterRowTests {
   }
 
   /// What watchOS 26.5 keeps clear on each side before the app lays anything
-  /// out, measured on every case below (2026-09-19): the full-width button
-  /// under the row stands 10pt from the glass on a 46mm, inside an 8pt margin.
+  /// out, measured from renders of every case below but the Ultra 2, which
+  /// was not rendered (2026-09-19): the full-width button under the row stands
+  /// 10pt from the glass on a 46mm, inside an 8pt margin.
   private static let edgeInset = 2.0
 
   /// Every case watchOS 26 runs on, by its screen's width in points — read
