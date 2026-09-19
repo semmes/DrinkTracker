@@ -185,9 +185,44 @@ struct CounterView: View {
   }
 
   private var counter: some View {
+    // The row is sized to the screen it is on. The design drew it for 198pt —
+    // 44 · 86 · 44 inside 8pt margins — and on a 40 or 41mm it ran off both
+    // edges and took the column with it, since a column is as wide as its
+    // widest child. The width is this view's own, and so is what the system
+    // has already kept clear of the glass beside it: both read, never a
+    // device table (`CounterMetrics`; ADR-0042's 2026-09-19 amendment).
+    GeometryReader { screen in
+      counterScroll(CounterMetrics(
+        width: screen.size.width,
+        edgeInset: min(screen.safeAreaInsets.leading, screen.safeAreaInsets.trailing)
+      ))
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+      dayChanged = Date()
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .watchContextDidChange)) { _ in
+      bridgeRevision += 1
+    }
+    .onChange(of: scenePhase) { _, phase in
+      guard phase == .active else { return }
+      dayChanged = Date()
+      bridgeRevision += 1
+      // The face re-reads the store on every raise: the cheapest moment to
+      // catch up on what the phone logged while this app was not running.
+      WidgetCenter.shared.reloadAllTimelines()
+      #if DEBUG
+      Task { await refreshCloudKitStatus() }
+      #endif
+    }
+    #if DEBUG
+    .task { await refreshCloudKitStatus() }
+    #endif
+  }
+
+  private func counterScroll(_ metrics: CounterMetrics) -> some View {
     ScrollView {
       VStack(spacing: 0) {
-        counterRow
+        counterRow(metrics)
 
         if isTodayUnreadable {
           unreadableLines
@@ -240,35 +275,15 @@ struct CounterView: View {
           }
         }
       }
-      .padding(.horizontal, WatchLayout.screenMargin)
+      .padding(.horizontal, metrics.margin)
       .padding(.top, 2)
       .padding(.bottom, 4)
     }
-    .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
-      dayChanged = Date()
-    }
-    .onReceive(NotificationCenter.default.publisher(for: .watchContextDidChange)) { _ in
-      bridgeRevision += 1
-    }
-    .onChange(of: scenePhase) { _, phase in
-      guard phase == .active else { return }
-      dayChanged = Date()
-      bridgeRevision += 1
-      // The face re-reads the store on every raise: the cheapest moment to
-      // catch up on what the phone logged while this app was not running.
-      WidgetCenter.shared.reloadAllTimelines()
-      #if DEBUG
-      Task { await refreshCloudKitStatus() }
-      #endif
-    }
-    #if DEBUG
-    .task { await refreshCloudKitStatus() }
-    #endif
   }
 
   // MARK: - The row
 
-  private var counterRow: some View {
+  private func counterRow(_ metrics: CounterMetrics) -> some View {
     HStack(spacing: WatchLayout.counterGap) {
       // Neither disc while today cannot be read — the complication's rule and
       // the phone's: a ＋ beside no figure logs blind, and a − cannot know
@@ -286,11 +301,13 @@ struct CounterView: View {
         count: todaysEntries.count,
         band: band,
         isCountHidden: isCountHidden,
-        isUnavailable: isTodayUnreadable
+        isUnavailable: isTodayUnreadable,
+        metrics: metrics
       )
-        // 86pt is well over the touch floor, so the hide needs no affordance
-        // and none is drawn (ADR-0045).
-        .contentShape(RoundedRectangle(cornerRadius: WatchLayout.tileRadius, style: .continuous))
+        // Well over the touch floor on every case — 86pt as drawn, 58 on the
+        // narrowest screen — so the hide needs no affordance and none is
+        // drawn (ADR-0045).
+        .contentShape(RoundedRectangle(cornerRadius: metrics.tileRadius, style: .continuous))
         .onTapGesture {
           // Nothing to hide while there is no figure.
           if !isTodayUnreadable { toggleHidden() }

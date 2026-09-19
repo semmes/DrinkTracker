@@ -1,31 +1,21 @@
+import DrinkTrackerCore
 import SwiftUI
 
 /// The counter's measurements (`docs/design/watch/README.md`, "Design
 /// tokens"), watch-local by design: watchOS's layout units are not the
 /// phone's, and `GlassTokens` stays the phone's. Points, all of them.
 ///
-/// The two ratios that derived the tile from the phone's hero are recorded
-/// beside their results, so a resize — another case, an accessibility step —
-/// re-derives rather than picks new numbers:
-///
-///     radius  = side × 36 / 126  →  86 × 0.2857 = 24.6 → 25
-///     numeral = side × 68 / 126  →  86 × 0.5397 = 46.4 → 46
+/// What is here is what is the same on every case. The row's tile, the
+/// column's margin and everything inside the tile follow the screen's width,
+/// and are `CounterMetrics` (below): the design drew 44 · 86 · 44 on a 198pt
+/// screen, and a 40mm's is 162.
 enum WatchLayout {
-  static let screenMargin: CGFloat = 8
-  static let counterGap: CGFloat = 4
-
-  /// Both controls the same size on purpose: 44 · 86 · 44 at 4pt gaps is the
-  /// one arrangement that fits the usable width with both targets legal, and
-  /// the ＋ is told apart by being *filled*, not by being bigger — the rule
-  /// `CountStepper` already establishes on the phone.
-  static let discSide: CGFloat = 44
-  static let tileSide: CGFloat = 86
-  static let tileRadius: CGFloat = 25
-
-  static let numeralSize: CGFloat = 46
-  /// On an unlogged day there is no tile, and the numeral takes its room — the
-  /// same trade `CountStepper` makes between 68 in a band and 84 without one.
-  static let bareNumeralSize: CGFloat = 56
+  /// Both controls the same size on purpose, and the ＋ is told apart by being
+  /// *filled*, not by being bigger — the rule `CountStepper` already
+  /// establishes on the phone. A touch target: 44 on every case, whatever
+  /// else has to give (`CounterRow`).
+  static let discSide = CGFloat(CounterRow.discSide)
+  static let counterGap = CGFloat(CounterRow.gap)
 
   /// The glyphs keep the phone's two-point optical offset: the ＋ sits on a
   /// solid fill and matching them optically means matching apparent weight.
@@ -39,13 +29,6 @@ enum WatchLayout {
   static let legendSwatchRadius: CGFloat = 3
   static let hintSize: CGFloat = 10
 
-  /// The struck-out number that stands in for the numeral while it is hidden
-  /// — a bar, deliberately, so the screen reads as withheld and not as loading.
-  static let hiddenBar = CGSize(width: 40, height: 8)
-  static let hiddenBarRadius: CGFloat = 4
-
-  /// The glyph inside the tile on a no-alcohol day, and under Always-On.
-  static let tileGlyphSize: CGFloat = 34
   static let stripRadius: CGFloat = 14
   static let toastRadius: CGFloat = 12
 
@@ -83,4 +66,55 @@ enum WatchLayout {
   static let pickerGlyphSize: CGFloat = 20
   static let pickerNameSize: CGFloat = 11
   static let pickerGlyphToName: CGFloat = 4
+}
+
+/// The counter's measurements that follow the screen: the column's margin,
+/// the tile's side, and everything drawn inside the tile.
+///
+/// The design drew the row once — 44 · 86 · 44 at 4pt gaps inside 8pt margins,
+/// 198pt, the 45mm's width — and on a 40mm (162pt) or a 41mm (176) it ran off
+/// both edges and took the column with it. The discs are touch targets and
+/// keep their 44, so the margins give first, until the row stands its own 4pt
+/// gap from the glass, and then the tile; inside the tile the design's own two
+/// ratios re-derive the corner and the numeral, as it asks ("re-derive from
+/// these rather than picking new numbers"). All of it is `CounterRow` in the
+/// core package, pinned at tier 1 against every case's width. On a 45, 46 or
+/// 49mm the counter is drawn exactly as it was before this existed — rendered,
+/// pixel for pixel.
+///
+/// Both inputs are the view's own, read from its geometry, never a device
+/// table: its width, and what the system has already kept clear of the glass
+/// on each side — 2pt on every case measured, so a 40mm's view is 158pt wide
+/// and not the screen's 162.
+struct CounterMetrics: Equatable {
+  let margin: CGFloat
+  let tileSide: CGFloat
+  let tileRadius: CGFloat
+  let numeralSize: CGFloat
+  /// On an unlogged day there is no tile, and the numeral takes its room — the
+  /// same trade `CountStepper` makes between 68 in a band and 84 without one.
+  let bareNumeralSize: CGFloat
+  /// The glyph inside the tile on a no-alcohol day, and under Always-On.
+  let tileGlyphSize: CGFloat
+  /// The struck-out number that stands in for the numeral while it is hidden
+  /// — a bar, deliberately, so the screen reads as withheld and not as loading.
+  let hiddenBar: CGSize
+  let hiddenBarRadius: CGFloat
+
+  init(width: CGFloat, edgeInset: CGFloat) {
+    let width = Double(width)
+    let inset = Double(edgeInset)
+    let side = CounterRow.tileSide(forWidth: width, edgeInset: inset)
+    margin = CGFloat(CounterRow.margin(forWidth: width, edgeInset: inset))
+    tileSide = CGFloat(side)
+    tileRadius = CGFloat(CounterRow.cornerRadius(forSide: side))
+    numeralSize = CGFloat(CounterRow.numeralSize(forSide: side))
+    bareNumeralSize = CGFloat(CounterRow.bareNumeralSize(forSide: side))
+    tileGlyphSize = CGFloat(CounterRow.glyphSize(forSide: side))
+    hiddenBar = CGSize(
+      width: CounterRow.hiddenBarWidth(forSide: side),
+      height: CounterRow.hiddenBarHeight(forSide: side)
+    )
+    hiddenBarRadius = CGFloat(CounterRow.hiddenBarRadius(forSide: side))
+  }
 }
