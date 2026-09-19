@@ -200,7 +200,12 @@ phone and watch as expected. **On 2026-09-18 the owner's design made the circula
 complication a tile instead of a disc, and its tinted-face check found — and fixed —
 a count no tinted face could read (the bullet "The circular complication is a
 tile…", ADR-0046 amended); this Mac's toolchain is now Xcode 27.0, which changes two
-local results, also there.** These
+local results, also there.** **The same evening the defect that change left alone was
+repaired (the bullet "The card's words wrap on a narrow card…", ADR-0046's second
+amendment): the rectangular card cut its words short on the 40mm — and, it turned out,
+on the 41mm and in the 44mm's Smart Stack — and now wraps them; the 46mm is
+pixel-identical. It also found the watch *app's* counter clipped on 40 and 41mm
+screens, which is open and is in that bullet.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2353,6 +2358,7 @@ Open items for v1.2:
   3:1). **Found and left alone, because the design says the rectangular complication does
   not change:** on the 40mm the card is 152 to 162pt wide and its words truncate ("drinks
   t…", "Recorded as no al…"); the likely repair is a second line, in the ADR's reopen list.
+  *(Repaired the same evening — the next bullet; a second line alone would not have done it.)*
   **This Mac is now on Xcode 27.0 / Swift 6.4, and two domain tests fail here that pass in
   CI:** "Package localization" reads `Bundle.module.url(forResource: "Localizable",
   withExtension: "xcstrings")`, which is nil under this toolchain — shown on an untouched
@@ -2388,3 +2394,87 @@ Open items for v1.2:
   off the wrist (the simulator offers neither; nothing in either path changed); the X-Large
   face, which the system scales from the circular's own size; VoiceOver, whose labels are
   untouched. Phase 8 is still the remaining work on the 1.4 train.
+- **The card's words wrap on a narrow card, and the 46mm does not change (2026-09-18,
+  ADR-0046's second amendment of that date; two commits, the fix and the records).** The
+  defect the bullet above found and left alone. **It was wider than the 40mm.** The
+  rectangular family is not one size: the system gives it **fourteen** widths — seven
+  cases, a face and the Smart Stack — from 181pt of content (a 46mm face) down to 138 (a
+  40mm Smart Stack; the "152 to 162" recorded before are the family's two *sizes* there,
+  not a range). The row left its words the content less 112 (tile, ＋, and three gaps of 8,
+  because a Spacer keeps a gap on each side of itself), and "drinks today" is 58pt of ink:
+  so it cut them short on the 40mm (rendered on its face: "drinks t…", "drink to…",
+  "Recorded / as no al…"; in its Smart Stack's box, **"drink…" under a 3**), by the same
+  arithmetic in the 41mm's and 44mm's stacks, shrank them on the 41mm's face, the 42mm and
+  in the 45mm's stack, and cut the no-alcohol sentence on eight of the fourteen. **What shipped:**
+  `ComplicationCard` in the core package (thirteen tier-1 tests over all fourteen widths).
+  A card is *wide* at 172pt of content or more — the 45mm's face, the 46 and 49mm in both
+  contexts — and is drawn by the same views as before. Every other card is *narrow*: the
+  words take the whole column between the tile and the ＋ (the Spacer goes, and its second
+  gap), the gaps close to **4** — the watch counter's own — the unit words may take two
+  lines and the sentence four, and they wrap before they shrink (the 0.8 floor is
+  unchanged). The tile and the ＋ keep their 44 everywhere; no copy changed. The width is
+  read from the card's `GeometryReader`, never assumed. **Why 4 and not 6:** only the 40mm's
+  stack needs it — "Recorded", the one word that cannot wrap, is 45pt, and that column is 34
+  at a gap of 8 (under the word's 36 at the floor), 38 at 6, 42 at 4. Six was built and
+  rendered first: the sentence drew at 0.81, on the floor, and beside a dots row it was cut
+  short again; at 4 it draws at 0.90 and is whole in both. **The 46mm, proved:** on a
+  throwaway 46mm simulator's Modular face in full colour, `main` at 89c276b against the
+  change, every pixel beneath the clock (132,288) in ten states — 0, 1, 3, 6, 16, 100, a
+  marked day, and 1/3/16 with the sitting's dots — none differs; and because its *Smart
+  Stack* cannot be shown, that context's content box (175 × 58.5) was emulated with the old
+  row and the new under one wrapper, thirteen frames with the 49mm stack's and the 45mm
+  face's: none differs, while the same two builds differ by 1,121 pixels in the 40mm stack's
+  box, all in the words. **Rendered for real:** the 40mm's face in every state — two lines
+  at full size (the same 28.5 and 26.5pt of ink as the 46mm), the sentence on four lines
+  at full size, every changed pixel inside the words' box — and a tinted face. **Emulated**
+  (36 frames, all nine narrow cards × the unit words, the singular, the sentence, and the
+  sentence beside a dots row): all whole; the unit words at full size everywhere, one line
+  on six cards; the sentence at full size everywhere but the 40mm's stack. watchOS 27.0
+  gives the same fourteen widths. **Costs, in the ADR:** the 41, 42 and 44mm and the 45mm's
+  stack change too (4pt gaps, and full-size words where the old row shrank them); on the
+  40mm's face the singular fits one line and the plural does not, so the words change shape
+  between 1 and 2; four lines of 11pt are 49.5pt beside a 44pt tile; the widths are
+  English's. The ADR also regains its `## How to reopen` heading, which the amendment before
+  this one dropped. **Gates, locally (Xcode 27.0):** 305 domain tests, 303 passing and the
+  two known `Bundle.module` ones; the watch scheme signed for the simulator and the iOS
+  scheme in CI's form, no warning in the changed files; 110 integration tests on the iPhone
+  17 Pro Max simulator; the verifier 0 failing, 0 pending; the glyph generator clean; the
+  policy dates agree. No catalog, schema, CloudKit, privacy-policy or project-file change.
+  **Found, and not fixed — it has its own task chip:** the watch *app's* counter is clipped
+  on small screens. `WatchLayout`'s row is 44 · 86 · 44 at 4pt gaps = 182pt, and the 40mm's
+  screen is 162 wide (the 41mm's 176): on the scratch 40mm the − and ＋ discs and the
+  "Record no alcohol today" capsule run off both edges. "The one arrangement that fits the
+  usable width" is true of the 46mm it was drawn on; Phase 3 listed the smaller cases as
+  unrendered and the owner's hardware is larger. **The whole session ran without one tap**
+  — the simulator tool's per-device permission prompt went unanswered for every device —
+  and these are what made that possible. (a) **A face can be written, not only edited:**
+  with the simulator shut down, add `Faces/<new uuid>/face.json` (`"face type":
+  "whistler-digital"` is today's Modular, `manifest.plist` style 30; the complication is
+  `"complications": {"center": {"type": 56, "app": …, "extension": …, "descriptor":
+  {containerBundleIdentifier, extensionBundleIdentifier, kind}}}`; `customization.color`
+  `special.multicolor` is full colour), its `added-` and `configuration-sequence-id.string`,
+  a `{style, uuid}` entry in `manifest.plist`, and `selected-uuid.string` plus the two
+  sequence counters — the empty slots stay empty. The working watch simulator's own
+  `face.json` was the specimen (read, never written). (b) **What the system gives each
+  family is on disk:** `data/Library/chronod/chrono.sql`, table `HostConfigs`, a keyed
+  archive per host (`com.apple.nanotimekit.WidgetHost` is the face,
+  `com.apple.NanoHomeScreen.WidgetHost` the Smart Stack) with `metricsByFamily["11"]` —
+  the rectangular family's size and safe-area insets; it is there after a first boot with
+  nothing installed, so a case size costs one create, boot, read (`?immutable=1`), delete.
+  chronod's *log* lists both sizes but only renders the stack's when the card is in the
+  stack. (c) A scratch store takes rows from `sqlite3` directly (`ZDRINKENTRY`,
+  `ZALCOHOLFREEDAY` with `ZDAY` the local midnight, `Z_PRIMARYKEY.Z_MAX`), and `simctl
+  launch` then `terminate` reloads the face; the watch's "Show session pace" is
+  `showsSessionPace` in the App Group's plist, written with `simctl spawn … defaults
+  write`. (d) **A context nobody can open can still have its content box emulated:** a
+  scratch build that pads the card down to a size named in the App Group's defaults, on a
+  larger face — checked against the real 40mm face first, within a pixel. Build it from an
+  `rsync` copy of the tree, not the worktree, so scratch code cannot reach a commit. (e)
+  The harness blocks a foreground `sleep`; waits belong inside a script or a background
+  `until` loop, and a background command piped through `grep` shows nothing until it ends.
+  **Tier 3/4 for the owner's pass:** the card in a real Smart Stack — every stack above is
+  an emulated box, which cannot show the stack's own ground, its corner, or what it does to
+  a card while scrolling; a 40 to 44mm watch if one can be borrowed, for the 4pt gaps and
+  the four-line sentence by eye; Bold Text, which widens "Recorded" (the tightest card gives
+  it 42pt where the floor needs 36); redaction and Always-On on a narrow card; VoiceOver,
+  where no label changed. Phase 8 is still the remaining work on the 1.4 train.
