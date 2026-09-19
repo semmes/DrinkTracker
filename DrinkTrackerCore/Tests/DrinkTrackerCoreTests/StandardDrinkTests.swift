@@ -985,12 +985,41 @@ struct PackageLocalizationTests {
     let bundle = Bundle.module
     #expect(bundle.bundleURL.lastPathComponent.contains("DrinkTrackerCore"))
 
-    // SwiftPM copies the catalog verbatim (Xcode compiles it to .lproj, which
-    // is what ships). Either way the file has to be in the bundle: if this
-    // resource vanishes, every display name silently becomes its own key.
+    // Which form depends on the build system, not on the package. SwiftPM's
+    // native build system copies the catalog verbatim; Swift Build — Xcode's
+    // engine, and `swift test`'s default from Swift 6.4 — compiles it to
+    // en.lproj/Localizable.strings, which is also what ships. Either way the
+    // file has to be in the bundle: if this resource vanishes, every display
+    // name silently becomes its own key.
     let catalog = bundle.url(forResource: "Localizable", withExtension: "xcstrings")
     let compiled = bundle.url(forResource: "Localizable", withExtension: "strings")
     #expect(catalog != nil || compiled != nil, "the package's string catalog is not in the bundle")
+  }
+
+  /// The keys of the catalog as it is written, read from the source tree.
+  ///
+  /// Not from `Bundle.module`, because only one of the two build systems leaves
+  /// an `.xcstrings` there to parse (the test above; ADR-0020's amendment), and
+  /// a test that reads the bundle passes on one toolchain and fails on the
+  /// other. The tests that call this are about the keys a person typed — the
+  /// file `xcstringstool generate-symbols` reads — so they read that file, and
+  /// get one answer from either build.
+  ///
+  /// `#filePath` is where this file was compiled, so this holds wherever the
+  /// tests are built and run from one checkout, which is the only way they run:
+  /// no scheme or test plan includes the package's own tests.
+  private static func sourceCatalogKeys() throws -> Set<String> {
+    let catalog = URL(fileURLWithPath: #filePath)  // …/Tests/DrinkTrackerCoreTests/<this file>
+      .deletingLastPathComponent()                 // …/Tests/DrinkTrackerCoreTests
+      .deletingLastPathComponent()                 // …/Tests
+      .deletingLastPathComponent()                 // the package root
+      .appendingPathComponent("Sources/DrinkTrackerCore/Resources/Localizable.xcstrings")
+    let data = try Data(contentsOf: catalog)
+    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let strings = try #require(json["strings"] as? [String: Any], "the catalog has no strings table")
+    // An empty table would let the collision test pass having compared nothing.
+    try #require(!strings.isEmpty, "the catalog has no keys")
+    return Set(strings.keys)
   }
 
   /// Every key the code asks for must exist in the catalog. A lookup with no
@@ -998,13 +1027,7 @@ struct PackageLocalizationTests {
   /// a translator finds half the app missing from their file.
   @Test("Every display string the code produces is a key in the catalog")
   func catalogCoversTheDisplayStrings() throws {
-    let url = try #require(
-      Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
-      "no catalog to check (Xcode-compiled bundles are covered by the test above)"
-    )
-    let data = try Data(contentsOf: url)
-    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
-    let keys = Set((json["strings"] as? [String: Any] ?? [:]).keys)
+    let keys = try Self.sourceCatalogKeys()
 
     // Plain names, exactly as written.
     for type in DrinkType.allCases {
@@ -1053,15 +1076,16 @@ struct PackageLocalizationTests {
   /// what the symbol generator ignores is what makes two distinct keys the same
   /// key. This checks the axis that is mechanical; the app and widget catalogs
   /// are not covered because only the package generates symbols.
+  ///
+  /// Whether `swift test` reaches this test depends on the build system. Swift
+  /// Build runs that same generator over the source catalog, so from Swift 6.4
+  /// the collision stops the build first, with the generator's own error. The
+  /// native build system generates no symbols, so there — CI's domain job,
+  /// until its runner image moves — this test is the only thing at tier 1 that
+  /// fails. Both were checked by adding ADR-0023's key to a scratch copy.
   @Test("No two keys in the package catalog differ only by case")
   func catalogKeysCannotCollideAsSymbols() throws {
-    let url = try #require(
-      Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
-      "no catalog to check (Xcode-compiled bundles are covered by the test above)"
-    )
-    let data = try Data(contentsOf: url)
-    let json = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
-    let keys = Array((json["strings"] as? [String: Any] ?? [:]).keys)
+    let keys = try Self.sourceCatalogKeys()
 
     var byFoldedCase: [String: [String]] = [:]
     for key in keys {
