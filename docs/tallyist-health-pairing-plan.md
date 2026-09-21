@@ -403,6 +403,18 @@ sample-size gate, the comparison value type. Pure, in `DrinkTrackerCore`, tier
 phase, which is what keeps invariant 9 true and what makes the whole feature
 testable without a device.
 
+*Landed 2026-09-21, ADR-0048.* Three things it settled against this plan's
+own text, each argued there: the sleep that pairs with a night is Health's
+sleep day — 18:00 to 18:00, a session filed whole by its middle, naps summed
+in — rather than "the main sleep session … not every nap", because Phase 0
+found that is what the Health app shows and the rule above says match it or
+document it; the second bucket holds nights *recorded* as no alcohol and a
+night with nothing logged is in neither column (ADR-0033's (b), for
+ADR-0006's reason); and the gate is fourteen nights with a value in each
+bucket. The drink window is 06:00 to 06:00. A per-day figure pairs with the
+day after. `HealthPairing` and `DrinkingNight` in the core package;
+`PairedFigures` is the value type the surface renders.
+
 **Phase 2, the read layer.** `HealthKitService` gains the four read types and
 a statistics query per metric, returning plain value types the domain layer
 consumes. Nothing persisted. Handles the no-data state as the single state it
@@ -411,7 +423,8 @@ is.
 **Phase 3, resting heart rate, end to end.** The Trends section, the metric
 picker, the two-figure card, the Settings toggle, the in-context offer. One
 metric, the whole surface. This is the phase where the copy gets written and
-argued, and where ADR-0046 is written.
+argued, and where the pairing ADR ("the app pairs, it does not conclude") is
+written.
 
 **Phase 4, sleep duration.** Stages as a separate increment once duration is
 shipped and read correctly.
@@ -429,20 +442,24 @@ ADR.
 
 ## ADRs
 
-Continuing from the watch plan's 0045:
+Four. This plan reserved 0046 to 0049 for them; the watch took those numbers
+before the first was written, so each takes the next free number in
+`docs/decisions/` when its phase writes it (the design README's rule), and
+the list below is in the order they are expected to land.
 
-- **0046, the app pairs, it does not conclude.** The user picks the axis; both
-  figures side by side with their night counts; no delta headline, no
+- **0048, a drinking night is not a calendar day** — written in Phase 1,
+  2026-09-21. The window, the sleep attribution, matching the Health app, the
+  second bucket, the gate, and the vectors.
+- **The app pairs, it does not conclude** (Phase 3). The user picks the axis;
+  both figures side by side with their night counts; no delta headline, no
   comparative language, no dual-axis chart. The argument for why structure
   rather than copy is what holds constraint 3 here.
-- **0047, health context is read, never stored.** No SwiftData, no CloudKit, no
-  cache. What that buys, and the two consequences (device-dependence, query
-  cost).
-- **0048, a drinking night is not a calendar day.** The window, the sleep
-  attribution, matching the Health app, and the vectors.
-- **0049, the ask happens at the moment of value.** In context, once, showing
-  before asking; and the invisible-denial rule that makes silence the only
-  correct empty state.
+- **Health context is read, never stored** (Phase 2 or 3). No SwiftData, no
+  CloudKit, no cache. What that buys, and the two consequences
+  (device-dependence, query cost). Also a review rule: guideline 5.1.3 (ii).
+- **The ask happens at the moment of value** (Phase 3). In context, once,
+  showing before asking; and the invisible-denial rule that makes silence the
+  only correct empty state.
 
 ---
 

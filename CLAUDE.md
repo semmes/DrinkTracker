@@ -217,7 +217,11 @@ on the 41mm and in the 44mm's Smart Stack — and now wraps them; the 46mm is
 pixel-identical. It also found the watch *app's* counter clipped on 40 and 41mm
 screens.** **That was repaired on 2026-09-19 (the bullet "The counter's row fits the
 case it is on…", ADR-0042 amended): the discs keep their 44pt, the margins and then
-the tile give, and the 45, 46 and 49mm are pixel-identical.** These
+the tile give, and the 45, 46 and 49mm are pixel-identical.** **A second train opened
+on 2026-09-21, the health pairing — Apple Health figures beside the log on Trends, its
+own release after the watch (plan decision 4) — and its Phases 0 and 1 landed that day
+(the bullet "The health pairing's Phases 0 and 1…", ADR-0048); it is run one phase per
+session from the owner's prompts document, and Phase 2, the read layer, is next.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2613,3 +2617,53 @@ Open items for v1.2:
   borrowed 40 or 41mm: the row under a thumb, whether 58pt still reads as the hero, the
   two-line capsule, and Double Tap on a small case. Phase 8 is still the remaining work on
   the 1.4 train.
+- **The health pairing's Phases 0 and 1 landed (2026-09-21; PR #112 the research, the
+  next PR the domain; ADR-0048).** A new train, after the watch: Apple Health figures beside
+  the log on Trends, one metric per phase, run from the owner's prompts document
+  (`docs/health-pairing-prompts.md`, untracked in the main clone by the owner's choice)
+  one phase per session, each block ending "if something is ambiguous, say so and stop".
+  The plan is `docs/tallyist-health-pairing-plan.md`; read its "The risk", "The four
+  rules" and "Stop conditions" before any session on it; the design is
+  `docs/design/health-pairing/README.md`. **Phase 0 (research, no code)** answered the
+  plan's five open questions in `docs/health-pairing-phase-0-findings.md`, each with its
+  source — Apple's pages read as their own JSON so every quotation is verbatim, the SDK
+  headers, and, for the one question Apple publishes nothing on, **the Health app itself,
+  driven by taps on a throwaway iOS 27 simulator**: a sleep day runs 18:00 to 18:00 and
+  is named for the morning; a session crossing 18:00 is filed whole by its middle; **naps
+  are summed in**; averages divide by days with data (four screenshots in
+  `docs/health-pairing-phase-0-evidence/`). Wrist temperature is an absolute °C sample,
+  one a night, and Health's baseline is not in HealthKit; iPadOS 17+ has its own synced
+  HealthKit store, so the table will render on an iPad where three design strings say
+  "on this iPhone"; App Store Connect needs no new form and Data Not Collected stays true,
+  and the regulated-medical-device declaration already applies through the Health &
+  Fitness category; **the year-range query cost is unmeasured by the owner's decision —
+  Phase 2 times it on a Diagnostics line, a duration and its range only, never a sample
+  or day count.** Four things the plan predates: iOS 27's limited history window
+  (`earliestAuthorizedSampleDate`), which can make "last 13 weeks" untrue; a second HRV
+  type, RMSSD; CI's iOS 26.5 SDK cannot compile either symbol yet; resting heart rate is
+  rewritten for the current and previous day. **Phase 1 (the domain, pure, ADR-0048):**
+  `DrinkingNight` — a night named for its evening, a 06:00-to-06:00 drink window, Health's
+  18:00-to-18:00 sleep day, and the calendar day after — and `HealthPairing`: buckets from
+  the log alone (a drinks night has any entry in its window; **a no-drinks night is one
+  recorded as no alcohol, and a night with nothing logged is in neither column** —
+  ADR-0033's (b), for ADR-0006's under-logging reason, over the design's "every other
+  night"); sleep assembled the way Health showed it (asleep stages merged where they
+  overlap or touch, each stretch filed whole by its middle, naps summed, in bed and awake
+  never counted); a per-day figure pairs with the day after; a night counts once its day
+  after has ended, by the injected `now`; the gate is **fourteen nights with a value in
+  each bucket**, resolved in the domain and a parameter for a noisier type; and
+  `PairedFigures` is two means, two night counts and the span — a tier-1 test pins its
+  stored properties so no delta can be added. Twenty-five vectors, the plan's eight among
+  them and a replay of Phase 0's five Health sessions to the hour Health showed; two
+  mutations (a noon window, filing by start) were run and caught by five tests. **Two
+  consequences for Phase 3 to carry:** the offer must clear the gate on *both* sides from
+  the log (`NightBuckets.clearsGate`), not the drink side alone, or a person can accept and
+  be shown nothing; and the row lives at Quarter and Year for anyone who does not mark
+  most days — at Week it can never appear. No HealthKit, no UI, no catalog key, no schema,
+  no CloudKit step; nothing in `DrinkTracker/` or `Shared/`. **Gates, locally (Xcode
+  27.0):** 342 domain tests under both SwiftPM build systems; the iOS scheme in CI's form,
+  no warning in the new files. **Tooling:** the simulator tool's per-device permission was
+  refused three times over twenty minutes and granted on the fourth, so retry before
+  writing an experiment off; the Health app's Add Data form moves Starts when Ends is set
+  earlier, and its time wheel takes a typed four-digit time. **Phase 2 is next:** the read
+  layer, resting heart rate alone, nothing persisted, the timing line.
