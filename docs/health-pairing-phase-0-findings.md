@@ -32,7 +32,7 @@ Four kinds of source appear below, and they are not worth the same:
 |---|---|---|---|
 | 1 | Which date does Health give a night's sleep? | The date of the morning. 23:40 on the 14th to 07:10 on the 15th is the 15th's sleep. The rule: a sleep day runs 18:00 to 18:00 local time and is named for the date it ends on. A session that crosses 18:00 is kept whole. Everything asleep inside the day is summed, naps included | **Verified on screen** in the Health app (iOS 27.0 simulator, five typed sessions), and it agrees with a constant read from HealthKit's binary (iOS 26.5) and a forum statement. Apple publishes no rule. Not yet checked against real watch data |
 | 2 | What does `appleSleepingWristTemperature` return? | An **absolute** wrist temperature in °C, one aggregated sample per night. Health shows it as a change from a baseline Health computes itself after about five nights. That baseline is not in HealthKit | **Verified**, Apple published. How Health computes the baseline is undocumented |
-| 3 | What does a year-range `HKStatisticsCollectionQuery` cost on a device? | **Not measured.** It can only be answered by a probe on a real device with real data. None was written | **Open.** Needs the lead's decision on a probe |
+| 3 | What does a year-range `HKStatisticsCollectionQuery` cost on a device? | **Not measured.** It can only be answered by a probe on a real device with real data. None was written | **Open until Phase 2.** The owner decided on 2026-09-21 to measure it there, on a timing line in Settings' Diagnostics |
 | 4 | Is Health data on an iPad that was never paired to the watch? | Yes, by Apple's account. iPadOS 17 and later has its own HealthKit store and HealthKit syncs it, given the same Apple Account with Health syncing on | **Verified** as documented. **Unverified** on hardware, type by type |
 | 5 | Do these reads change App Store Connect's questionnaires? | No new form and no changed answer, provided the feature stays what the plan says it is. One questionnaire already applies to this app because of its category | **Verified** against Apple's published pages. What App Store Connect shows this account is the owner's to look at |
 
@@ -331,10 +331,27 @@ cost:
   the shape the nightly types want. Anchored at midnight it is the calendar
   day, which is the shape resting heart rate wants.
 
-### What it needs from the lead
+### Decided: measure it inside Phase 2
 
-A decision between two ways to get the number. Neither blocks Phase 1, which
-is pure domain and imports no HealthKit.
+Decided by the owner, 2026-09-21: **the second of the two ways below.** Phase 2
+puts the read layer's query time on a line in Settings' Diagnostics, and the
+number is read off the owner's phone as a tier 4 item on that pull request.
+What Phase 2 owes this page in return: the measured time for a year range,
+added to this section, and a plain statement if the cost turns out to argue
+against reading on every render.
+
+Two limits on that line, so it does not become the thing the plan forbids:
+
+- **It carries a duration and the range it covers, and nothing else.** Not a
+  sample count and not a count of days with data: either is a fact derived from
+  Health, and the Diagnostics breadcrumbs live in the App Group's defaults,
+  which is exactly where nothing read from Health may be written.
+- **It measures what the build reads.** Phase 2 adds resting heart rate alone,
+  so that is the type it can time. Sleep, heart rate variability and wrist
+  temperature are timed on the same line by the phases that add their reads.
+
+The two ways that were on the table, kept for the record. Neither blocks
+Phase 1, which is pure domain and imports no HealthKit.
 
 - **A throwaway probe now.** A single-view app in a scratch directory outside
   the repository, signed with the owner's team, run once on the owner's iPhone.
