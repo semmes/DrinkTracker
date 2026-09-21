@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shared · Settings switches</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;text-align:inherit}
+a{color:#256abf}a:hover{color:#184f95}
+.t{--surface:#f2f2f7;--card:#ffffff;--label:rgba(0,0,0,.88);--label2:rgba(60,60,67,.78);--label3:rgba(60,60,67,.30);--sep:rgba(60,60,67,.29);--hair:rgba(60,60,67,.12);--fill3:rgba(118,118,128,.12);--accent:#256abf;--accent-fill:#256abf;--bar-top:#3987e5;--bar-bot:#1c5cab;--tile:#ffffff;--dot:rgba(60,60,67,.65);--off:rgba(120,120,128,.32)}
+.t.dark{--surface:#000000;--card:#1c1c1e;--label:rgba(255,255,255,.92);--label2:rgba(235,235,245,.62);--label3:rgba(235,235,245,.30);--sep:rgba(84,84,88,.60);--hair:rgba(235,235,245,.12);--fill3:rgba(118,118,128,.24);--accent:#3987e5;--accent-fill:#256abf;--bar-top:#3987e5;--bar-bot:#256abf;--tile:#636366;--dot:rgba(235,235,245,.55);--off:rgba(120,120,128,.40)}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="t {{themeMod}}" style="width: 402px; height: 620px; box-sizing: border-box; overflow: hidden; background: var(--surface); color: var(--label); font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased;">
+<div style="padding: 28px 20px 40px 20px; display: flex; flex-direction: column; gap: 12px;">
+<h1 style="margin: 0; font-size: 34px; line-height: 41px; font-weight: 700;">Settings</h1>
+<h2 style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 500; text-transform: uppercase; color: var(--label2); padding: 8px 4px 0 4px;">Apple Health on Trends</h2>
+<div style="background: var(--card); border-radius: 26px; padding: 16px; box-shadow: inset 0 0 0 0.5px var(--sep); padding: 4px 16px;">
+<div style=" min-height: 60px; padding: 8px 0; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 17px; line-height: 22px;">Resting heart rate</span><span style="font-size: 13px; line-height: 18px; color: var(--label2);">One figure a day, from your watch</span></div>
+<button role="switch" aria-checked="true" aria-label="Resting heart rate" style="flex-shrink: 0; width: 51px; height: 44px; display: flex; align-items: center;"><span style="display: block; width: 51px; height: 31px; border-radius: 16px; background: var(--accent-fill);"><span style="display: block; width: 27px; height: 27px; margin-top: 2px; margin-left: 22px; border-radius: 50%; background: #ffffff;"></span></span></button>
+</div>
+<div style="border-top: 1px solid var(--hair); min-height: 60px; padding: 8px 0; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 17px; line-height: 22px;">Sleep</span><span style="font-size: 13px; line-height: 18px; color: var(--label2);">Time asleep on nights you wear your watch</span></div>
+<button role="switch" aria-checked="true" aria-label="Sleep" style="flex-shrink: 0; width: 51px; height: 44px; display: flex; align-items: center;"><span style="display: block; width: 51px; height: 31px; border-radius: 16px; background: var(--accent-fill);"><span style="display: block; width: 27px; height: 27px; margin-top: 2px; margin-left: 22px; border-radius: 50%; background: #ffffff;"></span></span></button>
+</div>
+<div style="border-top: 1px solid var(--hair); min-height: 60px; padding: 8px 0; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 17px; line-height: 22px;">Heart rate variability</span><span style="font-size: 13px; line-height: 18px; color: var(--label2);">Shown at Quarter and Year</span></div>
+<button role="switch" aria-checked="false" aria-label="Heart rate variability" style="flex-shrink: 0; width: 51px; height: 44px; display: flex; align-items: center;"><span style="display: block; width: 51px; height: 31px; border-radius: 16px; background: var(--off);"><span style="display: block; width: 27px; height: 27px; margin-top: 2px; margin-left: 2px; border-radius: 50%; background: #ffffff;"></span></span></button>
+</div>
+<div style="border-top: 1px solid var(--hair); min-height: 60px; padding: 8px 0; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 17px; line-height: 22px;">Wrist temperature</span><span style="font-size: 13px; line-height: 18px; color: var(--label2);">Set against your own median</span></div>
+<button role="switch" aria-checked="false" aria-label="Wrist temperature" style="flex-shrink: 0; width: 51px; height: 44px; display: flex; align-items: center;"><span style="display: block; width: 51px; height: 31px; border-radius: 16px; background: var(--off);"><span style="display: block; width: 27px; height: 27px; margin-top: 2px; margin-left: 2px; border-radius: 50%; background: #ffffff;"></span></span></button>
+</div>
+</div>
+<div style="font-size: 13px; line-height: 18px; color: var(--label2); padding: 0 4px;">Each switch puts one figure from Apple Health beside your log on Trends. Read on this iPhone, never stored, never sent. Sleep, heart rate variability and wrist temperature come from nights you wear your watch to bed.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 402, "height": 620}}'>
+class Component extends DCLogic {
+renderVals() {
+return { themeMod: this.props.dark ? 'dark' : 'light' };
+}
+}
+</script>
+</body>
+</html>

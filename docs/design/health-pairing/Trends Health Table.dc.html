@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>B · One table</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;text-align:inherit}
+a{color:#256abf}a:hover{color:#184f95}
+.t{--surface:#f2f2f7;--card:#ffffff;--label:rgba(0,0,0,.88);--label2:rgba(60,60,67,.78);--label3:rgba(60,60,67,.30);--sep:rgba(60,60,67,.29);--hair:rgba(60,60,67,.12);--fill3:rgba(118,118,128,.12);--accent:#256abf;--accent-fill:#256abf;--bar-top:#3987e5;--bar-bot:#1c5cab;--tile:#ffffff;--dot:rgba(60,60,67,.65);--off:rgba(120,120,128,.32)}
+.t.dark{--surface:#000000;--card:#1c1c1e;--label:rgba(255,255,255,.92);--label2:rgba(235,235,245,.62);--label3:rgba(235,235,245,.30);--sep:rgba(84,84,88,.60);--hair:rgba(235,235,245,.12);--fill3:rgba(118,118,128,.24);--accent:#3987e5;--accent-fill:#256abf;--bar-top:#3987e5;--bar-bot:#256abf;--tile:#636366;--dot:rgba(235,235,245,.55);--off:rgba(120,120,128,.40)}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+</style>
+</helmet>
+<div class="t {{themeMod}}" style="width: 402px; height: 1200px; box-sizing: border-box; overflow: hidden; background: var(--surface); color: var(--label); font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; -webkit-font-smoothing: antialiased;">
+<div style="padding: 28px 20px 40px 20px; display: flex; flex-direction: column; gap: 12px;">
+<h1 style="margin: 0; font-size: 34px; line-height: 41px; font-weight: 700;">Trends</h1>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 14px; background: var(--fill3);">
+<button aria-pressed="false" style="min-height: 40px; border-radius: 11px; font-size: 15px; text-align: center;">Week</button><button aria-pressed="false" style="min-height: 40px; border-radius: 11px; font-size: 15px; text-align: center;">Month</button><button aria-pressed="true" style="min-height: 40px; border-radius: 11px; background: var(--accent-fill); color: #ffffff; font-size: 15px; font-weight: 600; text-align: center;">Quarter</button><button aria-pressed="false" style="min-height: 40px; border-radius: 11px; font-size: 15px; text-align: center;">Year</button>
+</div>
+<div style="background: var(--card); border-radius: 26px; padding: 16px; box-shadow: inset 0 0 0 0.5px var(--sep); display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; flex-direction: column; gap: 2px; min-height: 80px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+<span style="font-size: 13px; line-height: 18px; color: var(--label2);">Last 13 weeks</span>
+<span style="font-size: 12px; line-height: 16px; color: var(--label2);"><span style="color: var(--accent); letter-spacing: 1px;">- - -</span> Your weekly average · <span class="num" style="color: var(--label);">3.5</span></span>
+</div>
+<div><span class="num" style="font-size: 28px; line-height: 34px;">47.2</span> <span style="font-size: 15px; color: var(--label2);">standard drinks · 30 days with drinks</span></div>
+<div style="font-size: 12px; line-height: 16px; color: var(--label2);">Tip: drag across the bars to read one week</div>
+</div>
+<div style="position: relative; height: 132px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--sep); display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; padding: 0 4px 0 28px;">
+<div style="position: absolute; left: 24px; right: 0; bottom: 23.3%; border-top: 1px dashed var(--accent);"></div>
+<span style="position: absolute; left: 0; top: 2px; font-size: 11px; color: var(--label2);">15</span>
+<span style="position: absolute; left: 0; bottom: 0; font-size: 11px; color: var(--label2);">0</span>
+<div style="flex-grow: 1; max-width: 12px; height: 20.7%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 3px; border-radius: 2px 2px 0 0; background: var(--label3);"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 42.0%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 13.3%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 70.0%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 31.3%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 3px; border-radius: 2px 2px 0 0; background: var(--label3);"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 10.0%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 48.0%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 4.7%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 22.0%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 12.7%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+<div style="flex-grow: 1; max-width: 12px; height: 32.7%; border-radius: 6px 6px 0 0; background: linear-gradient(var(--bar-top), var(--bar-bot));"></div>
+</div>
+<div style="display: flex; justify-content: space-between; padding: 0 4px 0 28px; font-size: 11px; color: var(--label2);"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+<div style="background: var(--card); border-radius: 26px; padding: 16px; box-shadow: inset 0 0 0 0.5px var(--sep);"><div class="num" style="font-size: 28px; line-height: 34px;">9</div><div style="font-size: 13px; line-height: 18px; color: var(--label2);">longest run with none</div></div>
+<div style="background: var(--card); border-radius: 26px; padding: 16px; box-shadow: inset 0 0 0 0.5px var(--sep);"><div class="num" style="font-size: 28px; line-height: 34px;">2.1</div><div style="font-size: 13px; line-height: 18px; color: var(--label2);">on days you drank</div></div>
+</div>
+<h2 style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 500; text-transform: uppercase; color: var(--label2); padding: 8px 4px 0 4px;">Comparisons</h2>
+<div style="background: var(--card); border-radius: 26px; padding: 16px; box-shadow: inset 0 0 0 0.5px var(--sep); display: flex; flex-direction: column; gap: 6px;">
+<h3 style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 400; color: var(--label2);">Weekly average</h3>
+<div style="font-size: 15px; line-height: 20px;">Your weekly average over the last 13 weeks is <span class="num">3.5</span> standard drinks. [PUBLISHED FIGURE SENTENCE, AS SHIPPED]</div>
+<div style="min-height: 28px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--label2);"><span>Source: [SURVEY LINE, AS SHIPPED]</span><svg width="11" height="7" viewBox="0 0 11 7" fill="none" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+</div>
+<h2 style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 500; text-transform: uppercase; color: var(--label2); padding: 8px 4px 0 4px;">From Apple Health</h2>
+<div style="background: var(--card); border-radius: 26px; padding: 16px; box-shadow: inset 0 0 0 0.5px var(--sep); display: block; flex-direction: column">
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 84px 84px; column-gap: 10px; align-items: baseline; padding: 0 0 8px 0;"><h3 style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 400; color: var(--label2)">Your averages</h3><span style="font-size: 11px; line-height: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--label); text-align: right">Drinks</span><span style="font-size: 11px; line-height: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--label); text-align: right">No drinks</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 84px 84px; column-gap: 10px; align-items: baseline; border-top: 1px solid var(--sep); padding: 9px 0;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 15px; line-height: 20px;">Resting heart rate</span><span style="font-size: 12px; line-height: 16px; color: var(--label2);"><span class="num" style="color: var(--label);">18</span> and <span class="num" style="color: var(--label);">31</span> nights</span></div>
+<span class="num" style="font-size: 16px; text-align: right;">62 <span style="font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; font-weight: 400; font-size: 12px; color: var(--label2);">bpm</span></span>
+<span class="num" style="font-size: 16px; text-align: right;">58 <span style="font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; font-weight: 400; font-size: 12px; color: var(--label2);">bpm</span></span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 84px 84px; column-gap: 10px; align-items: baseline; border-top: 1px solid var(--hair); padding: 9px 0;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 15px; line-height: 20px;">Sleep</span><span style="font-size: 12px; line-height: 16px; color: var(--label2);"><span class="num" style="color: var(--label);">17</span> and <span class="num" style="color: var(--label);">29</span> nights</span></div>
+<span class="num" style="font-size: 16px; text-align: right;">6h 12m</span>
+<span class="num" style="font-size: 16px; text-align: right;">7h 04m</span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 84px 84px; column-gap: 10px; align-items: baseline; border-top: 1px solid var(--hair); padding: 9px 0;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 15px; line-height: 20px;">Heart rate variability</span><span style="font-size: 12px; line-height: 16px; color: var(--label2);"><span class="num" style="color: var(--label);">16</span> and <span class="num" style="color: var(--label);">27</span> nights</span></div>
+<span class="num" style="font-size: 16px; text-align: right;">38 <span style="font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; font-weight: 400; font-size: 12px; color: var(--label2);">ms</span></span>
+<span class="num" style="font-size: 16px; text-align: right;">46 <span style="font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; font-weight: 400; font-size: 12px; color: var(--label2);">ms</span></span>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 84px 84px; column-gap: 10px; align-items: baseline; border-top: 1px solid var(--hair); padding: 9px 0;">
+<div style="display: flex; flex-direction: column; gap: 1px;"><span style="font-size: 15px; line-height: 20px;">Wrist temperature</span><span style="font-size: 12px; line-height: 16px; color: var(--label2);"><span class="num" style="color: var(--label);">17</span> and <span class="num" style="color: var(--label);">28</span> nights</span></div>
+<span class="num" style="font-size: 16px; text-align: right;">+0.21 <span style="font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; font-weight: 400; font-size: 12px; color: var(--label2);">°C</span></span>
+<span class="num" style="font-size: 16px; text-align: right;">−0.08 <span style="font-family: -apple-system, 'SF Pro Text', system-ui, 'Helvetica Neue', sans-serif; font-weight: 400; font-size: 12px; color: var(--label2);">°C</span></span>
+</div>
+<div style="font-size: 12px; line-height: 16px; color: var(--label2); padding: 4px 0 0 0;">Wrist temperature is set against your own median over these 13 weeks.</div>
+<div style="border-top: 1px solid var(--hair); margin-top: 10px;">
+<button aria-expanded="false" style="width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 16px; color: var(--label2);"><span>From Apple Health, last 13 weeks</span><svg width="11" height="7" viewBox="0 0 11 7" fill="none" aria-hidden="true"><path d="M1 1l4.5 4.5L10 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark": {"editor": "boolean", "default": false}, "$preview": {"width": 402, "height": 1200}}'>
+class Component extends DCLogic {
+renderVals() {
+return { themeMod: this.props.dark ? 'dark' : 'light' };
+}
+}
+</script>
+</body>
+</html>
