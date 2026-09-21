@@ -286,16 +286,18 @@ Apple does not say.
    though it were a temperature adds 32 degrees to it. Convert the absolute
    values first and subtract after, or scale the difference by hand, and pin it
    with a tier 1 vector.
-3. **A baseline taken from the same nights makes the two signs oppose each
-   other.** If every night's deviation is measured from the median of all the
-   nights in range, the two buckets land on opposite sides of zero in almost
-   every case, by construction. "+0.21" beside "−0.08" then states the
-   direction of the difference between the columns, which is the thing rule 1
-   says the app never signs. The design already gives the sign its own line in
-   the copy review; this is the arithmetic behind that caution. HealthKit
-   stores the absolute value, and two absolute figures side by side are the
-   idiom of every other row ("62 bpm", "58 bpm"). Phase 6 decides; its ADR
-   should argue this rather than inherit the median.
+3. **A baseline taken from the same nights ties the two signs together.** If
+   every night's deviation is measured from the median of all the nights in
+   range, the two column averages, weighted by their night counts, add up to
+   the gap between that range's mean and its median, which is close to zero.
+   So unless the columns barely differ they land on opposite sides of zero, by
+   construction. "+0.21" beside "−0.08" then states the direction of the
+   difference between the columns, which is the thing rule 1 says the app
+   never signs. The design already gives the sign its own line in the copy
+   review; this is the arithmetic behind that caution. HealthKit stores the
+   absolute value, and two absolute figures side by side are the idiom of
+   every other row ("62 bpm", "58 bpm"). Phase 6 decides; its ADR should argue
+   this rather than inherit the median.
 4. **The hardware list in the plan is short by one.** The plan says Series 8
    and later. Apple now lists the SE 3 as well. It changes nothing in code,
    since an unsupported watch is the no-data state, but the Settings caption
@@ -338,8 +340,9 @@ is pure domain and imports no HealthKit.
   It requests the three read types, runs each year-range daily collection query
   several times cold and warm, and prints the wall time and the bucket count.
   Nothing from it is committed except the numbers, added to this page.
-- **Measure inside Phase 2.** The read layer gets a DEBUG-only timing line in
-  Settings' Diagnostics section, which TestFlight builds already show, and the
+- **Measure inside Phase 2.** The read layer's query time, a duration and never
+  a health value, goes on a line in Settings' Diagnostics section, which
+  TestFlight builds already show and App Store builds do not, and the
   measurement becomes a tier 4 item on Phase 2's pull request.
 
 The second is less work and measures the code that will ship. The first keeps
@@ -443,9 +446,11 @@ changes.** App Store Connect Help, "Age ratings values and definitions":
 
 The feature shows two averages of the reader's own data and gives no diagnosis,
 guidance or recommendation, which is what the plan's four rules exist to
-guarantee. On the rating itself these answers could not matter in any case:
-CLAUDE.md records the app at 17+, the top tier, which the alcohol answer alone
-produces, and neither health answer rates higher than that.
+guarantee. On the rating itself these answers should not matter either:
+CLAUDE.md records the app at 17+, the top of the older scale, which a frequent
+alcohol answer alone produces (18+ on OS 26 and later), and neither health
+answer rates higher than that. "Seen in passing", below, is why that sentence
+says "should".
 
 **The regulated medical device declaration already applies, and its answer
 stays No.** App Store Connect Help, "Declare regulated medical device status":
@@ -498,9 +503,9 @@ after a look at App Store Connect, not a behaviour.
 
 ## What the plan does not know
 
-### 1. From iOS 27, a person can grant a window of recent data instead of all of it
+### 1. A person can now grant a window of recent data instead of all of it
 
-Apple's "Authorizing access to health data":
+Apple's "Authorizing access to health data", as it read on 2026-09-21:
 
 > "After people review data type access, a second screen prompts them to choose
 > how much historical data to grant your app, either a recent limited window or
@@ -513,7 +518,9 @@ Apple's "Authorizing access to health data":
 
 The API is `earliestAuthorizedSampleDate(for:)`, marked iOS 27.0 in
 `HKHealthStore.h`: "Types without a limited-access earliest date are silently
-omitted from the result."
+omitted from the result." The article puts no version on the second screen, so
+that it is new with iOS 27 is an inference from the API's availability, and
+whether iOS 26 ever shows it is **unverified**.
 
 What it forces:
 
@@ -551,8 +558,9 @@ CI's last run on `main` (2026-09-19) selected Xcode 26.6 with the iOS 26.5 SDK;
 this Mac has Xcode 27.0. `earliestAuthorizedSampleDate(for:)` and the RMSSD
 identifier do not exist in the 26.5 SDK, so code that names them fails to
 compile in CI whatever `#available` says. Phase 2 either waits for the runner
-image, or guards the call with `#if compiler(>=6.4)` beside the `#available`
-check and says in its pull request that CI proved only the older half.
+image, or puts a compile-time check that stands in for the SDK beside the
+`#available` one (Xcode 27.0 is Swift 6.4, so `#if compiler(>=6.4)`), and says
+in its pull request that CI proved only the older half.
 
 ### 4. The resting heart rate figure moves after it is written
 
@@ -577,9 +585,9 @@ decide it.
 | Design, three strings | "on this iPhone" | Wrong on an iPad, where the feature renders |
 | Plan, wrist temperature | "Series 8 and later" | Apple now lists the SE 3 too |
 | Plan, heart rate variability | `heartRateVariabilitySDNN` | A second type, RMSSD, arrived with iOS 27 |
-| Plan, "The ask" | One sheet "covering only what has not been asked before" | The SDK header confirms there is no prompt when every type is already answered. That a partial sheet lists only the new types is **unverified** here and is already on the plan's tier 4 list. From iOS 27 the sheet also has a second screen, for the history window |
+| Plan, "The ask" | One sheet "covering only what has not been asked before" | The SDK header confirms there is no prompt when every type is already answered. That a partial sheet lists only the new types is **unverified** here and is already on the plan's tier 4 list. The sheet now also has a second screen, for the history window |
 | Plan, decision 5 | Not storing Health values is argued from cost | It is also App Review guideline 5.1.3 (ii) |
-| Prompts, Phase 0 | Committing the design folder "releases the sync LaunchAgent" | No agent is installed (`scripts/verify-watch-setup.py`: "Sync agent: not installed"), and the main clone sat three merges behind `origin/main` when this was written. `scripts/sync-main.sh` run by hand pauses on any untracked file, and two others remain in the main clone: `Claude outputs/` and `docs/health-pairing-prompts.md` |
+| Prompts, Phase 0 | Committing the design folder "releases the sync LaunchAgent" | No agent is installed (`scripts/verify-watch-setup.py`: "Sync agent: not installed"), and the main clone sat three pull requests behind `origin/main` (#109 to #111) when this was written. `scripts/sync-main.sh` run by hand pauses on any untracked file, and two others remain in the main clone: `Claude outputs/` and `docs/health-pairing-prompts.md` |
 
 ---
 
