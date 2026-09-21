@@ -167,8 +167,9 @@ Health under **the 15th**. The rule, as observed:
    belongs to it is every session whose middle falls between 18:00 on N and
    18:00 on N+1, local time. Phase 1's `DrinkingNight` needs that interval on
    its sleep side whatever it chooses for drinks.
-2. **The plan's "main sleep session, not every nap" is a divergence from
-   Health.** Health's figure for a night includes the next afternoon's nap. The
+2. **The plan's main-session rule is a divergence from Health.** The plan
+   wants "the main sleep session whose start falls in that window, not every
+   nap in it". Health's figure for a night includes the next afternoon's nap. The
    plan's own third rule in "A drinking night is not a calendar day" says to
    match Health or document the divergence loudly, and the design's tier 4
    acceptance check is that the two figures agree. So Phase 1 either sums
