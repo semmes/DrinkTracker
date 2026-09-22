@@ -300,3 +300,33 @@ amendments of the same date.
 
 The reopen paths above stand. One is nearer: with four rows the card is a
 tall one, and the picker the second bullet describes would live in Settings.
+
+## Amendment — 2026-09-22 (Phase 5: the third row, heart rate variability)
+
+**The row.** "Heart rate variability" over its night counts, "38 ms" beside
+"48 ms" — a whole number of milliseconds by the same rounding as beats per
+minute, the unit in the caption face beside it — third in the Settings
+order, at Quarter and Year only, behind a floor of twenty-eight nights in
+each bucket (ADR-0052, which carries the argument for the floor, the ranges,
+the type and the day). The spoken row: "Heart rate variability. On nights
+you logged drinks, 38 milliseconds, over 37 nights. On nights recorded as
+no alcohol, 48 milliseconds, over 48 nights." No word relates the two,
+still.
+
+**The widths, measured again.** "Heart rate variability" is 138.3pt in the
+row's subheadline, wider than "Resting heart rate" (122.1); its cells are
+narrower than the others' ("42 ms" 40.7, "120 ms" 51.3, against "62 bpm"
+49.2 and "6h 12m" 58.5), so the numeric columns do not widen: on a 375pt
+phone the leading column keeps 161.5pt with three rows, and 149.0 against
+three-digit heart rates, a ten-hour sleep and three-digit milliseconds —
+one line everywhere, still. The header row is unchanged at 213.9.
+
+**The note and the footnote are unchanged.** The note was written for any
+number of rows. The footnote's third sentence stays sleep's, because this
+figure's samples are the day's, not the night's (ADR-0052).
+
+**Three switches, and three rows in the offer.** The offer's rows follow
+`PairedMetric.allCases`, so it shows three "– –" rows and its acceptance
+turns on three switches; the third row can lag the other two for weeks
+while its floor fills (ADR-0052's first consequence), and at Month it is
+absent with its switch on, as its caption says.

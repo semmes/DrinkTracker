@@ -227,3 +227,30 @@ switch does not pull sleep on after the fact). And a reader who declined the
 offer under Phase 3 and later turns one switch on in Settings gets the other
 metric's row only by turning its switch on too — which is what "independent
 after that" means, and what the section's rows show.
+
+## Amendment — 2026-09-22 (Phase 5: a third metric arrives)
+
+**Inheritance from the two before it, or-ed**, as the Phase 4 amendment
+said it would be: `showsHeartRateVariabilityPairing` is decided once when
+its key is first missing — on if resting heart rate *or* sleep is on, each
+as it stands after its own inheritance, so a Phase 3 install with resting
+heart rate on gets sleep and heart rate variability on in the same launch —
+written then, independent after (tier 2: on from either, off from neither,
+a stored value wins, and the earlier switches turning on later do not pull
+it on).
+
+**Its sheet lands the first time its row is possible**, which for this
+metric is later than the others': the ask on Trends names only the
+switched-on metrics whose own floor the log clears at this range, each
+once per visit, so a reader is asked for heart rate variability at Quarter
+or Year once each bucket holds twenty-eight nights, and never over Month,
+where the row does not exist (ADR-0049's amendment of the same date). A
+reader whose log clears fourteen but not twenty-eight meets a sheet for the
+two rows they can see at Quarter, and the third's at Year if Year clears
+it, or on a later visit once Quarter does. **The offer is the exception,
+and is named as one in ADR-0052:** accepting it asks for all three types at
+once, whatever the range and floor, because the reader has just asked for
+all three rows — one sheet then, not a second one weeks later — and turns
+on all three switches through one map (`setShowsPairing`), so a metric
+added to the list cannot be left off the offer's "every shipped switch" by
+forgetting a line.

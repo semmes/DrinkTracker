@@ -210,6 +210,11 @@ struct SettingsView: View {
           source: "Time asleep on nights you wear your watch",
           isOn: $settings.showsSleepPairing
         )
+        ComparisonToggle(
+          title: "Heart rate variability",
+          source: "Shown at Quarter and Year",
+          isOn: $settings.showsHeartRateVariabilityPairing
+        )
       }
     }
     .onChange(of: settings.showsRestingHeartRatePairing) { _, isOn in
@@ -217,6 +222,9 @@ struct SettingsView: View {
     }
     .onChange(of: settings.showsSleepPairing) { _, isOn in
       if isOn { pairingSwitchTurnedOn(.sleep) }
+    }
+    .onChange(of: settings.showsHeartRateVariabilityPairing) { _, isOn in
+      if isOn { pairingSwitchTurnedOn(.heartRateVariability) }
     }
   }
 

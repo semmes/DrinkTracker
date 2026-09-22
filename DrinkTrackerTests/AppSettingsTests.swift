@@ -191,6 +191,7 @@ struct AppSettingsTests {
     let settings = AppSettings(defaults: defaults)
     #expect(settings.showsRestingHeartRatePairing == false)
     #expect(settings.showsSleepPairing == false)
+    #expect(settings.showsHeartRateVariabilityPairing == false)
     #expect(settings.isAnyHealthPairingOn == false)
     #expect(settings.hasAnsweredHealthPairingOffer == false)
   }
@@ -239,5 +240,56 @@ struct AppSettingsTests {
     #expect(reloaded.showsSleepPairing)
     #expect(reloaded.showsRestingHeartRatePairing == false)
     #expect(reloaded.hasAnsweredHealthPairingOffer)
+    #expect(reloaded.showsHeartRateVariabilityPairing == false)
+  }
+
+  /// Phase 5's switch inherits from the two before it, or-ed (ADR-0052): on
+  /// where either earlier switch is on, off where neither is, once, and
+  /// written either way.
+  @Test("Heart rate variability arrives on where either earlier switch is on, and off where neither is")
+  func heartRateVariabilityInheritsFromEitherEarlierSwitch() throws {
+    defaults.set(true, forKey: "showsRestingHeartRatePairing")
+    defaults.set(false, forKey: "showsSleepPairing")
+    #expect(AppSettings(defaults: defaults).showsHeartRateVariabilityPairing)
+    #expect(defaults.object(forKey: "showsHeartRateVariabilityPairing") as? Bool == true)
+
+    let sleepOnly = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    sleepOnly.set(false, forKey: "showsRestingHeartRatePairing")
+    sleepOnly.set(true, forKey: "showsSleepPairing")
+    #expect(AppSettings(defaults: sleepOnly).showsHeartRateVariabilityPairing)
+
+    // Sleep's own inheritance counts: a Phase 3 install with resting heart
+    // rate on and no sleep key gets sleep on and heart rate variability on
+    // in the same launch.
+    let phaseThree = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    phaseThree.set(true, forKey: "showsRestingHeartRatePairing")
+    let inherited = AppSettings(defaults: phaseThree)
+    #expect(inherited.showsSleepPairing)
+    #expect(inherited.showsHeartRateVariabilityPairing)
+
+    let neither = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    #expect(AppSettings(defaults: neither).showsHeartRateVariabilityPairing == false)
+    #expect(neither.object(forKey: "showsHeartRateVariabilityPairing") as? Bool == false)
+
+    // Written once: the earlier switches turning on afterwards do not pull it on.
+    let later = AppSettings(defaults: neither)
+    later.showsRestingHeartRatePairing = true
+    later.showsSleepPairing = true
+    #expect(AppSettings(defaults: neither).showsHeartRateVariabilityPairing == false)
+  }
+
+  @Test("A stored heart rate variability switch is read as stored, whatever the earlier switches say")
+  func storedHeartRateVariabilitySwitchWins() {
+    defaults.set(true, forKey: "showsRestingHeartRatePairing")
+    defaults.set(true, forKey: "showsSleepPairing")
+    defaults.set(false, forKey: "showsHeartRateVariabilityPairing")
+    #expect(AppSettings(defaults: defaults).showsHeartRateVariabilityPairing == false)
+
+    defaults.set(false, forKey: "showsRestingHeartRatePairing")
+    defaults.set(false, forKey: "showsSleepPairing")
+    defaults.set(true, forKey: "showsHeartRateVariabilityPairing")
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.showsHeartRateVariabilityPairing)
+    #expect(settings.isAnyHealthPairingOn)
   }
 }

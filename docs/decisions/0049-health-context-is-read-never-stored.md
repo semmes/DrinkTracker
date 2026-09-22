@@ -276,3 +276,36 @@ gate keeps such a card off Quarter until the window grows to fourteen nights
 a bucket. (c) A revoked read still writes its breadcrumb (`sleep · 86 days ·
 0.00 s`): a cost and no value, decision 5 holding on the path that returns
 nothing.
+
+## Amendment — 2026-09-22 (Phase 5: the heart rate variability read, and the ask per metric)
+
+**A third read type.** `readTypes(for:)` maps `.heartRateVariability` to
+`HKQuantityType(.heartRateVariabilitySDNN)`, and
+`heartRateVariability(in:endingBefore:calendar:)` reads it through the same
+`dailyAverages` as resting heart rate — the header lists SDNN as `ms,
+Discrete (Arithmetic)`, checked before it was added, as the Phase 4
+amendment asked — in milliseconds, one value per calendar day, filed by
+`.dayAfter`. ADR-0052 says why SDNN and not the RMSSD type iOS 27 added,
+which CI's 26.5 SDK cannot name. Its breadcrumb is `heart rate variability ·
+N days · T s`, a third line under `lastHealthPairingReads` and a third
+Diagnostics row.
+
+**The read and the ask are per metric now.** The model reads a metric only
+where its row is possible — its switch on, the range one it is shown at
+(heart rate variability: Quarter and Year, `PairedMetric.isShown(at:)`),
+and the log alone clearing its own floor (`PairedMetric.minimumNights`,
+twenty-eight for this one) — so no query runs, and no breadcrumb is written,
+for a row that could not show. The sheet on Trends asks for exactly those
+metrics, each once per visit (`askedPairingMetrics`, a set — one flag for
+the visit would have been set by the first two rows at Quarter and kept the
+third from being asked at Year, a review catch), so a Phase 4 install that
+arrives with the new switch on meets its sheet the first time Quarter or
+Year holds twenty-eight nights in each bucket, and never over Month, where
+the row does not exist; a reader whose log clears fourteen but not
+twenty-eight is asked for the two rows they can see and not the third —
+except at the offer, whose acceptance asks for all three at once (ADR-0052,
+ADR-0051's amendment).
+
+**Cost.** The render's simulator number is in
+`docs/health-pairing-phase-0-findings.md` §3 with the others, a floor as
+they are; the phone's is the owner's to read.

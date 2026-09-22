@@ -42,11 +42,14 @@ struct TrendsView: View {
   /// than by the section because the section renders nothing at all when it
   /// has nothing to show, and a task needs a view to hang off.
   @State private var pairing = HealthPairingModel()
-  /// Whether this visit has asked HealthKit if a switched-on pairing type
-  /// still needs its sheet — once per visit (reset when the tab is left), so
-  /// a sheet a reader sent away does not return on the next range change
-  /// (ADR-0051).
-  @State private var askedForPairingReads = false
+  /// The pairing metrics this visit has asked HealthKit about — each once
+  /// per visit (reset when the tab is left), so a sheet a reader sent away
+  /// does not return on the next range change (ADR-0051). Per metric, not
+  /// one flag for the visit: the floors differ (ADR-0052), so a metric can
+  /// become askable at Year after the others were asked at Quarter, and one
+  /// flag set there would have kept it from ever being asked — a review
+  /// catch.
+  @State private var askedPairingMetrics: Set<PairedMetric> = []
 
   /// The raw x value the selection gesture hands back — a Date, never an index
   /// and never a `PeriodDetail` snapshot. A Date survives inserts, re-sorts,
@@ -151,18 +154,24 @@ struct TrendsView: View {
         // the second read cheaper than the first (ADR-0049). With every switch
         // off the model is cleared, so nothing is drawn from a stale read.
         // Before the first read of a visit that could show a row — the log
-        // clearing the gate, so never over Week, where nothing can — a
-        // switched-on type that has never been asked for gets its sheet here,
-        // beside the table it feeds, and only for the metrics whose switches
-        // are on: how a metric that arrived switched on (Phase 4's sleep, for
+        // clearing a metric's own floor, so never over Week, where nothing
+        // can, and never for heart rate variability before its larger floor
+        // is met — a switched-on type that has never been asked for gets its
+        // sheet here, beside the table it feeds, and only for the metrics
+        // whose switches are on at this range: how a metric that arrived
+        // switched on (Phase 4's sleep, Phase 5's heart rate variability, for
         // anyone who accepted the offer) is asked for (the design's decision
-        // 1, ADR-0051).
+        // 1, ADR-0051, ADR-0052).
         .task(id: pairingRead(for: snapshot)) {
           if let read = pairingRead(for: snapshot) {
-            if !askedForPairingReads, read.request.buckets.clearsGate() {
-              askedForPairingReads = true
-              if await health.pairingReadsNeedAsking(for: read.metrics) {
-                await health.requestPairingAuthorization(for: read.metrics)
+            let askable = read.metrics.filter {
+              read.request.buckets.clearsGate(minimumNights: $0.minimumNights)
+            }
+            let unasked = askable.subtracting(askedPairingMetrics)
+            if !unasked.isEmpty {
+              askedPairingMetrics.formUnion(unasked)
+              if await health.pairingReadsNeedAsking(for: unasked) {
+                await health.requestPairingAuthorization(for: unasked)
               }
             }
             await pairing.load(read, health: health)
@@ -170,7 +179,7 @@ struct TrendsView: View {
             pairing.clear()
           }
         }
-        .onDisappear { askedForPairingReads = false }
+        .onDisappear { askedPairingMetrics = [] }
       }
     }
     .navigationTitle("Trends")
@@ -286,12 +295,14 @@ struct TrendsView: View {
   }
 
   /// The read the task should make — the request and the metrics whose
-  /// switches are on — or nil when every switch is off. The model skips a
-  /// request the log alone cannot clear, so a switch left on over a short
-  /// log reads nothing.
+  /// switches are on and that can have a row at this range (heart rate
+  /// variability at Quarter and Year only, ADR-0052) — or nil when none is.
+  /// The model skips a metric whose floor the log alone cannot clear, so a
+  /// switch left on over a short log reads nothing.
   private func pairingRead(for snapshot: Snapshot) -> HealthPairingRead? {
-    let metrics = settings.pairingMetricsOn
-    guard !metrics.isEmpty, let request = snapshot.pairing else { return nil }
+    guard let request = snapshot.pairing else { return nil }
+    let metrics = settings.pairingMetricsOn.filter { $0.isShown(at: request.range) }
+    guard !metrics.isEmpty else { return nil }
     return HealthPairingRead(request: request, metrics: metrics)
   }
 
@@ -307,8 +318,9 @@ struct TrendsView: View {
     }
     Task {
       await health.requestPairingAuthorization(for: Set(PairedMetric.allCases))
-      settings.showsRestingHeartRatePairing = true
-      settings.showsSleepPairing = true
+      for metric in PairedMetric.allCases {
+        settings.setShowsPairing(metric, true)
+      }
     }
   }
 
