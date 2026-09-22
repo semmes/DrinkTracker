@@ -96,14 +96,18 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **509 keys across six catalogs** — 357 app, 35 widget, 28 core, 4
+Current: **515 keys across six catalogs** — 363 app, 35 widget, 28 core, 4
 shortcuts, 50 watch app, 35 complication (counted 2026-09-22 after the health
-pairing's Phase 4: ten app keys in, four out — Phase 3's singular offer body
-and button, its "This switch…" footnote and the note's "Two averages…"
-opening, replaced by the plural and "Each row…" forms — synced with
+pairing's Phase 5: six app keys in, none out — the third row's name, which
+is also its switch's title, the switch's caption, the unit "ms", and the
+row's two sentences with their joined spoken form — synced with
 `xcstringstool` into a scratch copy from a fresh full simulator build and
-diffed before it was copied in; 351 app keys after Phase 3 on 2026-09-21, 327
-on 2026-09-16). **One translation-time note from Phase 4:** the sleep figure's
+diffed before it was copied in; 357 app keys after Phase 4 earlier the same
+day — ten in, four out: Phase 3's singular offer body and button, its "This
+switch…" footnote and the note's "Two averages…" opening, replaced by the
+plural and "Each row…" forms — 351 after Phase 3 on 2026-09-21, 327 on
+2026-09-16). Count with `jq '.strings | length'`, not `keys[] | wc -l`: ten
+app keys contain a newline and inflate a line count. **One translation-time note from Phase 4:** the sleep figure's
 key is `%lldh %@m` — "6h 12m" — where the hours are `%lld` and the minutes a
 pre-formatted, zero-padded `%@`; both are produced by Foundation's number
 formatting in the reader's locale, so the two numerals share a digit system

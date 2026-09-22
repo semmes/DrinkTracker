@@ -1665,3 +1665,44 @@ figure, or about their watch.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — Apple Health beside the log: heart rate variability (ADR-0052; ADR-0049, ADR-0050 and ADR-0051 amended, 2026-09-22)
+
+The third row of the pairing's card, behind a floor twice the others' and
+shown at Quarter and Year only. **Six strings are new — six keys in, none
+out**: the row's name (also the switch's title), its caption, the unit, and
+the row's two sentences with their joined spoken form. Nothing else on the
+card, the offer or in Settings changed, and the footnote is not extended
+(the second pass says why).
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Heart rate variability" | The third row's name on the card and the offer; the third switch's title in Settings | The metric's own name, as the Health app prints it under Heart. Not "HRV": the reader meets the same words on the card, the switch and in the Health app. |
+| "Shown at Quarter and Year" | The switch's caption | The README's own caption. It says where the row exists and nothing about why; the floor is not named, because a caption explaining the row's absence would be the caveat the rule refuses. |
+| "ms" | The unit beside the figure, in the caption face | The Health app's own unit. Whole milliseconds, by the same rounding as beats per minute. |
+| "On nights you logged drinks, 38 milliseconds, over 37 nights." · "On nights recorded as no alcohol, 48 milliseconds, over 48 nights." | The card at `.xLarge` and above, where the table folds to sentences; and, joined with the row's name, what VoiceOver speaks | The resting heart rate sentences with the unit swapped and spelled out — "milliseconds" is what VoiceOver says for "ms". No adjective, no direction. |
+| "Heart rate variability. On nights you logged drinks, … milliseconds, over … nights. On nights recorded as no alcohol, … milliseconds, over … nights." | The row's VoiceOver label, one key | The name, then the two sentences, whole, for the reason the other rows' keys are whole. |
+
+**Second pass — the sentences beside their numbers.** The plan's warning is
+sharpest for this figure — "noisy enough night to night that a reader can
+easily construct a story from randomness" — so this pass reads the row as it
+renders with the seeder's 38 and 48 in it.
+
+- *"Heart rate variability" over "38 ms" and "48 ms"*: two figures, two
+  counts, and a reader who holds that more variability is better supplies
+  that reading themselves. The app supplies no word, no sign and no colour;
+  the floor behind the row is what stands in for the sentence a cautious
+  app would otherwise write.
+- *The caption's "Shown at"*: a statement of where, not a promise of when. A
+  reader at Quarter with twenty nights a bucket sees no row and no
+  explanation, which is the states table's rule for every row.
+- *The footnote, unchanged*: the design's sentence would have said this
+  figure "comes from nights you wear your watch to bed"; its samples are
+  the day's, so the sentence would have been untrue, and it stays sleep's.
+
+No comparative adjective anywhere in the batch, spoken or shown. No
+exclamation marks. Nothing here says what the reader should do about the
+figure.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

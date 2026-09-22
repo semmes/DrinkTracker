@@ -232,7 +232,13 @@ pairing's Phase 4 landed…", three ADRs amended): the second row, its switch, t
 both, and the design's decision 1 — a later metric arriving switched on, asked for beside
 the table — built; its render pass passed later the same day, once the owner granted the
 simulator (the bullet "The health pairing's Phase 4 render pass…"), and found iOS 27's
-Health sheet is two steps. Phase 5, heart rate variability, is next.** These
+Health sheet is two steps. Phase 5, heart rate variability, landed the same evening (the
+bullet "The health pairing's Phase 5 landed…", ADR-0052): the third row, SDNN in whole
+milliseconds, behind a floor of twenty-eight nights and at Quarter and Year only, with the
+read, the ask and the gate per metric — rendered end to end on the scratch simulator,
+including the sheet for the third row arriving alone at Year on the same visit that asked
+for the first two at Quarter. Phase 6, wrist temperature, is next, and it carries the
+baseline decision.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2992,3 +2998,102 @@ Open items for v1.2:
   the two rows and the offer, and the phone's own cost line. The scratch simulator
   (`Health-Phase4 scratch`) is kept booted with its seeded Health store for Phase 5's
   render, then deleted.
+- **The health pairing's Phase 5 landed (2026-09-22, the same evening; ADR-0052, and
+  Phase 5 amendments to ADR-0049, ADR-0050 and ADR-0051): heart rate variability, the
+  third row.** **The type is SDNN** — `HKQuantityType(.heartRateVariabilitySDNN)`, read
+  through the same daily statistic as resting heart rate (the header lists it as `ms,
+  Discrete (Arithmetic)`, checked before it was added, as ADR-0049's Phase 4 amendment
+  asked), in whole milliseconds with "ms" in the caption face beside the figure, filed
+  under the night before by the day-after rule so the per-night figure is the one the
+  Health app shows on that date. Phase 0's open question on the second type is answered
+  as far as a simulator can: the Health app on iOS 27 lists **both** "Heart Rate
+  Variability" and "Recovery HRV" under Heart (frame 00 in `/tmp/claude-501/phase5-shots/`),
+  so the long-standing type is not renamed or replaced; whether a Series 12 writes RMSSD
+  beside SDNN or instead of it is a field question and the ADR's reopen, and CI's 26.5 SDK
+  cannot name RMSSD anyway. **The floor is twenty-eight nights with a value in each
+  bucket**, `PairedFigures.minimumNightsForHeartRateVariability`, twice the base and passed
+  to the parameter ADR-0048 left for it (SD/√n under a fifth at 28; a three-nights-a-week
+  log reaches 28 within a quarter; 56 across the two buckets is more than a month holds).
+  **The row exists at Quarter and Year only** (`PairedMetric.isShown(at:)`): at Week and
+  Month it is not drawn, not read and not asked for, and no breadcrumb is written — the
+  switch's caption, "Shown at Quarter and Year", says where. **The read, the ask and the
+  gate are per metric now:** `PairedMetric.minimumNights`, the load skipping a metric whose
+  own floor the log cannot clear, and the sheet on Trends asking only for the switched-on
+  metrics whose floor the log clears at this range, each once per visit
+  (`askedPairingMetrics`, a set). **Accepting the offer asks for all three types at once**
+  — the named exception, because the reader has just asked for all three rows — and turns
+  on all three switches through one map (`setShowsPairing`), so a metric added to the enum
+  cannot be left off the offer by forgetting a line. The switch inherits from the two before
+  it, or-ed, once (`inheritedPairingFlag` over `restingHeartRatePairing || sleepPairing`,
+  each as it stands after its own inheritance, so a Phase 3 install gets sleep and heart
+  rate variability on in the same launch). The footnote is **not** extended: the design's
+  third sentence names this metric as coming "from nights you wear your watch to bed", and
+  its samples are the day's, so it stays sleep's. App catalog 357 → **363** (six in, none
+  out: the name, the caption, "ms", the two sentences, the spoken row; 515 across six
+  catalogs), synced with `xcstringstool` into a scratch copy from a fresh full build and
+  diffed. **Measured with CoreText** (calibrated as before): "Heart rate variability" is
+  138.3pt in the subheadline, the widest name; "42 ms" 40.7 and "120 ms" 51.3, narrower than
+  "62 bpm" (49.2) and "6h 12m" (58.5), so the numeric columns do not widen — the leading
+  column keeps 161.5pt on a 375pt phone with three rows, 149.0 against three-digit heart
+  rates, a ten-hour sleep and three-digit milliseconds; the header row is unchanged at
+  213.9. **How "no health value is written" was checked:** every added Swift line grepped
+  for the write, store and log APIs — one hit, the switch's `didSet`; the only Health-side
+  write is the pre-existing breadcrumb. **Reviewed before the PR by an adversarial lens on
+  the code against the plan's rules, which found two real defects, both fixed and both
+  re-rendered:** the once-per-visit ask mark was one `Bool` for the visit, so a sheet for
+  the first two rows at Quarter — where the third's floor is unmet — would have set it and
+  kept heart rate variability from ever being asked at Year, on that visit or any later one
+  that passed through Quarter first (now a set of metrics, each asked once); and
+  `HealthPairingSection.resolve()` did not consult the range the reader is on, so a Quarter
+  card's third row could stand at Month for the length of a range change (now filtered by
+  `isShown(at: request.range)`). Three record claims overreached and are corrected: the
+  offer's all-types ask is now named as the exception in three ADRs, a dangling CLAUDE.md
+  pointer, a stale "fourteen". **No schema change, no CloudKit step, no project-file
+  change, no privacy-policy change — and the policy is now false three times over; no
+  release build from main until Phase 7.** **Verified:** 362 domain tests under both SwiftPM
+  build systems (one new: the floor at 28, one night short on either side hides the row
+  while the base floor would show it); 116 integration tests on the iPhone 17 Pro Max
+  simulator (two new: on from either earlier switch, once, written either way; a stored
+  value wins); the CI-form and signed builds with no new warning in the changed files (the
+  same five pre-existing lines as Phase 4's log); and **tier 3 on the scratch iPhone 17 Pro
+  simulator, 22 frames in `/tmp/claude-501/phase5-shots/`**, over the seeder's log and 600
+  seeded SDNN samples (three a day for 200 days at 03:00, 11:00 and 17:00, a spread across
+  the three that cancels in the mean, so the card's 38 and 48 were known before it was
+  drawn): the three-row card at Quarter ("38 ms" beside "48 ms", 37 and 48 nights, one
+  hairline between rows) and Year, light and dark; `.xLarge` and AX5 folding every row to
+  its sentences ("On nights you logged drinks, 38 milliseconds, over 37 nights.") with the
+  hairlines kept; Month with no section and no breadcrumb; with the seeded Sundays removed
+  (24 drink nights a quarter, 32 a year) Quarter drawing two rows and Year three, and the
+  heart rate variability breadcrumb keeping Year's day count through a Quarter read; with
+  only that switch on, no section at Quarter and the row alone at Year; the sleep read
+  revoked in the Settings app leaving the other two rows; Settings with three switches and
+  three Diagnostics rows; the three-row offer and its acceptance turning on all three
+  switches; and — after **erasing the simulator**, the only way to make a HealthKit type
+  undetermined again (`simctl privacy` has no health service), and re-seeding — a Phase 4
+  install (the key missing, inherited on at launch) asked for **Resting Heart Rate and
+  Sleep at Quarter** and for **Heart Rate Variability alone at Year on the same visit**,
+  the defect the review found, rendered fixed. **The cost numbers**, in findings §3:
+  `heart rate variability · 86 days · 0.03 s` at Quarter and `· 356 days · 0.02 s` at
+  Year, three queries under 0.05 s together at Year — a floor. **Tooling:** an erase changes
+  the App Group container's UUID (find it with `simctl get_app_container … groups`); after
+  an erase the simulator tool's screenshot fails with `captureFailed` while its taps land,
+  so read the screen with `simctl io screenshot`; the seeder's write sheet has Allow on its
+  first step, the read sheet on its second. **Not verified, stated:** the Quarter→Month
+  crossfade with the third row leaving (one frame, reasoned from the fix, not filmed);
+  VoiceOver over the three rows; the Health app's own Heart Rate Variability for a day
+  against the row's per-night value (tier 4, the plan's cross-check); anything on hardware.
+  **Tier 4 for the owner:** the third row at Quarter and Year on their own log and watch
+  data, with the Health app's figure for a day as the cross-check; on their Phase 4
+  install, the sheet for heart rate variability arriving alone once Quarter or Year holds
+  twenty-eight nights a bucket; "Last Health read (heart rate variability)" at Year;
+  VoiceOver over the three rows; and whether their watch writes SDNN. The scratch
+  simulator (`Health-Phase4 scratch`, App Group container `02ED9BEE-…` since the erase) is
+  kept booted with its seeded store — 32 drinks, 63 markers, 200 nightly resting heart
+  rates, 200 sleep sessions, 600 SDNN samples — for Phase 6's render, then deleted; the
+  seeders are `/tmp/claude-501/seeder4` and `seeder5`. **Phase 6 is next:** sleeping wrist
+  temperature — `appleSleepingWristTemperature`, one absolute °C sample a night on Series 8
+  and later, shown as a deviation from the reader's own median over the range, stated as
+  such (the one piece of new statistics in this feature; its ADR needs its own paragraph
+  for the baseline), signed with U+2212, the temperature note under the last row, the
+  invisible model restriction handled as a denied read; its switch inherits from the three
+  stored switches before it, or-ed.

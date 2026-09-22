@@ -372,6 +372,19 @@ Diagnostics at Year. One more thing the render showed about the read: iOS
 (ADR-0049's amendment), and a reader who takes it hands the query 30 days
 whatever the range asks for.*
 
+*Phase 5 added the third read (2026-09-22, ADR-0052): heart rate
+variability, SDNN, through the same daily statistic as resting heart rate,
+with its own line. Its simulator numbers, over 600 seeded samples (three a
+day for 200 days) on the same simulator: `heart rate variability · 86 days ·
+0.03 s · app · 09-22 17:59:57` at Quarter and `heart rate variability · 356
+days · 0.02 s · app · 09-22 18:03:36` at Year, beside resting heart rate at
+0.01 s and sleep at 0.01 s on the same render — three queries, one after the
+other, under 0.05 s together at Year. A floor, as above; the owner's phone
+gives the number that matters, "Last Health read (heart rate variability)"
+in Diagnostics at Year. This read is made at Quarter and Year only, and only
+once the log clears twenty-eight nights in each bucket, so at Month there is
+no line for it at all (nothing is read for a row that cannot show).*
+
 Two limits on that line, so it does not become the thing the plan forbids:
 
 - **It carries a duration and the range it covers, and nothing else.** Not a
@@ -596,6 +609,15 @@ the SDNN type the plan names. Apple's page for it is empty as of 2026-09-21.
 Apple Support (120277, published 2026-09-14) describes a "Recovery HRV" on Apple
 Watch Series 12 and Ultra 4: "HRV is sampled while you're still, so the number
 of measurements you see will vary according to your activity level."
+
+*Answered as far as a simulator can, 2026-09-22 (Phase 5, ADR-0052): the
+Health app on an iOS 27.0 simulator lists both under Heart — "Heart Rate
+Variability" and, separately, "Recovery HRV" — so the long-standing type is
+not renamed or replaced, and the SDK header on this Mac lists both as `ms,
+Discrete (Arithmetic)`, SDNN since iOS 11 and RMSSD since 27.0. Phase 5 reads
+SDNN, the type every Apple Watch writes and the one the Health app charts
+under the name the row uses. Whether a Series 12 writes RMSSD beside SDNN or
+instead of it is a field question, still open, and the ADR's reopen.*
 
 **Unverified:** whether Recovery HRV is the RMSSD type, whether those watches
 still write SDNN, and which of the two the Health app charts. Phase 5 has to

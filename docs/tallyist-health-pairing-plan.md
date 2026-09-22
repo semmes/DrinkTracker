@@ -518,6 +518,36 @@ Phase 4 render bullet.
 **Phase 5, HRV.** Larger gate, plainest presentation, possibly wide ranges
 only.
 
+*Landed 2026-09-22 (ADR-0052; ADR-0049, ADR-0050 and ADR-0051 amended). The
+third row reads SDNN — the type every Apple Watch writes and the one the
+Health app lists as "Heart Rate Variability"; iOS 27's RMSSD type is listed
+beside it as "Recovery HRV", a second metric rather than a rename, and is
+the ADR's reopen — through the same daily statistic as resting heart rate,
+in whole milliseconds with "ms" beside the figure, filed under the night
+before by the same day-after rule so the per-night figure is the one the
+Health app shows on that date. The floor is twenty-eight nights with a value
+in each bucket (`PairedFigures.minimumNightsForHeartRateVariability`, the
+parameter Phase 1 left for it; SD/√n under a fifth, and the most a quarter's
+shorter bucket holds for a three-nights-a-week log), and the row exists at
+Quarter and Year only — two floors of 28 are more nights than a month holds
+— so at Week and Month it is not drawn, not read and not asked for. The
+read, the ask and the gate are per metric: the model reads only a metric
+whose own floor the log clears at a range it is shown at, and the sheet on
+Trends asks only for those, each once per visit, so a Phase 4 install that
+arrives with the new switch on is asked for heart rate variability the
+first time Quarter or Year holds twenty-eight nights a bucket, and never
+over Month; the offer's acceptance is the named exception, one sheet for
+all three types at the moment the reader asked for all three rows. The switch,
+"Heart rate variability" over "Shown at Quarter and Year", inherits from
+the two before it, or-ed, once. The footnote is not extended: the design's
+sentence would have said this figure comes from nights the watch is worn to
+bed, and its samples are the day's. Six app keys in, none out (357 → 363).
+Verified: 362 domain tests under both SwiftPM build systems (one new), 116
+integration tests (two new), the CI-form and signed builds with no new
+warning in the changed files, the catalog synced from a fresh full build
+and diffed, and tier 3 on the scratch simulator — CLAUDE.md's Phase 5
+bullet has the list.*
+
 **Phase 6, wrist temperature.** Including the baseline decision, which is the
 one piece of new statistics in this feature and needs its own paragraph in the
 ADR.
