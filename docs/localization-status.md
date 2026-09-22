@@ -96,7 +96,20 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **391 keys** — 324 app, 35 widget, 28 core, 4 shortcuts (counted
+Current: **509 keys across six catalogs** — 357 app, 35 widget, 28 core, 4
+shortcuts, 50 watch app, 35 complication (counted 2026-09-22 after the health
+pairing's Phase 4: ten app keys in, four out — Phase 3's singular offer body
+and button, its "This switch…" footnote and the note's "Two averages…"
+opening, replaced by the plural and "Each row…" forms — synced with
+`xcstringstool` into a scratch copy from a fresh full simulator build and
+diffed before it was copied in; 351 app keys after Phase 3 on 2026-09-21, 327
+on 2026-09-16). **One translation-time note from Phase 4:** the sleep figure's
+key is `%lldh %@m` — "6h 12m" — where the hours are `%lld` and the minutes a
+pre-formatted, zero-padded `%@`; both are produced by Foundation's number
+formatting in the reader's locale, so the two numerals share a digit system
+(a `String(format: "%02d")` for the minutes would have been ASCII beside a
+localised `%lld`, and was replaced for that reason). The "h" and "m" are the
+key's to translate. The previous count was **391 keys** — 324 app, 35 widget, 28 core, 4 shortcuts (counted
 2026-09-15 after the sync-honesty change: two app keys in, "Signed in to
 iCloud" and its footnote, synced with `xcstringstool` from a **device**
 build's `arm64` `.stringsdata` — a simulator build's set lacks

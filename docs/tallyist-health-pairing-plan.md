@@ -479,6 +479,40 @@ it.
 **Phase 4, sleep duration.** Stages as a separate increment once duration is
 shipped and read correctly.
 
+*Landed 2026-09-22, ADR-0049, ADR-0050 and ADR-0051 amended.* Duration only;
+stages are the next increment, as this says. A second row under the same
+heading from the same parts: "Sleep" over its night counts, "6h 12m" beside
+"7h 04m" — `HealthPairing.timeAsleep` averaged per bucket behind the same
+fourteen-night gate, printed from `HealthPairing.hoursAndMinutes` (one
+rounding to the minute, half up, carrying into the hour; tier 1) with the
+minutes zero-padded as the design draws them, and spoken as "6 hours, 12
+minutes asleep". The read is a sample query over the window's sleep
+analysis samples ending inside it (`.strictEndDate`, so a session still
+running into today is not read), mapped by name to `SleepStage`; the
+breadcrumb is now one line per metric (`lastHealthPairingReads`), since a
+render that shows two rows makes two reads. A second switch, "Sleep" over
+"Time asleep on nights you wear your watch", and the footnote in the
+design's three-sentence shape — "Each switch…", and the wear-to-bed sentence
+cut to sleep, the one place the app says it. The offer shows both rows and
+returns to the design's plurals
+("Show these on Trends"); accepting turns on both switches. **The design's
+decision 1 is built:** sleep arrives switched on for anyone with the resting
+heart rate switch on and off for everyone else, decided once when its key is
+first missing and written so the two are independent after; its sheet is
+asked for on the next visit to Trends that could show a row — once the log
+clears the gate, never over Week — beside the table, through HealthKit's
+one honest question (`statusForAuthorizationRequest`), once per visit and
+only for the metrics whose switches are on. No difference is computed
+between the rows any more than within one;
+the note now reads "Each row is two averages…" and says nothing about sleep,
+because the switch's caption already does. Ten app keys in, four out (351 →
+357). Verified: 361 domain tests under both SwiftPM build systems (seven new),
+114 integration tests (four new, pinning the inheritance and its one-time
+nature), the CI-form and signed builds with no warning in the changed files,
+and the inheritance on the real build by files on a scratch simulator; what
+tier 3 was and was not done is in CLAUDE.md's Phase 4 bullet — the render
+pass is owed, since that session's simulator grant never came.
+
 **Phase 5, HRV.** Larger gate, plainest presentation, possibly wide ranges
 only.
 

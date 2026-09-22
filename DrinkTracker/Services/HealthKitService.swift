@@ -300,35 +300,45 @@ final class HealthKitService {
 
   // MARK: - The health pairing's reads (ADR-0048, ADR-0049)
 
-  /// The types the pairing reads: only what the shipped build shows. Resting
-  /// heart rate is Phase 3's metric; later phases append theirs. HealthKit
-  /// prompts only for types the person has not yet answered, so each
-  /// addition's first request shows a sheet listing its own type alone.
+  /// The types the pairing reads for `metrics`: only what the shipped build
+  /// shows, and only what the caller names. Resting heart rate is Phase 3's
+  /// metric and sleep analysis Phase 4's; later phases add theirs to
+  /// `PairedMetric`. HealthKit prompts only for types the person has not yet
+  /// answered, so each addition's first request shows a sheet listing its
+  /// own type alone — and a request names only the metrics whose switches
+  /// are on, so a reader is never asked for a figure they have switched off.
   ///
   /// Nothing here is shared. Every one of these is read-only in HealthKit's
   /// own terms as far as this app is concerned, and the pairing writes
   /// nothing anywhere — not to Health, not to the store, not to a cache.
-  private static var pairingReadTypes: Set<HKObjectType> {
-    [HKQuantityType(.restingHeartRate)]
+  private static func readTypes(for metrics: Set<PairedMetric>) -> Set<HKObjectType> {
+    Set(
+      metrics.map { metric -> HKObjectType in
+        switch metric {
+        case .restingHeartRate: HKQuantityType(.restingHeartRate)
+        case .sleep: HKCategoryType(.sleepAnalysis)
+        }
+      })
   }
 
-  /// Fires the system sheet for the pairing's read types, listing only the
-  /// ones not yet answered; silent when every one is.
+  /// Fires the system sheet for `metrics`' read types, listing only the ones
+  /// not yet answered; silent when every one is.
   ///
   /// Deliberately not folded into `requestAuthorization()`: that sheet is the
   /// app's own beverage type, asked for on the Health context screen and
   /// again from the Settings toggle, and a person who never turns a pairing
   /// switch on must never be asked about their heart rate. Only the pairing's
-  /// switch and its one-time offer call this (Phase 3).
+  /// switches, its one-time offer, and Trends when `pairingReadsNeedAsking`
+  /// says a switched-on type has never been asked for, call this.
   ///
   /// Returns nothing and records nothing. A denied read is invisible in
   /// HealthKit by design — `authorizationStatus(for:)` reports sharing only —
   /// so there is no answer to keep, and keeping one would be pretending to
   /// know what the store refuses to say. The next read either returns values
   /// or it returns none; those are the same state to the pairing.
-  func requestPairingAuthorization() async {
-    guard HKHealthStore.isHealthDataAvailable() else { return }
-    try? await store.requestAuthorization(toShare: [], read: Self.pairingReadTypes)
+  func requestPairingAuthorization(for metrics: Set<PairedMetric>) async {
+    guard HKHealthStore.isHealthDataAvailable(), !metrics.isEmpty else { return }
+    try? await store.requestAuthorization(toShare: [], read: Self.readTypes(for: metrics))
   }
 
   /// Resting heart rate, one value per calendar day that has one, over the
@@ -377,6 +387,84 @@ final class HealthKitService {
     )
   }
 
+  /// Whether the system would show a sheet for `metrics`' read types — true
+  /// while at least one of them has never been answered on this device. The
+  /// one authorization question HealthKit permits (ADR-0049's reopen, now
+  /// needed): it says whether a request is *unnecessary*, never what was
+  /// answered, so a person who denied a type is not asked again and is not
+  /// told apart from one who allowed it. Trends asks it, for the switched-on
+  /// metrics, once per visit and only once the log clears the gate, so a
+  /// metric that arrived switched on (a later phase's, for anyone who
+  /// accepted the offer) gets its sheet beside the table it feeds rather than
+  /// at launch or over a range where nothing could show — the design's
+  /// decision 1. An answer HealthKit cannot give (`.unknown`, or a throw)
+  /// asks nothing.
+  func pairingReadsNeedAsking(for metrics: Set<PairedMetric>) async -> Bool {
+    guard HKHealthStore.isHealthDataAvailable(), !metrics.isEmpty else { return false }
+    let status = try? await store.statusForAuthorizationRequest(
+      toShare: [], read: Self.readTypes(for: metrics))
+    return status == .shouldRequest
+  }
+
+  /// Sleep analysis samples — each a stretch of time in one stage — over the
+  /// days of `range` before the day holding `now`, never that day itself.
+  /// Every sample that *ends* inside the window is read (`.strictEndDate`),
+  /// so a session still running into today is not, and the pairing's
+  /// retrospective-only rule holds for a category type the way `readWindow`
+  /// holds it for a quantity: no read can return a stretch of the day it is
+  /// made on. `HealthPairing.timeAsleep(from:for:calendar:)` merges the
+  /// asleep stages and files each stretch by its middle under the night whose
+  /// sleep day holds it, the way the Health app was seen to (ADR-0048), so a
+  /// session that begins before the window's first day is filed under a night
+  /// the domain does not list and drops on its own.
+  ///
+  /// The query is a plain sample query — the second query shape beside
+  /// `dailyAverages`, because sleep is a category type with no statistics to
+  /// ask for — and its cost is the breadcrumb written after every query, per
+  /// metric (`Diagnostics.recordHealthPairingRead`): the name, the window's
+  /// day count and the wall time, and nothing that came back. Empty means no
+  /// data, for every reason there is, as `restingHeartRate` says; a stage
+  /// value this build does not know is dropped rather than guessed at.
+  func sleep(
+    in range: DateInterval,
+    endingBefore now: Date,
+    calendar: Calendar = .current
+  ) async -> [SleepSample] {
+    guard HKHealthStore.isHealthDataAvailable() else { return [] }
+    guard let window = HealthPairing.readWindow(for: range, endingBefore: now, calendar: calendar)
+    else { return [] }
+
+    let descriptor = HKSampleQueryDescriptor(
+      predicates: [
+        .categorySample(
+          type: HKCategoryType(.sleepAnalysis),
+          predicate: HKQuery.predicateForSamples(
+            withStart: window.start, end: window.end, options: [.strictEndDate])
+        )
+      ],
+      sortDescriptors: [SortDescriptor(\.startDate)]
+    )
+
+    let started = ContinuousClock.now
+    let samples = try? await descriptor.result(for: store)
+    let elapsed = ContinuousClock.now - started
+    // A read the task was cancelled under (a range change mid-query) is not
+    // the cost the owner reads off this line; it is a truncated one.
+    guard !Task.isCancelled else { return [] }
+    Diagnostics.recordHealthPairingRead(
+      "sleep",
+      days: HealthPairing.days(in: window, calendar: calendar),
+      seconds: Double(elapsed.components.seconds)
+        + Double(elapsed.components.attoseconds) / 1e18
+    )
+    guard let samples else { return [] }
+
+    return samples.compactMap { sample -> SleepSample? in
+      guard let stage = SleepStage(healthKitValue: sample.value) else { return nil }
+      return SleepSample(start: sample.startDate, end: sample.endDate, stage: stage)
+    }
+  }
+
   /// One daily statistics query, shared by every *discrete* per-day quantity
   /// the pairing reads. Adding a metric is a public method above naming its
   /// type, unit and breadcrumb label — never a second copy of this. Two
@@ -411,6 +499,9 @@ final class HealthKitService {
     let started = ContinuousClock.now
     let collection = try? await descriptor.result(for: store)
     let elapsed = ContinuousClock.now - started
+    // A read the task was cancelled under (a range change mid-query) is not
+    // the cost the owner reads off this line; it is a truncated one.
+    guard !Task.isCancelled else { return [] }
     Diagnostics.recordHealthPairingRead(
       metric,
       days: HealthPairing.days(in: window, calendar: calendar),
@@ -432,5 +523,23 @@ final class HealthKitService {
         return HealthSample(start: statistics.startDate, end: statistics.endDate, value: value)
       }
       .sorted { $0.start < $1.start }
+  }
+}
+
+extension SleepStage {
+  /// Health's six sleep analysis values, by name, so the domain never has to
+  /// know their raw numbers; a value this SDK does not name is nil and the
+  /// sample is dropped.
+  fileprivate init?(healthKitValue: Int) {
+    switch HKCategoryValueSleepAnalysis(rawValue: healthKitValue) {
+    case .inBed: self = .inBed
+    case .awake: self = .awake
+    case .asleepUnspecified: self = .asleepUnspecified
+    case .asleepCore: self = .core
+    case .asleepDeep: self = .deep
+    case .asleepREM: self = .rem
+    case .none: return nil
+    @unknown default: return nil
+    }
   }
 }

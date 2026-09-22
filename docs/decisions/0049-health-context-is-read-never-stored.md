@@ -200,3 +200,60 @@ anywhere, so what the line may carry is part of this decision.
 - **If a metric needs something other than a daily average** — heart rate
   variability may want the samples from the sleep period only — that is a
   second query shape beside `dailyAverages`, not a change to it.
+
+## Amendment — 2026-09-22 (Phase 4: the sleep read, and two reopen paths taken)
+
+Phase 4 adds the second read type and takes two of the reopen paths above,
+as this record said they would be taken: by a surface that needed them.
+
+**The second query shape exists.** Sleep is a category type with no
+statistic to ask for, so `HealthKitService.sleep(in:endingBefore:calendar:)`
+is a plain sample query over `readWindow` — every `HKCategorySample` of
+`.sleepAnalysis` that *ends* inside the window (`.strictEndDate`), mapped
+by name to `SleepStage` (a value this SDK does not name is dropped, never
+guessed at) and handed to `HealthPairing.timeAsleep`, which merges the
+asleep stages and files each stretch by its middle under the night whose
+sleep day holds it (ADR-0048). The retrospective-only rule holds for a
+category type the way decision 4 holds it for a quantity: a session still
+running into today ends after the window and is not read, so no read can
+return a stretch of the day it is made on; a session that began before the
+window's first day is filed under a night the domain does not list and
+drops on its own. `pairingReadTypes` is gone; `readTypes(for:)` maps the
+metrics a caller names — resting heart rate, sleep analysis — to their
+HealthKit types, so no request can name a type its caller did not. Everything
+else in decisions 1 to 4 is unchanged: the samples are locals of one call,
+empty is one state, the pairing asks for its own reads.
+
+**The breadcrumb is per metric.** A render that shows two rows makes two
+reads, and one line would have kept whichever finished last — the owner's
+cost question wants both. `Diagnostics.recordHealthPairingRead` now keeps a
+dictionary under `lastHealthPairingReads`, keyed by the metric's name, one
+`Breadcrumb.healthRead` line each, and Settings' Diagnostics shows one row
+per metric. What a line can hold is unchanged (decision 5: a name, a day
+count, a duration — the keys are those same names), and the Phase 3 key is
+removed on the next read so the plist carries one shape.
+
+**The one authorization question is now asked.** The design's decision 1
+says a metric that ships later arrives switched on for anyone with a pairing
+switch on, and that its sheet appears on the next visit to Trends, beside the
+table it feeds, not at launch. A read of a type never asked for returns
+nothing, so something has to ask — and the reopen above named the honest
+way: `statusForAuthorizationRequest`, which says whether a request is
+*unnecessary* and never what was answered. `HealthKitService.pairingReadsNeedAsking(for:)`
+wraps it, and `TrendsView` asks it once per visit, for the metrics whose
+switches are on and only once the log clears the gate — so the sheet lands
+the first time a row is possible, never over Week beside nothing, and never
+names a figure the reader has switched off — calling
+`requestPairingAuthorization(for:)` only on `.shouldRequest`. Every request
+the pairing makes now names its metrics: a Settings switch asks for its own
+type alone, the offer for every shipped one, Trends for the switched-on set.
+A person who denied a type is `.unnecessary` and is not asked again; a
+person who allowed it is the same `.unnecessary`; the app still cannot tell
+them apart, and does not try. Once per visit rather than once per read, so
+a sheet a reader sent away does not return on the next range change; an
+answer HealthKit cannot give (`.unknown`, or a throw) asks nothing.
+
+**Consequence for the cost measurement:** the Diagnostics line for sleep is
+owed — the session that built the read could not make one (the simulator
+tool's device grant never came), `docs/health-pairing-phase-0-findings.md`
+§3 says so, and the phone's is still the owner's to read.

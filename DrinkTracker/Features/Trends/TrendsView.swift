@@ -37,11 +37,16 @@ struct TrendsView: View {
   // ADR-0006 and the calendar's five-case DayIntensity exist to keep.
   @Query(sort: \AlcoholFreeDay.day, order: .forward) private var alcoholFreeDays: [AlcoholFreeDay]
 
-  /// The Apple Health pairing's two figures for this render (ADR-0050), read
-  /// by the `.task` below and drawn by `HealthPairingSection`. Owned here
-  /// rather than by the section because the section renders nothing at all
-  /// when it has nothing to show, and a task needs a view to hang off.
+  /// The Apple Health pairing's figures for this render (ADR-0050), read by
+  /// the `.task` below and drawn by `HealthPairingSection`. Owned here rather
+  /// than by the section because the section renders nothing at all when it
+  /// has nothing to show, and a task needs a view to hang off.
   @State private var pairing = HealthPairingModel()
+  /// Whether this visit has asked HealthKit if a switched-on pairing type
+  /// still needs its sheet — once per visit (reset when the tab is left), so
+  /// a sheet a reader sent away does not return on the next range change
+  /// (ADR-0051).
+  @State private var askedForPairingReads = false
 
   /// The raw x value the selection gesture hands back — a Date, never an index
   /// and never a `PeriodDetail` snapshot. A Date survives inserts, re-sorts,
@@ -141,17 +146,31 @@ struct TrendsView: View {
           .screenMargin()
           .padding(.vertical, GlassTokens.Spacing.section)
         }
-        // Re-read exactly when the range, the day, the buckets or the switch
+        // Re-read exactly when the range, the day, the buckets or a switch
         // change, and on every return to this tab — there is no cache to make
-        // the second read cheaper than the first (ADR-0049). With the switch
+        // the second read cheaper than the first (ADR-0049). With every switch
         // off the model is cleared, so nothing is drawn from a stale read.
+        // Before the first read of a visit that could show a row — the log
+        // clearing the gate, so never over Week, where nothing can — a
+        // switched-on type that has never been asked for gets its sheet here,
+        // beside the table it feeds, and only for the metrics whose switches
+        // are on: how a metric that arrived switched on (Phase 4's sleep, for
+        // anyone who accepted the offer) is asked for (the design's decision
+        // 1, ADR-0051).
         .task(id: pairingRead(for: snapshot)) {
-          if let request = pairingRead(for: snapshot) {
-            await pairing.load(request, health: health)
+          if let read = pairingRead(for: snapshot) {
+            if !askedForPairingReads, read.request.buckets.clearsGate() {
+              askedForPairingReads = true
+              if await health.pairingReadsNeedAsking(for: read.metrics) {
+                await health.requestPairingAuthorization(for: read.metrics)
+              }
+            }
+            await pairing.load(read, health: health)
           } else {
             pairing.clear()
           }
         }
+        .onDisappear { askedForPairingReads = false }
       }
     }
     .navigationTitle("Trends")
@@ -254,11 +273,11 @@ struct TrendsView: View {
 
   /// The pairing's request for this render, through the model's memo — it is
   /// derived once per change of range, day, log or markers, not once per
-  /// frame — and only when the section could show something: the switch on,
+  /// frame — and only when the section could show something: a switch on,
   /// or the offer still unanswered. The section itself decides *what* is
   /// drawn; this decides whether there is anything to derive.
   private func pairingRequest(drinks: [LoggedDrink]) -> HealthPairingRequest? {
-    guard settings.showsRestingHeartRatePairing || !settings.hasAnsweredHealthPairingOffer else {
+    guard settings.isAnyHealthPairingOn || !settings.hasAnsweredHealthPairingOffer else {
       return nil
     }
     return pairing.request(
@@ -266,24 +285,30 @@ struct TrendsView: View {
     )
   }
 
-  /// The read the task should make, or nil when the switch is off. The
-  /// model skips a request the log alone cannot clear, so a switch left on
-  /// over a short log reads nothing.
-  private func pairingRead(for snapshot: Snapshot) -> HealthPairingRequest? {
-    settings.showsRestingHeartRatePairing ? snapshot.pairing : nil
+  /// The read the task should make — the request and the metrics whose
+  /// switches are on — or nil when every switch is off. The model skips a
+  /// request the log alone cannot clear, so a switch left on over a short
+  /// log reads nothing.
+  private func pairingRead(for snapshot: Snapshot) -> HealthPairingRead? {
+    let metrics = settings.pairingMetricsOn
+    guard !metrics.isEmpty, let request = snapshot.pairing else { return nil }
+    return HealthPairingRead(request: request, metrics: metrics)
   }
 
-  /// "Show this on Trends": the offer is answered, the system's sheet asks
-  /// for the read, and then the switch turns on — in that order, so the
-  /// read the switch triggers happens after the sheet has been answered
-  /// rather than before it. Both answers are final; nothing asks again.
+  /// "Show these on Trends": the offer is answered, the system's sheet asks
+  /// for the reads, and then every shipped switch turns on — in that order,
+  /// so the read the switches trigger happens after the sheet has been
+  /// answered rather than before it (the owner's decision: accepting turns
+  /// on every shipped switch, and the ones not wanted come off in Settings).
+  /// Both answers are final; nothing asks again.
   private func acceptHealthPairingOffer() {
     withAnimation(.smooth(duration: 0.25)) {
       settings.hasAnsweredHealthPairingOffer = true
     }
     Task {
-      await health.requestPairingAuthorization()
+      await health.requestPairingAuthorization(for: Set(PairedMetric.allCases))
       settings.showsRestingHeartRatePairing = true
+      settings.showsSleepPairing = true
     }
   }
 

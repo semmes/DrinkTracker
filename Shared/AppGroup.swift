@@ -290,29 +290,38 @@ enum Diagnostics {
   /// "your log follows your iCloud account" as a promise and as a fact.
   static var hasEverSynced: Bool { lastSyncSucceededAt != nil }
 
-  static let healthPairingReadKey = "lastHealthPairingRead"
+  static let healthPairingReadsKey = "lastHealthPairingReads"
+  /// Phase 3's single line, superseded by the per-metric table above it and
+  /// removed on the next read so the plist carries one shape.
+  private static let healthPairingReadLegacyKey = "lastHealthPairingRead"
 
-  /// The last read the health pairing made of Apple Health: which metric,
-  /// how many calendar days were asked for, and how long the store took
-  /// (ADR-0049). The owner's answer to Phase 0's open question on query
-  /// cost — measured by the code that ships, read off Settings' Diagnostics
-  /// on a real phone — rather than by a probe.
+  /// The last read the health pairing made of Apple Health, per metric:
+  /// which metric, how many calendar days were asked for, and how long the
+  /// store took (ADR-0049). The owner's answer to Phase 0's open question on
+  /// query cost — measured by the code that ships, read off Settings'
+  /// Diagnostics on a real phone — rather than by a probe. One line per
+  /// metric, because a render that shows two rows makes two reads, and a
+  /// single line would keep only whichever finished last.
   ///
   /// Everything this key can hold passes through `Breadcrumb.healthRead`,
-  /// whose three arguments are a name, a day count and a duration. No sample,
-  /// no value, no count of days that had one: this is the App Group, and the
-  /// pairing's rule is that nothing read from Health is written anywhere
-  /// (plan decision 5). A duration is a fact about the store, not the person.
+  /// whose three arguments are a name, a day count and a duration; the
+  /// dictionary's keys are those same names. No sample, no value, no count
+  /// of days that had one: this is the App Group, and the pairing's rule is
+  /// that nothing read from Health is written anywhere (plan decision 5). A
+  /// duration is a fact about the store, not the person.
   static func recordHealthPairingRead(_ metric: String, days: Int, seconds: Double) {
-    AppGroup.defaults.set(
-      Breadcrumb.stamped(
-        Breadcrumb.healthRead(metric, days: days, seconds: seconds), process: processLabel, at: .now),
-      forKey: healthPairingReadKey
-    )
+    var lines = AppGroup.defaults.dictionary(forKey: healthPairingReadsKey) as? [String: String] ?? [:]
+    lines[metric] = Breadcrumb.stamped(
+      Breadcrumb.healthRead(metric, days: days, seconds: seconds), process: processLabel, at: .now)
+    AppGroup.defaults.set(lines, forKey: healthPairingReadsKey)
+    AppGroup.defaults.removeObject(forKey: healthPairingReadLegacyKey)
   }
 
-  static var lastHealthPairingRead: String? {
-    AppGroup.defaults.string(forKey: healthPairingReadKey)
+  /// Each metric's last read, by the metric's name. Empty until a read has
+  /// been made on this device.
+  static var lastHealthPairingReads: [(metric: String, line: String)] {
+    let lines = AppGroup.defaults.dictionary(forKey: healthPairingReadsKey) as? [String: String] ?? [:]
+    return lines.keys.sorted().compactMap { key in lines[key].map { (key, $0) } }
   }
 
   /// Whether the store fell back to memory — the one state where nothing at all

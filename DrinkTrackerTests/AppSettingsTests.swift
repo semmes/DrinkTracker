@@ -183,4 +183,61 @@ struct AppSettingsTests {
     settings.hasCompletedOnboarding = true
     #expect(AppSettings(defaults: defaults).hasCompletedOnboarding)
   }
+
+  // MARK: - Apple Health on Trends (ADR-0050, ADR-0051)
+
+  @Test("The pairing switches start off and the offer starts unanswered")
+  func pairingSwitchesStartOff() {
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.showsRestingHeartRatePairing == false)
+    #expect(settings.showsSleepPairing == false)
+    #expect(settings.isAnyHealthPairingOn == false)
+    #expect(settings.hasAnsweredHealthPairingOffer == false)
+  }
+
+  /// A metric that ships later arrives switched on for anyone with a pairing
+  /// switch on (the design's decision 1; ADR-0051): sleep, meeting a device
+  /// where resting heart rate is on and its own key has never been written.
+  @Test("Sleep arrives on where resting heart rate is on, and off where it is not")
+  func sleepInheritsAnEarlierSwitchOnce() throws {
+    defaults.set(true, forKey: "showsRestingHeartRatePairing")
+    let inherited = AppSettings(defaults: defaults)
+    #expect(inherited.showsSleepPairing)
+    // Written at that moment, so the two are independent from then on.
+    #expect(defaults.object(forKey: "showsSleepPairing") as? Bool == true)
+
+    inherited.showsRestingHeartRatePairing = false
+    #expect(AppSettings(defaults: defaults).showsSleepPairing, "turning the earlier switch off later does not follow")
+
+    let fresh = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    #expect(AppSettings(defaults: fresh).showsSleepPairing == false)
+    // Off is written too, so a fresh install's later switch does not inherit
+    // a resting heart rate switch turned on afterwards.
+    #expect(fresh.object(forKey: "showsSleepPairing") as? Bool == false)
+  }
+
+  @Test("A stored sleep switch is read as stored, whatever the earlier switch says")
+  func storedSleepSwitchWins() {
+    defaults.set(true, forKey: "showsRestingHeartRatePairing")
+    defaults.set(false, forKey: "showsSleepPairing")
+    #expect(AppSettings(defaults: defaults).showsSleepPairing == false)
+
+    defaults.set(false, forKey: "showsRestingHeartRatePairing")
+    defaults.set(true, forKey: "showsSleepPairing")
+    let settings = AppSettings(defaults: defaults)
+    #expect(settings.showsSleepPairing)
+    #expect(settings.isAnyHealthPairingOn)
+  }
+
+  @Test("Each pairing switch and the offer's answer round-trip on their own")
+  func pairingFlagsRoundTrip() {
+    let settings = AppSettings(defaults: defaults)
+    settings.showsSleepPairing = true
+    settings.hasAnsweredHealthPairingOffer = true
+
+    let reloaded = AppSettings(defaults: defaults)
+    #expect(reloaded.showsSleepPairing)
+    #expect(reloaded.showsRestingHeartRatePairing == false)
+    #expect(reloaded.hasAnsweredHealthPairingOffer)
+  }
 }

@@ -137,7 +137,7 @@ final class AppSettings {
 
   /// Which Apple Health figures appear beside the log on Trends (ADR-0050):
   /// one switch per metric, and only the metrics the shipped build shows —
-  /// resting heart rate, as of Phase 3. Off by default, unlike the three
+  /// resting heart rate and sleep, as of Phase 4. Off by default, unlike the three
   /// comparisons above: those put a published figure beside the reader's own,
   /// while this is the first figure the app derives from data it does not
   /// own, and the reader turns it on. A preference, not Health data, so it
@@ -146,6 +146,24 @@ final class AppSettings {
   var showsRestingHeartRatePairing: Bool {
     didSet { defaults.set(showsRestingHeartRatePairing, forKey: Keys.restingHeartRatePairing) }
   }
+
+  /// Sleep — time asleep — beside the log on Trends, Phase 4's row. Off by
+  /// default like the switch above, with one difference at its first
+  /// appearance: a metric that ships later arrives switched on for anyone
+  /// who has an earlier pairing switch on, and off for everyone else (the
+  /// design's decision 1; ADR-0051). That is decided once, the first time
+  /// this key is missing, and written, so from then on the switches are
+  /// independent. The earlier switch is resting heart rate, the only one that
+  /// shipped before this; a Phase 5 metric inherits from the two *stored*
+  /// switches before it, or-ed.
+  var showsSleepPairing: Bool {
+    didSet { defaults.set(showsSleepPairing, forKey: Keys.sleepPairing) }
+  }
+
+  /// Whether any pairing switch is on — what the one-time offer's "no
+  /// pairing switch is on" condition reads, and what a later metric
+  /// inherits.
+  var isAnyHealthPairingOn: Bool { showsRestingHeartRatePairing || showsSleepPairing }
 
   /// Whether the one-time offer on Trends has been answered, either way
   /// (ADR-0050). Once true, nothing in the app asks again; the switch above
@@ -173,7 +191,10 @@ final class AppSettings {
     self.showsWeekendComparison = Self.storedFlag(Keys.weekendComparison, defaults: defaults, fallback: true)
     self.comparisonColumn = defaults.string(forKey: Keys.comparisonColumn)
       .flatMap(PopulationReference.Column.init(rawValue:)) ?? .allAdults
-    self.showsRestingHeartRatePairing = defaults.bool(forKey: Keys.restingHeartRatePairing)
+    let restingHeartRatePairing = defaults.bool(forKey: Keys.restingHeartRatePairing)
+    self.showsRestingHeartRatePairing = restingHeartRatePairing
+    self.showsSleepPairing = Self.inheritedPairingFlag(
+      Keys.sleepPairing, defaults: defaults, from: restingHeartRatePairing)
     self.hasAnsweredHealthPairingOffer = defaults.bool(forKey: Keys.healthPairingOffer)
   }
 
@@ -183,6 +204,19 @@ final class AppSettings {
   /// difference; anything stored that is not a Bool reads as the fallback.
   nonisolated private static func storedFlag(_ key: String, defaults: UserDefaults, fallback: Bool) -> Bool {
     (defaults.object(forKey: key) as? Bool) ?? fallback
+  }
+
+  /// A pairing switch's stored value — or, the first time the app runs with
+  /// the switch existing, whether an earlier pairing switch is on, written
+  /// then and there so the inheritance happens once (ADR-0051). `storedFlag`
+  /// alone would keep following the older switch for as long as this one was
+  /// never touched, which is not "arrives switched on"; it is a second copy.
+  nonisolated private static func inheritedPairingFlag(
+    _ key: String, defaults: UserDefaults, from earlierSwitchIsOn: Bool
+  ) -> Bool {
+    if let stored = defaults.object(forKey: key) as? Bool { return stored }
+    defaults.set(earlierSwitchIsOn, forKey: key)
+    return earlierSwitchIsOn
   }
 
   /// Region lookup for contexts without a live `AppSettings` — notably the widget's
@@ -254,6 +288,7 @@ final class AppSettings {
     static let weekendComparison = "showsWeekendComparison"
     static let comparisonColumn = "comparisonColumn"
     static let restingHeartRatePairing = "showsRestingHeartRatePairing"
+    static let sleepPairing = "showsSleepPairing"
     static let healthPairingOffer = "hasAnsweredHealthPairingOffer"
   }
 }
