@@ -215,7 +215,10 @@ day. It is not a nightly figure, which is why the design retitled the card
 "Your averages". The plan's "no night-boundary problem" is too strong: the
 type has no boundary of its own, but the pairing still has to pick a day.
 
-Two candidates, for Phase 1 to choose between and defend:
+Two candidates, for Phase 1 to choose between and defend — **decided in
+ADR-0048 (Phase 1, 2026-09-21): the day after**, the first of the two, so one
+rule covers every metric: a night's health value is the day after, in that
+type's own sense of a day.
 
 - **The day after.** The evening of N pairs with the resting heart rate of
   N+1. That is the same date Health gives the night's sleep, so one key serves
