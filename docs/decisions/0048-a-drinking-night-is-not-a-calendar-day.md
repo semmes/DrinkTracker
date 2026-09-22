@@ -95,12 +95,17 @@ core package.
    day after, in that type's own sense of a day.** `NightAttribution` names
    the two senses, `.sleepDay` and `.dayAfter`.
 
-4. **A night is counted once the day after it has ended.** The watch rewrites
-   the current and previous day's resting heart rate as its estimate
-   improves, so a night whose day after is still running is provisional. On
+4. **A night is counted once the day after it has ended.** A per-day figure
+   is provisional in two degrees: while its day runs, the estimate is a
+   rough one the watch improves through the day; and through the day after
+   that, the watch may still replace it ("the current or previous day",
+   Apple's words). The rule waits out the first and accepts the second: on
    any render the newest night is the evening two days ago, decided by the
-   injected `now`. One rule for every metric, so the buckets an offer counts
-   from the log alone are the buckets the table will use.
+   injected `now`, and its figure can still move once during the day it
+   first appears. Nothing is cached, so a render simply follows the replaced
+   sample; waiting a further day would hold back three nights to avoid a
+   refinement rather than a draft. One rule for every metric, so the buckets
+   an offer counts from the log alone are the buckets the table will use.
 
 5. **The second bucket holds nights recorded as no alcohol, and nothing
    else.** A night is in "no drinks" when the calendar day it is named for
@@ -138,10 +143,14 @@ core package.
 7. **The value type is two figures, two counts, and the span they cover.**
    `PairedFigures`: the mean and the night count for each column, and the
    evenings of the first and last nights that contributed. Each mean is over
-   the bucket's nights that have a value; a night with none is absent, not
-   zero. There is no difference, no ratio, no sign, and no property that
-   relates one column to the other, and a tier-1 test pins the stored
-   properties to exactly those four so nothing can be added quietly.
+   the bucket's distinct nights that have a value; a night with none is
+   absent, not zero, and two values for one night collapse to their mean
+   before the night joins the average. There is no difference, no ratio, no
+   sign, and no property that relates one column to the other. A tier-1 test
+   pins the *stored* properties to exactly those four, which catches a field
+   added to the type; a computed property, or an extension in the app
+   target, it cannot see, so for those the guard is review — the same guard
+   every other rule in this record has.
 
 Nothing in the package reads a health value to decide which bucket a night
 is in; the buckets come from the log and its markers alone. Nothing imports
@@ -157,8 +166,10 @@ values that live for one render.
   does not tell them why — the same absence the longest run shows them as
   "None recorded". The Settings switch and the offer stand; a marker a day is
   what fills the second column. At Week the row can never appear (seven
-  nights, gate of fourteen); at Month only for someone who drinks and marks
-  on most days; Quarter and Year are where it lives.
+  nights, gate of fourteen), and at Month only in theory: thirty nights less
+  the two held back leave twenty-eight against a gate of twenty-eight, so
+  every night would need a record, a value, and an exact fourteen-and-
+  fourteen split. Quarter and Year are where it lives.
 - **The offer's condition changes.** The design gates the one-time offer on
   the drink side alone, expecting the other side to be plentiful. It is not,
   so the offer has to clear the gate on both sides from the log
@@ -171,9 +182,24 @@ values that live for one render.
   Overlapping sources are merged rather than ranked — Health ranks its
   sources, and a night where two disagree can differ from the app's figure.
   A tier 4 item, not a code path.
+- **The stretch is the unit filed, and that is a third rule, matching
+  neither of the two Phase 0 could not tell apart.** Health was seen filing
+  single typed samples by their middle; a watch night is many stage samples,
+  and whether Health files each, or the period it assembles from them, was
+  not observable. This record files each *merged stretch*: touching stages
+  join, an awakening splits. Two consequences, both only for sleep that
+  crosses 18:00, which a night does not and a long nap can: a stage that
+  touches another across the boundary follows the merged stretch's middle
+  rather than its own, and a session that wakes across the boundary lands on
+  two nights, where the assembled period would land on one. Pinned by a
+  vector so the behaviour is on record; the plan's tier 4 cross-check on a
+  real device is what settles which rule Health uses, and the reopen below
+  names the change.
 - **Two nights are held back on every render**, and the sleep figure lags
   its own completion by six hours (its day ends at 18:00, the rule waits for
-  midnight). Nobody will see it; one rule was worth more than six hours.
+  midnight). Nobody will see it; one rule was worth more than six hours. The
+  newest night's per-day figure can still be replaced once by the watch
+  during the day it first appears (decision 4); the render follows it.
 - **A 1 a.m. drink costs two nights.** It makes the night before it a drinks
   night (right) and leaves the night of its own day unrecorded, because the
   app will not mark a day that holds a drink (also right: that calendar day
@@ -200,9 +226,13 @@ values that live for one render.
   a reopen has to answer it, not restate the sparsity.
 - **If a real watch night that crosses 18:00 is filed differently from a
   typed session** — Health filing the assembled period rather than each
-  stage's stretch — the change is in `asleepStretches` and the middle it
-  files by; the Phase 0 vectors stay, and a vector for the watch's shape
-  joins them.
+  merged stretch, or each sample on its own — the change is in
+  `asleepStretches` and the middle it files by; the Phase 0 vectors stay,
+  the boundary vector changes to the observed shape, and a vector for the
+  watch's own sample pattern joins them.
+- **If the newest night's figure is seen to move on the day it appears** and
+  a reader notices, the rule in `HealthPairing.nights` waits one more day
+  (`dayAfter.end` plus a day); three nights held back instead of two.
 - **If the Health app's own figure for a night disagrees with the package's
   on a real device** (the plan's tier 4 cross-check), the sleep day rule or
   the merge is wrong, and the fix is to match Health again, not to explain

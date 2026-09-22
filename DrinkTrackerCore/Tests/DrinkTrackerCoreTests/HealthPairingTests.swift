@@ -78,8 +78,16 @@ struct HealthPairingTests {
 
   @Test("Consecutive nights tile time: each window closes exactly where the next opens")
   func windowsTile() {
-    for calendar in [utc, zoned("America/New_York"), zoned("America/Santiago")] {
-      let list = nights(at(2026, 9, 1, in: calendar), at(2026, 9, 10, in: calendar), calendar: calendar)
+    // September holds Santiago's 23-hour transition day; the New York week
+    // around November 1 holds a 25-hour one.
+    let spans: [(Calendar, Date, Date)] = [
+      (utc, at(2026, 9, 1, in: utc), at(2026, 9, 10, in: utc)),
+      (zoned("America/New_York"), at(2026, 9, 1, in: zoned("America/New_York")), at(2026, 9, 10, in: zoned("America/New_York"))),
+      (zoned("America/Santiago"), at(2026, 9, 1, in: zoned("America/Santiago")), at(2026, 9, 10, in: zoned("America/Santiago"))),
+      (zoned("America/New_York"), at(2026, 10, 28, in: zoned("America/New_York")), at(2026, 11, 6, in: zoned("America/New_York"))),
+    ]
+    for (calendar, first, last) in spans {
+      let list = nights(first, last, calendar: calendar)
       #expect(list.count == 10)
       for (earlier, later) in zip(list, list.dropFirst()) {
         #expect(earlier.drinkWindow.end == later.drinkWindow.start)
@@ -311,6 +319,62 @@ struct HealthPairingTests {
     #expect(asleep.first?.value == hours(8))
   }
 
+  @Test("A stretch crossing 18:00 goes whole to the night holding its middle; an awakening across 18:00 splits a session in two")
+  func stretchesAcrossTheBoundary() {
+    // Core sleep to 17:59 and REM from 17:59 touch, so they merge into one
+    // stretch whose middle is after 18:00: all of it files under the night
+    // of the 16th, where filed sample by sample the first hour would be the
+    // night of the 15th. A waking that straddles 18:00 leaves two stretches,
+    // one each side, so that sleep lands on two nights. Both are the rule
+    // ADR-0048 states and names the cost of.
+    let cal = utc
+    let list = nights(at(2026, 9, 15, in: cal), at(2026, 9, 16, in: cal), calendar: cal)
+    let touching = [
+      SleepSample(start: at(2026, 9, 16, 17, in: cal), end: at(2026, 9, 16, 17, 59, in: cal), stage: .core),
+      SleepSample(start: at(2026, 9, 16, 17, 59, in: cal), end: at(2026, 9, 16, 19, 30, in: cal), stage: .rem),
+    ]
+    #expect(HealthPairing.timeAsleep(from: touching, for: list, calendar: cal) == [
+      NightValue(night: at(2026, 9, 16, in: cal), value: hours(2.5))
+    ])
+    let woken = [
+      SleepSample(start: at(2026, 9, 16, 16, in: cal), end: at(2026, 9, 16, 17, 50, in: cal), stage: .core),
+      SleepSample(start: at(2026, 9, 16, 17, 50, in: cal), end: at(2026, 9, 16, 18, 10, in: cal), stage: .awake),
+      SleepSample(start: at(2026, 9, 16, 18, 10, in: cal), end: at(2026, 9, 16, 20, in: cal), stage: .core),
+    ]
+    #expect(HealthPairing.timeAsleep(from: woken, for: list, calendar: cal) == [
+      NightValue(night: at(2026, 9, 15, in: cal), value: hours(1) + 3000),
+      NightValue(night: at(2026, 9, 16, in: cal), value: hours(1) + 3000),
+    ])
+  }
+
+  @Test("An inverted or zero-length sleep sample is dropped, and a non-finite quantity is")
+  func malformedSamplesAreDropped() {
+    let cal = utc
+    let list = nights(at(2026, 9, 14, in: cal), at(2026, 9, 15, in: cal), calendar: cal)
+    let sleep = [
+      SleepSample(start: at(2026, 9, 15, 7, in: cal), end: at(2026, 9, 14, 23, in: cal), stage: .core),
+      SleepSample(start: at(2026, 9, 15, 1, in: cal), end: at(2026, 9, 15, 1, in: cal), stage: .core),
+      SleepSample(start: at(2026, 9, 15, 2, in: cal), end: at(2026, 9, 15, 3, in: cal), stage: .core),
+    ]
+    #expect(HealthPairing.timeAsleep(from: sleep, for: list, calendar: cal) == [
+      NightValue(night: at(2026, 9, 14, in: cal), value: hours(1))
+    ])
+    let quantities = [
+      HealthSample(start: at(2026, 9, 15, 12, in: cal), end: at(2026, 9, 15, 12, in: cal), value: .nan),
+      HealthSample(start: at(2026, 9, 15, 13, in: cal), end: at(2026, 9, 15, 12, in: cal), value: 70),
+      HealthSample(start: at(2026, 9, 15, 14, in: cal), end: at(2026, 9, 15, 14, in: cal), value: 60),
+    ]
+    #expect(HealthPairing.nightlyValues(of: quantities, for: list, attribution: .dayAfter, calendar: cal) == [
+      NightValue(night: at(2026, 9, 14, in: cal), value: 60)
+    ])
+    // A non-finite value handed straight to the figures is a night with no
+    // value, so the gate sees thirteen where fourteen were listed.
+    let made = fixture(cal, drinkValues: Array(repeating: 60.0, count: 14), noneValues: Array(repeating: 55.0, count: 14))
+    var poisoned = made.values
+    poisoned[0] = NightValue(night: poisoned[0].night, value: .nan)
+    #expect(HealthPairing.figures(made.buckets, values: poisoned) == nil)
+  }
+
   @Test("In bed and awake are not sleep; overlapping sources count an hour once; order does not matter")
   func stagesAndOverlaps() {
     let cal = utc
@@ -347,6 +411,31 @@ struct HealthPairingTests {
     #expect(values == [
       NightValue(night: at(2026, 9, 13, in: cal), value: 58),
       NightValue(night: at(2026, 9, 14, in: cal), value: 63),
+    ])
+  }
+
+  @Test("A spanning sample is filed by its middle, not its start or its end")
+  func spanningSampleFilesByMiddle() {
+    // 23:00 on the 15th to 03:00 on the 16th: start on the 15th, middle and
+    // end on the 16th. Filed by the day after, that is the night of the 15th;
+    // by its start it would be the 14th's. Under the sleep-day rule, two
+    // samples tell start, middle and end apart: 17:00 to 20:00 on the 16th
+    // (middle 18:30) is the night of the 16th where its start says the 15th,
+    // and 15:00 to 20:00 (middle 17:30) is the night of the 15th where its
+    // end says the 16th.
+    let cal = utc
+    let list = nights(at(2026, 9, 14, in: cal), at(2026, 9, 16, in: cal), calendar: cal)
+    let overnight = [HealthSample(start: at(2026, 9, 15, 23, in: cal), end: at(2026, 9, 16, 3, in: cal), value: 61)]
+    #expect(HealthPairing.nightlyValues(of: overnight, for: list, attribution: .dayAfter, calendar: cal) == [
+      NightValue(night: at(2026, 9, 15, in: cal), value: 61)
+    ])
+    let evening = [HealthSample(start: at(2026, 9, 16, 17, in: cal), end: at(2026, 9, 16, 20, in: cal), value: 36.2)]
+    #expect(HealthPairing.nightlyValues(of: evening, for: list, attribution: .sleepDay, calendar: cal) == [
+      NightValue(night: at(2026, 9, 16, in: cal), value: 36.2)
+    ])
+    let lateEnd = [HealthSample(start: at(2026, 9, 16, 15, in: cal), end: at(2026, 9, 16, 20, in: cal), value: 36.4)]
+    #expect(HealthPairing.nightlyValues(of: lateEnd, for: list, attribution: .sleepDay, calendar: cal) == [
+      NightValue(night: at(2026, 9, 15, in: cal), value: 36.4)
     ])
   }
 
@@ -417,6 +506,44 @@ struct HealthPairingTests {
     #expect(HealthPairing.figures(full.buckets, values: missingOne) == nil)
   }
 
+  @Test("The log-only gate needs both sides, and counts a night once however often it is listed")
+  func logOnlyGateIsAConjunction() {
+    let cal = utc
+    let fourteen = Array(repeating: 60.0, count: 14)
+    let thirteen = Array(repeating: 60.0, count: 13)
+    #expect(fixture(cal, drinkValues: fourteen, noneValues: thirteen).buckets.clearsGate() == false)
+    #expect(fixture(cal, drinkValues: thirteen, noneValues: fourteen).buckets.clearsGate() == false)
+    #expect(fixture(cal, drinkValues: fourteen, noneValues: fourteen).buckets.clearsGate())
+    // Seven nights listed twice are seven nights, on the offer's gate and the table's.
+    let seven = fixture(cal, drinkValues: Array(repeating: 60.0, count: 7), noneValues: Array(repeating: 55.0, count: 7))
+    let doubled = NightBuckets(
+      drinks: seven.buckets.drinks + seven.buckets.drinks,
+      noDrinks: seven.buckets.noDrinks + seven.buckets.noDrinks
+    )
+    #expect(doubled.clearsGate() == false)
+    #expect(HealthPairing.figures(doubled, values: seven.values) == nil)
+    #expect(HealthPairing.figures(doubled, values: seven.values, minimumNights: 7)?.drinks.nights == 7)
+    // The same nights listed twice into `buckets` come out once.
+    let list = nights(at(2026, 6, 1, in: cal), at(2026, 6, 3, in: cal), calendar: cal)
+    let twice = HealthPairing.buckets(
+      list + list, drinks: [beer(at: at(2026, 6, 1, 21, in: cal))], alcoholFreeDays: [at(2026, 6, 2, in: cal)], calendar: cal)
+    #expect(twice.drinks.count == 1)
+    #expect(twice.noDrinks.count == 1)
+  }
+
+  @Test("Two values for one night collapse to their mean before the night joins the average")
+  func valuesForOneNightCollapse() throws {
+    let cal = utc
+    let made = fixture(cal, drinkValues: Array(repeating: 60.0, count: 14), noneValues: Array(repeating: 50.0, count: 14))
+    // Three more readings on one drink night at 90 would pull a sample-weighted
+    // mean to 65.3; per night they collapse to (60 + 90 × 3) / 4 = 82.5 for that
+    // night alone, and the figure moves by (82.5 − 60) / 14.
+    let extra = (0..<3).map { _ in NightValue(night: made.buckets.drinks[0].evening, value: 90) }
+    let figures = try #require(HealthPairing.figures(made.buckets, values: made.values + extra))
+    #expect(abs(figures.drinks.average - (60 + 22.5 / 14)) < 0.0001)
+    #expect(figures.drinks.nights == 14)
+  }
+
   @Test("Two figures, two counts, the span they cover — and each is the mean over its own nights")
   func figuresAreTwoMeans() throws {
     let cal = utc
@@ -438,11 +565,17 @@ struct HealthPairingTests {
     let made = fixture(cal, drinkValues: Array(repeating: 60.0, count: 14), noneValues: Array(repeating: 55.0, count: 14))
     #expect(HealthPairing.figures(made.buckets, values: made.values, minimumNights: 15) == nil)
     #expect(HealthPairing.figures(made.buckets, values: made.values, minimumNights: 0) != nil)
+    // A floor of zero against an empty bucket is still nothing: never an
+    // average over no nights.
+    let oneSided = NightBuckets(drinks: made.buckets.drinks, noDrinks: [])
+    #expect(HealthPairing.figures(oneSided, values: made.values, minimumNights: 0) == nil)
   }
 
-  /// Plan rule 1, made structural: the value type carries exactly two figures,
-  /// two counts and the span, and nothing that relates one side to the other.
-  /// Adding a difference, a ratio or a verdict changes this list and fails here.
+  /// Plan rule 1: the value type stores exactly two figures, two counts and
+  /// the span, and nothing that relates one side to the other. A stored
+  /// difference, ratio or verdict changes this list and fails here. `Mirror`
+  /// sees stored properties only — a computed one, or an extension in another
+  /// target, is caught by review, not by this.
   @Test("The figures carry no delta: their stored properties are exactly the four named")
   func noDeltaField() {
     let figures = PairedFigures(

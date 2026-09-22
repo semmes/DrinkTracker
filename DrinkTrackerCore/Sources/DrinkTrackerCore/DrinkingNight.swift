@@ -92,8 +92,8 @@ public struct DrinkingNight: Hashable, Sendable {
 }
 
 extension DateInterval {
-  /// Half-open membership. `contains(_:)` is inclusive at both ends, which
-  /// would file an instant on a boundary under two nights at once.
+  /// Half-open membership. `contains(_:)` is inclusive at both ends, and a
+  /// boundary instant belongs to exactly one night — the later one.
   func holds(_ instant: Date) -> Bool {
     start <= instant && instant < end
   }

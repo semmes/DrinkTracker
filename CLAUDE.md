@@ -2653,16 +2653,25 @@ Open items for v1.2:
   after has ended, by the injected `now`; the gate is **fourteen nights with a value in
   each bucket**, resolved in the domain and a parameter for a noisier type; and
   `PairedFigures` is two means, two night counts and the span — a tier-1 test pins its
-  stored properties so no delta can be added. Twenty-five vectors, the plan's eight among
-  them and a replay of Phase 0's five Health sessions to the hour Health showed; two
-  mutations (a noon window, filing by start) were run and caught by five tests. **Two
-  consequences for Phase 3 to carry:** the offer must clear the gate on *both* sides from
-  the log (`NightBuckets.clearsGate`), not the drink side alone, or a person can accept and
-  be shown nothing; and the row lives at Quarter and Year for anyone who does not mark
-  most days — at Week it can never appear. No HealthKit, no UI, no catalog key, no schema,
-  no CloudKit step; nothing in `DrinkTracker/` or `Shared/`. **Gates, locally (Xcode
-  27.0):** 342 domain tests under both SwiftPM build systems; the iOS scheme in CI's form,
-  no warning in the new files. **Tooling:** the simulator tool's per-device permission was
+  *stored* properties so no delta field can be added (a computed one, or an extension in
+  the app target, is review's to catch). Thirty vectors, the plan's eight among them and a
+  replay of Phase 0's five Health sessions to the hour Health showed. **Reviewed before
+  merging** by an adversarial pass with its own probe suite and twenty-four mutations: it
+  found duplicate nights counted twice by the gate (fixed: distinct evenings everywhere),
+  six mutations the suite let through (each now has a vector — the log-only gate as a
+  disjunction, a floor of zero over an empty bucket, a spanning sample filed by its start
+  or end, values weighted instead of nights, touching stretches, malformed samples), and
+  three record claims that overreached (the newest night's per-day figure can still be
+  replaced once by the watch on the day it appears, and the ADR now says so; the merged
+  stretch is a third filing rule, neither per-sample nor per-period, and a session that
+  wakes across 18:00 lands on two nights; at Month the row is possible only in theory —
+  twenty-eight nights against a gate of twenty-eight). **Two consequences for Phase 3 to
+  carry:** the offer must clear the gate on *both* sides from the log
+  (`NightBuckets.clearsGate`), not the drink side alone, or a person can accept and be
+  shown nothing; and the row lives at Quarter and Year — at Week it can never appear. No
+  HealthKit, no UI, no catalog key, no schema, no CloudKit step; nothing in
+  `DrinkTracker/` or `Shared/`. **Gates, locally (Xcode 27.0):** 347 domain tests under
+  both SwiftPM build systems; the iOS scheme in CI's form, no warning in the new files. **Tooling:** the simulator tool's per-device permission was
   refused three times over twenty minutes and granted on the fourth, so retry before
   writing an experiment off; the Health app's Add Data form moves Starts when Ends is set
   earlier, and its time wheel takes a typed four-digit time. **Phase 2 is next:** the read

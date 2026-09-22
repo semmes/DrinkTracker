@@ -110,16 +110,19 @@ public struct NightBuckets: Hashable, Sendable {
   /// Whether the log alone could clear the gate on both sides — what the
   /// one-time offer checks before any Health value exists. The table's own
   /// gate counts nights that have a value, which is never more than this.
+  /// Distinct nights: a night listed twice is one night.
   public func clearsGate(minimumNights: Int = PairedFigures.minimumNights) -> Bool {
-    drinks.count >= minimumNights && noDrinks.count >= minimumNights
+    Set(drinks.map(\.evening)).count >= minimumNights
+      && Set(noDrinks.map(\.evening)).count >= minimumNights
   }
 }
 
 /// The two averages the table shows, each with the nights behind it, and the
 /// span of nights they cover. Two figures and two counts, on purpose: nothing
-/// here computes the difference, the ratio, or which is larger, and a test
-/// pins the stored properties to exactly these so nothing can be added
-/// quietly (ADR-0048, plan rule 1).
+/// here computes the difference, the ratio, or which is larger. A test pins
+/// the *stored* properties to exactly these four, which catches a field added
+/// here; a computed property, or an extension in another target, it cannot
+/// see — for those the guard is review (ADR-0048, plan rule 1).
 public struct PairedFigures: Hashable, Sendable {
   public struct Figure: Hashable, Sendable {
     /// The mean of the nights' values, in the sample's own unit.
@@ -207,7 +210,8 @@ public enum HealthPairing {
     let markedDays = Set(alcoholFreeDays.map { calendar.startOfDay(for: $0) })
     var withDrinks: [DrinkingNight] = []
     var recordedNone: [DrinkingNight] = []
-    for night in nights {
+    var seen: Set<Date> = []
+    for night in nights where seen.insert(night.evening).inserted {
       if eveningsWithDrinks.contains(night.evening) {
         withDrinks.append(night)
       } else if markedDays.contains(night.evening) {
@@ -269,9 +273,11 @@ public enum HealthPairing {
   /// The two figures, or nil while either bucket has fewer than
   /// `minimumNights` nights with a value — the gate, resolved here so no
   /// surface can show one side without the other or a number with an
-  /// asterisk. Each figure is the mean over its bucket's nights that have a
-  /// value; a night with none is not a zero and not counted. Two values for
-  /// one night (a caller's slip) collapse to their mean.
+  /// asterisk. Each figure is the mean over its bucket's distinct nights that
+  /// have a value; a night with none is not a zero and not counted, and a
+  /// night listed twice is one night. Two values for one night (a caller's
+  /// slip) collapse to their mean before the night joins the average, so a
+  /// night with more values weighs no more than one with one.
   public static func figures(
     _ buckets: NightBuckets,
     values: [NightValue],
@@ -285,7 +291,8 @@ public enum HealthPairing {
     func figure(for nights: [DrinkingNight]) -> (figure: PairedFigures.Figure, evenings: [Date])? {
       var means: [Double] = []
       var evenings: [Date] = []
-      for night in nights {
+      var seen: Set<Date> = []
+      for night in nights where seen.insert(night.evening).inserted {
         guard let samples = byNight[night.evening], !samples.isEmpty else { continue }
         means.append(samples.reduce(0, +) / Double(samples.count))
         evenings.append(night.evening)
@@ -307,9 +314,10 @@ public enum HealthPairing {
 
   // MARK: - Filing
 
-  /// The night among `nights` that `instant` is filed under by `attribution`,
-  /// found by key and then checked against the night's own window, so a
-  /// calendar that placed a boundary oddly cannot file an instant on a night
+  /// The night among `nights` that `instant` is filed under by `attribution`.
+  /// The key is what files it; the check against the night's own window
+  /// after that is defensive — no calendar probed needs it — and keeps a
+  /// boundary the calendar placed oddly from filing an instant on a night
   /// that does not hold it.
   private static func night(
     filing instant: Date,
