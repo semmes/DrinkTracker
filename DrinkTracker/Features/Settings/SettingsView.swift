@@ -185,32 +185,50 @@ struct SettingsView: View {
 
   /// The Apple Health pairing's switches (ADR-0050): one per metric the
   /// shipped build shows, in the comparisons' own toggle, directly after the
-  /// section they resemble. Off by default. Turning one on asks the system
-  /// for the read — silently, for anyone who has already answered — and
-  /// never shows an error or a hint if nothing follows: HealthKit does not
-  /// say whether a read was denied, and the app does not pretend to know.
-  /// Only the metrics that are built get a switch; nothing is drawn disabled
-  /// for the ones that are not.
+  /// section they resemble, in the order the card's rows take. Off by
+  /// default. Turning one on asks the system for the reads — silently, for
+  /// anyone who has already answered — and never shows an error or a hint if
+  /// nothing follows: HealthKit does not say whether a read was denied, and
+  /// the app does not pretend to know. Only the metrics that are built get a
+  /// switch; nothing is drawn disabled for the ones that are not. The
+  /// footnote is the one place the app mentions wearing the watch to bed
+  /// (design README); nothing else may.
   private var healthPairingSection: some View {
     SettingsSection(
       title: "Apple Health on Trends",
-      footnote: "This switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent."
+      footnote: "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep comes from nights you wear your watch to bed."
     ) {
       @Bindable var settings = settings
-      ComparisonToggle(
-        title: "Resting heart rate",
-        source: "One figure a day, from your watch",
-        isOn: $settings.showsRestingHeartRatePairing
-      )
+      VStack(spacing: GlassTokens.Spacing.tight) {
+        ComparisonToggle(
+          title: "Resting heart rate",
+          source: "One figure a day, from your watch",
+          isOn: $settings.showsRestingHeartRatePairing
+        )
+        ComparisonToggle(
+          title: "Sleep",
+          source: "Time asleep on nights you wear your watch",
+          isOn: $settings.showsSleepPairing
+        )
+      }
     }
     .onChange(of: settings.showsRestingHeartRatePairing) { _, isOn in
-      guard isOn else { return }
-      // Turning the switch on is the offer's question answered (ADR-0051):
-      // a reader who has met the system's sheet from here is not shown the
-      // card on Trends later, should they turn the switch off again.
-      settings.hasAnsweredHealthPairingOffer = true
-      Task { await health.requestPairingAuthorization() }
+      if isOn { pairingSwitchTurnedOn(.restingHeartRate) }
     }
+    .onChange(of: settings.showsSleepPairing) { _, isOn in
+      if isOn { pairingSwitchTurnedOn(.sleep) }
+    }
+  }
+
+  /// Turning a switch on is the offer's question answered (ADR-0051): a
+  /// reader who has met the system's sheet from here is not shown the card
+  /// on Trends later, should they turn every switch off again. The sheet
+  /// asks for that switch's own type and nothing else — a reader picks the
+  /// axis one switch at a time, and is never asked for a figure they have
+  /// not switched on — and only if it has not been answered before.
+  private func pairingSwitchTurnedOn(_ metric: PairedMetric) {
+    settings.hasAnsweredHealthPairingOffer = true
+    Task { await health.requestPairingAuthorization(for: [metric]) }
   }
 
   /// One footnote for the section, in two forms: with the column picker on
@@ -466,14 +484,18 @@ struct SettingsView: View {
           "Last sync failure",
           value: Diagnostics.lastSyncFailure ?? "none since the last success"
         )
-        // The Apple Health pairing's read, timed by the code that ships
-        // (ADR-0049): the metric, the days asked for and the wall time —
+        // The Apple Health pairing's reads, timed by the code that ships
+        // (ADR-0049): per metric, the days asked for and the wall time —
         // never a value. Phase 0's open question on query cost is answered by
-        // reading this off a real phone.
-        diagnosticRow(
-          "Last Health read",
-          value: Diagnostics.lastHealthPairingRead ?? "none yet"
-        )
+        // reading these off a real phone.
+        let healthReads = Diagnostics.lastHealthPairingReads
+        if healthReads.isEmpty {
+          diagnosticRow("Last Health read", value: "none yet")
+        } else {
+          ForEach(healthReads, id: \.metric) { read in
+            diagnosticRow("Last Health read (\(read.metric))", value: read.line)
+          }
+        }
         diagnosticRow(
           "Intent last built by",
           value: Diagnostics.lastIntentBuild ?? "never built"

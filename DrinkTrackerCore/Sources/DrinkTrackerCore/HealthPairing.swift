@@ -366,3 +366,21 @@ public enum HealthPairing {
     return stretches
   }
 }
+
+extension HealthPairing {
+
+  /// A duration as whole hours and minutes, to the nearest minute with a
+  /// half rounding up — the shape the table prints time asleep in ("6h 12m")
+  /// and the shape a sentence speaks it in, from one rounding so the two can
+  /// never disagree by a minute. The carry is the point: 6h 59m 30s is
+  /// 7h 00m, never 6h 60m, which is what rounding hours and minutes
+  /// separately produces. A non-finite or negative duration is zero, and a
+  /// duration past a week is clamped there — a night's time asleep cannot
+  /// exceed its sleep day, and `Int(_:)` traps on a value past its range.
+  public static func hoursAndMinutes(_ seconds: TimeInterval) -> (hours: Int, minutes: Int) {
+    guard seconds.isFinite, seconds > 0 else { return (0, 0) }
+    let clamped = min(seconds, 7 * 24 * 3600)
+    let wholeMinutes = Int((clamped / 60).rounded(.toNearestOrAwayFromZero))
+    return (wholeMinutes / 60, wholeMinutes % 60)
+  }
+}

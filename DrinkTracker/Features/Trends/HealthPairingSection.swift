@@ -3,11 +3,12 @@ import DrinkTrackerCore
 import SwiftUI
 
 /// Apple Health figures beside the log, at the bottom of Trends (ADR-0048,
-/// ADR-0049, ADR-0050): one card, two averages of the reader's own Health data
-/// side by side — nights they logged drinks, nights they recorded as no
-/// alcohol — with the nights behind each, and nothing that relates one to the
-/// other. Resting heart rate is the one metric that ships (Phase 3); later
-/// phases add a row each, under the same heading, from the same parts.
+/// ADR-0049, ADR-0050): one card, one row per metric the reader has switched
+/// on, each row two averages of their own Health data side by side — nights
+/// they logged drinks, nights they recorded as no alcohol — with the nights
+/// behind each, and nothing that relates one to the other. Resting heart
+/// rate shipped first (Phase 3); sleep is the second row (Phase 4); later
+/// phases add theirs, under the same heading, from the same parts.
 ///
 /// ## What holds the line
 ///
@@ -18,36 +19,37 @@ import SwiftUI
 /// (the plan's four rules, ADR-0050): the domain returns two figures and never
 /// a difference; a sample-size gate hides the whole row below fourteen nights
 /// with a value in *either* column; no colour, no arrow, no chart; and the
-/// buckets come from the log alone — nothing here reads a heart rate to decide
-/// anything about drinking.
+/// buckets come from the log alone — nothing here reads a heart rate or a
+/// night's sleep to decide anything about drinking.
 ///
 /// ## The heading cannot outlive its content
 ///
-/// `ComparisonsSection`'s rule, kept: the section resolves the row's condition
-/// and the offer's once, and the heading's condition is the literal
-/// disjunction of the two. The card does not read the switch; the offer does
-/// not read the switch; only `resolve` does.
+/// `ComparisonsSection`'s rule, kept: the section resolves every row's
+/// condition and the offer's once, and the heading's condition is the literal
+/// disjunction of them. The card does not read a switch; the offer does not
+/// read a switch; only `resolve` does.
 ///
 /// ## Read, compute, render, discard
 ///
-/// `HealthPairingModel.load` reads the samples, folds them into the two
-/// figures and drops them in the same call; the model keeps the figures for
-/// the render and nothing else, and clears them the moment the switch is off.
-/// Nothing is written anywhere but the one timing breadcrumb the read layer
-/// leaves (ADR-0049). The load is driven by `TrendsView`, because a `.task`
-/// has to hang off a view that exists, and this section renders nothing at
-/// all when it has nothing to show — a zero-height stand-in would still take
-/// the screen's section spacing, and the design's first acceptance check is
-/// that Trends is pixel-identical with everything off.
+/// `HealthPairingModel.load` reads each switched-on metric's samples, folds
+/// them into two figures and drops them in the same call; the model keeps the
+/// figures for the render and nothing else, and clears them the moment the
+/// switches are off. Nothing is written anywhere but the one timing breadcrumb
+/// per metric the read layer leaves (ADR-0049). The load is driven by
+/// `TrendsView`, because a `.task` has to hang off a view that exists, and
+/// this section renders nothing at all when it has nothing to show — a
+/// zero-height stand-in would still take the screen's section spacing, and
+/// the design's first acceptance check is that Trends is pixel-identical with
+/// everything off.
 struct HealthPairingSection: View {
   /// The request this render would read, or nil when nothing could be shown
-  /// — the switch off and the offer answered — in which case `TrendsView`
+  /// — every switch off and the offer answered — in which case `TrendsView`
   /// does not derive one and the section draws nothing.
   let request: HealthPairingRequest?
   /// The figures the model last computed, with the request they answer, or
-  /// nil: not loaded yet, no data, below the gate, or the switch off (the
-  /// model clears them). The section decides whether to draw them; the card
-  /// never re-checks.
+  /// nil: not loaded yet, no data, below the gate, or every switch off (the
+  /// model clears them). The section decides which rows to draw; the card
+  /// never re-checks a switch.
   let loaded: HealthPairingModel.Loaded?
   let onAcceptOffer: () -> Void
   let onDeclineOffer: () -> Void
@@ -57,7 +59,7 @@ struct HealthPairingSection: View {
   var body: some View {
     let shown = resolve()
 
-    if shown.row != nil || shown.offer, let request {
+    if !shown.rows.isEmpty || shown.offer, let request {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("From Apple Health")
 
@@ -65,8 +67,8 @@ struct HealthPairingSection: View {
         // covered: on a range change the previous card stands until the new
         // read lands, then both the figures and their source line change
         // together, so a figure is never shown under another range's name.
-        if let loaded = shown.row {
-          HealthPairingCard(figures: loaded.figures, range: loaded.request.range)
+        if let card = shown.card {
+          HealthPairingCard(rows: shown.rows, range: card.request.range)
         }
 
         if shown.offer {
@@ -90,24 +92,61 @@ struct HealthPairingSection: View {
   }
 
   private struct Shown {
-    var row: HealthPairingModel.Loaded?
+    var card: HealthPairingModel.Loaded?
+    var rows: [HealthPairingCard.Row] = []
     var offer = false
   }
 
-  /// The two conditions, resolved once. The row: the switch on and figures
-  /// that cleared the gate. The offer: never answered, no pairing switch on,
-  /// and the log alone clearing the gate on **both** sides — the drink side
-  /// the design named, and the no-drinks side too, because that column holds
-  /// nights recorded as no alcohol (ADR-0048) and is not plentiful by nature;
-  /// an offer gated on one side could be accepted, granted, and show nothing.
+  /// The conditions, resolved once. A row: its switch on, and the last read
+  /// produced figures for it that cleared the gate — a metric switched on
+  /// since that read has none yet, and the task is already re-reading for
+  /// it, so it is not drawn from a read that did not ask for it. The offer:
+  /// never answered, no pairing switch on, and the log alone clearing the
+  /// gate on **both** sides — the drink side the design named, and the
+  /// no-drinks side too, because that column holds nights recorded as no
+  /// alcohol (ADR-0048) and is not plentiful by nature; an offer gated on one
+  /// side could be accepted, granted, and show nothing.
   private func resolve() -> Shown {
     var shown = Shown()
-    if settings.showsRestingHeartRatePairing {
-      shown.row = loaded
+    if settings.isAnyHealthPairingOn {
+      guard let loaded else { return shown }
+      let rows = PairedMetric.allCases.compactMap { metric -> HealthPairingCard.Row? in
+        guard settings.showsPairing(metric), let figures = loaded.figures[metric] else { return nil }
+        return HealthPairingCard.Row(metric: metric, figures: figures)
+      }
+      if !rows.isEmpty {
+        shown.card = loaded
+        shown.rows = rows
+      }
     } else if !settings.hasAnsweredHealthPairingOffer, let request, request.buckets.clearsGate() {
       shown.offer = true
     }
     return shown
+  }
+}
+
+/// The metrics the pairing shows, in the Settings order — the order the
+/// card's rows and the offer's take (design README). Each is one switch in
+/// Settings, one read in `HealthKitService`, one row here.
+enum PairedMetric: CaseIterable, Hashable, Sendable {
+  case restingHeartRate
+  case sleep
+}
+
+extension AppSettings {
+  /// The switch for `metric`. One place maps a metric to its flag, so a row,
+  /// the offer's "no switch is on" and the read's set of metrics cannot
+  /// disagree about which switch is which.
+  func showsPairing(_ metric: PairedMetric) -> Bool {
+    switch metric {
+    case .restingHeartRate: showsRestingHeartRatePairing
+    case .sleep: showsSleepPairing
+    }
+  }
+
+  /// The metrics whose switches are on — what a read asks for.
+  var pairingMetricsOn: Set<PairedMetric> {
+    Set(PairedMetric.allCases.filter(showsPairing))
   }
 }
 
@@ -158,22 +197,32 @@ struct HealthPairingRequest: Hashable {
   }
 }
 
-/// The figures for the render, and the read that produces them.
+/// One read: the request, and which metrics it asks for — the `.task(id:)`
+/// key, so a switch turned on re-reads and nothing else does.
+struct HealthPairingRead: Hashable {
+  let request: HealthPairingRequest
+  let metrics: Set<PairedMetric>
+}
+
+/// The figures for the render, and the reads that produce them.
 ///
 /// One instance, owned by `TrendsView` as `@State`, loaded from its `.task`.
 /// `load` is the whole of the pairing's contact with Health in the app: read
-/// the samples, file them by night, fold the two figures, and let the samples
-/// go — they are locals of one call. What survives is `loaded`, two means and
-/// two counts with the request they answer, which is what the card draws;
-/// and `clear` drops even that the moment nothing should be drawn.
+/// each metric's samples, file them by night, fold the two figures, and let
+/// the samples go — they are locals of one call. What survives is `loaded`,
+/// two means and two counts per metric with the request they answer, which
+/// is what the card draws; and `clear` drops even that the moment nothing
+/// should be drawn.
 @Observable
 @MainActor
 final class HealthPairingModel {
-  /// What a read produced, with the request it was made for, so the card
-  /// draws figures only under the range they cover.
+  /// What a read produced, with the request it was made for — so the card
+  /// draws figures only under the range they cover. A metric absent from
+  /// `figures` was not read, or was read and fell below the gate; the card
+  /// draws neither, and the section does not need to tell them apart.
   struct Loaded: Equatable {
     let request: HealthPairingRequest
-    let figures: PairedFigures
+    let figures: [PairedMetric: PairedFigures]
   }
 
   private(set) var loaded: Loaded?
@@ -213,24 +262,40 @@ final class HealthPairingModel {
     return request
   }
 
-  /// Reads resting heart rate for `request` and replaces `loaded` — under the
-  /// design's structure-change animation, so a card that appears fades in and
-  /// figures that change crossfade. Skipped, and cleared, when the log alone
-  /// cannot clear the gate: the table's gate counts nights with a value, never
-  /// more than the log's nights, so no read could produce a row (ADR-0049's
-  /// reads happen only where a row is possible).
-  func load(_ request: HealthPairingRequest, health: HealthKitService) async {
-    guard request.buckets.clearsGate() else {
+  /// Reads each of `read.metrics` for its request and replaces `loaded` —
+  /// under the design's structure-change animation, so a card that appears
+  /// fades in and figures that change crossfade. Skipped, and cleared, when
+  /// the log alone cannot clear the gate: the table's gate counts nights with
+  /// a value, never more than the log's nights, so no read could produce a
+  /// row (ADR-0049's reads happen only where a row is possible). The metrics
+  /// are read one after the other in the Settings order; each is its own
+  /// query and its own breadcrumb.
+  func load(_ read: HealthPairingRead, health: HealthKitService) async {
+    let request = read.request
+    guard !read.metrics.isEmpty, request.buckets.clearsGate() else {
       clear()
       return
     }
-    let samples = await health.restingHeartRate(
-      in: request.window, endingBefore: request.today, calendar: request.calendar)
-    guard !Task.isCancelled else { return }
-    let values = HealthPairing.nightlyValues(
-      of: samples, for: request.nights, attribution: .dayAfter, calendar: request.calendar)
-    let result = HealthPairing.figures(request.buckets, values: values)
-      .map { Loaded(request: request, figures: $0) }
+    var figures: [PairedMetric: PairedFigures] = [:]
+    for metric in PairedMetric.allCases where read.metrics.contains(metric) {
+      let values: [NightValue]
+      switch metric {
+      case .restingHeartRate:
+        let samples = await health.restingHeartRate(
+          in: request.window, endingBefore: request.today, calendar: request.calendar)
+        values = HealthPairing.nightlyValues(
+          of: samples, for: request.nights, attribution: .dayAfter, calendar: request.calendar)
+      case .sleep:
+        let samples = await health.sleep(
+          in: request.window, endingBefore: request.today, calendar: request.calendar)
+        values = HealthPairing.timeAsleep(from: samples, for: request.nights, calendar: request.calendar)
+      }
+      guard !Task.isCancelled else { return }
+      if let result = HealthPairing.figures(request.buckets, values: values) {
+        figures[metric] = result
+      }
+    }
+    let result = Loaded(request: request, figures: figures)
     guard result != loaded else { return }
     withAnimation(.smooth(duration: 0.25)) {
       loaded = result
@@ -249,17 +314,23 @@ final class HealthPairingModel {
 
 /// One card, one grid, three columns — the weekday table's parts
 /// (`ComparisonTable`), not a second copy of them. The header row is the card's
-/// title beside two column heads on one baseline; the metric row is the name
-/// over its two night counts, then the two figures with their unit; then the
-/// source line.
+/// title beside two column heads on one baseline; then one metric row per
+/// switched-on metric with figures, the name over its two night counts and
+/// the two figures with their unit, a hairline between rows; then the source
+/// line.
 ///
 /// The numerals are rounded and tabular because they are the reader's own
 /// (design-system §3). Units and labels stay default SF. No colour anywhere
 /// on the card: the only brand colour on this feature's surfaces is the
-/// switch's tint and the offer's two buttons, and a colour on a figure here
+/// switches' tint and the offer's two buttons, and a colour on a figure here
 /// would be a delta drawn (the Phase 3 block's own rule).
 struct HealthPairingCard: View {
-  let figures: PairedFigures
+  struct Row: Hashable {
+    let metric: PairedMetric
+    let figures: PairedFigures
+  }
+
+  let rows: [Row]
   let range: TrendRange
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -294,8 +365,8 @@ struct HealthPairingCard: View {
     Grid(alignment: .trailing, horizontalSpacing: GlassTokens.Spacing.tight, verticalSpacing: 0) {
       // One line, three parts on one baseline: the title in the label column,
       // the two heads over the numeric columns. The title keeps its header
-      // trait; the heads are hidden because the row's own sentence speaks the
-      // long phrases the short heads stand for.
+      // trait; the heads are hidden because each row's own sentence speaks
+      // the long phrases the short heads stand for.
       GridRow(alignment: .firstTextBaseline) {
         CardTitle("Your averages")
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -307,29 +378,33 @@ struct HealthPairingCard: View {
       }
       .padding(.bottom, GlassTokens.Spacing.tight)
 
-      Divider()
+      ForEach(Array(rows.enumerated()), id: \.element.metric) { index, row in
+        // The first rule is the card's own separator; the rest are the
+        // weekday table's lighter step of it, so two rows read as one table.
+        Divider().opacity(index == 0 ? 1 : 0.7)
 
-      // One VoiceOver stop, its label on the name cell and the figure cells
-      // hidden — the weekday table's lesson: a modifier on a `GridRow` lands
-      // on every cell.
-      GridRow(alignment: .firstTextBaseline) {
-        VStack(alignment: .leading, spacing: 2) {
-          Text("Resting heart rate")
-            .font(.subheadline)
-            .foregroundStyle(.primary)
-          nightsCaption
+        // One VoiceOver stop per row, its label on the name cell and the
+        // figure cells hidden — the weekday table's lesson: a modifier on a
+        // `GridRow` lands on every cell.
+        GridRow(alignment: .firstTextBaseline) {
+          VStack(alignment: .leading, spacing: 2) {
+            Text(row.metric.name)
+              .font(.subheadline)
+              .foregroundStyle(.primary)
+            nightsCaption(row.figures)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .gridColumnAlignment(.leading)
+          .accessibilityElement(children: .ignore)
+          .accessibilityLabel(rowLabel(row))
+
+          figureCell(row.metric, row.figures.drinks.average)
+            .accessibilityHidden(true)
+          figureCell(row.metric, row.figures.noDrinks.average)
+            .accessibilityHidden(true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .gridColumnAlignment(.leading)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(rowLabel)
-
-        figureCell(figures.drinks.average)
-          .accessibilityHidden(true)
-        figureCell(figures.noDrinks.average)
-          .accessibilityHidden(true)
+        .padding(.vertical, GlassTokens.Spacing.tight)
       }
-      .padding(.vertical, GlassTokens.Spacing.tight)
     }
   }
 
@@ -337,7 +412,7 @@ struct HealthPairingCard: View {
   /// which is the honest alternative to the app weighing them. The numerals a
   /// step darker, as the ratio cell's are; one key with both, so a translation
   /// can reorder them.
-  private var nightsCaption: some View {
+  private func nightsCaption(_ figures: PairedFigures) -> some View {
     Text(
       "\(Text(verbatim: String(figures.drinks.nights)).font(GlassTokens.Typography.rowCount).foregroundColor(.primary)) and \(Text(verbatim: String(figures.noDrinks.nights)).font(GlassTokens.Typography.rowCount).foregroundColor(.primary)) nights"
     )
@@ -347,39 +422,49 @@ struct HealthPairingCard: View {
   }
 
   /// The figure in the reader's numeral face, its unit beside it in default
-  /// SF. A subject change crossfades (the range switched); a value never
-  /// rolls here, because a roll between two ranges would draw a direction.
-  private func figureCell(_ average: Double) -> some View {
+  /// SF where the metric has one — "62 bpm"; time asleep carries its own,
+  /// "6h 12m". A subject change crossfades (the range switched); a value
+  /// never rolls here, because a roll between two ranges would draw a
+  /// direction.
+  private func figureCell(_ metric: PairedMetric, _ average: Double) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: 3) {
-      Text(verbatim: HealthPairingCopy.beatsPerMinute(average))
+      metric.figure(average)
         .font(GlassTokens.Typography.rowFigure)
         .monospacedDigit()
         .foregroundStyle(.primary)
         .contentTransition(.opacity)
-      Text("bpm")
-        .font(.caption)
-        .foregroundStyle(.secondary)
+      if let unit = metric.unit {
+        Text(unit)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
     }
     .animation(.smooth(duration: 0.22), value: average)
   }
 
-  /// From `.xLarge` up, the fold the weekday table takes: the name, then one
-  /// line per column with its label written out — the same sentences VoiceOver
-  /// speaks, so nothing a reader meets at a large size is newly worded.
+  /// From `.xLarge` up, the fold the weekday table takes: the title, then per
+  /// row its name and one line per column with its label written out — the
+  /// same sentences VoiceOver speaks, so nothing a reader meets at a large
+  /// size is newly worded.
   private var stackedFigures: some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
       CardTitle("Your averages")
-      VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-        Text("Resting heart rate")
-          .font(.subheadline)
-          .foregroundStyle(.primary)
-        Text(HealthPairingCopy.drinksSentence(figures.drinks))
-        Text(HealthPairingCopy.noDrinksSentence(figures.noDrinks))
+      ForEach(Array(rows.enumerated()), id: \.element.metric) { index, row in
+        if index > 0 {
+          Divider().opacity(0.7)
+        }
+        VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
+          Text(row.metric.name)
+            .font(.subheadline)
+            .foregroundStyle(.primary)
+          Text(HealthPairingCopy.drinksSentence(row.metric, row.figures.drinks))
+          Text(HealthPairingCopy.noDrinksSentence(row.metric, row.figures.noDrinks))
+        }
+        .font(.body)
+        .foregroundStyle(.primary)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(rowLabel(row))
       }
-      .font(.body)
-      .foregroundStyle(.primary)
-      .accessibilityElement(children: .ignore)
-      .accessibilityLabel(rowLabel)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
@@ -387,18 +472,19 @@ struct HealthPairingCard: View {
   /// "Resting heart rate. On nights you logged drinks, 62 beats per minute,
   /// over 18 nights. On nights recorded as no alcohol, 58 beats per minute,
   /// over 31 nights." The long phrases, not the heads; no comparative word.
-  private var rowLabel: Text {
-    Text(HealthPairingCopy.rowSentence(figures))
+  private func rowLabel(_ row: Row) -> Text {
+    Text(HealthPairingCopy.rowSentence(row.metric, row.figures))
   }
 }
 
 // MARK: - The one-time offer
 
-/// The table's own shape with its figure cells empty, the drink log's counts
-/// as the only real numbers on it, one sentence saying what it is, and one
-/// primary action (ADR-0050). It shows before it asks: what the reader is
-/// agreeing to is on screen rather than described. It appears once — the
-/// section decides when — and both answers are final and silent.
+/// The table's own shape with its figure cells empty, one row per metric the
+/// build ships, the drink log's counts as the only real numbers on it, one
+/// sentence saying what it is, and one primary action (ADR-0051). It shows
+/// before it asks: what the reader is agreeing to is on screen rather than
+/// described. It appears once — the section decides when — and both answers
+/// are final and silent.
 struct HealthPairingOffer: View {
   let buckets: NightBuckets
   let range: TrendRange
@@ -418,7 +504,7 @@ struct HealthPairingOffer: View {
           offerTable
         }
 
-        // Its own VoiceOver stop, after the row it counts for; the
+        // Its own VoiceOver stop, after the rows it counts for; the
         // placeholders above say nothing, so this is where the numbers are.
         Text(HealthPairingCopy.offerCounts(buckets, range: range))
           .font(.caption)
@@ -432,7 +518,7 @@ struct HealthPairingOffer: View {
           .opacity(0.7)
           .padding(.vertical, GlassTokens.Spacing.regular)
 
-        // The card's label, first for VoiceOver: what it is, then the row it
+        // The card's label, first for VoiceOver: what it is, then the rows it
         // shows, then the two actions.
         Text(HealthPairingCopy.offerBody)
           .font(.body)
@@ -441,7 +527,7 @@ struct HealthPairingOffer: View {
           .accessibilitySortPriority(2)
 
         VStack(spacing: GlassTokens.Spacing.tight) {
-          SUButton(model: .primary(String(localized: "Show this on Trends"))) {
+          SUButton(model: .primary(String(localized: "Show these on Trends"))) {
             onAccept()
           }
           SUButton(model: .subtle(String(localized: "Not now"))) {
@@ -457,7 +543,7 @@ struct HealthPairingOffer: View {
 
   /// The priorities sit on the elements themselves, not on the grid: a
   /// layout container is not an accessibility element, and a priority on one
-  /// may not reach its children. Title and name at 1, so with the counts
+  /// may not reach its children. Title and names at 1, so with the counts
   /// (also 1) they follow the body (2) in layout order, ahead of the buttons.
   private var offerTable: some View {
     Grid(alignment: .trailing, horizontalSpacing: GlassTokens.Spacing.tight, verticalSpacing: 0) {
@@ -473,19 +559,21 @@ struct HealthPairingOffer: View {
       }
       .padding(.bottom, GlassTokens.Spacing.tight)
 
-      Divider()
+      ForEach(Array(PairedMetric.allCases.enumerated()), id: \.element) { index, metric in
+        Divider().opacity(index == 0 ? 1 : 0.7)
 
-      GridRow(alignment: .firstTextBaseline) {
-        Text("Resting heart rate")
-          .font(.subheadline)
-          .foregroundStyle(.primary)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .gridColumnAlignment(.leading)
-          .accessibilitySortPriority(1)
-        placeholder
-        placeholder
+        GridRow(alignment: .firstTextBaseline) {
+          Text(metric.name)
+            .font(.subheadline)
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .gridColumnAlignment(.leading)
+            .accessibilitySortPriority(1)
+          placeholder
+          placeholder
+        }
+        .padding(.vertical, GlassTokens.Spacing.tight)
       }
-      .padding(.vertical, GlassTokens.Spacing.tight)
     }
   }
 
@@ -504,16 +592,47 @@ struct HealthPairingOffer: View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
       CardTitle("Your averages")
         .accessibilitySortPriority(1)
-      Text("Resting heart rate")
-        .font(.subheadline)
-        .foregroundStyle(.primary)
-        .accessibilitySortPriority(1)
+      ForEach(PairedMetric.allCases, id: \.self) { metric in
+        Text(metric.name)
+          .font(.subheadline)
+          .foregroundStyle(.primary)
+          .accessibilitySortPriority(1)
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
 // MARK: - Copy
+
+extension PairedMetric {
+  /// The row's name and the switch's title: the metric's own name, as the
+  /// Health app prints it, shared so a reader meets one word in both places.
+  var name: LocalizedStringKey {
+    switch self {
+    case .restingHeartRate: "Resting heart rate"
+    case .sleep: "Sleep"
+    }
+  }
+
+  /// The unit printed beside the figure, where the figure does not carry its
+  /// own. Beats per minute does not; hours and minutes do.
+  var unit: LocalizedStringKey? {
+    switch self {
+    case .restingHeartRate: "bpm"
+    case .sleep: nil
+    }
+  }
+
+  /// The figure as the table prints it: a whole number of beats per minute,
+  /// or hours and minutes asleep.
+  func figure(_ average: Double) -> Text {
+    switch self {
+    case .restingHeartRate: Text(verbatim: HealthPairingCopy.beatsPerMinute(average))
+    case .sleep: Text(HealthPairingCopy.hoursAndMinutes(average))
+    }
+  }
+}
 
 /// The feature's sentences in one place (the population reference's pattern),
 /// so the card, its fold and its VoiceOver label cannot drift, and so the two
@@ -531,27 +650,63 @@ enum HealthPairingCopy {
     average.formatted(.number.precision(.fractionLength(0)).rounded(rule: .toNearestOrAwayFromZero))
   }
 
+  /// Time asleep as the table prints it, "6h 12m" with the minutes
+  /// zero-padded so a column of them aligns (the design's figure format):
+  /// whole hours and minutes to the nearest minute, from the domain's one
+  /// rounding, so this and the spoken form never disagree by a minute. The
+  /// minutes are padded by the number formatter rather than `String(format:)`,
+  /// so both numerals reach the screen in the reader's own digits.
+  static func hoursAndMinutes(_ seconds: Double) -> LocalizedStringKey {
+    let (hours, minutes) = HealthPairing.hoursAndMinutes(seconds)
+    return "\(hours)h \(minutes.formatted(.number.precision(.integerLength(2))))m"
+  }
+
+  /// Time asleep as a sentence speaks it — "6 hours, 12 minutes" — from the
+  /// same whole minutes as the printed figure; the system's own words, in the
+  /// reader's language.
+  static func spokenHoursAndMinutes(_ seconds: Double) -> String {
+    let (hours, minutes) = HealthPairing.hoursAndMinutes(seconds)
+    return Duration.seconds(hours * 3600 + minutes * 60)
+      .formatted(.units(allowed: [.hours, .minutes], width: .wide))
+  }
+
   /// "On nights you logged drinks, 62 beats per minute, over 18 nights." The
   /// long phrase the short head stands for; spoken, and shown at the sizes
   /// where the table folds. The count is never below the gate, so the noun is
-  /// the plural.
-  static func drinksSentence(_ figure: PairedFigures.Figure) -> LocalizedStringKey {
-    "On nights you logged drinks, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
+  /// the plural. Time asleep: "On nights you logged drinks, 6 hours, 12
+  /// minutes asleep, over 18 nights."
+  static func drinksSentence(_ metric: PairedMetric, _ figure: PairedFigures.Figure) -> LocalizedStringKey {
+    switch metric {
+    case .restingHeartRate:
+      "On nights you logged drinks, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
+    case .sleep:
+      "On nights you logged drinks, \(spokenHoursAndMinutes(figure.average)) asleep, over \(figure.nights) nights."
+    }
   }
 
   /// "On nights recorded as no alcohol, 58 beats per minute, over 31 nights."
   /// Recorded, not "other": the column holds the nights the reader marked, and
   /// a night with nothing logged is in neither (ADR-0048).
-  static func noDrinksSentence(_ figure: PairedFigures.Figure) -> LocalizedStringKey {
-    "On nights recorded as no alcohol, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
+  static func noDrinksSentence(_ metric: PairedMetric, _ figure: PairedFigures.Figure) -> LocalizedStringKey {
+    switch metric {
+    case .restingHeartRate:
+      "On nights recorded as no alcohol, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
+    case .sleep:
+      "On nights recorded as no alcohol, \(spokenHoursAndMinutes(figure.average)) asleep, over \(figure.nights) nights."
+    }
   }
 
   /// The row as VoiceOver speaks it, in one key: the name, then the two
   /// sentences above. Whole, rather than the two joined, so a translation
   /// orders the spoken sentence as its own language does — and so the label
   /// needs no `+` between `Text`s, which iOS 26 deprecates.
-  static func rowSentence(_ figures: PairedFigures) -> LocalizedStringKey {
-    "Resting heart rate. On nights you logged drinks, \(beatsPerMinute(figures.drinks.average)) beats per minute, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(beatsPerMinute(figures.noDrinks.average)) beats per minute, over \(figures.noDrinks.nights) nights."
+  static func rowSentence(_ metric: PairedMetric, _ figures: PairedFigures) -> LocalizedStringKey {
+    switch metric {
+    case .restingHeartRate:
+      "Resting heart rate. On nights you logged drinks, \(beatsPerMinute(figures.drinks.average)) beats per minute, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(beatsPerMinute(figures.noDrinks.average)) beats per minute, over \(figures.noDrinks.nights) nights."
+    case .sleep:
+      "Sleep. On nights you logged drinks, \(spokenHoursAndMinutes(figures.drinks.average)) asleep, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(spokenHoursAndMinutes(figures.noDrinks.average)) asleep, over \(figures.noDrinks.nights) nights."
+    }
   }
 
   /// The source and the span, the way the population reference names its
@@ -566,11 +721,13 @@ enum HealthPairingCopy {
     }
   }
 
-  /// The disclosure's note: what the two figures are, what each column holds
-  /// — the definition the short heads need, written to match the domain
-  /// exactly — and what happens to the data.
+  /// The disclosure's note: what the figures are, what each column holds —
+  /// the definition the short heads need, written to match the domain
+  /// exactly — and what happens to the data. Written for any number of rows:
+  /// each row is the same two averages of a different figure, and the
+  /// switch's caption in Settings says what each figure is.
   static let sourceNote: LocalizedStringKey =
-    "Two averages of your own Health data over the nights counted here, read from Apple Health on this device. Drinks means nights you logged drinks. No drinks means nights you recorded as no alcohol; a night with nothing logged is in neither column. A night without a reading is not counted. Tallyist keeps none of it."
+    "Each row is two averages of your own Health data over the nights counted here, read from Apple Health on this device. Drinks means nights you logged drinks. No drinks means nights you recorded as no alcohol; a night with nothing logged is in neither column. A night without a reading is not counted. Tallyist keeps none of it."
 
   /// "18 nights with drinks logged and 31 recorded as no alcohol, last 13
   /// weeks" — the offer's only real numbers, from the log alone, so they are
@@ -590,10 +747,11 @@ enum HealthPairingCopy {
     }
   }
 
-  /// What the offer is, in three sentences: who records the figure, what the
-  /// app would do with it, and what it does not do. "Apple Watch records",
-  /// not "your watch": the offer is shown on the strength of the log alone,
-  /// and a reader without a watch is a reader too.
+  /// What the offer is, in three sentences: who records the figures, what the
+  /// app would do with them, and what it does not do. "Apple Watch", not
+  /// "your watch": the offer is shown on the strength of the log alone, and a
+  /// reader without a watch is a reader too. Plural now that two metrics ship
+  /// — the design's own wording, which Phase 3 made singular for one.
   static let offerBody: LocalizedStringKey =
-    "Apple Watch records this every day. Tallyist can show it here, beside your log. It is read from Apple Health on this device and never stored."
+    "Apple Watch already records these. Tallyist can show them here, beside your log. They are read from Apple Health on this device and never stored."
 }
