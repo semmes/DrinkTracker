@@ -290,6 +290,31 @@ enum Diagnostics {
   /// "your log follows your iCloud account" as a promise and as a fact.
   static var hasEverSynced: Bool { lastSyncSucceededAt != nil }
 
+  static let healthPairingReadKey = "lastHealthPairingRead"
+
+  /// The last read the health pairing made of Apple Health: which metric,
+  /// how many calendar days were asked for, and how long the store took
+  /// (ADR-0049). The owner's answer to Phase 0's open question on query
+  /// cost — measured by the code that ships, read off Settings' Diagnostics
+  /// on a real phone — rather than by a probe.
+  ///
+  /// Everything this key can hold passes through `Breadcrumb.healthRead`,
+  /// whose three arguments are a name, a day count and a duration. No sample,
+  /// no value, no count of days that had one: this is the App Group, and the
+  /// pairing's rule is that nothing read from Health is written anywhere
+  /// (plan decision 5). A duration is a fact about the store, not the person.
+  static func recordHealthPairingRead(_ metric: String, days: Int, seconds: Double) {
+    AppGroup.defaults.set(
+      Breadcrumb.stamped(
+        Breadcrumb.healthRead(metric, days: days, seconds: seconds), process: processLabel, at: .now),
+      forKey: healthPairingReadKey
+    )
+  }
+
+  static var lastHealthPairingRead: String? {
+    AppGroup.defaults.string(forKey: healthPairingReadKey)
+  }
+
   /// Whether the store fell back to memory — the one state where nothing at all
   /// is being saved. Surfaced in release builds, not just diagnostics.
   static var isStoreInMemory: Bool {
