@@ -7,8 +7,10 @@ import SwiftUI
 /// on, each row two averages of their own Health data side by side — nights
 /// they logged drinks, nights they recorded as no alcohol — with the nights
 /// behind each, and nothing that relates one to the other. Resting heart
-/// rate shipped first (Phase 3); sleep is the second row (Phase 4); later
-/// phases add theirs, under the same heading, from the same parts.
+/// rate shipped first (Phase 3); sleep is the second row (Phase 4); heart
+/// rate variability the third (Phase 5, ADR-0052: a floor twice the others'
+/// and Quarter and Year only); a later phase adds its own, under the same
+/// heading, from the same parts.
 ///
 /// ## What holds the line
 ///
@@ -18,7 +20,8 @@ import SwiftUI
 /// is a verdict no sentence has to deliver. So the discipline is structural
 /// (the plan's four rules, ADR-0050): the domain returns two figures and never
 /// a difference; a sample-size gate hides the whole row below fourteen nights
-/// with a value in *either* column; no colour, no arrow, no chart; and the
+/// with a value in *either* column (twenty-eight for heart rate variability,
+/// ADR-0052); no colour, no arrow, no chart; and the
 /// buckets come from the log alone — nothing here reads a heart rate or a
 /// night's sleep to decide anything about drinking.
 ///
@@ -110,8 +113,16 @@ struct HealthPairingSection: View {
     var shown = Shown()
     if settings.isAnyHealthPairingOn {
       guard let loaded else { return shown }
+      // The range the reader is on, not the one the figures were read for:
+      // while a range change is being re-read the previous card stands
+      // (ADR-0050), and a row that does not exist at the new range (heart
+      // rate variability at Month, ADR-0052) must leave with the change
+      // rather than with the read — a review catch.
+      let range = request?.range ?? loaded.request.range
       let rows = PairedMetric.allCases.compactMap { metric -> HealthPairingCard.Row? in
-        guard settings.showsPairing(metric), let figures = loaded.figures[metric] else { return nil }
+        guard settings.showsPairing(metric), metric.isShown(at: range),
+          let figures = loaded.figures[metric]
+        else { return nil }
         return HealthPairingCard.Row(metric: metric, figures: figures)
       }
       if !rows.isEmpty {
@@ -131,6 +142,33 @@ struct HealthPairingSection: View {
 enum PairedMetric: CaseIterable, Hashable, Sendable {
   case restingHeartRate
   case sleep
+  case heartRateVariability
+}
+
+extension PairedMetric {
+  /// Nights with a value each bucket needs before this metric's row is
+  /// shown: the domain's base floor, or the larger one it names for heart
+  /// rate variability (ADR-0052). Read by the load, which skips a read the
+  /// log cannot clear, and by the ask, so a sheet lands the first time this
+  /// metric's row is possible and not before.
+  var minimumNights: Int {
+    switch self {
+    case .restingHeartRate, .sleep: PairedFigures.minimumNights
+    case .heartRateVariability: PairedFigures.minimumNightsForHeartRateVariability
+    }
+  }
+
+  /// Whether this metric can have a row at `range`. Heart rate variability
+  /// lives at Quarter and Year only (ADR-0052): its floor is more nights
+  /// than a month holds, and the wider ranges are where the averaging does
+  /// the work the plan asks of it. Elsewhere it is neither read nor asked
+  /// for, and its switch's caption says where it is shown.
+  func isShown(at range: TrendRange) -> Bool {
+    switch self {
+    case .restingHeartRate, .sleep: true
+    case .heartRateVariability: range == .quarter || range == .year
+    }
+  }
 }
 
 extension AppSettings {
@@ -141,6 +179,18 @@ extension AppSettings {
     switch metric {
     case .restingHeartRate: showsRestingHeartRatePairing
     case .sleep: showsSleepPairing
+    case .heartRateVariability: showsHeartRateVariabilityPairing
+    }
+  }
+
+  /// The same map, written: what accepting the offer turns on, so a metric
+  /// added to `PairedMetric` cannot be left off the offer's "every shipped
+  /// switch" by forgetting a line.
+  func setShowsPairing(_ metric: PairedMetric, _ isOn: Bool) {
+    switch metric {
+    case .restingHeartRate: showsRestingHeartRatePairing = isOn
+    case .sleep: showsSleepPairing = isOn
+    case .heartRateVariability: showsHeartRateVariabilityPairing = isOn
     }
   }
 
@@ -278,6 +328,10 @@ final class HealthPairingModel {
     }
     var figures: [PairedMetric: PairedFigures] = [:]
     for metric in PairedMetric.allCases where read.metrics.contains(metric) {
+      // A metric whose own floor the log cannot clear is not read: the
+      // figures would be nil whatever came back, and a query that cannot
+      // show anything is a cost and a breadcrumb for nothing (ADR-0052).
+      guard request.buckets.clearsGate(minimumNights: metric.minimumNights) else { continue }
       let values: [NightValue]
       switch metric {
       case .restingHeartRate:
@@ -289,9 +343,16 @@ final class HealthPairingModel {
         let samples = await health.sleep(
           in: request.window, endingBefore: request.today, calendar: request.calendar)
         values = HealthPairing.timeAsleep(from: samples, for: request.nights, calendar: request.calendar)
+      case .heartRateVariability:
+        let samples = await health.heartRateVariability(
+          in: request.window, endingBefore: request.today, calendar: request.calendar)
+        values = HealthPairing.nightlyValues(
+          of: samples, for: request.nights, attribution: .dayAfter, calendar: request.calendar)
       }
       guard !Task.isCancelled else { return }
-      if let result = HealthPairing.figures(request.buckets, values: values) {
+      if let result = HealthPairing.figures(
+        request.buckets, values: values, minimumNights: metric.minimumNights)
+      {
         figures[metric] = result
       }
     }
@@ -612,24 +673,27 @@ extension PairedMetric {
     switch self {
     case .restingHeartRate: "Resting heart rate"
     case .sleep: "Sleep"
+    case .heartRateVariability: "Heart rate variability"
     }
   }
 
   /// The unit printed beside the figure, where the figure does not carry its
-  /// own. Beats per minute does not; hours and minutes do.
+  /// own. Beats per minute and milliseconds do not; hours and minutes do.
   var unit: LocalizedStringKey? {
     switch self {
     case .restingHeartRate: "bpm"
     case .sleep: nil
+    case .heartRateVariability: "ms"
     }
   }
 
-  /// The figure as the table prints it: a whole number of beats per minute,
-  /// or hours and minutes asleep.
+  /// The figure as the table prints it: a whole number of beats per minute
+  /// or of milliseconds, or hours and minutes asleep.
   func figure(_ average: Double) -> Text {
     switch self {
     case .restingHeartRate: Text(verbatim: HealthPairingCopy.beatsPerMinute(average))
     case .sleep: Text(HealthPairingCopy.hoursAndMinutes(average))
+    case .heartRateVariability: Text(verbatim: HealthPairingCopy.milliseconds(average))
     }
   }
 }
@@ -648,6 +712,15 @@ enum HealthPairingCopy {
   /// filters only for finiteness (PR #56's lesson on the population card).
   static func beatsPerMinute(_ average: Double) -> String {
     average.formatted(.number.precision(.fractionLength(0)).rounded(rule: .toNearestOrAwayFromZero))
+  }
+
+  /// Heart rate variability as the row prints it: a whole number of
+  /// milliseconds, the design's figure format, by the same rounding as beats
+  /// per minute. Whole, because a tenth of a millisecond on an average of
+  /// nights is precision the night-to-night spread does not support, and
+  /// because the Health app prints it whole.
+  static func milliseconds(_ average: Double) -> String {
+    beatsPerMinute(average)
   }
 
   /// Time asleep as the table prints it, "6h 12m" with the minutes
@@ -681,6 +754,8 @@ enum HealthPairingCopy {
       "On nights you logged drinks, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
     case .sleep:
       "On nights you logged drinks, \(spokenHoursAndMinutes(figure.average)) asleep, over \(figure.nights) nights."
+    case .heartRateVariability:
+      "On nights you logged drinks, \(milliseconds(figure.average)) milliseconds, over \(figure.nights) nights."
     }
   }
 
@@ -693,6 +768,8 @@ enum HealthPairingCopy {
       "On nights recorded as no alcohol, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
     case .sleep:
       "On nights recorded as no alcohol, \(spokenHoursAndMinutes(figure.average)) asleep, over \(figure.nights) nights."
+    case .heartRateVariability:
+      "On nights recorded as no alcohol, \(milliseconds(figure.average)) milliseconds, over \(figure.nights) nights."
     }
   }
 
@@ -706,6 +783,8 @@ enum HealthPairingCopy {
       "Resting heart rate. On nights you logged drinks, \(beatsPerMinute(figures.drinks.average)) beats per minute, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(beatsPerMinute(figures.noDrinks.average)) beats per minute, over \(figures.noDrinks.nights) nights."
     case .sleep:
       "Sleep. On nights you logged drinks, \(spokenHoursAndMinutes(figures.drinks.average)) asleep, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(spokenHoursAndMinutes(figures.noDrinks.average)) asleep, over \(figures.noDrinks.nights) nights."
+    case .heartRateVariability:
+      "Heart rate variability. On nights you logged drinks, \(milliseconds(figures.drinks.average)) milliseconds, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(milliseconds(figures.noDrinks.average)) milliseconds, over \(figures.noDrinks.nights) nights."
     }
   }
 

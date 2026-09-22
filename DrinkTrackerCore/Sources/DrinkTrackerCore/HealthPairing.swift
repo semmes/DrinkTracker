@@ -151,6 +151,16 @@ public struct PairedFigures: Hashable, Sendable {
   /// A noisier type (heart rate variability) passes a larger floor.
   public static let minimumNights = 14
 
+  /// The floor for heart rate variability: twice the base (ADR-0052). Its
+  /// night-to-night spread is several times resting heart rate's relative to
+  /// its mean, so at 14 the mean is still over a quarter of a spread a reader
+  /// can build a story from; 28 brings SD/√n under a fifth (0.19). It is also
+  /// the most a quarter's shorter bucket can hold for someone who logs three
+  /// nights a week (39) and marks four (52) — a higher floor would put the
+  /// row a year away — and, at 56 nights across the two buckets, more than a
+  /// month holds, which is why that row exists only at Quarter and Year.
+  public static let minimumNightsForHeartRateVariability = 28
+
   public init(drinks: Figure, noDrinks: Figure, firstNight: Date, lastNight: Date) {
     self.drinks = drinks
     self.noDrinks = noDrinks

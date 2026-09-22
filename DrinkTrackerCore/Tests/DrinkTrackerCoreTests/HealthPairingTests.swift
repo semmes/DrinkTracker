@@ -571,6 +571,52 @@ struct HealthPairingTests {
     #expect(HealthPairing.figures(oneSided, values: made.values, minimumNights: 0) == nil)
   }
 
+  /// Heart rate variability's floor (ADR-0052): twice the base, and the row
+  /// hidden one night short on either side, over a log the base floor would
+  /// show — so the absence is the floor's doing, not the data's. Twenty-eight
+  /// drink nights from June 1, then twenty-eight marked nights from July 1.
+  @Test("Heart rate variability's floor is twice the base, and one night short on either side hides the row")
+  func heartRateVariabilityFloor() {
+    let cal = utc
+    let floor = PairedFigures.minimumNightsForHeartRateVariability
+    #expect(floor == 28)
+    #expect(floor == 2 * PairedFigures.minimumNights)
+
+    func made(drinkNights: Int, markedNights: Int) -> (buckets: NightBuckets, values: [NightValue]) {
+      let list = nights(at(2026, 6, 1, in: cal), at(2026, 8, 31, in: cal), calendar: cal)
+      var drinks: [LoggedDrink] = []
+      var markers: [Date] = []
+      var values: [NightValue] = []
+      for offset in 0..<drinkNights {
+        let evening = list[offset].evening
+        drinks.append(beer(at: evening.addingTimeInterval(hours(21))))
+        values.append(NightValue(night: evening, value: 38))
+      }
+      for offset in 0..<markedNights {
+        let evening = list[30 + offset].evening
+        markers.append(evening)
+        values.append(NightValue(night: evening, value: 48))
+      }
+      let buckets = HealthPairing.buckets(list, drinks: drinks, alcoholFreeDays: markers, calendar: cal)
+      return (buckets, values)
+    }
+
+    let both = made(drinkNights: floor, markedNights: floor)
+    let figures = HealthPairing.figures(both.buckets, values: both.values, minimumNights: floor)
+    #expect(figures?.drinks == PairedFigures.Figure(average: 38, nights: floor))
+    #expect(figures?.noDrinks == PairedFigures.Figure(average: 48, nights: floor))
+
+    let drinksShort = made(drinkNights: floor - 1, markedNights: floor)
+    #expect(HealthPairing.figures(drinksShort.buckets, values: drinksShort.values, minimumNights: floor) == nil)
+    let markedShort = made(drinkNights: floor, markedNights: floor - 1)
+    #expect(HealthPairing.figures(markedShort.buckets, values: markedShort.values, minimumNights: floor) == nil)
+
+    // The same two logs clear the base floor: what hides the row is the
+    // floor asked for, which is the metric's, never the figures' shape.
+    #expect(HealthPairing.figures(drinksShort.buckets, values: drinksShort.values) != nil)
+    #expect(HealthPairing.figures(markedShort.buckets, values: markedShort.values) != nil)
+  }
+
   /// Plan rule 1: the value type stores exactly two figures, two counts and
   /// the span, and nothing that relates one side to the other. A stored
   /// difference, ratio or verdict changes this list and fails here. `Mirror`

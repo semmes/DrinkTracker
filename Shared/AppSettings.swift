@@ -154,16 +154,27 @@ final class AppSettings {
   /// design's decision 1; ADR-0051). That is decided once, the first time
   /// this key is missing, and written, so from then on the switches are
   /// independent. The earlier switch is resting heart rate, the only one that
-  /// shipped before this; a Phase 5 metric inherits from the two *stored*
-  /// switches before it, or-ed.
+  /// shipped before this; heart rate variability, below, inherits from the
+  /// two before it, or-ed.
   var showsSleepPairing: Bool {
     didSet { defaults.set(showsSleepPairing, forKey: Keys.sleepPairing) }
+  }
+
+  /// Heart rate variability beside the log on Trends, Phase 5's row
+  /// (ADR-0052): shown at Quarter and Year only, behind a floor twice the
+  /// others', and the switch's caption says where. It arrives the way sleep
+  /// did — on for anyone with either earlier switch on, the first time this
+  /// key is missing, written then and independent after.
+  var showsHeartRateVariabilityPairing: Bool {
+    didSet { defaults.set(showsHeartRateVariabilityPairing, forKey: Keys.heartRateVariabilityPairing) }
   }
 
   /// Whether any pairing switch is on — what the one-time offer's "no
   /// pairing switch is on" condition reads, and what a later metric
   /// inherits.
-  var isAnyHealthPairingOn: Bool { showsRestingHeartRatePairing || showsSleepPairing }
+  var isAnyHealthPairingOn: Bool {
+    showsRestingHeartRatePairing || showsSleepPairing || showsHeartRateVariabilityPairing
+  }
 
   /// Whether the one-time offer on Trends has been answered, either way
   /// (ADR-0050). Once true, nothing in the app asks again; the switch above
@@ -193,8 +204,15 @@ final class AppSettings {
       .flatMap(PopulationReference.Column.init(rawValue:)) ?? .allAdults
     let restingHeartRatePairing = defaults.bool(forKey: Keys.restingHeartRatePairing)
     self.showsRestingHeartRatePairing = restingHeartRatePairing
-    self.showsSleepPairing = Self.inheritedPairingFlag(
+    let sleepPairing = Self.inheritedPairingFlag(
       Keys.sleepPairing, defaults: defaults, from: restingHeartRatePairing)
+    self.showsSleepPairing = sleepPairing
+    // Phase 5's switch inherits from the two before it, or-ed — each as it
+    // stands after its own inheritance, so a device that only ever turned
+    // sleep on gets heart rate variability on too (ADR-0051, ADR-0052).
+    self.showsHeartRateVariabilityPairing = Self.inheritedPairingFlag(
+      Keys.heartRateVariabilityPairing, defaults: defaults,
+      from: restingHeartRatePairing || sleepPairing)
     self.hasAnsweredHealthPairingOffer = defaults.bool(forKey: Keys.healthPairingOffer)
   }
 
@@ -289,6 +307,7 @@ final class AppSettings {
     static let comparisonColumn = "comparisonColumn"
     static let restingHeartRatePairing = "showsRestingHeartRatePairing"
     static let sleepPairing = "showsSleepPairing"
+    static let heartRateVariabilityPairing = "showsHeartRateVariabilityPairing"
     static let healthPairingOffer = "hasAnsweredHealthPairingOffer"
   }
 }

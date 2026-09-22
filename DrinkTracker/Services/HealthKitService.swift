@@ -302,11 +302,14 @@ final class HealthKitService {
 
   /// The types the pairing reads for `metrics`: only what the shipped build
   /// shows, and only what the caller names. Resting heart rate is Phase 3's
-  /// metric and sleep analysis Phase 4's; later phases add theirs to
-  /// `PairedMetric`. HealthKit prompts only for types the person has not yet
-  /// answered, so each addition's first request shows a sheet listing its
-  /// own type alone — and a request names only the metrics whose switches
-  /// are on, so a reader is never asked for a figure they have switched off.
+  /// metric, sleep analysis Phase 4's and heart rate variability — SDNN, the
+  /// type every Apple Watch writes and the one the Health app charts; the
+  /// RMSSD type iOS 27 added is ADR-0052's reopen — Phase 5's; a later phase
+  /// adds its own to `PairedMetric`. HealthKit prompts only for types the
+  /// person has not yet answered, and leaves an already-answered type off the
+  /// sheet, so each addition's first request shows a sheet listing its own
+  /// type alone — and a request names only the metrics whose switches are on,
+  /// so a reader is never asked for a figure they have switched off.
   ///
   /// Nothing here is shared. Every one of these is read-only in HealthKit's
   /// own terms as far as this app is concerned, and the pairing writes
@@ -317,6 +320,7 @@ final class HealthKitService {
         switch metric {
         case .restingHeartRate: HKQuantityType(.restingHeartRate)
         case .sleep: HKCategoryType(.sleepAnalysis)
+        case .heartRateVariability: HKQuantityType(.heartRateVariabilitySDNN)
         }
       })
   }
@@ -381,6 +385,32 @@ final class HealthKitService {
       of: HKQuantityType(.restingHeartRate),
       unit: .count().unitDivided(by: .minute()),
       named: "resting heart rate",
+      in: range,
+      endingBefore: now,
+      calendar: calendar
+    )
+  }
+
+  /// Heart rate variability (SDNN), one value per calendar day that has one,
+  /// over the same window and through the same daily statistic as resting
+  /// heart rate — a discrete, arithmetically aggregated type in the header's
+  /// own words, so the average is safe to ask for — in milliseconds, filed
+  /// under the night before it by the same `.dayAfter` rule, which is the
+  /// day the Health app's own chart shows the figure on (ADR-0052). The
+  /// watch samples it through the day and the night both, so a day's average
+  /// is not a night's reading; the row's floor is twice the others' for the
+  /// noise that leaves, and the model asks for this read at Quarter and Year
+  /// only. Everything the resting heart rate read says about empty results,
+  /// the breadcrumb and what is kept holds here unchanged.
+  func heartRateVariability(
+    in range: DateInterval,
+    endingBefore now: Date,
+    calendar: Calendar = .current
+  ) async -> [HealthSample] {
+    await dailyAverages(
+      of: HKQuantityType(.heartRateVariabilitySDNN),
+      unit: .secondUnit(with: .milli),
+      named: "heart rate variability",
       in: range,
       endingBefore: now,
       calendar: calendar
