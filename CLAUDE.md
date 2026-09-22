@@ -227,7 +227,11 @@ landed that night too (the bullet "The health pairing's Phase 3 landed…", ADR-
 ADR-0051): the table on Trends, the Settings switch and the one-time offer. Main now
 carries a Health read the privacy policy denies — "Tallyist reads no other Health
 data" — so NO RELEASE BUILD MAY BE CUT FROM MAIN UNTIL PHASE 7 rewrites the policy and
-the purpose string. Phase 4, sleep duration, is next.** These
+the purpose string. Phase 4, sleep duration, landed on 2026-09-22 (the bullet "The health
+pairing's Phase 4 landed…", three ADRs amended): the second row, its switch, the offer for
+both, and the design's decision 1 — a later metric arriving switched on, asked for beside
+the table — built; its render pass is owed, since the simulator tool's device grant never
+came that session. Phase 5, heart rate variability, is next.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2853,3 +2857,92 @@ Open items for v1.2:
   same parts, its own switch and caption, `timeAsleep` already in the domain, the
   footnote's wear-to-bed sentence returning, and the offer's copy back to the design's
   plurals (ADR-0051's reopen).
+- **The health pairing's Phase 4 landed (2026-09-22; ADR-0049, ADR-0050 and ADR-0051
+  amended): sleep, the second row.** Duration only — stages are the next increment, as
+  the plan says. `HealthPairingSection` now draws one row per switched-on metric in the
+  Settings order (`PairedMetric.allCases`: resting heart rate, sleep), a hairline at 0.7
+  between rows, one source line and one note for the card; the note reads "Each row is
+  two averages…" and says nothing about sleep, because the switch's caption ("Time asleep
+  on nights you wear your watch") already says what the figure is and a sentence about a
+  row the reader switched off would be about nothing. **The row:** "Sleep" over its night
+  counts, "6h 12m" beside "7h 04m" — `HealthPairing.timeAsleep` averaged per bucket behind
+  the same fourteen-night gate — printed from `HealthPairing.hoursAndMinutes` (core; one
+  rounding to the nearest minute, half up, carrying into the hour, seven tier-1 tests)
+  with the minutes zero-padded by the number formatter (not `String(format:)`, so both
+  numerals share the reader's digit system — a review catch) and spoken as "6 hours, 12
+  minutes asleep" from the same two integers; the figure carries its own unit. **The
+  read:** `HealthKitService.sleep(in:endingBefore:calendar:)`, a sample query over the
+  window's sleep analysis samples that *end* inside it (`.strictEndDate`, so a session
+  still running into today is never read), mapped by name to `SleepStage`, a value this
+  SDK does not name dropped; the second query shape ADR-0049 foresaw beside
+  `dailyAverages`. **The breadcrumb is per metric now** — `Diagnostics.lastHealthPairingReads`,
+  a dictionary keyed by the metric's name under `lastHealthPairingReads`, the Phase 3 key
+  removed on the next read — because a render that shows two rows makes two reads and one
+  line kept whichever finished last; Settings' Diagnostics shows "Last Health read
+  (resting heart rate)" and "(sleep)"; a query the task was cancelled under writes no line
+  (a review catch: it wrote a truncated cost). **The switch:** "Sleep" over "Time asleep on
+  nights you wear your watch", after resting heart rate, and the footnote in the design's
+  three-sentence shape for the first time — "Each switch…", "Read on this device…", and
+  "Sleep comes from nights you wear your watch to bed", the README's third sentence cut to
+  the one metric it is true of, and the one place the app says it. **The design's decision 1, built, and what it took:**
+  sleep arrives switched on for anyone with the resting heart rate switch on and off for
+  everyone else — `AppSettings.inheritedPairingFlag`, decided once when the key is first
+  missing and *written*, so the switches are independent after (`storedFlag` alone would
+  have kept sleep following the older switch — a copy, not a switch); its sheet is asked
+  for on the next visit to Trends through HealthKit's one honest question
+  (`statusForAuthorizationRequest` → `pairingReadsNeedAsking(for:)`), **for the switched-on
+  metrics only and only once the log clears the gate** — both review catches: the first cut
+  asked for every shipped type (a reader who had turned sleep off would have been asked for
+  it) and asked before the gate (Trends opens on Week, so every Phase 3 accepter's first
+  visit would have put the sleep sheet over the Week chart beside nothing); once per visit,
+  the flag reset when the tab is left. Every request names its metrics now: a Settings
+  switch asks for its own type, the offer for every shipped one, Trends for the switched-on
+  set. **The offer** shows both rows with "– –" and the design's plurals ("Apple Watch
+  already records these…", "Show these on Trends"); accepting turns on both switches after
+  the sheet. **App catalog 351 → 357** (ten in, four out — Phase 3's singulars and the
+  note's opening — none changed; 509 keys across six catalogs), synced with `xcstringstool`
+  into a scratch copy from a fresh full build and diffed before it was copied in;
+  `docs/localization-status.md` carries the count and the digit-system note. **No schema
+  change, no CloudKit step, no project-file change, no privacy-policy change — and the
+  policy is now false twice over:** it says "Tallyist reads no other Health data" while
+  main reads resting heart rate and sleep; **no release build from main until Phase 7.**
+  **Verified:** 361 domain tests under both SwiftPM build systems (seven new); 114
+  integration tests on the iPhone 17 Pro Max simulator (four new — the switches start off;
+  sleep inherits the resting heart rate switch once and only once, and off is written too;
+  a stored value wins; the flags round-trip); the CI-form and signed builds with no warning
+  in the changed files; and **the inheritance on the real build, by files, on a scratch
+  iPhone 17 Pro simulator** — resting heart rate on with no sleep key → `showsSleepPairing
+  = 1` written at launch; off with no key → `0` written; on with sleep stored `0` → stays
+  `0`. **The render pass did not happen in the session that built this:** the simulator
+  tool's per-device grant for the scratch simulator was declined or unanswered on every
+  retry over the session (the owner was away), and everything on that list needs a tap —
+  the seeder's Health sheet (its log half ran: 48 drinks and 63 markers in the scratch
+  store), the two-row card at Quarter and Year in both appearances and at `.xLarge` and
+  AX5, the two-row offer, the sleep sheet arriving alone on a Phase 3 install's first
+  Quarter visit, the sleep row leaving when its read is revoked while resting heart rate's
+  stays, the two Diagnostics rows and the App Group plist diff. The seeder is written for
+  it (`/tmp/claude-501/seeder4`, launch argument `--seed-phase4`: Fri/Sat/Sun beers and
+  Mon–Thu markers for sixteen weeks; 200 nightly resting heart rates; 200 sleep sessions
+  in five stages with a ten-minute awake gap and an in-bed sample that must not count —
+  exactly 6h 12m asleep after a drink night and 7h 04m otherwise, so the card's figures are
+  known before it is drawn), the scratch simulator is booted with the reviewed build
+  installed, and the list above is the next session's first job, or the owner's on
+  hardware. **Measured with CoreText** (calibrated as before): "6h 12m" is 58.5pt in the
+  card's tabular figures, the widest two-digit cell (DRINKS 45.2, "62 bpm" 49.2, NO DRINKS
+  67.0), "10h 05m" 69.0; with both rows the leading column keeps 161.5pt on a 375pt phone
+  and 149.0 against three-digit heart rates and a ten-hour sleep — "Resting heart rate"
+  (122.1) stays on one line; the header row is unchanged at 213.9. **Reviewed before the
+  PR by an adversarial lens on the code against the plan's rules:** all nine held for both
+  rows; its findings are the fixes named above plus the dead `Loaded.metrics` field
+  removed and the records' "once per visit" made true by resetting the flag on leave. **Not
+  verified, stated:** everything in the render list; the Health app's own Time Asleep for a
+  seeded night against the row's per-night value (tier 4, the plan's own cross-check); a
+  session that crosses 18:00 or a nap on a real watch; the sleep read's cost (findings §3
+  says so). **Tier 4 for the owner:** both rows at Quarter and Year on their own log and
+  watch data; on their Phase 3 install, the sleep sheet appearing alone on the first visit
+  to Quarter or Year and the row following it; the Health app's Time Asleep for one night
+  against what the row would have counted; "Last Health read (sleep)" at Year; VoiceOver
+  over the two rows and the offer's two names; a night the watch was not worn leaving that
+  night out of the count. **Phase 5 is next:** heart rate variability — a larger gate (a
+  parameter of `HealthPairing.figures`), possibly Quarter and Year only, the plainest
+  presentation; its switch inherits from the two stored switches before it, or-ed.

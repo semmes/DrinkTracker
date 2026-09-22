@@ -358,6 +358,15 @@ read off the owner's phone after the Phase 3 build, with a real year of watch
 data behind it; until it is here, "read on every render" stands unargued
 against.*
 
+*Phase 4 added the second read (2026-09-22, ADR-0049 amended): sleep
+analysis, a plain sample query rather than a daily statistic, with its own
+line — the breadcrumb is one per metric now, `lastHealthPairingReads`, so a
+render that reads both types leaves both costs. Its simulator number is not
+yet on this page: the render pass that makes the read was blocked on the
+simulator tool's device grant in the session that built it (CLAUDE.md's
+Phase 4 bullet says what was verified instead), and the owner's phone gives
+the number that matters — "Last Health read (sleep)" in Diagnostics at Year.*
+
 Two limits on that line, so it does not become the thing the plan forbids:
 
 - **It carries a duration and the range it covers, and nothing else.** Not a

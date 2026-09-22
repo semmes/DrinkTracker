@@ -1589,3 +1589,77 @@ here says what the reader should do about either figure.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — Apple Health beside the log: sleep (ADR-0050 and ADR-0051 amended, 2026-09-22)
+
+The second row of the pairing's card: time asleep, over the same two columns
+as resting heart rate, behind its own switch, with the offer now covering both
+rows. The plan's two rules for this feature apply again — **no comparative
+adjective, ever**, and **name the source and the span** — and the plan's own
+warning is sharper for sleep than for a heart rate: "6h 12m on nights with
+drinks, 7h 04m on nights without" is the plan's own example of a verdict no
+sentence has to deliver. So the second pass below reads every sentence beside
+those two figures. **Six strings are new and four are replaced — ten keys
+in, four out** (the sleep row's two sentences and their joined spoken form
+are three keys; the Diagnostics labels are verbatim and not keys); the
+replaced ones are Phase 3's singulars, which the design wrote in the plural
+for the phase that has more than one row, and the note's first sentence,
+which now covers any number of rows. Nothing else on the card or in
+Settings changed.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Sleep" | The second row's name on the card and the offer; the second switch's title in Settings | The metric's own name, as the Health app prints it, one key shared by the surfaces as "Resting heart rate" is. Not "Sleep quality", not "Rest" — a noun for a quantity the reader already tracks elsewhere, with no adjective attached. |
+| "Time asleep on nights you wear your watch" | The switch's caption | The README's own caption. It names the figure the way the Health app does ("Time Asleep") and where it comes from; "on nights you wear your watch" says when a figure exists and nothing about whether the reader should wear it. |
+| "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep comes from nights you wear your watch to bed." | The section's footnote (replaces Phase 3's "This switch puts…") | "Each", now that two switches ship — the README's own word, held back in Phase 3 because "each" over one switch reads as a promise of more. The third sentence is the README's, cut to the one metric it is true of: the plan ("What the watch can and cannot supply") says the wear-to-bed ask "should appear in the copy once rather than as a recurring prompt", and the README names this footnote as the one place the app may say it. It is a statement of where the figure comes from, in the same voice as "Read on this device"; it does not ask the reader to do anything, and nothing else in the app repeats it. |
+| "6h 12m" (`%lldh %@m`) | The figure cell, minutes zero-padded | The design's own format: whole hours and minutes, the minutes always two digits so a column of them aligns — "7h 04m" under "6h 12m" — from one rounding to the nearest minute (tier 1). No unit word beside it: the figure carries its own, where "62" needs "bpm". |
+| "On nights you logged drinks, 6 hours, 12 minutes asleep, over 36 nights." · "On nights recorded as no alcohol, 7 hours, 4 minutes asleep, over 48 nights." | The card at `.xLarge` and above, where the table folds to sentences; and, joined with the row's name, what VoiceOver speaks for the row | The resting heart rate sentences' shape with the figure spoken in full — the system's own words for a duration, in the reader's language — and "asleep" after it, the state the figure measures. Two sentences of the same shape, and the shape is what keeps them level: no "but", no "compared with", no "longer", no "less". The second pass reads them side by side below. |
+| "Sleep. On nights you logged drinks, … asleep, over … nights. On nights recorded as no alcohol, … asleep, over … nights." | The row's VoiceOver label, one key | The name, then the two sentences above, whole, for the reason the resting heart rate key is whole: a translation orders the spoken row as its own language does. |
+| "Each row is two averages of your own Health data over the nights counted here, read from Apple Health on this device. Drinks means nights you logged drinks. No drinks means nights you recorded as no alcohol; a night with nothing logged is in neither column. A night without a reading is not counted. Tallyist keeps none of it." | The source disclosure, open (replaces the note beginning "Two averages of your own Health data…") | One phrase changed — "Each row is two averages" for "Two averages" — so the note is true of a card with any number of rows; every other sentence is Phase 3's, reviewed then. It deliberately does not define sleep here: the switch's caption already says what the figure is, and a sentence about a row the reader has switched off would be a sentence about nothing. |
+| "Apple Watch already records these. Tallyist can show them here, beside your log. They are read from Apple Health on this device and never stored." | The offer's body (replaces the singular "Apple Watch records this every day…") | The design README's own body, in the plural it was written in, with Phase 3's two changes kept: "Apple Watch" for "Your watch" (the offer is shown on the log alone, and a reader without a watch is a reader too) and "on this device" (the app runs on iPad). "Already records" is a statement about the watch; the offer still asks nothing of the reader but the tap. |
+| "Show these on Trends" | The offer's primary button (replaces "Show this on Trends") | The README's plural, for the same reason. Still a verb phrase that says exactly what the tap does and where, and still not "Enable", not "Connect Health", not a promise of what the reader will learn. |
+| "Last Health read (sleep)" · "Last Health read (resting heart rate)" | Diagnostics rows, test builds only, one per metric read | Field labels, verbatim `String`s like every row beside them. Two rows because a render that shows two rows makes two reads, and one line would keep only whichever finished last — the owner asked for the cost, and a cost per query is what answers it. |
+
+**Second pass — the sleep sentences beside their numbers.** The plan's own
+example of the verdict is these two figures, so this pass reads the card as
+it would render with the seeder's 6h 12m and 7h 04m in it — read from the
+code and the strings, because the render itself is owed (the session's
+simulator grant never came; CLAUDE.md's Phase 4 bullet); the pass holds for
+the drawn card exactly as far as the strings and the layout rules hold.
+
+- *"Sleep" over "6h 12m" and "7h 04m"*: the row's name says what is
+  measured; the heads say which nights; nothing on the row says which figure
+  is the one a reader would want. A reader who holds that more sleep is
+  better supplies that themselves. The app supplies neither the word nor the
+  52 minutes — no colour, no bold, no arrow, no sign, and no difference
+  computed anywhere (the plan's rule 1, and the domain's `PairedFigures` has
+  no field for one).
+- *The two rows together*: "62 bpm · 58 bpm" above "6h 12m · 7h 04m" is two
+  facts about two nights' bodies, in one direction a reader may read as a
+  story. The card does not tell it: the rows are the reader's own choice of
+  switches, in the Settings order, with no line drawn between them and no
+  sentence that spans them.
+- *"6 hours, 12 minutes asleep, over 36 nights"*: "asleep" is the state the
+  figure measures, not a quality of it — the word the Health app uses ("Time
+  Asleep"). "Over" is the span of the count, as before. The comma the
+  system's duration formatter puts between hours and minutes makes the
+  sentence comma-heavy; it was kept over a hand-built "6 hours 12 minutes"
+  because the formatter's words are the reader's language's, and a
+  hand-built phrase would be English's.
+- *"Sleep comes from nights you wear your watch to bed"*: the one place the
+  app says it, and it is a fact about where the figure comes from — the
+  same sentence shape as "Read on this device, never stored, never sent" —
+  not a request. Nothing prompts a reader who does not wear the watch to
+  bed; their row is absent, as the design says.
+- *The offer's "these"*: the offer now shows two rows with "– –" in both and
+  says "records these"; a reader who accepts gets both switches, and turns
+  off the one they do not want in Settings (the owner's decision, 2026-09-19).
+  The counts under the rows are still the log's, so the offer still cannot
+  leak an answer before the question.
+
+No comparative adjective anywhere in the batch, spoken or shown. No
+exclamation marks. Nothing here says what the reader should do about either
+figure, or about their watch.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

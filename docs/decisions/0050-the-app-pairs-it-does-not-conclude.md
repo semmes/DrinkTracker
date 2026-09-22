@@ -244,3 +244,59 @@ the structure has to make it impossible rather than merely unwritten.
   the gate is the only condition, and a month with fourteen marked nights
   and fourteen drinking nights is arithmetically possible. It is not a
   design goal.
+
+## Amendment — 2026-09-22 (Phase 4: the second row, sleep)
+
+The card is now what this record said it would become: one row per metric
+the reader has switched on, in the Settings order — resting heart rate, then
+sleep — each the same two averages with their night counts, a hairline
+between rows (the weekday table's lighter rule), one source line and one
+note for the card. Every decision above holds for the second row without
+change; four things are new, recorded here.
+
+**What sleep's row shows.** Time asleep, as `HealthPairing.timeAsleep`
+assembles it (ADR-0048: the asleep stages merged, filed by the middle under
+the night whose sleep day holds them, naps summed in, in bed and awake never
+counted), averaged over each bucket's nights that have a value, behind the
+same fourteen-night gate. Printed as "6h 12m" with the minutes zero-padded
+so a column of them aligns — the design's figure format — from
+`HealthPairing.hoursAndMinutes`, one rounding to the nearest minute (half
+up, carrying into the hour) that both the printed figure and the spoken
+"6 hours, 12 minutes" read, so the two never disagree by a minute (tier 1).
+The figure carries its own unit, so no "bpm"-style word sits beside it. The
+spoken row: "Sleep. On nights you logged drinks, 6 hours, 12 minutes asleep,
+over 36 nights. On nights recorded as no alcohol, 7 hours, 4 minutes asleep,
+over 48 nights." — "asleep" is the state the figure measures, the Health
+app's own word, and no word relates the two.
+
+**The rows are the reader's, and there is still no line between them.**
+Two rows about two nights' bodies, read together, are a story a reader may
+tell; the card does not tell it. Each row is switched on by its own switch,
+nothing spans the rows, and the note is written for any number of them:
+"Each row is two averages of your own Health data over the nights counted
+here…" — one phrase changed from Phase 3's, and no sentence about sleep in
+it, because the switch's caption in Settings ("Time asleep on nights you
+wear your watch") already says what the figure is and a sentence about a row
+the reader switched off would be a sentence about nothing.
+
+**The widths, measured again.** With both rows, the numeric columns are the
+widest cell in each: "6h 12m" is 58.5pt in the card's tabular figures, wider
+than "62 bpm" (49.2) and DRINKS (45.2), narrower than NO DRINKS (67.0). On a
+375pt phone the leading column keeps 161.5pt against "Resting heart rate" at
+122.1, and 149.0 with three-digit heart rates and a ten-hour sleep — one
+line everywhere, still. The header row is unchanged at 213.9.
+
+**Only the metrics that are built get a switch**, still: two now, "Resting
+heart rate" and "Sleep", in one section, with the footnote in the design's
+three-sentence shape for the first time — "Each switch…", "Read on this
+device…", and "Sleep comes from nights you wear your watch to bed", the
+README's third sentence cut to the one metric it is true of, and the one
+place the app says it (the README names it as the only one). Phase 3's list
+of the design strings that changed, in the consequences above, is that
+phase's record: the offer's singulars in it are reversed by this phase, and
+the footnote's third sentence has arrived, cut. How a switch that arrives
+later is set, and how its sheet is shown, are ADR-0051's and ADR-0049's
+amendments of the same date.
+
+The reopen paths above stand. One is nearer: with four rows the card is a
+tall one, and the picker the second bullet describes would live in Settings.

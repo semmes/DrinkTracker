@@ -164,3 +164,62 @@ acceptance check wants the offer never to return "across iCloud sync".
   appears on the next visit to Trends for anyone who accepted, and the
   ADR-0049 reopen names the one authorization question HealthKit permits
   for knowing whether that sheet is still needed.
+
+## Amendment — 2026-09-22 (Phase 4: a second metric arrives)
+
+The third reopen path above is taken, and the design's decision 1 — the
+part of this ask that only a second metric could exercise — is built.
+
+**The offer covers both rows.** It shows every row the build ships — resting
+heart rate and sleep, names only, "– –" in both — and its copy returns to
+the design's plurals: "Apple Watch already records these. Tallyist can show
+them here, beside your log. They are read from Apple Health on this device
+and never stored." and "Show these on Trends", with Phase 3's two changes
+kept ("Apple Watch" for "your watch"; "on this device"). Accepting turns on
+every shipped switch and shows one sheet for every type not yet answered;
+the ones not wanted come off in Settings (the owner's decision, 2026-09-19).
+The counts under the rows are still the log's, and still the same for every
+row.
+
+**A metric that ships later arrives switched on for anyone with a pairing
+switch on, and off for everyone else.** Decision 3 said the switches would
+say which, and now they do: `AppSettings` reads `showsSleepPairing` as
+stored when it has ever been stored, and otherwise takes whether the resting
+heart rate switch is on *and writes that*, so the inheritance happens once
+and the switches are independent from then on — `storedFlag` alone would
+have kept sleep following the older switch for as long as it was never
+touched, which is not "arrives switched on"; it is a second copy of one
+switch (tier 2 pins both the inheritance and its one-time nature). A reader
+who accepted the offer under Phase 3, or turned resting heart rate on in
+Settings, gets sleep on; a reader who declined, or who turned every switch
+off, gets it off and is asked nothing.
+
+**Its sheet appears on the next visit to Trends, beside the table it
+feeds, not at launch.** A type never asked for reads as nothing, so the
+arrival has to ask, and the design says where. `TrendsView` asks HealthKit
+once per visit, for the metrics whose switches are on, whether a request is
+still needed (`pairingReadsNeedAsking(for:)`, ADR-0049's amendment) and
+shows the sheet only then — and only once the log clears the gate, because
+"beside the table it feeds" is not true over Week, where no row can exist
+and the first visit after updating would otherwise have put the sheet over
+the chart; the sheet lands the first time a row is possible. So a Phase 3
+reader with resting heart rate on sees one sheet listing sleep alone the
+first time they open Quarter or Year, and a reader who has answered every
+type sees nothing, whichever way they answered. Once per visit, not once per
+read: a sheet a reader sends away does not return on the next range change.
+A reader who turned sleep off before that visit is asked nothing for it —
+every request names only the metrics whose switches are on, which is
+ADR-0050's "the reader picks the axis" applied to the ask (a review catch:
+the first cut asked for every shipped type).
+
+**Turning any switch on in Settings still counts as the offer answered**
+(decision 3, which carries that clause), and each switch's sheet asks for that
+switch's own type alone — so a fresh install turning sleep on is not asked
+about resting heart rate, and a type answered before is not asked again.
+
+**Costs, recorded.** The inheritance writes a key at launch for every
+reader, including the fresh install (off, so a later resting heart rate
+switch does not pull sleep on after the fact). And a reader who declined the
+offer under Phase 3 and later turns one switch on in Settings gets the other
+metric's row only by turning its switch on too — which is what "independent
+after that" means, and what the section's rows show.
