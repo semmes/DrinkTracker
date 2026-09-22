@@ -230,8 +230,9 @@ data" — so NO RELEASE BUILD MAY BE CUT FROM MAIN UNTIL PHASE 7 rewrites the po
 the purpose string. Phase 4, sleep duration, landed on 2026-09-22 (the bullet "The health
 pairing's Phase 4 landed…", three ADRs amended): the second row, its switch, the offer for
 both, and the design's decision 1 — a later metric arriving switched on, asked for beside
-the table — built; its render pass is owed, since the simulator tool's device grant never
-came that session. Phase 5, heart rate variability, is next.** These
+the table — built; its render pass passed later the same day, once the owner granted the
+simulator (the bullet "The health pairing's Phase 4 render pass…"), and found iOS 27's
+Health sheet is two steps. Phase 5, heart rate variability, is next.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2913,7 +2914,8 @@ Open items for v1.2:
   in the changed files; and **the inheritance on the real build, by files, on a scratch
   iPhone 17 Pro simulator** — resting heart rate on with no sleep key → `showsSleepPairing
   = 1` written at launch; off with no key → `0` written; on with sleep stored `0` → stays
-  `0`. **The render pass did not happen in the session that built this:** the simulator
+  `0`. **The render pass did not happen in the session that built this** (it ran later the
+  same day — the next bullet)**:** the simulator
   tool's per-device grant for the scratch simulator was declined or unanswered on every
   retry over the session (the owner was away), and everything on that list needs a tap —
   the seeder's Health sheet (its log half ran: 48 drinks and 63 markers in the scratch
@@ -2935,7 +2937,8 @@ Open items for v1.2:
   PR by an adversarial lens on the code against the plan's rules:** all nine held for both
   rows; its findings are the fixes named above plus the dead `Loaded.metrics` field
   removed and the records' "once per visit" made true by resetting the flag on leave. **Not
-  verified, stated:** everything in the render list; the Health app's own Time Asleep for a
+  verified, stated:** everything in the render list (cleared later that day — the next
+  bullet); the Health app's own Time Asleep for a
   seeded night against the row's per-night value (tier 4, the plan's own cross-check); a
   session that crosses 18:00 or a nap on a real watch; the sleep read's cost (findings §3
   says so). **Tier 4 for the owner:** both rows at Quarter and Year on their own log and
@@ -2946,3 +2949,46 @@ Open items for v1.2:
   night out of the count. **Phase 5 is next:** heart rate variability — a larger gate (a
   parameter of `HealthPairing.figures`), possibly Quarter and Year only, the plainest
   presentation; its switch inherits from the two stored switches before it, or-ed.
+- **The health pairing's Phase 4 render pass (2026-09-22, later the same day, once the
+  owner granted the simulator; records only, no code change).** Every item on the Phase 4
+  bullet's list rendered on the scratch iPhone 17 Pro simulator over the seeder's store
+  (48 drinks, 63 markers, 200 nightly resting heart rates, 200 five-stage sleep sessions):
+  the two-row card at Quarter — "Resting heart rate 62 bpm / 58 bpm, 37 and 48 nights" over
+  "Sleep 6h 12m / 7h 04m, 37 and 48 nights", the seeder's exact figures, one hairline
+  between the rows, "From Apple Health, last 13 weeks" and the note open — in light and
+  dark; at Year (48 and 63 nights, "last 12 months"); at `.xLarge` and AX5, where both rows
+  fold to their sentences ("On nights you logged drinks, 6 hours, 12 minutes asleep, over
+  37 nights.") with the hairline kept and no hyphenation; the two-row offer with "– –" in
+  both rows, "37 nights with drinks logged and 48 recorded as no alcohol, last 13 weeks",
+  the plural body and "Show these on Trends", and accepting it turning both switches on
+  and drawing both rows with no sheet (both types were already determined); Settings with
+  both switches on and the two Diagnostics rows; the sleep read revoked in Settings →
+  Privacy & Security → Health → Tallyist leaving the resting heart rate row alone, the
+  sleep switch still on and no sheet; and the App Group plist before and after —
+  `lastHealthPairingReads` holds two lines and no value. **The Phase 3 install's first
+  Quarter visit shows a sheet listing Sleep alone**, as ADR-0051's amendment says, and the
+  reason is worth keeping: the request names every switched-on type, and HealthKit itself
+  leaves an already-determined type off the sheet. The first attempt showed *both*, and
+  that was evidence, not a defect: the earlier session's resting heart rate grant had never
+  registered, because **iOS 27's Health sheet is two steps** — the types, then "How much
+  data would you like to share" (Past 30 Days and Future Data / All Recorded Data and
+  Future Data), with Allow only on the second — and that session's "Allow" tap had landed on
+  the first step's Continue. The Settings app shows the same choice per type as None /
+  Limited Access ("30 days with data") / Full Access. Two consequences, in ADR-0049's
+  amendment: a reader who takes the 30-day window reads a card whose source line names the
+  range while the readings cover 30 days (Phase 0's `earliestAuthorizedSampleDate` item,
+  still deferred; the gate keeps such a card off Quarter until the window grows); and a
+  revoked read still writes its breadcrumb (`sleep · 86 days · 0.00 s`) — a cost and no
+  value. **The sleep cost numbers**, now in findings §3: `sleep · 86 days · 0.01 s` at
+  Quarter and `sleep · 356 days · 0.02 s` at Year (resting heart rate `0.03 s` beside it),
+  over 200 seeded sessions on an M-series Mac — a floor. Nineteen frames are in
+  `/tmp/claude-501/phase4-shots/`. **Tooling:** tapping the status bar scrolls Trends to
+  the top; a swipe that starts on the tab bar (y ≥ 820) scrolls nothing; a content-size
+  change resets the scroll to the top; at AX5 the health card is nine slow swipes down;
+  and "Allow" is on the *second* page of an iOS 27 Health sheet — check the Settings app's
+  Health page for "Full Access" before believing a grant. **Still tier 4 for the owner:**
+  the Phase 4 bullet's list minus the render items — the Health app's Time Asleep for one
+  night against the row, a session across 18:00 or a nap on a real watch, VoiceOver over
+  the two rows and the offer, and the phone's own cost line. The scratch simulator
+  (`Health-Phase4 scratch`) is kept booted with its seeded Health store for Phase 5's
+  render, then deleted.

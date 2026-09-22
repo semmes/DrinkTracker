@@ -253,7 +253,26 @@ them apart, and does not try. Once per visit rather than once per read, so
 a sheet a reader sent away does not return on the next range change; an
 answer HealthKit cannot give (`.unknown`, or a throw) asks nothing.
 
-**Consequence for the cost measurement:** the Diagnostics line for sleep is
-owed — the session that built the read could not make one (the simulator
-tool's device grant never came), `docs/health-pairing-phase-0-findings.md`
-§3 says so, and the phone's is still the owner's to read.
+**Consequence for the cost measurement:** the Diagnostics line for sleep was
+read later the same day, once the simulator was granted — `sleep · 86 days ·
+0.01 s` at Quarter and `sleep · 356 days · 0.02 s` at Year, over 200 seeded
+sessions on an M-series Mac, a floor as Phase 3's was;
+`docs/health-pairing-phase-0-findings.md` §3 carries both, and the phone's
+is still the owner's to read.
+
+**What the render taught about the ask, kept here because this is where the
+ask lives.** (a) HealthKit leaves an already-determined type off its sheet:
+the request names every switched-on type, and a Phase 3 install's first
+Quarter visit still showed a sheet listing Sleep alone — so the app does not
+narrow the request, and need not. (b) iOS 27's sheet is two steps — the
+types, then "How much data would you like to share" with *Past 30 Days and
+Future Data* or *All Recorded Data and Future Data* — and Allow is on the
+second only; the Settings app shows the same choice per type as None,
+Limited Access ("30 days with data") and Full Access. A reader who takes the
+30-day window hands every query 30 days whatever the range asks for, so a
+card's source line can name a range its readings do not cover — Phase 0's
+`earliestAuthorizedSampleDate` item, deferred above and now observed; the
+gate keeps such a card off Quarter until the window grows to fourteen nights
+a bucket. (c) A revoked read still writes its breadcrumb (`sleep · 86 days ·
+0.00 s`): a cost and no value, decision 5 holding on the path that returns
+nothing.

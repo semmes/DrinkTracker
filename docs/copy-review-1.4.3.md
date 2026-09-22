@@ -1622,10 +1622,12 @@ Settings changed.
 
 **Second pass — the sleep sentences beside their numbers.** The plan's own
 example of the verdict is these two figures, so this pass reads the card as
-it would render with the seeder's 6h 12m and 7h 04m in it — read from the
-code and the strings, because the render itself is owed (the session's
-simulator grant never came; CLAUDE.md's Phase 4 bullet); the pass holds for
-the drawn card exactly as far as the strings and the layout rules hold.
+it renders with the seeder's 6h 12m and 7h 04m in it — written from the
+code and the strings while the render was owed, then read again against the
+rendered card later the same day (2026-09-22, once the simulator was
+granted; CLAUDE.md's Phase 4 render bullet), where each claim below held:
+the two figures sit in their columns with nothing between them, and the
+folded sentences at AX5 read exactly as quoted here.
 
 - *"Sleep" over "6h 12m" and "7h 04m"*: the row's name says what is
   measured; the heads say which nights; nothing on the row says which figure

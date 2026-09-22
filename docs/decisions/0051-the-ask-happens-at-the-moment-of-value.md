@@ -205,7 +205,11 @@ and the first visit after updating would otherwise have put the sheet over
 the chart; the sheet lands the first time a row is possible. So a Phase 3
 reader with resting heart rate on sees one sheet listing sleep alone the
 first time they open Quarter or Year, and a reader who has answered every
-type sees nothing, whichever way they answered. Once per visit, not once per
+type sees nothing, whichever way they answered. (Rendered on 2026-09-22: the
+sheet listed Sleep alone. HealthKit leaves the determined type off the sheet
+itself, so the request is not narrowed; and on iOS 27 the sheet is two
+steps, the types and then a history window, with Allow on the second —
+ADR-0049's amendment.) Once per visit, not once per
 read: a sheet a reader sends away does not return on the next range change.
 A reader who turned sleep off before that visit is asked nothing for it —
 every request names only the metrics whose switches are on, which is

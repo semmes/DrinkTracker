@@ -361,11 +361,16 @@ against.*
 *Phase 4 added the second read (2026-09-22, ADR-0049 amended): sleep
 analysis, a plain sample query rather than a daily statistic, with its own
 line — the breadcrumb is one per metric now, `lastHealthPairingReads`, so a
-render that reads both types leaves both costs. Its simulator number is not
-yet on this page: the render pass that makes the read was blocked on the
-simulator tool's device grant in the session that built it (CLAUDE.md's
-Phase 4 bullet says what was verified instead), and the owner's phone gives
-the number that matters — "Last Health read (sleep)" in Diagnostics at Year.*
+render that reads both types leaves both costs. Its simulator numbers, read
+later the same day once the simulator was granted: `sleep · 86 days · 0.01 s
+· app · 09-22 17:21:59` at Quarter and `sleep · 356 days · 0.02 s · app ·
+09-22 17:27:17` at Year (resting heart rate `0.03 s` beside it), over 200
+seeded five-stage sessions on the same simulator — a floor, as above. The
+owner's phone gives the number that matters — "Last Health read (sleep)" in
+Diagnostics at Year. One more thing the render showed about the read: iOS
+27's authorization sheet offers a 30-day history window as well as all data
+(ADR-0049's amendment), and a reader who takes it hands the query 30 days
+whatever the range asks for.*
 
 Two limits on that line, so it does not become the thing the plan forbids:
 
