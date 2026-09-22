@@ -334,18 +334,25 @@ final class HealthKitService {
   /// Resting heart rate, one value per calendar day that has one, over the
   /// days of `range` before the day holding `now` — never that day itself
   /// (`HealthPairing.readWindow`, the pairing's retrospective-only rule made
-  /// structural). Each element spans its calendar day and carries the day's
-  /// average in beats per minute, so `HealthPairing.nightlyValues(of:for:
+  /// structural). Each element carries the day's average in beats per minute
+  /// between the statistic's own start and end — HealthKit's day, anchored on
+  /// the window's first day — so `HealthPairing.nightlyValues(of:for:
   /// attribution: .dayAfter, calendar:)` files it, by its middle, under the
-  /// night before it.
+  /// night before it. The middle is what makes that robust: which calendar
+  /// HealthKit steps its one-day intervals in is not documented, and a bucket
+  /// drifting by an hour across a clock change still has its middle on the
+  /// right day. Pass the calendar the domain's nights were built with, so
+  /// "today" means the same day on both sides.
   ///
   /// The query is HealthKit's own daily statistics — its discrete average,
   /// which for this type is temporally weighted — anchored on the window's
   /// first day in one-day steps: the shape the plan names for the quantity
   /// types, and the one whose cost at a year the owner asked to have measured
   /// rather than estimated. The measurement is the breadcrumb written after
-  /// every read (`Diagnostics.recordHealthPairingRead`): the metric, the
-  /// window's day count and the wall time, and nothing that came back.
+  /// every query (`Diagnostics.recordHealthPairingRead`): the metric, the
+  /// window's day count and the wall time, and nothing that came back. No
+  /// query, no breadcrumb — a device without Health, or a range with no day
+  /// before today, returns empty before asking.
   ///
   /// Empty means no data. A person who denied the read, one who granted it
   /// with nothing recorded, a watch that cannot measure it, a night it was
@@ -370,9 +377,14 @@ final class HealthKitService {
     )
   }
 
-  /// One daily statistics query, shared by every per-day quantity the pairing
-  /// reads. Adding a metric is a public method above naming its type, unit
-  /// and breadcrumb label — never a second copy of this.
+  /// One daily statistics query, shared by every *discrete* per-day quantity
+  /// the pairing reads. Adding a metric is a public method above naming its
+  /// type, unit and breadcrumb label — never a second copy of this. Two
+  /// mistakes there are Objective-C exceptions, which the `try?` below cannot
+  /// catch: asking for a discrete average of a cumulative type, and a unit
+  /// the type cannot convert to. The four metrics the plan names are all
+  /// discrete; check the header's comment on the identifier before adding
+  /// one, because the failure is a crash, not an empty array.
   private func dailyAverages(
     of type: HKQuantityType,
     unit: HKUnit,

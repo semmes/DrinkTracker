@@ -420,7 +420,7 @@ a statistics query per metric, returning plain value types the domain layer
 consumes. Nothing persisted. Handles the no-data state as the single state it
 is.
 
-*Landed 2026-09-22, ADR-0049.* One read type, not four — resting heart
+*Landed 2026-09-21, ADR-0049.* One read type, not four — resting heart
 rate, the only one the shipped build shows; each later phase appends its own
 so its first request lists that type alone. The pairing asks for its reads
 through `requestPairingAuthorization`, never through the app's beverage
@@ -467,7 +467,7 @@ the list below is in the order they are expected to land.
   comparative language, no dual-axis chart. The argument for why structure
   rather than copy is what holds constraint 3 here.
 - **0049, health context is read, never stored** — written in Phase 2,
-  2026-09-22. No SwiftData, no CloudKit, no cache. What that buys, and the
+  2026-09-21. No SwiftData, no CloudKit, no cache. What that buys, and the
   two consequences (device-dependence, query cost). Also a review rule:
   guideline 5.1.3 (ii). It carries the invisible-denial rule as well, since
   the read layer is where that rule is enforced; the ask's own record

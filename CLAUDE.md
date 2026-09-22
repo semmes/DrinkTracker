@@ -221,7 +221,7 @@ the tile give, and the 45, 46 and 49mm are pixel-identical.** **A second train o
 on 2026-09-21, the health pairing — Apple Health figures beside the log on Trends, its
 own release after the watch (plan decision 4) — and its Phases 0 and 1 landed that day
 (the bullet "The health pairing's Phases 0 and 1…", ADR-0048), and Phase 2, the read
-layer, the next morning (the bullet after it, ADR-0049); it is run one phase per
+layer, the same evening (the bullet after it, ADR-0049); it is run one phase per
 session from the owner's prompts document, and Phase 3, resting heart rate end to end,
 is next.** These
 pointers name their bullets rather than count from the end, because every new bullet
@@ -2676,9 +2676,9 @@ Open items for v1.2:
   both SwiftPM build systems; the iOS scheme in CI's form, no warning in the new files. **Tooling:** the simulator tool's per-device permission was
   refused three times over twenty minutes and granted on the fourth, so retry before
   writing an experiment off; the Health app's Add Data form moves Starts when Ends is set
-  earlier, and its time wheel takes a typed four-digit time. **Phase 2 followed the next
-  morning — the next bullet.**
-- **The health pairing's Phase 2 landed (2026-09-22, ADR-0049): the read layer.** One read
+  earlier, and its time wheel takes a typed four-digit time. **Phase 2 followed the same
+  evening — the next bullet.**
+- **The health pairing's Phase 2 landed (2026-09-21, ADR-0049): the read layer.** One read
   type, not the plan's four — resting heart rate, the only metric the shipped build shows;
   each later phase appends its own to `HealthKitService.pairingReadTypes`, so its first
   request lists that type alone. **Three things made structural rather than promised:**
@@ -2705,7 +2705,20 @@ Open items for v1.2:
   `NSKeyedArchiver`, `print`, `Logger`, `cache`, `save`) finds exactly one, the breadcrumb;
   the only property added to the service is the computed read-type set; the schema is
   untouched at V2 and has no field a health value could go in; `HealthSample` appears in
-  the app target only as the read's return type and at the line it is built. **Deferred,
+  the app target only as the read's return type and at the line it is built. **Reviewed
+  before merging** by an adversarial pass that read the HealthKit headers against the
+  code (the descriptor's API, `statistics()` returning only populated intervals,
+  `.strictStartDate`, the `NS_SWIFT_SENDABLE` collection): the API is right; the one real
+  gap was that the "never holds today" test never exercised the `now` clip — every fixture
+  range ended before today — so a window that included today survived; two vectors now
+  kill it. Three facts it added to the records: which calendar HealthKit steps its one-day
+  intervals in is undocumented (the domain's filing by a sample's middle tolerates an
+  hour's drift, and Phase 3's simulator pass should seed a sample at 00:30 after a clock
+  change); a cumulative type or an unconvertible unit handed to `dailyAverages` is an
+  Objective-C exception `try?` cannot catch, so a later metric checks the header's
+  aggregation before it is added; and the breadcrumb is written per *query*, not per call
+  — no Health, or no day before today, writes nothing. It also caught that the records
+  had dated themselves in UTC: this landed on the evening of the 21st. **Deferred,
   on purpose:** iOS 27's `earliestAuthorizedSampleDate` (CI compiles with the 26.5 SDK, and
   `PairedFigures.firstNight/lastNight` already name the span the data covered);
   `statusForAuthorizationRequest` until a surface needs it; the purpose string, which

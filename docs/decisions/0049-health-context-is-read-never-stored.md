@@ -1,6 +1,6 @@
 # 0049 — Health context is read, never stored
 
-**Status:** accepted · **Date:** 2026-09-22 · **Relates to:** ADR-0048 (a
+**Status:** accepted · **Date:** 2026-09-21 · **Relates to:** ADR-0048 (a
 drinking night is not a calendar day; the domain this layer feeds);
 ADR-0014 (the beverage import, the app's other read of Health); ADR-0004
 and its 2026-09-16 amendments (Health follows the log); ADR-0047 (the
@@ -99,13 +99,16 @@ anywhere, so what the line may carry is part of this decision.
    (ADR-0048), so the newest day any night needs is yesterday's.
 
 5. **The cost is measured by the code that ships, on one line that cannot
-   carry a value.** Every read records `Diagnostics.lastHealthPairingRead`:
+   carry a value.** Every query records `Diagnostics.lastHealthPairingRead`:
    the metric's name, the window's day count and the wall time of the query
-   (`resting heart rate · 364 days · 0.41 s · app · 09-22 08:15:03`). Those
-   are the three arguments of `Breadcrumb.healthRead` and the only things
-   the line can hold — no sample, no value, no count of days that had one,
-   each of which is a fact derived from Health. A tier-1 test pins that the
-   line's digits are exactly the day count and the duration. The day count
+   (`resting heart rate · 364 days · 0.41 s · app · 09-21 20:15:03`). A call
+   that never queries — no Health on the device, no day before today in the
+   range — writes nothing, and neither condition is a fact about the
+   person. The three arguments of `Breadcrumb.healthRead` are the only
+   things the line can hold — no sample, no value, no count of days that
+   had one, each of which is a fact derived from Health; a tier-1 test shows
+   the line's digits are exactly the day count and the duration, and the
+   guard on the name is that it has one call site, a literal. The day count
    is the request's, walked as calendar days so a window that starts on a
    midnight-transition day is not one short. Settings' row for it is
    Phase 3's, with the rest of that screen's changes; the first measurement
@@ -115,10 +118,16 @@ anywhere, so what the line may carry is part of this decision.
 6. **The daily statistics query is the read for a per-day quantity.**
    HealthKit's own discrete average — temporally weighted for resting heart
    rate — anchored on the window's first day in one-day steps, one
-   `HealthSample` per day that has one, spanning the day, so the domain
-   files it by its middle under the night before it. A day with no sample
-   is absent, never zero. One private query serves every per-day quantity;
-   a new metric is a public method naming its type, unit and label.
+   `HealthSample` per day that has one, carrying the statistic's own start
+   and end, so the domain files it by its middle under the night before it.
+   The middle is what makes that robust: which calendar HealthKit steps its
+   intervals in is not documented, and a bucket that drifts an hour across
+   a clock change still has its middle on the right day. A day with no
+   sample is absent, never zero. One private query serves every *discrete*
+   per-day quantity; a new metric is a public method naming its type, unit
+   and label, and a cumulative type or an unconvertible unit there is an
+   Objective-C exception, not an empty array — the four metrics the plan
+   names are all discrete.
 
 7. **The span a figure covers comes from the data, not from an
    authorization API.** iOS 27 lets a person grant a window of recent
@@ -143,11 +152,18 @@ anywhere, so what the line may carry is part of this decision.
 - **A person who denied the read is never told.** They turned a switch on
   and nothing appeared. That is the rule, and the Settings footnote is the
   one place the app says what the switches need; nothing else may.
-- **One write per read into the App Group** — a name, a day count and a
+- **One write per query into the App Group** — a name, a day count and a
   duration, stamped with the process and the time as every breadcrumb is.
-  A duration can hint at how much data a read walked; it is a fact about
-  the store's work, not about the person, and it is the one thing the
-  owner asked to know.
+  A duration can hint at how much data a read walked, and so at whether
+  data exists on a device whose table the gate is hiding; it is a fact
+  about the store's work, not a value, it is visible only where Diagnostics
+  are (debug and TestFlight builds), and it is the one thing the owner
+  asked to know.
+- **The pairing's calendar has to be the domain's.** `restingHeartRate`
+  takes a calendar so that "today" — the day the window stops before — is
+  the same day the domain's nights were built in. A caller that hands the
+  two different calendars gets a window edge in the middle of a device day.
+  Phase 3 passes one calendar to both.
 - **The permission sheet shows the app's existing purpose string**, which
   is about alcohol samples, above a request for heart rate. Phase 7 rewrites
   `NSHealthShareUsageDescription`; Phase 3's device pass will see the
@@ -159,7 +175,11 @@ anywhere, so what the line may carry is part of this decision.
 - **No test tier reaches the query.** `HealthKitService` is app-target code
   with no `TEST_HOST`; CI proves it compiles. The window and the breadcrumb
   are pinned at tier 1; the query's behaviour is Phase 3's tier 3 on a
-  simulator with seeded Health data and tier 4 on the owner's phone.
+  simulator with seeded Health data and tier 4 on the owner's phone. Two
+  things that pass should look for: a sample seeded at 00:30 on the day
+  after a clock change, which is where an interval stepped in the wrong
+  calendar would show; and the App Group plist diffed before and after a
+  read, where only `lastHealthPairingRead` may change.
 
 ## How to reopen
 

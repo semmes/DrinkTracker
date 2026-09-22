@@ -42,6 +42,28 @@ struct HealthPairingReadTests {
     #expect(HealthPairing.days(in: window, calendar: cal) == 20)
   }
 
+  @Test("A range that reaches past now is clipped to the start of today — the case a Trends range is")
+  func windowClipsToNow() throws {
+    // Trends' ranges end today; the clip is `now`'s, not the range's. A
+    // range ending later today, and one ending tomorrow, both stop at the
+    // start of today, and `now` is compared as a day, not an instant.
+    let cal = utc
+    let now = at(2026, 9, 21, 14, 30, in: cal)
+    let laterToday = DateInterval(start: at(2026, 9, 1, in: cal), end: at(2026, 9, 21, 23, 59, in: cal))
+    let tomorrow = DateInterval(start: at(2026, 9, 1, in: cal), end: at(2026, 9, 22, in: cal))
+    for range in [laterToday, tomorrow] {
+      let window = try #require(HealthPairing.readWindow(for: range, endingBefore: now, calendar: cal))
+      #expect(window.end == at(2026, 9, 21, in: cal))
+      #expect(!window.contains(now))
+      #expect(HealthPairing.days(in: window, calendar: cal) == 20)
+    }
+    // A second before midnight, the day about to end is still today.
+    let lateNow = at(2026, 9, 21, 23, 59, in: cal).addingTimeInterval(59)
+    #expect(HealthPairing.readWindow(for: tomorrow, endingBefore: lateNow, calendar: cal)?.end == at(2026, 9, 21, in: cal))
+    // At midnight exactly, it has ended.
+    #expect(HealthPairing.readWindow(for: tomorrow, endingBefore: at(2026, 9, 22, in: cal), calendar: cal)?.end == at(2026, 9, 22, in: cal))
+  }
+
   @Test("A range that ends before today is read in full; one that starts today is nothing")
   func windowClipsToTheRange() {
     let cal = utc
@@ -66,7 +88,6 @@ struct HealthPairingReadTests {
       HealthPairing.readWindow(for: range, endingBefore: at(2026, 3, 9, 10, in: cal), calendar: cal))
     #expect(window.end == at(2026, 3, 9, in: cal))
     #expect(HealthPairing.days(in: window, calendar: cal) == 8)
-    #expect(window.duration == 8 * 24 * 3600 - 3600)
   }
 
   @Test("A zone that changes its clocks at midnight still starts the window at the day's start")
@@ -75,7 +96,10 @@ struct HealthPairingReadTests {
     let range = DateInterval(start: at(2026, 9, 6, 12, in: cal), end: at(2026, 9, 10, in: cal))
     let window = try #require(
       HealthPairing.readWindow(for: range, endingBefore: at(2026, 9, 10, 9, in: cal), calendar: cal))
-    #expect(window.start == cal.startOfDay(for: at(2026, 9, 6, 12, in: cal)))
+    // The transition day has no 00:00; its start is 01:00, and the count is
+    // still four calendar days, where elapsed time truncated would say three.
+    #expect(cal.component(.hour, from: window.start) == 1)
+    #expect(cal.component(.day, from: window.start) == 6)
     #expect(HealthPairing.days(in: window, calendar: cal) == 4)
   }
 

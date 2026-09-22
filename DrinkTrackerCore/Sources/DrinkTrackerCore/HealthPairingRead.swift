@@ -38,8 +38,9 @@ extension HealthPairing {
   /// How many calendar days `window` spans, for the breadcrumb: a property
   /// of the request, never of what came back. Counted as day keys rather
   /// than as elapsed days, because a window that starts on a day whose
-  /// clocks changed at midnight starts at 01:00, and elapsed time would
-  /// count one day short.
+  /// clocks changed at midnight starts at 01:00, and elapsed time truncated
+  /// to whole days would count one short. Exact for the day-aligned windows
+  /// `readWindow` makes; a window inside one day counts as one.
   public static func days(in window: DateInterval, calendar: Calendar) -> Int {
     guard window.end > window.start else { return 0 }
     return TrendSummary.dayKeys(
