@@ -222,8 +222,12 @@ on 2026-09-21, the health pairing — Apple Health figures beside the log on Tre
 own release after the watch (plan decision 4) — and its Phases 0 and 1 landed that day
 (the bullet "The health pairing's Phases 0 and 1…", ADR-0048), and Phase 2, the read
 layer, the same evening (the bullet after it, ADR-0049); it is run one phase per
-session from the owner's prompts document, and Phase 3, resting heart rate end to end,
-is next.** These
+session from the owner's prompts document. Phase 3, resting heart rate end to end,
+landed that night too (the bullet "The health pairing's Phase 3 landed…", ADR-0050 and
+ADR-0051): the table on Trends, the Settings switch and the one-time offer. Main now
+carries a Health read the privacy policy denies — "Tallyist reads no other Health
+data" — so NO RELEASE BUILD MAY BE CUT FROM MAIN UNTIL PHASE 7 rewrites the policy and
+the purpose string. Phase 4, sleep duration, is next.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2733,3 +2737,119 @@ Open items for v1.2:
   sync rows, the one-time offer gated on *both* sides from the log, the copy through
   1.4.3, and the pairing ADR ("the app pairs, it does not conclude", 0050 if nothing lands
   first).
+- **The health pairing's Phase 3 landed (2026-09-21, ADR-0050 and ADR-0051): resting heart
+  rate end to end.** The first figure the app shows that is not a quantity of alcohol,
+  and the line is held by structure (ADR-0050): `HealthPairingSection` at the bottom of
+  Trends, under a `SectionLabel` "From Apple Health", one card from the weekday table's
+  own parts — `CardTitle` "Your averages" beside DRINKS and NO DRINKS on one baseline,
+  "Resting heart rate" over "36 and 48 nights", the two averages in `.rowFigure` with
+  "bpm", a source line ("From Apple Health, last 13 weeks") and a note that defines the
+  columns to ADR-0048's buckets. `PairedFigures` has no member for a difference, no view
+  computes one, no test asserts one; a range change crossfades the figures rather than
+  rolling them; no colour, bold, arrow, sign or chart. **No metric picker** (the design's
+  first change to the plan): one switch, "Resting heart rate", **off by default**, in a
+  Settings section "Apple Health on Trends" directly after Comparisons; turning it on
+  calls `requestPairingAuthorization()`. **The offer** (ADR-0051) is the card's shape
+  with "– –" for figures and the log's own counts, one body, "Show this on Trends" and
+  "Not now"; it appears when the log alone clears the gate on **both** sides (the
+  design's text said the drink side — an offer gated on one side could be accepted,
+  granted, and show nothing), never answered, no switch on; accept sets the answer,
+  awaits the system sheet, *then* turns the switch on; decline is gone for good; the
+  answer is one boolean, per device, and which way is not stored — and turning the
+  switch on in Settings sets it too, so a reader who met the sheet from there is never
+  shown the card. **Where the read lives:** `HealthPairingModel` (`@Observable`,
+  `@State` in `TrendsView`), loaded by a `.task(id:)` on the ScrollView keyed on a
+  `Hashable` `HealthPairingRequest` (range, day, nights, buckets, window) and the switch
+  — owned by TrendsView because the section renders *nothing* when it has nothing to
+  show, and a zero-height stand-in would still take the stack's 24pt (the design's first
+  acceptance check is pixel identity with everything off). The load is skipped when the
+  log alone cannot clear the gate, so a switch left on over a short log reads nothing.
+  **Two things the review changed in the read's shape:** the model keeps `Loaded` — the
+  figures *with the request they answer* — and the card draws the range from that, so
+  on a range change the old card stands until the new read lands and a figure is never
+  drawn under another range's source line; and the request is derived through the
+  model's memo, once per change of range, day, log or markers rather than once per
+  body pass (TrendsView's body runs every frame of a scrub, and deriving it is
+  thousands of Calendar calls at Year), only when the switch is on or the offer is
+  unanswered, and only over the range's own drinks (a whole-log walk at a dozen
+  Calendar calls a drink is the difference between a range change and a stall).
+  **Five design strings changed, listed once in ADR-0050:** the source note and the
+  spoken row say "nights recorded as no alcohol" rather than "every other night"
+  (ADR-0048's bucket); every "on this iPhone" is "on this device" (the app runs on
+  iPad, ADR-0049); the offer's caption, body and button are singular (one metric ships),
+  with "Apple Watch records this every day" for "Your watch already records these" —
+  the offer is shown on the log alone; and the Settings footnote says "This switch" not
+  "Each", and drops the wear-to-bed sentence until a metric it is true of ships. The
+  numeric columns are content-sized, not fixed: at the drawing's two 84pt columns the
+  leading column on a 375pt phone would have 119pt (111 at the weekday table's 88pt
+  scaled metric) and "Resting heart rate" (122.1pt) would wrap. **Measured with
+  CoreText** in the card's own tabular figures (calibrated: "Monday to Thursday" 140.3
+  against ADR-0032's 141): the header row is 213.9pt natural; the leading column keeps
+  170.9pt on a 375pt phone, 160.4 against three-digit figures — one line everywhere.
+  **How "no health value is written" was checked:** every added Swift line grepped for
+  `defaults.set`, `UserDefaults`, `@AppStorage`, `modelContext`, `.insert(`,
+  `FileManager`, `NSKeyedArchiver`, `print(`, `Logger`, `cache`, `.save(`, `write(`,
+  `URLSession` — three hits, one a comment and two the `didSet`s of the Bool flags;
+  `PairedFigures` is held only by the model and passed to one view; and the scratch
+  simulator's App Group plist diffed before the first read and after the whole pass —
+  `lastHealthPairingRead` (name, day count, duration, process, time),
+  `showsRestingHeartRatePairing`, `hasAnsweredHealthPairingOffer`, plus the probe's
+  pre-existing `cloudKitStatus` keys and a timeline line — and nothing else. **Verified at tier 3 on a scratch iPhone 17 Pro
+  simulator** (the owner's rule: never the working pair) with a seeded log — Fri/Sat/Sun
+  beers and Mon–Thu markers for sixteen weeks — and 200 daily resting heart rate samples
+  written through `HKHealthStore.save` by a throwaway seeder in a `/tmp` copy of the
+  worktree (`ScratchSeeder`, launch argument `--seed-phase3`, never committed): the offer
+  at Quarter, the system sheet listing Resting Heart Rate alone (above the beverage purpose
+  string — Phase 7's, seen first here as ADR-0049 asked), the table at Quarter (62 / 58
+  bpm, 36 and 48 nights) and Year (47 and 64), the disclosure open, `.xLarge` and AX5
+  folding to the sentences with no hyphenation, light and dark, Week and Month with no
+  section and no heading, Settings with the switch on and the Diagnostics row, "Not now"
+  removing the card and the heading and staying gone across a relaunch, the read
+  revoked in Settings → Privacy & Security → Health leaving nothing on screen with the
+  switch still on, and — on the reviewed build — accepting the offer with the read
+  denied leaving nothing, then the table again at Quarter and Year with the read
+  re-granted. **The first cost number:** `resting heart rate · 355 days · 0.01 s` at
+  Year on the simulator over 200 samples — a floor; the owner's phone gives the real one
+  (findings §3). **App catalog 327 → 351** — 24 in, none out, none changed — synced with
+  `xcstringstool` into a scratch copy from a fresh full build (the x86_64 `.stringsdata`
+  set, the arm64 one lacking `ExtractedAppShortcutsMetadata`) and diffed before it was
+  copied in; "From Apple Health" and "Drinks" were existing keys, "Not now" is new; the
+  Diagnostics row is a verbatim `String` like every row beside it. Widget, core and watch
+  catalogs untouched. **Reviewed before the PR by two adversarial lenses** (the code
+  against the plan's rules and SwiftUI's own traps; the records against the code): all
+  nine structural rules held; the code fixes were the shared `SourceDisclosure`'s
+  spoken hint "Explains this comparison" reaching this card (it now takes a hint and the
+  card passes "Explains these figures" — a reused part's spoken strings are part of a
+  batch), the figures-under-the-wrong-range window, the per-frame derivation, a
+  `Int(_:)` that traps on an absurd average (now `formatted`), and sort priorities
+  moved from grid containers to the elements; the record fixes were a "Not now" wrongly
+  called an existing key, an undercount of the accent (the offer's *two* buttons), a
+  claim that the offer's counts equal the card's (a night without a reading is not
+  counted), and the count of changed design strings stated three ways. **No schema change, no CloudKit step, no project-file change, no
+  privacy-policy change — and that last one is a hazard, not a virtue:** the policy
+  still says "Tallyist reads no other Health data", which this build makes false, so **no
+  release build may be cut from main until Phase 7** rewrites the three copies and
+  `NSHealthShareUsageDescription`. **Tier 1 gained nothing** (no domain change; the
+  arithmetic is ADR-0048's). **No test tier reaches the card, the offer or the switch**
+  (app target, no `TEST_HOST`) — CI proves compilation. **Tooling lessons:** the
+  simulator tool's fast swipes (0.2 s) did not scroll the Trends ScrollView while a slow
+  one (0.6 s) did; its tap coordinates are device points, and a screenshot at `scale`
+  is 920px wide whatever the scale, so read positions as `px × 402 / 920`; the Settings
+  app's search has no index on a simulator — walk Privacy & Security → Health → the app;
+  `App-Prefs:` deep links do nothing there; a synthetic drag across the knob flips the
+  Health permission switch as it does the app's; the Health app on a scratch simulator
+  opens on its welcome flow, so revoke from Settings instead. **Not verified, stated:**
+  a sample seeded at 00:30 after a clock change (ADR-0049's ask — the seeder wrote every
+  sample at 08:30; the domain files by a sample's middle and is pinned at tier 1); the
+  transition on accept — the offer's card leaves before the sheet arrives, not after —
+  on hardware (ADR-0051 records the order and the reopen); VoiceOver over the row and the offer; the iPad form; and
+  the read on a real phone. **Tier 4 for the owner:** the table at Quarter and Year on
+  their own log and watch data, with the Health app's own resting heart rate for a night
+  as the cross-check; the Diagnostics "Last Health read" duration at Year (the plan's
+  open cost question); the system sheet's real content and its purpose string; VoiceOver
+  stepping the card (one stop for the row, speaking both sentences) and the offer (body,
+  title, name, counts, two buttons); the switch and the offer under a thumb on hardware.
+  **Phase 4 is next:** sleep duration — a second row under the same heading from the
+  same parts, its own switch and caption, `timeAsleep` already in the domain, the
+  footnote's wear-to-bed sentence returning, and the offer's copy back to the design's
+  plurals (ADR-0051's reopen).

@@ -438,6 +438,44 @@ metric, the whole surface. This is the phase where the copy gets written and
 argued, and where the pairing ADR ("the app pairs, it does not conclude") is
 written.
 
+*Landed 2026-09-21, ADR-0050 and ADR-0051.* No metric picker — the design's
+first change to this plan: the Settings switches are how the reader picks,
+and every switched-on metric that clears its gate is a row in one table
+under "From Apple Health", last on Trends. `HealthPairingSection` resolves
+the row's condition and the offer's once, and the heading is their literal
+disjunction. The card is the weekday table's parts: "Your averages" beside
+DRINKS and NO DRINKS, the metric's name over "36 and 48 nights", the two
+averages in the reader's numeral face with "bpm", the source line and a
+note that defines the columns to ADR-0048's buckets. `PairedFigures` has no
+member for a difference and no view computes one; a range change crossfades
+the figures rather than rolling them. One switch, "Resting heart rate", off
+by default, in a section directly after Comparisons. The offer is the card's
+shape with "– –" for figures and the log's own counts, gated on **both**
+buckets from the log alone (this plan's third rule applied to the ask; the
+design's text said the drink side) — accepted sets the answer, shows the
+system sheet, then turns the switch on; declined is gone for good, once per
+device, and turning the switch on in Settings answers it too. The read is
+`TrendsView`'s `.task`, keyed on the range, the day, the buckets and the
+switch, and skipped when the log alone cannot clear the gate; the request
+is derived once per change of its inputs, not once per frame, and only when
+the section could show something. The card draws figures only under the
+range they were read for. Five of the design's strings changed, listed once
+in ADR-0050: the source note and the spoken row say "nights recorded as no
+alcohol" rather than "every other night", every "on this iPhone" is "on
+this device", and the offer's copy is singular. Verified on a scratch
+simulator with a seeded log and 200 seeded resting heart rate samples:
+every range (the row at Quarter and Year, nothing at Week and Month), the
+fold at `.xLarge` and AX5, both appearances, the offer's one-time
+behaviour across a relaunch, accepting with the read denied leaving nothing,
+the read revoked in Settings leaving nothing on screen, and the App Group
+plist diffed before and after — the breadcrumb, the switch's boolean and
+the offer's only. The first cost measurement: `resting heart rate
+· 355 days · 0.01 s` at Year on the simulator, over 200 daily samples; the
+owner's phone gives the real number. Not privacy-policy work: the policy
+still says Tallyist reads no other Health data, which this build makes
+false, and the Phase 7 rewrite has to land before any release build carries
+it.
+
 **Phase 4, sleep duration.** Stages as a separate increment once duration is
 shipped and read correctly.
 
@@ -462,19 +500,22 @@ the list below is in the order they are expected to land.
 - **0048, a drinking night is not a calendar day** — written in Phase 1,
   2026-09-21. The window, the sleep attribution, matching the Health app, the
   second bucket, the gate, and the vectors.
-- **The app pairs, it does not conclude** (Phase 3). The user picks the axis;
-  both figures side by side with their night counts; no delta headline, no
-  comparative language, no dual-axis chart. The argument for why structure
-  rather than copy is what holds constraint 3 here.
+- **0050, the app pairs, it does not conclude** — written in Phase 3,
+  2026-09-21. The user picks the axis; both figures side by side with their
+  night counts; no delta headline, no comparative language, no dual-axis
+  chart. The argument for why structure rather than copy is what holds
+  constraint 3 here.
 - **0049, health context is read, never stored** — written in Phase 2,
   2026-09-21. No SwiftData, no CloudKit, no cache. What that buys, and the
   two consequences (device-dependence, query cost). Also a review rule:
   guideline 5.1.3 (ii). It carries the invisible-denial rule as well, since
   the read layer is where that rule is enforced; the ask's own record
   (below) inherits it.
-- **The ask happens at the moment of value** (Phase 3). In context, once,
-  showing before asking; and the invisible-denial rule that makes silence the
-  only correct empty state.
+- **0051, the ask happens at the moment of value** — written in Phase 3,
+  2026-09-21. In context, once, showing before asking; and the
+  invisible-denial rule that makes silence the only correct empty state. It
+  added two things this plan left open: the offer waits for the log on both
+  sides, not the drink side alone, and it asks once per device.
 
 ---
 
