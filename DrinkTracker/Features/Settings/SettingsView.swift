@@ -25,6 +25,7 @@ struct SettingsView: View {
         counterSeedSection
         sessionPaceSection
         comparisonsSection
+        healthPairingSection
         regionSection
         iCloudSection
         healthSection
@@ -177,6 +178,38 @@ struct SettingsView: View {
         )
       }
       .animation(.smooth(duration: 0.22), value: settings.showsWeeklyAverageComparison)
+    }
+  }
+
+  // MARK: - Apple Health on Trends
+
+  /// The Apple Health pairing's switches (ADR-0050): one per metric the
+  /// shipped build shows, in the comparisons' own toggle, directly after the
+  /// section they resemble. Off by default. Turning one on asks the system
+  /// for the read — silently, for anyone who has already answered — and
+  /// never shows an error or a hint if nothing follows: HealthKit does not
+  /// say whether a read was denied, and the app does not pretend to know.
+  /// Only the metrics that are built get a switch; nothing is drawn disabled
+  /// for the ones that are not.
+  private var healthPairingSection: some View {
+    SettingsSection(
+      title: "Apple Health on Trends",
+      footnote: "This switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent."
+    ) {
+      @Bindable var settings = settings
+      ComparisonToggle(
+        title: "Resting heart rate",
+        source: "One figure a day, from your watch",
+        isOn: $settings.showsRestingHeartRatePairing
+      )
+    }
+    .onChange(of: settings.showsRestingHeartRatePairing) { _, isOn in
+      guard isOn else { return }
+      // Turning the switch on is the offer's question answered (ADR-0051):
+      // a reader who has met the system's sheet from here is not shown the
+      // card on Trends later, should they turn the switch off again.
+      settings.hasAnsweredHealthPairingOffer = true
+      Task { await health.requestPairingAuthorization() }
     }
   }
 
@@ -432,6 +465,14 @@ struct SettingsView: View {
         diagnosticRow(
           "Last sync failure",
           value: Diagnostics.lastSyncFailure ?? "none since the last success"
+        )
+        // The Apple Health pairing's read, timed by the code that ships
+        // (ADR-0049): the metric, the days asked for and the wall time —
+        // never a value. Phase 0's open question on query cost is answered by
+        // reading this off a real phone.
+        diagnosticRow(
+          "Last Health read",
+          value: Diagnostics.lastHealthPairingRead ?? "none yet"
         )
         diagnosticRow(
           "Intent last built by",

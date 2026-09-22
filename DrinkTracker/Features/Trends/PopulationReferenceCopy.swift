@@ -175,6 +175,10 @@ enum PopulationReferenceCopy {
 /// get swallowed (the session-pace toggle taught the lesson).
 struct SourceDisclosure<Note: View>: View {
   let sources: LocalizedStringKey
+  /// What VoiceOver says the line opens. The comparisons' own by default;
+  /// the health pairing passes its own, because its card is not a
+  /// comparison and must not be spoken as one (ADR-0050).
+  var hint: LocalizedStringKey = "Explains this comparison"
   @ViewBuilder let note: () -> Note
 
   @State private var isExpanded = false
@@ -199,7 +203,7 @@ struct SourceDisclosure<Note: View>: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(Text(sources))
-    .accessibilityHint("Explains this comparison")
+    .accessibilityHint(Text(hint))
 
     if isExpanded {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
