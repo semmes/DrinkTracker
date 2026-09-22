@@ -135,6 +135,29 @@ final class AppSettings {
     didSet { defaults.set(comparisonColumn.rawValue, forKey: Keys.comparisonColumn) }
   }
 
+  /// Which Apple Health figures appear beside the log on Trends (ADR-0050):
+  /// one switch per metric, and only the metrics the shipped build shows —
+  /// resting heart rate, as of Phase 3. Off by default, unlike the three
+  /// comparisons above: those put a published figure beside the reader's own,
+  /// while this is the first figure the app derives from data it does not
+  /// own, and the reader turns it on. A preference, not Health data, so it
+  /// lives here with the other flags; `bool(forKey:)`'s false is the default
+  /// wanted, so no `storedFlag`.
+  var showsRestingHeartRatePairing: Bool {
+    didSet { defaults.set(showsRestingHeartRatePairing, forKey: Keys.restingHeartRatePairing) }
+  }
+
+  /// Whether the one-time offer on Trends has been answered, either way
+  /// (ADR-0050). Once true, nothing in the app asks again; the switch above
+  /// is the way back. Per device, as every flag here is — which matches the
+  /// permission the offer asks for, since HealthKit's answer is per device
+  /// too. Which way it was answered is not stored: a later metric arrives
+  /// on for anyone with a pairing switch on, and off for everyone else, and
+  /// the switches already say which.
+  var hasAnsweredHealthPairingOffer: Bool {
+    didSet { defaults.set(hasAnsweredHealthPairingOffer, forKey: Keys.healthPairingOffer) }
+  }
+
   private let defaults: UserDefaults
 
   init(defaults: UserDefaults = AppGroup.defaults) {
@@ -150,6 +173,8 @@ final class AppSettings {
     self.showsWeekendComparison = Self.storedFlag(Keys.weekendComparison, defaults: defaults, fallback: true)
     self.comparisonColumn = defaults.string(forKey: Keys.comparisonColumn)
       .flatMap(PopulationReference.Column.init(rawValue:)) ?? .allAdults
+    self.showsRestingHeartRatePairing = defaults.bool(forKey: Keys.restingHeartRatePairing)
+    self.hasAnsweredHealthPairingOffer = defaults.bool(forKey: Keys.healthPairingOffer)
   }
 
   /// A Bool whose default is not false: the stored value if a Bool was ever
@@ -228,5 +253,7 @@ final class AppSettings {
     static let drinkingDaysComparison = "showsDrinkingDaysComparison"
     static let weekendComparison = "showsWeekendComparison"
     static let comparisonColumn = "comparisonColumn"
+    static let restingHeartRatePairing = "showsRestingHeartRatePairing"
+    static let healthPairingOffer = "hasAnsweredHealthPairingOffer"
   }
 }

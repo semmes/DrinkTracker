@@ -349,6 +349,15 @@ wall time. It has no reading yet — Phase 2 adds no surface, so nothing calls
 the query until Phase 3's table does; the first number comes off the owner's
 phone on that pull request's device pass, and lands here.*
 
+*Phase 3 made the first reads (2026-09-21, ADR-0050), on a simulator rather
+than a phone: `resting heart rate · 355 days · 0.01 s · app · 09-21 22:09:32`
+at Year and `· 85 days · 0.01 s` at Quarter, over a Health store seeded with
+200 daily resting heart rate samples — an iPhone 17 Pro simulator on an M-series
+Mac, so a floor, not the answer. The number the plan wants is the same line
+read off the owner's phone after the Phase 3 build, with a real year of watch
+data behind it; until it is here, "read on every render" stands unargued
+against.*
+
 Two limits on that line, so it does not become the thing the plan forbids:
 
 - **It carries a duration and the range it covers, and nothing else.** Not a
@@ -435,12 +444,13 @@ on a different account, it holds none, and that is the no-data state.
 2. **Three strings in the design are wrong on an iPad.** The source note, the
    Settings footnote and the offer's body all say "on this iPhone". Phase 3
    needs a wording that is true on both, and it goes through the copy review
-   like the rest.
+   like the rest. *Done in Phase 3 (2026-09-21): all three say "on this
+   device", reviewed in the batch of that date.*
 3. **Everything that is per device is per device twice.** The offer's answered
    flag and the switches live in device-local settings, so an iPad makes its
    own offer once. That is consistent with a permission sheet that is also per
    device, and the design's acceptance check about iCloud sync should be read
-   that way.
+   that way. *ADR-0051's fourth decision records exactly this.*
 
 ---
 

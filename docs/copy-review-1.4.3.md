@@ -1510,3 +1510,82 @@ is reused.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — Apple Health beside the log: resting heart rate (ADR-0050, ADR-0051, 2026-09-21)
+
+The first figure the app shows that is not a quantity of alcohol: two averages
+of the reader's own resting heart rate, over the nights they logged drinks and
+over the nights they recorded as no alcohol, in one card at the bottom of
+Trends, behind a switch that is off by default and a one-time offer. The plan
+(`docs/tallyist-health-pairing-plan.md`, "Copy") adds two rules on top of house
+voice for this batch — **no comparative adjective, ever** (not worse, better,
+lower, higher, improved), and **name the source and the span in the UI** — and
+asks for a second pass, "because the failure mode is a sentence that reads
+neutral in isolation and judgmental beside a number". The first pass is the
+table; the second follows it. **Every string is new** except two reused
+keys: "From Apple Health", the provenance line on imports and markers, now
+also a section heading; and "Drinks", the day sheet's section label, now a
+column head. "Resting heart rate" is one new key shared by the card and the
+switch. The batch also covers one string a reused part brought to the card
+unreviewed — the shared source line's VoiceOver hint — which the review
+caught and the card now replaces.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "From Apple Health" | The section heading over the card and the offer, on Trends | Names the source, the plan's second rule, and nothing else: not "Your body", not "Health insights". It is the same heading whether the card or the offer sits under it, so the heading never promises a figure. |
+| "Your averages" | The card's title, and the offer's | The owner's own title (design README, decision 3), replacing "The night after", which implied a sequence and so sat one step from "the effect of". It names what the figures are — averages, the reader's — and claims no order between them. |
+| "Drinks" · "No drinks" | The two column heads, uppercased by the table | The owner's short heads (README, decision 2). Two nouns and a negation; neither carries a direction, and the source note and the spoken sentence carry the long definitions the heads stand for. |
+| "Resting heart rate" | The row's name on the card; the switch's title in Settings; the first words of the spoken row | The metric's own name, as the Health app prints it. Shared between the surfaces so a reader meets one word in both places. |
+| "36 and 48 nights" (`%@ and %@ nights`) | Under the row's name, the two numerals a step darker | The counts that let a reader weigh the two averages, which is the honest alternative to the app weighing them. Two numbers and a noun; no "only", no "just". The count is never below fourteen, so the noun is always the plural. |
+| "bpm" | Beside each figure | The unit the Health app uses. The figure is a whole number, as Health shows it; no decimal that would claim a precision the average does not have. |
+| "From Apple Health, last 7 days" · "…last 30 days" · "…last 13 weeks" · "…last 12 months" | The source line under the row, one key per range | The plan's second rule in the population reference's form: source and span, stated as a fact about the figure. The span is the range's own name. |
+| "Two averages of your own Health data over the nights counted here, read from Apple Health on this device. Drinks means nights you logged drinks. No drinks means nights you recorded as no alcohol; a night with nothing logged is in neither column. A night without a reading is not counted. Tallyist keeps none of it." | The source disclosure, open | Five sentences that define the card and stop. The two middle ones carry the whole definition of the columns now that the heads are short, and they are written to the domain exactly (ADR-0048): "recorded as no alcohol", never "every other night", because a night with nothing logged is in neither column — the README's own draft said "every other night" and asked to be rewritten to match. "Read … on this device" is the claim this document's Finding 1 refused for the *log*, which mirrors to iCloud; it is true here, because nothing this feature reads is written anywhere (ADR-0049), and the sentence after it says so. No adjective anywhere. |
+| "On nights you logged drinks, 62 beats per minute, over 36 nights." · "On nights recorded as no alcohol, 58 beats per minute, over 48 nights." | The card at `.xLarge` and above, where the table folds to sentences; and, joined with the row's name, what VoiceOver speaks for the row | The long phrases the short heads stand for. "On nights you logged drinks", never "because you drank" (the plan's rule 2); "over" is the span of the count, not a comparison. Read one after the other they still carry no word that relates them — the second pass below reads them beside their numbers. |
+| "36 nights with drinks logged and 48 recorded as no alcohol, last 13 weeks" (one key per range) | The offer's caption, the only real numbers on it | The reader's own counts, from the log alone, and the span. "Recorded as no alcohol" rather than the README's "without", for the source note's reason. |
+| "Apple Watch records this every day. Tallyist can show it here, beside your log. It is read from Apple Health on this device and never stored." | The offer's body; its VoiceOver label | Three facts: who records the figure, what the app would do with it, what it does not do. "Beside your log" is the whole claim — adjacency, not analysis. "Apple Watch", not "your watch": the offer is shown on the strength of the log alone, and a reader without a watch is a reader too. Singular ("this", "it"), because one metric ships; the README's plural is for the phase that has more than one. |
+| "Show this on Trends" | The offer's primary button | A verb phrase that says exactly what the tap does and where. Not "Enable", not "Connect Health", not "See how drinking affects you" — the last of which is the sentence this feature exists not to say. |
+| "Not now" | The offer's text button | The design's own wording, and a new key (the app's one earlier decline is onboarding's "I'll decide later", which promises a later question; this one must not). It is final — nothing asks again — and the button does not say so, because "Not now" is what a reader taps and a reader who wants the figure later has the switch. |
+| "Explains these figures" | The VoiceOver hint on the card's source line | The shared `SourceDisclosure` says "Explains this comparison" by default, and the review found it spoken on this card — the one word ADR-0050's title exists to refuse. The card now passes its own hint: what the line opens is an explanation of two figures, and the sentence says no more than that. |
+| "Apple Health on Trends" | The Settings section's title | Where the figure appears and where it comes from; the section sits directly after Comparisons, which it resembles, and is named so the two are not confused. |
+| "One figure a day, from your watch" | The switch's caption | The README's own caption: what the metric is and where it comes from. Here "your watch" is right — a reader on this screen has chosen to look. |
+| "This switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent." | The section's footnote | The README's footnote with "Each" made "This" — one switch ships, and "each" over one switch reads as a promise of more — and its third sentence, about wearing the watch to bed, left out until the phase that ships a metric it is true of (the README names that sentence as the one place the app may say it). "On this device", not "on this iPhone": the app runs on iPad. Three claims, each checkable against the code (ADR-0049). |
+| "Last Health read" · "none yet" | A Diagnostics row, test builds only | A field label and its empty value. The row carries the metric's name, a day count and a duration — never a value — so this is the one line the pairing writes, and it says what it is. |
+
+**Second pass — each sentence beside its number.** The plan's failure mode is
+copy that is neutral alone and a verdict next to a figure, so this pass reads
+the card as it renders, with the seeded 62 and 58 in it.
+
+- *"Your averages" over "62 bpm" and "58 bpm"*: the title says what the two
+  are and does not say which is which kind. The heads under it are the nouns
+  "Drinks" and "No drinks"; a reader who knows that a lower resting heart rate
+  is generally the better one supplies that themselves. The app does not
+  supply it: no colour, no bold on one figure, no arrow, no sign — the plan's
+  rule 1, held by the layout rather than by the words.
+- *"36 and 48 nights"* under the name: this is the line most likely to be read
+  as a caveat ("only 36"), and it is not worded as one. It states the two
+  counts the averages are over, in the same voice as "of 51" in the weekday
+  table.
+- *The spoken row*: "Resting heart rate. On nights you logged drinks, 62 beats
+  per minute, over 36 nights. On nights recorded as no alcohol, 58 beats per
+  minute, over 48 nights." Two sentences of the same shape, and the shape is
+  what keeps them level — no "but", no "compared with", no "while". A screen
+  reader hears two facts in the order the columns sit.
+- *The source note's "Tallyist keeps none of it"*: a claim about the app, not
+  about the reader, and one the code makes true (the App Group plist diffed
+  before and after a read changes in the breadcrumb and the two switches
+  only).
+- *The offer beside "– –"*: the placeholders say nothing to VoiceOver, so the
+  spoken offer is the body, the title, the row's name and the counts — and the
+  counts are the reader's own drinking, not a health figure, so the offer
+  cannot leak the answer before the question.
+- *"every day"* in the offer's body is the figure's cadence — one resting
+  heart rate a day, the same claim as the switch's caption — not a promise
+  that every day will have one; a day the watch is not worn has none and is
+  not counted, which the source note says.
+
+No comparative adjective anywhere in the batch, spoken or shown; "over" and
+"beside" are prepositions of span and position. No exclamation marks. Nothing
+here says what the reader should do about either figure.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

@@ -24,6 +24,7 @@ import SwiftUI
 /// and nothing here congratulates or warns. It reports, and stops.
 struct TrendsView: View {
   @Environment(AppSettings.self) private var settings
+  @Environment(HealthKitService.self) private var health
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.colorScheme) private var colorScheme
@@ -35,6 +36,12 @@ struct TrendsView: View {
   // recorded as no alcohol or a day with nothing logged, the distinction
   // ADR-0006 and the calendar's five-case DayIntensity exist to keep.
   @Query(sort: \AlcoholFreeDay.day, order: .forward) private var alcoholFreeDays: [AlcoholFreeDay]
+
+  /// The Apple Health pairing's two figures for this render (ADR-0050), read
+  /// by the `.task` below and drawn by `HealthPairingSection`. Owned here
+  /// rather than by the section because the section renders nothing at all
+  /// when it has nothing to show, and a task needs a view to hang off.
+  @State private var pairing = HealthPairingModel()
 
   /// The raw x value the selection gesture hands back — a Date, never an index
   /// and never a `PeriodDetail` snapshot. A Date survives inserts, re-sorts,
@@ -121,9 +128,29 @@ struct TrendsView: View {
               region: settings.effectiveRegion,
               calendar: calendar
             )
+            // Apple Health beside the log, last on the screen (ADR-0050). The
+            // section owns the row's gate and the offer's, and renders nothing
+            // when neither holds; the read that feeds it is the task below.
+            HealthPairingSection(
+              request: snapshot.pairing,
+              loaded: pairing.loaded,
+              onAcceptOffer: acceptHealthPairingOffer,
+              onDeclineOffer: declineHealthPairingOffer
+            )
           }
           .screenMargin()
           .padding(.vertical, GlassTokens.Spacing.section)
+        }
+        // Re-read exactly when the range, the day, the buckets or the switch
+        // change, and on every return to this tab — there is no cache to make
+        // the second read cheaper than the first (ADR-0049). With the switch
+        // off the model is cleared, so nothing is drawn from a stale read.
+        .task(id: pairingRead(for: snapshot)) {
+          if let request = pairingRead(for: snapshot) {
+            await pairing.load(request, health: health)
+          } else {
+            pairing.clear()
+          }
         }
       }
     }
@@ -170,6 +197,11 @@ struct TrendsView: View {
     /// The longest run of days recorded as no alcohol across the whole range
     /// (ADR-0033) — folded from the same classified days as `rangeSummary`.
     let longestAlcoholFreeRun: Int
+    /// The Apple Health pairing's nights and buckets for the range, from the
+    /// same log and markers as everything above (ADR-0048) — or nil when
+    /// nothing could be shown, so a reader who declined the offer and keeps
+    /// the switch off never pays for deriving it.
+    let pairing: HealthPairingRequest?
 
     var average: Double { TrendSummary.dailyAverage(totals) }
     var sum: Double { TrendSummary.sum(totals) }
@@ -213,8 +245,54 @@ struct TrendsView: View {
         range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
       ),
       rangeSummary: TrendSummary.summary(of: rangeDays),
-      longestAlcoholFreeRun: TrendSummary.longestAlcoholFreeRun(of: rangeDays)
+      longestAlcoholFreeRun: TrendSummary.longestAlcoholFreeRun(of: rangeDays),
+      pairing: pairingRequest(drinks: drinks)
     )
+  }
+
+  // MARK: - Apple Health pairing (ADR-0050)
+
+  /// The pairing's request for this render, through the model's memo — it is
+  /// derived once per change of range, day, log or markers, not once per
+  /// frame — and only when the section could show something: the switch on,
+  /// or the offer still unanswered. The section itself decides *what* is
+  /// drawn; this decides whether there is anything to derive.
+  private func pairingRequest(drinks: [LoggedDrink]) -> HealthPairingRequest? {
+    guard settings.showsRestingHeartRatePairing || !settings.hasAnsweredHealthPairingOffer else {
+      return nil
+    }
+    return pairing.request(
+      range: range, endingOn: today, drinks: drinks, alcoholFreeDays: markedDays, calendar: calendar
+    )
+  }
+
+  /// The read the task should make, or nil when the switch is off. The
+  /// model skips a request the log alone cannot clear, so a switch left on
+  /// over a short log reads nothing.
+  private func pairingRead(for snapshot: Snapshot) -> HealthPairingRequest? {
+    settings.showsRestingHeartRatePairing ? snapshot.pairing : nil
+  }
+
+  /// "Show this on Trends": the offer is answered, the system's sheet asks
+  /// for the read, and then the switch turns on — in that order, so the
+  /// read the switch triggers happens after the sheet has been answered
+  /// rather than before it. Both answers are final; nothing asks again.
+  private func acceptHealthPairingOffer() {
+    withAnimation(.smooth(duration: 0.25)) {
+      settings.hasAnsweredHealthPairingOffer = true
+    }
+    Task {
+      await health.requestPairingAuthorization()
+      settings.showsRestingHeartRatePairing = true
+    }
+  }
+
+  /// "Not now": answered, and gone. The switch stays in Settings for anyone
+  /// who changes their mind; the app never mentions it again.
+  private func declineHealthPairingOffer() {
+    withAnimation(.smooth(duration: 0.25)) {
+      settings.hasAnsweredHealthPairingOffer = true
+    }
   }
 
   private var isBucketed: Bool { range.bucket != .day }
