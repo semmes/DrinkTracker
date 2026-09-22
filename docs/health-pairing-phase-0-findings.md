@@ -343,6 +343,12 @@ What Phase 2 owes this page in return: the measured time for a year range,
 added to this section, and a plain statement if the cost turns out to argue
 against reading on every render.
 
+*Phase 2 built the line (2026-09-21, ADR-0049): `Diagnostics.lastHealthPairingRead`,
+written after every read, holding the metric, the window's day count and the
+wall time. It has no reading yet — Phase 2 adds no surface, so nothing calls
+the query until Phase 3's table does; the first number comes off the owner's
+phone on that pull request's device pass, and lands here.*
+
 Two limits on that line, so it does not become the thing the plan forbids:
 
 - **It carries a duration and the range it covers, and nothing else.** Not a

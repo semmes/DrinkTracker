@@ -420,6 +420,18 @@ a statistics query per metric, returning plain value types the domain layer
 consumes. Nothing persisted. Handles the no-data state as the single state it
 is.
 
+*Landed 2026-09-21, ADR-0049.* One read type, not four — resting heart
+rate, the only one the shipped build shows; each later phase appends its own
+so its first request lists that type alone. The pairing asks for its reads
+through `requestPairingAuthorization`, never through the app's beverage
+request. `restingHeartRate(in:endingBefore:calendar:)` is HealthKit's daily
+discrete average over `HealthPairing.readWindow`, which never includes the
+current day; it returns `[HealthSample]` for one render and an empty array
+for every kind of nothing. Every read leaves one breadcrumb,
+`Diagnostics.lastHealthPairingRead` — the metric, the window's day count,
+the wall time, and no value — which is where the query cost this plan could
+not measure is read once Phase 3 makes the first read.
+
 **Phase 3, resting heart rate, end to end.** The Trends section, the metric
 picker, the two-figure card, the Settings toggle, the in-context offer. One
 metric, the whole surface. This is the phase where the copy gets written and
@@ -454,9 +466,12 @@ the list below is in the order they are expected to land.
   both figures side by side with their night counts; no delta headline, no
   comparative language, no dual-axis chart. The argument for why structure
   rather than copy is what holds constraint 3 here.
-- **Health context is read, never stored** (Phase 2 or 3). No SwiftData, no
-  CloudKit, no cache. What that buys, and the two consequences
-  (device-dependence, query cost). Also a review rule: guideline 5.1.3 (ii).
+- **0049, health context is read, never stored** — written in Phase 2,
+  2026-09-21. No SwiftData, no CloudKit, no cache. What that buys, and the
+  two consequences (device-dependence, query cost). Also a review rule:
+  guideline 5.1.3 (ii). It carries the invisible-denial rule as well, since
+  the read layer is where that rule is enforced; the ask's own record
+  (below) inherits it.
 - **The ask happens at the moment of value** (Phase 3). In context, once,
   showing before asking; and the invisible-denial rule that makes silence the
   only correct empty state.

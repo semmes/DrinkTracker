@@ -220,8 +220,10 @@ case it is on…", ADR-0042 amended): the discs keep their 44pt, the margins and
 the tile give, and the 45, 46 and 49mm are pixel-identical.** **A second train opened
 on 2026-09-21, the health pairing — Apple Health figures beside the log on Trends, its
 own release after the watch (plan decision 4) — and its Phases 0 and 1 landed that day
-(the bullet "The health pairing's Phases 0 and 1…", ADR-0048); it is run one phase per
-session from the owner's prompts document, and Phase 2, the read layer, is next.** These
+(the bullet "The health pairing's Phases 0 and 1…", ADR-0048), and Phase 2, the read
+layer, the same evening (the bullet after it, ADR-0049); it is run one phase per
+session from the owner's prompts document, and Phase 3, resting heart rate end to end,
+is next.** These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -2674,5 +2676,60 @@ Open items for v1.2:
   both SwiftPM build systems; the iOS scheme in CI's form, no warning in the new files. **Tooling:** the simulator tool's per-device permission was
   refused three times over twenty minutes and granted on the fourth, so retry before
   writing an experiment off; the Health app's Add Data form moves Starts when Ends is set
-  earlier, and its time wheel takes a typed four-digit time. **Phase 2 is next:** the read
-  layer, resting heart rate alone, nothing persisted, the timing line.
+  earlier, and its time wheel takes a typed four-digit time. **Phase 2 followed the same
+  evening — the next bullet.**
+- **The health pairing's Phase 2 landed (2026-09-21, ADR-0049): the read layer.** One read
+  type, not the plan's four — resting heart rate, the only metric the shipped build shows;
+  each later phase appends its own to `HealthKitService.pairingReadTypes`, so its first
+  request lists that type alone. **Three things made structural rather than promised:**
+  the pairing asks for its reads through `requestPairingAuthorization()`, never through the
+  app's beverage request, so a person who never turns a pairing switch on is never asked
+  about their heart rate; `HealthPairing.readWindow` runs from the range's first day to the
+  start of the day holding `now` and never includes it, so no read the pairing makes can
+  return a figure from today and nothing built on it can become a live readout; and
+  `restingHeartRate(in:endingBefore:calendar:)` returns `[HealthSample]` for one render —
+  HealthKit's daily discrete average, one element per day that has one, absent never zero
+  — with an empty array for every kind of nothing (denied, empty, unsupported, unworn,
+  unsynced, threw) and no error beside it: one state, no API pretends otherwise. **The
+  owner's Phase 0 decision on query cost is built:** every read writes one breadcrumb,
+  `Diagnostics.lastHealthPairingRead` — `resting heart rate · 364 days · 0.41 s · app ·
+  09-22 08:15:03` — whose formatter takes a name, a day count and a duration and nothing
+  else; a tier-1 test pins that its digits are exactly those two numbers. The day count
+  walks `dayKeys`, because a window starting on a midnight-transition day starts at 01:00
+  and elapsed days count one short (found by the Santiago vector). **Its Settings row is
+  Phase 3's** — the Phase 2 block forbids `Features/` — and no reading exists yet, since
+  nothing calls the query until Phase 3's table does; the first number comes off the
+  owner's phone on that PR's device pass. **How "nothing persists" was checked, not
+  asserted:** a grep of every added line for the write, store and log APIs
+  (`defaults.set`, `UserDefaults`, `@AppStorage`, `modelContext`, `insert`, `FileManager`,
+  `NSKeyedArchiver`, `print`, `Logger`, `cache`, `save`) finds exactly one, the breadcrumb;
+  the only property added to the service is the computed read-type set; the schema is
+  untouched at V2 and has no field a health value could go in; `HealthSample` appears in
+  the app target only as the read's return type and at the line it is built. **Reviewed
+  before merging** by an adversarial pass that read the HealthKit headers against the
+  code (the descriptor's API, `statistics()` returning only populated intervals,
+  `.strictStartDate`, the `NS_SWIFT_SENDABLE` collection): the API is right; the one real
+  gap was that the "never holds today" test never exercised the `now` clip — every fixture
+  range ended before today — so a window that included today survived; two vectors now
+  kill it. Three facts it added to the records: which calendar HealthKit steps its one-day
+  intervals in is undocumented (the domain's filing by a sample's middle tolerates an
+  hour's drift, and Phase 3's simulator pass should seed a sample at 00:30 after a clock
+  change); a cumulative type or an unconvertible unit handed to `dailyAverages` is an
+  Objective-C exception `try?` cannot catch, so a later metric checks the header's
+  aggregation before it is added; and the breadcrumb is written per *query*, not per call
+  — no Health, or no day before today, writes nothing. It also caught that the records
+  had dated themselves in UTC: this landed on the evening of the 21st. **Deferred,
+  on purpose:** iOS 27's `earliestAuthorizedSampleDate` (CI compiles with the 26.5 SDK, and
+  `PairedFigures.firstNight/lastNight` already name the span the data covered);
+  `statusForAuthorizationRequest` until a surface needs it; the purpose string, which
+  Phase 7 rewrites and Phase 3's device pass will see above a heart-rate request first.
+  No UI, no catalog key, no schema, no CloudKit step, no project-file change. **Gates,
+  locally (Xcode 27.0):** 353 domain tests under both SwiftPM build systems; the iOS scheme
+  in CI's form (which compiles the watch targets, which also take `Shared/`), no warning in
+  the changed files. **No test tier reaches the query** — app target, no `TEST_HOST` — so
+  CI proves compilation, and the query's behaviour is Phase 3's tier 3 on a simulator with
+  seeded Health data and tier 4 on the owner's phone. **Phase 3 is next:** resting heart
+  rate end to end — the Trends table, the Settings switch with the timing row beside the
+  sync rows, the one-time offer gated on *both* sides from the log, the copy through
+  1.4.3, and the pairing ADR ("the app pairs, it does not conclude", 0050 if nothing lands
+  first).

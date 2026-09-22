@@ -297,4 +297,140 @@ final class HealthKitService {
     AppGroup.defaults.set(anchor, forKey: anchorKey)
     AppGroup.defaults.set(currentAnchorGeneration, forKey: anchorGenerationKey)
   }
+
+  // MARK: - The health pairing's reads (ADR-0048, ADR-0049)
+
+  /// The types the pairing reads: only what the shipped build shows. Resting
+  /// heart rate is Phase 3's metric; later phases append theirs. HealthKit
+  /// prompts only for types the person has not yet answered, so each
+  /// addition's first request shows a sheet listing its own type alone.
+  ///
+  /// Nothing here is shared. Every one of these is read-only in HealthKit's
+  /// own terms as far as this app is concerned, and the pairing writes
+  /// nothing anywhere — not to Health, not to the store, not to a cache.
+  private static var pairingReadTypes: Set<HKObjectType> {
+    [HKQuantityType(.restingHeartRate)]
+  }
+
+  /// Fires the system sheet for the pairing's read types, listing only the
+  /// ones not yet answered; silent when every one is.
+  ///
+  /// Deliberately not folded into `requestAuthorization()`: that sheet is the
+  /// app's own beverage type, asked for on the Health context screen and
+  /// again from the Settings toggle, and a person who never turns a pairing
+  /// switch on must never be asked about their heart rate. Only the pairing's
+  /// switch and its one-time offer call this (Phase 3).
+  ///
+  /// Returns nothing and records nothing. A denied read is invisible in
+  /// HealthKit by design — `authorizationStatus(for:)` reports sharing only —
+  /// so there is no answer to keep, and keeping one would be pretending to
+  /// know what the store refuses to say. The next read either returns values
+  /// or it returns none; those are the same state to the pairing.
+  func requestPairingAuthorization() async {
+    guard HKHealthStore.isHealthDataAvailable() else { return }
+    try? await store.requestAuthorization(toShare: [], read: Self.pairingReadTypes)
+  }
+
+  /// Resting heart rate, one value per calendar day that has one, over the
+  /// days of `range` before the day holding `now` — never that day itself
+  /// (`HealthPairing.readWindow`, the pairing's retrospective-only rule made
+  /// structural). Each element carries the day's average in beats per minute
+  /// between the statistic's own start and end — HealthKit's day, anchored on
+  /// the window's first day — so `HealthPairing.nightlyValues(of:for:
+  /// attribution: .dayAfter, calendar:)` files it, by its middle, under the
+  /// night before it. The middle is what makes that robust: which calendar
+  /// HealthKit steps its one-day intervals in is not documented, and a bucket
+  /// drifting by an hour across a clock change still has its middle on the
+  /// right day. Pass the calendar the domain's nights were built with, so
+  /// "today" means the same day on both sides.
+  ///
+  /// The query is HealthKit's own daily statistics — its discrete average,
+  /// which for this type is temporally weighted — anchored on the window's
+  /// first day in one-day steps: the shape the plan names for the quantity
+  /// types, and the one whose cost at a year the owner asked to have measured
+  /// rather than estimated. The measurement is the breadcrumb written after
+  /// every query (`Diagnostics.recordHealthPairingRead`): the metric, the
+  /// window's day count and the wall time, and nothing that came back. No
+  /// query, no breadcrumb — a device without Health, or a range with no day
+  /// before today, returns empty before asking.
+  ///
+  /// Empty means no data. A person who denied the read, one who granted it
+  /// with nothing recorded, a watch that cannot measure it, a night it was
+  /// not worn, a device the data never synced to, a store that threw: one
+  /// state, and this returns the same empty array for every one of them,
+  /// with no error to distinguish them by. The result is the caller's for one
+  /// render; nothing here keeps it. The beverage type's `authorization` is
+  /// not consulted — sharing alcohol samples and reading heart rate are
+  /// separate answers.
+  func restingHeartRate(
+    in range: DateInterval,
+    endingBefore now: Date,
+    calendar: Calendar = .current
+  ) async -> [HealthSample] {
+    await dailyAverages(
+      of: HKQuantityType(.restingHeartRate),
+      unit: .count().unitDivided(by: .minute()),
+      named: "resting heart rate",
+      in: range,
+      endingBefore: now,
+      calendar: calendar
+    )
+  }
+
+  /// One daily statistics query, shared by every *discrete* per-day quantity
+  /// the pairing reads. Adding a metric is a public method above naming its
+  /// type, unit and breadcrumb label — never a second copy of this. Two
+  /// mistakes there are Objective-C exceptions, which the `try?` below cannot
+  /// catch: asking for a discrete average of a cumulative type, and a unit
+  /// the type cannot convert to. The four metrics the plan names are all
+  /// discrete; check the header's comment on the identifier before adding
+  /// one, because the failure is a crash, not an empty array.
+  private func dailyAverages(
+    of type: HKQuantityType,
+    unit: HKUnit,
+    named metric: String,
+    in range: DateInterval,
+    endingBefore now: Date,
+    calendar: Calendar
+  ) async -> [HealthSample] {
+    guard HKHealthStore.isHealthDataAvailable() else { return [] }
+    guard let window = HealthPairing.readWindow(for: range, endingBefore: now, calendar: calendar)
+    else { return [] }
+
+    let descriptor = HKStatisticsCollectionQueryDescriptor(
+      predicate: .quantitySample(
+        type: type,
+        predicate: HKQuery.predicateForSamples(
+          withStart: window.start, end: window.end, options: [.strictStartDate])
+      ),
+      options: .discreteAverage,
+      anchorDate: window.start,
+      intervalComponents: DateComponents(day: 1)
+    )
+
+    let started = ContinuousClock.now
+    let collection = try? await descriptor.result(for: store)
+    let elapsed = ContinuousClock.now - started
+    Diagnostics.recordHealthPairingRead(
+      metric,
+      days: HealthPairing.days(in: window, calendar: calendar),
+      seconds: Double(elapsed.components.seconds)
+        + Double(elapsed.components.attoseconds) / 1e18
+    )
+    guard let collection else { return [] }
+
+    // A day with no sample has no average and contributes nothing — absent,
+    // never zero, which is what the domain's gate counts on.
+    return collection.statistics()
+      .compactMap { statistics -> HealthSample? in
+        guard
+          statistics.startDate < window.end, statistics.endDate > window.start,
+          let average = statistics.averageQuantity()
+        else { return nil }
+        let value = average.doubleValue(for: unit)
+        guard value.isFinite else { return nil }
+        return HealthSample(start: statistics.startDate, end: statistics.endDate, value: value)
+      }
+      .sorted { $0.start < $1.start }
+  }
 }
