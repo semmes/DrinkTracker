@@ -509,9 +509,11 @@ because the switch's caption already does. Ten app keys in, four out (351 →
 357). Verified: 361 domain tests under both SwiftPM build systems (seven new),
 114 integration tests (four new, pinning the inheritance and its one-time
 nature), the CI-form and signed builds with no warning in the changed files,
-and the inheritance on the real build by files on a scratch simulator; what
-tier 3 was and was not done is in CLAUDE.md's Phase 4 bullet — the render
-pass is owed, since that session's simulator grant never came.
+and the inheritance on the real build by files on a scratch simulator. The
+render pass ran later the same day, once the owner granted the simulator:
+every item on the list, the sleep sheet listing sleep alone on a Phase 3
+install, and iOS 27's two-step Health sheet found on the way — CLAUDE.md's
+Phase 4 render bullet.
 
 **Phase 5, HRV.** Larger gate, plainest presentation, possibly wide ranges
 only.
