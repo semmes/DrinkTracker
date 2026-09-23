@@ -68,6 +68,6 @@ enum ComparisonTable {
     )
     .font(.footnote)
     .monospacedDigit()
-    .foregroundStyle(.secondary)
+    .foregroundStyle(.secondaryInk)
   }
 }

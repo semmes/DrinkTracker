@@ -78,7 +78,7 @@ private struct TallyHero: View {
 
       Text("(that's five)")
         .font(.footnote)
-        .foregroundStyle(.tertiary)
+        .foregroundStyle(.tertiaryInk)
         .opacity(drawn ? 1 : 0)
         .animation(
           reduceMotion ? nil : .easeOut(duration: 0.4).delay(1.35),

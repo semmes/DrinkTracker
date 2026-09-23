@@ -39,7 +39,7 @@ struct CardTitle: View {
   var body: some View {
     Text(text)
       .font(GlassTokens.Typography.cardLabel)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       // Three words ("Weekend and weekdays") wrap rather than truncate at the
       // larger type sizes — design-system §3's rule, and the fault that reached
       // the drink sheet as "≈ 1 standard dr…".

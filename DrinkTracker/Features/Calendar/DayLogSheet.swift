@@ -108,7 +108,7 @@ struct DayLogSheet: View {
       if total > 0 {
         Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           // Its own element in this stack, so the label is what VoiceOver
           // speaks — "Approximately 2.6 standard drinks" rather than the "≈"
           // symbol, which has no reading. Composed verbatim because the
@@ -120,7 +120,7 @@ struct DayLogSheet: View {
 
       CounterSeedCaption(seed: seed, includesMinus: !existingDrinks.isEmpty)
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
         .fixedSize(horizontal: false, vertical: true)
@@ -180,7 +180,7 @@ struct DayLogSheet: View {
     VStack(spacing: GlassTokens.Spacing.tight) {
       Label("Recorded as no alcohol", image: DrinkType.Symbol.alcoholFree)
         .font(.subheadline)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
       if markerIsFromHealth {
         // Another app's record, mirrored. Read-only here for the reason an
         // imported drink is (ADR-0014): HealthKit will not let this app
@@ -188,7 +188,7 @@ struct DayLogSheet: View {
         // where it was recorded — or log a drink, which clears it.
         Text("From Apple Health")
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       } else {
         Button("Remove that record") {
           onClearAlcoholFree()

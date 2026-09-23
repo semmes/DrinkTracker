@@ -163,7 +163,7 @@ struct HistoryView: View {
         .monospacedDigit()
     }
     .font(.caption)
-    .foregroundStyle(.secondary)
+    .foregroundStyle(.secondaryInk)
   }
 
   // MARK: - Empty

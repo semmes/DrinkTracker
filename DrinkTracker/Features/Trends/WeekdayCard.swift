@@ -156,7 +156,7 @@ struct WeekdayCard: View {
             .foregroundStyle(.primary)
           Text(daysLine(total))
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)

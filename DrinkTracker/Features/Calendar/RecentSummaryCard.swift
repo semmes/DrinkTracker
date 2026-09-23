@@ -51,7 +51,7 @@ struct RecentSummaryCard: View {
   private var title: some View {
     heading.titleText
       .font(GlassTokens.Typography.cardLabel)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       .fixedSize(horizontal: false, vertical: true)
   }
 
@@ -60,7 +60,7 @@ struct RecentSummaryCard: View {
     if heading.showsDayCount {
       Text(RecentSummaryCaptions.dayCount(summary.dayCount))
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
     }
   }
@@ -106,7 +106,7 @@ struct RecentSummaryFigures: View {
       if let unlogged = RecentSummaryCaptions.unlogged(summary.daysUnlogged) {
         Text(unlogged)
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .fixedSize(horizontal: false, vertical: true)
       }
     }
@@ -128,7 +128,7 @@ struct RecentSummaryFigures: View {
         .contentTransition(.opacity)
       Text(label)
         .font(GlassTokens.Typography.cardLabel)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity, alignment: .leading)

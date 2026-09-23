@@ -58,9 +58,14 @@ struct SettingsView: View {
       }
       .pickerStyle(.segmented)
       .padding(GlassTokens.Spacing.tight)
-      // interactive: the same rule as the toggle below — a control on
-      // non-interactive glass can lose its taps.
-      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+      // Plain glass, never interactive: on iOS 27 an interactive glass surface
+      // takes a segmented control's taps for itself — the owner's device report of
+      // 2026-09-22, reproduced on the iOS 27 simulator, where plain glass, glass
+      // drawn behind the control and no glass all switched on one tap, as all four
+      // did on iOS 26.5. The rule this used to cite, that a control on
+      // non-interactive glass loses taps, came from synthetic taps, which flip no
+      // Toggle on any glass.
+      .glassSurface(cornerRadius: GlassTokens.Radius.control)
     }
   }
 
@@ -85,9 +90,14 @@ struct SettingsView: View {
       }
       .pickerStyle(.segmented)
       .padding(GlassTokens.Spacing.tight)
-      // interactive: the same rule as the toggle below — a control on
-      // non-interactive glass can lose its taps.
-      .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+      // Plain glass, never interactive: on iOS 27 an interactive glass surface
+      // takes a segmented control's taps for itself — the owner's device report of
+      // 2026-09-22, reproduced on the iOS 27 simulator, where plain glass, glass
+      // drawn behind the control and no glass all switched on one tap, as all four
+      // did on iOS 26.5. The rule this used to cite, that a control on
+      // non-interactive glass loses taps, came from synthetic taps, which flip no
+      // Toggle on any glass.
+      .glassSurface(cornerRadius: GlassTokens.Radius.control)
     }
   }
 
@@ -153,7 +163,7 @@ struct SettingsView: View {
               Divider()
               Text("Compare with")
                 .font(.footnote.weight(.medium))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.secondaryInk)
               Picker("Compare with", selection: $settings.comparisonColumn) {
                 Text("All adults").tag(PopulationReference.Column.allAdults)
                 Text("Men").tag(PopulationReference.Column.men)
@@ -299,7 +309,7 @@ struct SettingsView: View {
             .foregroundStyle(.primary)
         } icon: {
           Image(systemName: iCloudStatusSymbol)
-            .foregroundStyle(iCloudStatusIsHealthy ? Color.accentColor : Color.secondary)
+            .foregroundStyle(iCloudStatusIsHealthy ? Color.accentColor : Color.secondaryInk)
         }
         Spacer()
       }
@@ -409,7 +419,7 @@ struct SettingsView: View {
   }
 
   private var healthStatusColor: Color {
-    health.authorization == .authorized ? .accentColor : .secondary
+    health.authorization == .authorized ? .accentColor : .secondaryInk
   }
 
   private var healthFootnote: LocalizedStringKey {
@@ -546,7 +556,7 @@ struct SettingsView: View {
     VStack(alignment: .leading, spacing: 1) {
       Text(label)
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
       Text(value)
         .font(.caption.monospaced())
         .foregroundStyle(.primary)
@@ -563,7 +573,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Text("Tallyist keeps a record of what you drink so you can see your own pattern. It doesn't set goals, keep streaks, or offer advice.")
             .font(GlassTokens.Typography.supporting)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
             .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -589,7 +599,7 @@ struct SettingsView: View {
             Spacer()
             Image(systemName: "arrow.up.right")
               .font(.footnote.weight(.semibold))
-              .foregroundStyle(.secondary)
+              .foregroundStyle(.secondaryInk)
           }
           .padding(.horizontal, GlassTokens.Spacing.cardPadding)
           .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
@@ -616,7 +626,7 @@ struct SettingsView: View {
         Spacer()
         Image(systemName: "chevron.right")
           .font(.footnote.weight(.semibold))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
       .padding(.horizontal, GlassTokens.Spacing.cardPadding)
       .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
@@ -667,7 +677,7 @@ private struct ComparisonToggle<Accessory: View>: View {
             .foregroundStyle(.primary)
           Text(source)
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
             .fixedSize(horizontal: false, vertical: true)
         }
       }
@@ -678,9 +688,13 @@ private struct ComparisonToggle<Accessory: View>: View {
 
       accessory
     }
-    // interactive: a control on non-interactive glass loses taps — the rule
-    // every tappable control in the app follows.
-    .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+    // Plain glass, never interactive: the "Compare with" picker this card can
+    // carry loses its taps to an interactive surface on iOS 27 (the owner's device
+    // report of 2026-09-22; the range picker in TrendsView has the measurement).
+    // The rule this used to cite — a control on non-interactive glass loses taps —
+    // came from synthetic taps, which flip no Toggle on any glass; the switch
+    // takes a drag on both simulators and a tap on hardware either way.
+    .glassSurface(cornerRadius: GlassTokens.Radius.control)
   }
 }
 
@@ -702,7 +716,7 @@ private struct SettingsSection<Content: View>: View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
       Text(title)
         .font(.footnote.weight(.medium))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .textCase(.uppercase)
 
       content
@@ -710,7 +724,7 @@ private struct SettingsSection<Content: View>: View {
       if let footnote {
         Text(footnote)
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .fixedSize(horizontal: false, vertical: true)
       }
     }
@@ -732,12 +746,12 @@ private struct RegionRow: View {
             .foregroundStyle(.primary)
           Text(subtitle)
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
         }
         Spacer()
         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
           .font(.title3)
-          .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+          .foregroundStyle(isSelected ? Color.accentColor : Color.secondaryInk)
       }
       .padding(.horizontal, GlassTokens.Spacing.cardPadding)
       .frame(minHeight: 60)

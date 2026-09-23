@@ -41,7 +41,7 @@ struct TodayDrinkRow: View {
         VStack(alignment: .leading, spacing: 1) {
           title
             .font(.callout)
-            .foregroundStyle(drink.recordsSizeAndStrength ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+            .foregroundStyle(drink.recordsSizeAndStrength ? AnyShapeStyle(.primary) : AnyShapeStyle(Color.secondaryInk))
           subtitle
             .font(.caption)
         }
@@ -52,13 +52,13 @@ struct TodayDrinkRow: View {
       HStack(spacing: GlassTokens.Spacing.tight) {
         Text(drink.loggedAt.formatted(date: .omitted, time: .shortened))
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .monospacedDigit()
 
         if isTappable {
           Image(systemName: "chevron.right")
             .font(.caption2.weight(.semibold))
-            .foregroundStyle(.tertiary)
+            .foregroundStyle(.tertiaryInk)
         }
       }
       .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
@@ -86,7 +86,7 @@ struct TodayDrinkRow: View {
   /// Secondary rather than the drawn 40%-black: that value measures 2.14:1 and
   /// falls under the 3:1 floor for a meaningful glyph.
   private var iconStyle: AnyShapeStyle {
-    drink.recordsSizeAndStrength ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary)
+    drink.recordsSizeAndStrength ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(Color.secondaryInk)
   }
 
   /// `Text`, not a key, for the same reason `DrinkRow` gives: one branch is a
@@ -108,7 +108,7 @@ struct TodayDrinkRow: View {
   private var subtitle: some View {
     if drink.recordsSizeAndStrength {
       Text(verbatim: "\(LoggedDrink.displayOunces(drink.volumeOunces))oz · \(LoggedDrink.displayPercent(drink.abvPercent))%")
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     } else if let counted = drink.countedDrinks {
       // Read-only mirror of another app's row: there is nothing to add here,
       // so it must not offer to (ADR-0014, ADR-0016).
@@ -117,7 +117,7 @@ struct TodayDrinkRow: View {
       // for the impossible branch puts an *empty key* in the catalog, which is
       // what the first sync of this file actually produced.
       Text(countedLine(counted))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     } else {
       // The one row that invites a tap, so the one row whose subtitle is an
       // action rather than a fact. Accent, because it is the affordance.

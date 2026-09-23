@@ -591,6 +591,28 @@ CI-form and signed builds with no new warning in the changed files, the
 catalog synced from a fresh full build and diffed, and tier 3 on the scratch
 simulator — CLAUDE.md's Phase 6 bullet has the list.*
 
+*The owner's first device pass of the four rows, 2026-09-22 (ADR-0048,
+ADR-0050 and ADR-0051 amended; CLAUDE.md's bullet "The owner's device pass
+of the four rows…" has the list). Four findings on an iPhone running iOS
+27. **The floor follows the range:** the prompt and the rows appeared only
+at Quarter and Year, because one floor of fourteen was more than Week's
+five countable nights or Month's twenty-eight could hold twice; the
+owner's ruling — show it on all options, provided we have the data — made
+the floor per range, two a bucket at Week, seven at Month, fourteen at
+Quarter and Year (`PairedFigures.minimumNights(at:)`), read by the offer,
+the read, the table and the ask alike; rule 3 holds at every range, and
+the noise a two-night mean carries is accepted and stated in the ADR, not
+on the card. Heart rate variability keeps ADR-0052. The line above, "the
+row at Quarter and Year, nothing at Week and Month", and the Phase 4 note's
+"never over Week" describe the code before this. **The card's secondary
+ink** was 2.48:1 in dark mode on iOS 27 — the hierarchical `.secondary`
+style is vibrant on glass, and this app's dark ground is black — so every
+text in the app target takes the flat semantic colour now (design-system
+§2). **The range picker is native** (it had missed single taps on
+hardware; design-system §6). **The watch app** was not installed with the
+phone build — a development install's behaviour, not the project's;
+CLAUDE.md's bullet says what to do.*
+
 **Phase 7, release.** Below.
 
 ---

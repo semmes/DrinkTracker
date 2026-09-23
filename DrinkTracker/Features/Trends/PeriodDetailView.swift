@@ -32,13 +32,13 @@ struct PeriodDetailView: View {
         VStack(alignment: .leading, spacing: 2) {
           Label("Recorded as no alcohol", image: DrinkType.Symbol.alcoholFree)
             .font(.subheadline)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
           // The same disclosure the day sheet and Today make (ADR-0025): a
           // third surface showing the marker must say where it came from.
           if fromHealth {
             Text("From Apple Health")
               .font(.footnote)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(.secondaryInk)
           }
         }
         .accessibilityElement(children: .combine)
@@ -48,7 +48,7 @@ struct PeriodDetailView: View {
         // alcohol (ADR-0006).
         Text(DayIntensity.unlogged.legendKey)
           .font(.subheadline)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       case nil:
         RecentSummaryFigures(summary: detail.summary, region: region)
       }
@@ -76,14 +76,14 @@ struct PeriodDetailView: View {
       if isToday {
         Text("Today")
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
       // A bucket names its day count, as the calendar card does, so the
       // three day-figures below stay checkable against it.
       if detail.unit != .day {
         Text(RecentSummaryCaptions.dayCount(detail.summary.dayCount))
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
     }
     .fixedSize(horizontal: false, vertical: true)
@@ -145,7 +145,7 @@ struct PeriodDetailView: View {
         .contentTransition(.opacity)
       Text(verbatim: region.unitName(for: detail.standardDrinks))
         .font(GlassTokens.Typography.cardLabel)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text(verbatim: StandardDrink.amountPhrase(detail.standardDrinks, region: region)))
@@ -179,7 +179,7 @@ struct PeriodDetailView: View {
           if case .type = share.kind {
             Self.countCaption(share.count)
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(.secondaryInk)
           }
         }
       }
@@ -188,7 +188,7 @@ struct PeriodDetailView: View {
       }
       Text(verbatim: StandardDrink.amountPhrase(share.standardDrinks, region: region))
         .font(.callout.weight(.medium).monospacedDigit())
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -284,12 +284,12 @@ struct PeriodReadout: View {
     if detail.unit != .day {
       Text(RecentSummaryCaptions.dayCount(detail.summary.dayCount))
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize()
     } else if isToday {
       Text("Today")
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize()
     }
   }
@@ -314,7 +314,7 @@ struct PeriodReadout: View {
       // same. Not "no drinks": an unlogged day is not a day without alcohol.
       Text(DayIntensity.unlogged.legendKey)
         .font(GlassTokens.Typography.cardValue)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .contentTransition(.opacity)
     case .alcoholFree?, .drinks?, nil:
       HStack(alignment: .firstTextBaseline, spacing: 5) {
@@ -327,7 +327,7 @@ struct PeriodReadout: View {
           .contentTransition(.opacity)
         Text(verbatim: region.unitName(for: detail.standardDrinks))
           .font(GlassTokens.Typography.cardLabel)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
     }
   }
@@ -348,7 +348,7 @@ struct PeriodReadout: View {
     case .drinks?:
       PeriodDetailView.countCaption(entryCount)
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     case .alcoholFree(let fromHealth)?:
       // ADR-0025: every surface showing the marker says where it came from.
       HStack(spacing: 4) {
@@ -359,7 +359,7 @@ struct PeriodReadout: View {
         }
       }
       .font(.caption2)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
     case .unlogged?:
       EmptyView()
     case nil:
@@ -413,7 +413,7 @@ struct PeriodReadout: View {
       .monospacedDigit()
       .foregroundStyle(.primary)
       + Text(verbatim: " ")
-      + Text(caption).font(.caption2).foregroundStyle(.secondary))
+      + Text(caption).font(.caption2).foregroundStyle(.secondaryInk))
       .fixedSize(horizontal: false, vertical: true)
   }
 

@@ -73,11 +73,11 @@ private struct SupportingLine: View {
     HStack(alignment: .firstTextBaseline, spacing: GlassTokens.Spacing.tight) {
       Image(systemName: symbol)
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .frame(width: 18)
       Text(text)
         .font(GlassTokens.Typography.supporting)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
     }
     .accessibilityElement(children: .combine)

@@ -78,7 +78,7 @@ struct OnboardingProgressDots: View {
     HStack(spacing: 6) {
       ForEach(0..<3, id: \.self) { index in
         Capsule()
-          .fill(index == current ? Color.accentColor : Color.secondary.opacity(0.35))
+          .fill(index == current ? Color.accentColor : Color.secondaryInk.opacity(0.35))
           .frame(width: index == current ? 24 : 8, height: 8)
       }
     }
@@ -129,7 +129,7 @@ struct OnboardingSubtext: View {
   var body: some View {
     Text(text)
       .font(.body)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       .fixedSize(horizontal: false, vertical: true)
   }
 }

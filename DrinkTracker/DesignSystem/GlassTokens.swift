@@ -3,9 +3,14 @@ import SwiftUI
 /// Layout and type tokens for the app.
 ///
 /// Colors are deliberately absent: everything draws from the system semantic
-/// colors (`.primary`, `.secondary`, `Color.accentColor`) so the app inherits
-/// Liquid Glass's automatic light/dark and vibrancy behaviour instead of
-/// freezing a palette that would fight it.
+/// colors (`.primary`, `.secondaryInk`, `.tertiaryInk`, `Color.accentColor`)
+/// so the app inherits Liquid Glass's automatic light/dark behaviour instead
+/// of freezing a palette that would fight it. The two ink tokens at the end of
+/// this file are the system's secondary and tertiary label colours as flat
+/// colours rather than the hierarchical `.secondary` and `.tertiary` styles,
+/// for one measured reason: on glass the hierarchical styles are vibrant, and
+/// against this app's black dark ground that made every card title and
+/// caption 2.5:1.
 enum GlassTokens {
 
   enum Spacing {
@@ -87,4 +92,27 @@ extension View {
   func screenMargin() -> some View {
     padding(.horizontal, GlassTokens.Spacing.screenMargin)
   }
+}
+
+// MARK: - Ink
+
+extension ShapeStyle where Self == Color {
+  /// Secondary ink for text: the system's `secondaryLabel` as a flat colour,
+  /// never the hierarchical `.secondary` style. On glass the hierarchical
+  /// styles are drawn with vibrancy, and against this app's dark ground — the
+  /// black grouped background — there is nothing for them to be vibrant
+  /// against. Measured on the iOS 27 simulator on 2026-09-22 (the owner's
+  /// device report, `docs/design-system.md` §2): a card title in `.secondary`
+  /// rendered #4D4D4D on the card's black, 2.48:1, where the same style
+  /// outside a card rendered #8C8C92, 6.28:1; in light, 2.85:1 inside against
+  /// 3.54:1 outside. The flat semantic colour is exactly what `.secondary`
+  /// resolves to off glass, so nothing off glass changes; on glass it reads
+  /// as it does beside the glass. It still follows light and dark, Increase
+  /// Contrast and every other system setting — only the vibrancy goes. A
+  /// tier-2 test (`InkTests`) keeps the hierarchical styles out of the app
+  /// target's text.
+  static var secondaryInk: Color { Color(.secondaryLabel) }
+
+  /// Tertiary ink, by the same rule: `tertiaryLabel`, flat.
+  static var tertiaryInk: Color { Color(.tertiaryLabel) }
 }

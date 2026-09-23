@@ -398,6 +398,16 @@ in Diagnostics at Year. This read is made at Quarter and Year only, and only
 once the log clears twenty-eight nights in each bucket, so at Month there is
 no line for it at all (nothing is read for a row that cannot show).*
 
+*Week and Month, 2026-09-22 (the owner's device pass; ADR-0048's amendment of
+that date). The floor follows the range now, so the reads happen at Week and
+Month too, over their own windows: on the same simulator, at Week, `resting
+heart rate · 6 days · 0.13 s · app · 09-22 21:38:38` — the first read of the
+launch, which carries the store's setup — beside `sleep · 6 days · 0.01 s`;
+and no line for heart rate variability at either range, which keeps to
+Quarter and Year. A six-day window is the smallest the pairing makes (seven,
+less today), so this is the floor of the floor; the owner's phone gives the
+real one.*
+
 Two limits on that line, so it does not become the thing the plan forbids:
 
 - **It carries a duration and the range it covers, and nothing else.** Not a

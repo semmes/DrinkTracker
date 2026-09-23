@@ -58,7 +58,7 @@ struct PlusModePill: View {
 
       CounterSeedCaption(seed: seed)
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
         .fixedSize(horizontal: false, vertical: true)
@@ -98,7 +98,7 @@ struct PlusModePill: View {
         // its asset name (ADR-0036).
         Image(decorative: symbol)
           .font(.caption)
-          .foregroundStyle(isSelected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
+          .foregroundStyle(isSelected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(Color.secondaryInk))
         label
           .font(.subheadline.weight(isSelected ? .semibold : .regular))
           .foregroundStyle(.primary)

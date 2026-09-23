@@ -190,12 +190,12 @@ struct SourceDisclosure<Note: View>: View {
       HStack(spacing: GlassTokens.Spacing.tight) {
         Text(sources)
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .multilineTextAlignment(.leading)
         Spacer()
         Image(systemName: "chevron.down")
           .font(.caption2.weight(.semibold))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .rotationEffect(.degrees(isExpanded ? 180 : 0))
       }
       .contentShape(.rect)
@@ -210,7 +210,7 @@ struct SourceDisclosure<Note: View>: View {
         note()
       }
       .font(.caption)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       .fixedSize(horizontal: false, vertical: true)
     }
   }

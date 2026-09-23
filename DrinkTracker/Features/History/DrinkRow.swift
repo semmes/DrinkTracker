@@ -24,14 +24,14 @@ struct DrinkRow: View {
           .foregroundStyle(.primary)
         Text(detail)
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
 
       Spacer()
 
       Text(StandardDrink.formatted(drink.standardDrinks(in: region)))
         .font(.callout.weight(.medium).monospacedDigit())
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     }
     .padding(.vertical, 4)
     .accessibilityElement(children: .combine)

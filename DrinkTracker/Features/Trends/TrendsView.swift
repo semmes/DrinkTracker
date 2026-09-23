@@ -154,18 +154,19 @@ struct TrendsView: View {
         // the second read cheaper than the first (ADR-0049). With every switch
         // off the model is cleared, so nothing is drawn from a stale read.
         // Before the first read of a visit that could show a row — the log
-        // clearing a metric's own floor, so never over Week, where nothing
-        // can, and never for heart rate variability before its larger floor
-        // is met — a switched-on type that has never been asked for gets its
-        // sheet here, beside the table it feeds, and only for the metrics
-        // whose switches are on at this range: how a metric that arrived
-        // switched on (Phase 4's sleep, Phase 5's heart rate variability, for
-        // anyone who accepted the offer) is asked for (the design's decision
-        // 1, ADR-0051, ADR-0052).
+        // clearing a metric's own floor at this range (two nights a bucket
+        // at Week, seven at Month, fourteen at Quarter and Year; heart rate
+        // variability's twenty-eight where it is shown) — a switched-on type
+        // that has never been asked for gets its sheet here, beside the
+        // table it feeds, and only for the metrics whose switches are on at
+        // this range: how a metric that arrived switched on (Phase 4's
+        // sleep, Phase 5's heart rate variability, for anyone who accepted
+        // the offer) is asked for (the design's decision 1, ADR-0051,
+        // ADR-0052; the floors, ADR-0048's 2026-09-22 amendment).
         .task(id: pairingRead(for: snapshot)) {
           if let read = pairingRead(for: snapshot) {
             let askable = read.metrics.filter {
-              read.request.buckets.clearsGate(minimumNights: $0.minimumNights)
+              read.request.buckets.clearsGate(minimumNights: $0.minimumNights(at: read.request.range))
             }
             let unasked = askable.subtracting(askedPairingMetrics)
             if !unasked.isEmpty {
@@ -386,18 +387,42 @@ struct TrendsView: View {
 
   // MARK: - Range picker
 
+  /// The four ranges as a native segmented control on plain glass —
+  /// the shape the calendar's window picker and Settings' three pickers
+  /// already take, for ADR-0026's reasons (a button and a selected trait for
+  /// VoiceOver, titles the catalog sees, a height that follows Dynamic Type)
+  /// and for the owner's device report of 2026-09-22: the ComponentsKit
+  /// control this replaced was a row of `Text`s with tap gestures, and on
+  /// hardware it missed single taps. The Picker's title is its VoiceOver
+  /// label; the segmented style hides it.
   private var rangePicker: some View {
-    SUSegmentedControl(
-      selectedId: rangeBinding,
-      model: SegmentedControlVM<TrendRange> {
-        $0.items = TrendRange.allCases.map { range in
-          SegmentedControlItemVM(id: range) { $0.title = range.title }
-        }
-        $0.isFullWidth = true
-        $0.size = .medium
-        $0.color = .accent
+    Picker("Range", selection: rangeBinding) {
+      ForEach(TrendRange.allCases) { range in
+        rangeTitle(range).tag(range)
       }
-    )
+    }
+    .pickerStyle(.segmented)
+    .padding(GlassTokens.Spacing.tight)
+    // Plain glass, never interactive: on iOS 27 an interactive glass surface
+    // takes a segmented control's taps for itself — the owner's device report of
+    // 2026-09-22, reproduced on the iOS 27 simulator, where plain glass, glass
+    // drawn behind the control and no glass all switched on one tap, as all four
+    // did on iOS 26.5. The rule this used to cite, that a control on
+    // non-interactive glass loses taps, came from synthetic taps, which flip no
+    // Toggle on any glass.
+    .glassSurface(cornerRadius: GlassTokens.Radius.control)
+  }
+
+  /// The range's name as a catalog key. `TrendRange.title` is a `String` the
+  /// package prints, and `Text(String)` is the verbatim initializer — the
+  /// four names never reached the catalog through the old control.
+  private func rangeTitle(_ range: TrendRange) -> Text {
+    switch range {
+    case .week: Text("Week")
+    case .month: Text("Month")
+    case .quarter: Text("Quarter")
+    case .year: Text("Year")
+    }
   }
 
   // MARK: - Chart
@@ -500,7 +525,7 @@ struct TrendsView: View {
           .contentTransition(.opacity)
         rangeCaption(snapshot)
           .font(GlassTokens.Typography.cardLabel)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .fixedSize(horizontal: false, vertical: true)
       }
       .padding(.top, 5)
@@ -511,7 +536,7 @@ struct TrendsView: View {
       // selection needs the short dwell that begins a scrub.
       Text("Tip: drag across the bars to see what each one holds")
         .font(.caption2)
-        .foregroundStyle(.tertiary)
+        .foregroundStyle(.tertiaryInk)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 6)
     }
@@ -535,7 +560,7 @@ struct TrendsView: View {
   private func idleTitleRow(_ snapshot: Snapshot) -> some View {
     let title = Text(chartTitle)
       .font(GlassTokens.Typography.cardLabel)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       .fixedSize(horizontal: false, vertical: true)
       .layoutPriority(1)
 
@@ -571,13 +596,13 @@ struct TrendsView: View {
     HStack(spacing: 6) {
       DashedRule()
         .stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 4]))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .frame(width: 14, height: 1)
       (Text(averageLineLabel)
         + Text(verbatim: " · ")
         + Text(verbatim: StandardDrink.formatted(value)))
         .font(.caption2)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     }
     // Vertical only: the legend yields width to the title beside it and wraps
     // rather than taking its full width first (see `idleTitleRow`).
@@ -636,7 +661,7 @@ struct TrendsView: View {
       if let lineValue = averageLineValue(snapshot) {
         RuleMark(y: .value("Average", lineValue))
           .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
     }
     // Tap selects, drag scrubs; the value is the continuous x under the
@@ -895,7 +920,7 @@ struct TrendsView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Text("Days with no drinks logged")
             .font(GlassTokens.Typography.cardLabel)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
 
           Text("\(snapshot.restDays) of \(snapshot.totals.count)")
             .font(GlassTokens.Typography.cardValue)
@@ -915,7 +940,7 @@ struct TrendsView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Text("Longest run with none")
             .font(GlassTokens.Typography.cardLabel)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
 
           runFigure(snapshot.longestAlcoholFreeRun)
             .font(GlassTokens.Typography.cardValue)
@@ -967,7 +992,7 @@ private struct StatCard: View {
           .foregroundStyle(.primary)
         Text(label)
           .font(GlassTokens.Typography.cardLabel)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .fixedSize(horizontal: false, vertical: true)
       }
       .frame(maxWidth: .infinity, alignment: .leading)

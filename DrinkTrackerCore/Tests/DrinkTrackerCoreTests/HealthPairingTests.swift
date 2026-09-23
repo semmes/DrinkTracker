@@ -571,6 +571,58 @@ struct HealthPairingTests {
     #expect(HealthPairing.figures(oneSided, values: made.values, minimumNights: 0) == nil)
   }
 
+  /// The floor at each range (ADR-0048's 2026-09-22 amendment): the base at
+  /// Quarter and Year, two a bucket at Week and seven at Month — and, at
+  /// Week, exactly what its five countable nights can hold twice. A seven-day
+  /// range ending on the 22nd, read on the 22nd: the evenings of the 16th
+  /// through the 20th count (the 21st's day after is the 22nd, still
+  /// running), and two drink nights with two marked nights among them clear
+  /// the floor, where one marked night does not and the base floor never
+  /// could. The means are over those two nights each.
+  @Test("The floor scales to the range: two a bucket at Week, seven at Month, fourteen at Quarter and Year")
+  func floorFollowsTheRange() {
+    let cal = utc
+    #expect(PairedFigures.minimumNights(at: .week) == 2)
+    #expect(PairedFigures.minimumNights(at: .month) == 7)
+    #expect(PairedFigures.minimumNights(at: .quarter) == PairedFigures.minimumNights)
+    #expect(PairedFigures.minimumNights(at: .year) == PairedFigures.minimumNights)
+    #expect(PairedFigures.minimumNights(at: .week) * 2 <= 5)
+
+    let today = at(2026, 9, 22, in: cal)
+    let first = TrendRange.week.startDate(endingOn: today, calendar: cal)
+    let list = HealthPairing.nights(
+      from: first, through: today, completeBy: today.addingTimeInterval(hours(10)), calendar: cal)
+    #expect(list.count == 5)
+    #expect(list.first?.evening == at(2026, 9, 16, in: cal))
+    #expect(list.last?.evening == at(2026, 9, 20, in: cal))
+
+    // Drinks on the 18th and 19th; the 16th and 17th recorded as no alcohol.
+    let drinks = [beer(at: at(2026, 9, 18, 21, in: cal)), beer(at: at(2026, 9, 19, 22, in: cal))]
+    let twoMarked = [at(2026, 9, 16, in: cal), at(2026, 9, 17, in: cal)]
+    let buckets = HealthPairing.buckets(list, drinks: drinks, alcoholFreeDays: twoMarked, calendar: cal)
+    #expect(buckets.clearsGate(minimumNights: PairedFigures.minimumNights(at: .week)))
+    #expect(buckets.clearsGate() == false)
+    let values = [
+      NightValue(night: at(2026, 9, 16, in: cal), value: 56),
+      NightValue(night: at(2026, 9, 17, in: cal), value: 58),
+      NightValue(night: at(2026, 9, 18, in: cal), value: 61),
+      NightValue(night: at(2026, 9, 19, in: cal), value: 63),
+    ]
+    let figures = HealthPairing.figures(
+      buckets, values: values, minimumNights: PairedFigures.minimumNights(at: .week))
+    #expect(figures?.drinks == PairedFigures.Figure(average: 62, nights: 2))
+    #expect(figures?.noDrinks == PairedFigures.Figure(average: 57, nights: 2))
+    #expect(HealthPairing.figures(buckets, values: values) == nil)
+
+    // One marked night short: nothing, at the Week floor too.
+    let oneMarked = HealthPairing.buckets(
+      list, drinks: drinks, alcoholFreeDays: [at(2026, 9, 16, in: cal)], calendar: cal)
+    #expect(oneMarked.clearsGate(minimumNights: PairedFigures.minimumNights(at: .week)) == false)
+    #expect(
+      HealthPairing.figures(
+        oneMarked, values: values, minimumNights: PairedFigures.minimumNights(at: .week)) == nil)
+  }
+
   /// Heart rate variability's floor (ADR-0052): twice the base, and the row
   /// hidden one night short on either side, over a log the base floor would
   /// show — so the absence is the floor's doing, not the data's. Twenty-eight

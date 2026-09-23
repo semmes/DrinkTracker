@@ -149,7 +149,7 @@ struct DrinkTypePicker: View {
         Spacer()
         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
           .font(.title3)
-          .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+          .foregroundStyle(isSelected ? Color.accentColor : Color.secondaryInk)
       }
       .padding(.horizontal, GlassTokens.Spacing.cardPadding)
       .frame(maxWidth: .infinity, minHeight: 60)
@@ -168,6 +168,6 @@ struct DrinkTypePicker: View {
   private func glyph(_ type: DrinkType, isSelected: Bool) -> some View {
     Image(decorative: type.symbolName)
       .font(.body)
-      .foregroundStyle(isSelected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
+      .foregroundStyle(isSelected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(Color.secondaryInk))
   }
 }

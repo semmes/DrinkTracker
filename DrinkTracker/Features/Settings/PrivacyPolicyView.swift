@@ -121,7 +121,7 @@ struct PrivacyPolicyView: View {
             .font(.body)
           Text("Last updated September 3, 2026.")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
         }
       }
       .screenMargin()
@@ -136,7 +136,7 @@ struct PrivacyPolicyView: View {
       SectionLabel(title)
       Text(text)
         .font(GlassTokens.Typography.supporting)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
     }
   }
