@@ -263,3 +263,21 @@ The switch keeps "Weekend and weekdays". The rule above — one card per switch,
 titled with the switch's words — holds for the first two and is recorded here
 as having one exception, taken by the owner; ADR-0032's same-day amendment
 has the change and the measurements.
+
+---
+
+### Note (2026-09-23) — the Settings footnote, in plainer words
+
+The owner asked for the section's footnote without em dashes and in more
+natural language, so it no longer uses the card notes' words (the Trends notes
+keep theirs). It still says what the figures are and are not, and its two forms
+still split as the Decision has them: "Your figures are compared on this device
+with published US statistics built into the app, never with data from other
+Tallyist users." Then, while the weekly average is on, what Compare with picks,
+ADR-0039's "a choice of reference, not a question about you, and it stays on
+this device" word for word, and that the other two sources publish figures for
+all adults only. While it is off, "A comparison that's off doesn't appear on
+Trends or the year view." One claim changed shape on purpose: "nothing about
+your log leaves this device" was true of a comparison but reads, alone, as
+untrue of a log that syncs to iCloud, so the sentence now says where the
+comparing happens. `docs/copy-review-1.4.3.md` has both forms.
