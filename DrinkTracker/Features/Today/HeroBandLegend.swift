@@ -45,7 +45,7 @@ struct HeroBandLegend: View {
         // the inactive labels to 45%, which over secondary composites to about
         // a quarter alpha at 11pt — hierarchy by thinning ink is the one thing
         // design-system.md §3 rules out.
-        .foregroundStyle(isActive ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+        .foregroundStyle(isActive ? AnyShapeStyle(.primary) : AnyShapeStyle(Color.secondaryInk))
         .monospacedDigit()
     }
     // One element per band, so VoiceOver reads "1–2, selected" rather than a

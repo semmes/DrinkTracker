@@ -233,7 +233,7 @@ struct TodayView: View {
 
       Text(todaysEntries.count == 1 ? "drink today" : "drinks today")
         .font(.subheadline)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .accessibilityHidden(true)
 
       // The precise figure, one line down. Reads "≈ 2.6 standard drinks" — or
@@ -244,7 +244,7 @@ struct TodayView: View {
       if total > 0 {
         Text(verbatim: StandardDrink.liveEstimate(total, region: settings.effectiveRegion))
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           // Its own element in this stack, so the label is what VoiceOver
           // speaks — "Approximately 2.6 standard drinks" rather than the "≈"
           // symbol, which has no reading. Composed verbatim because the
@@ -321,11 +321,11 @@ struct TodayView: View {
 
       Text("drinks today")
         .font(.subheadline)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
 
       Text("Today's drinks couldn't be read.")
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .multilineTextAlignment(.center)
     }
     .frame(maxWidth: .infinity)
@@ -488,14 +488,14 @@ struct TodayView: View {
     VStack(spacing: GlassTokens.Spacing.tight) {
       Label("Recorded as no alcohol today", image: DrinkType.Symbol.alcoholFree)
         .font(.subheadline)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
       if isTodayMarkedFromHealth {
         // Mirrored from another app, so read-only here — same as the day
         // sheet, same reason as an imported drink (ADR-0014). Logging a
         // drink still clears it.
         Text("From Apple Health")
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       } else {
         // No "Remove that record" here (owner's review, 2026-09-08 —
         // ADR-0034 amendment): ＋ is the way back. A logged drink clears the
@@ -505,7 +505,7 @@ struct TodayView: View {
         // sheet keeps its link.
         Text("Tap the plus sign to change that.")
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
     }
     .frame(maxWidth: .infinity)
@@ -639,7 +639,7 @@ struct TodayView: View {
             ? "Tap a drink to say what it was — left alone it counts as one standard drink."
             : "Tap a drink to change what it was.")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
             .listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
         }
@@ -657,7 +657,7 @@ struct TodayView: View {
     stack {
       Text("Logged today")
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         // Explicit, because this is a row rather than a `header:` — see the
         // note where it is placed. A plain `Text` in a list carries no header
         // trait, so rotor navigation would lose the only landmark on Today.
@@ -746,7 +746,7 @@ struct TodayView: View {
       HStack(spacing: GlassTokens.Spacing.tight) {
         Text(current.summaryLine)
           .font(.footnote)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
         Button("Edit") {
           draft = DrinkDraft(editing: current)
         }

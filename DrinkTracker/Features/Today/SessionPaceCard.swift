@@ -82,7 +82,7 @@ struct SessionPaceCard: View {
         Text(lastDrinkLine(session.lastDrinkAt, now: now))
       }
       .font(.subheadline)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
 
       if rolling >= SessionPace.rollingDisplayMinimum {
         rollingChip(rolling, band: paceBand(now: now))

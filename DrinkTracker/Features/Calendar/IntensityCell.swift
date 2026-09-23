@@ -117,7 +117,7 @@ struct IntensityLegend: View {
           swatch(intensity)
           Text(intensity.legendKey)
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
         }
         .accessibilityElement(children: .combine)
       }

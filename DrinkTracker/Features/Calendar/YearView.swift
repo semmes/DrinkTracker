@@ -70,7 +70,7 @@ struct YearView: View {
             // the card below names how many days that is.
             Text("Blank days are days without a record, not days without alcohol.")
               .font(.caption)
-              .foregroundStyle(.secondary)
+              .foregroundStyle(.secondaryInk)
               .frame(maxWidth: .infinity, alignment: .leading)
               .fixedSize(horizontal: false, vertical: true)
 
@@ -260,7 +260,7 @@ private struct MiniMonth: View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
       Text(grid.month.formatted(.dateTime.month(.abbreviated)))
         .font(.caption.weight(.semibold))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
 
       LazyVGrid(
         columns: Array(repeating: GridItem(.fixed(side), spacing: spacing), count: 7),

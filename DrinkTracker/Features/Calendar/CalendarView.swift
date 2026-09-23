@@ -523,7 +523,7 @@ struct CalendarView: View {
       ForEach(Array(orderedWeekdaySymbols.enumerated()), id: \.offset) { _, symbol in
         Text(symbol)
           .font(.caption.weight(.medium))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .frame(maxWidth: .infinity)
       }
     }
@@ -594,7 +594,7 @@ struct CalendarView: View {
   }
 
   /// The two windows (ADR-0026), in the shape Settings' pickers already use:
-  /// a native segmented control on interactive glass. Native rather than the
+  /// a native segmented control on plain glass. Native rather than the
   /// ComponentsKit control Trends uses, because that one is a row of Text
   /// with tap gestures — no button or selected trait for VoiceOver, titles
   /// the catalog never sees, and a fixed height under Dynamic Type. The
@@ -607,9 +607,14 @@ struct CalendarView: View {
     }
     .pickerStyle(.segmented)
     .padding(GlassTokens.Spacing.tight)
-    // interactive: a control on non-interactive glass loses taps — the same
-    // rule every tappable control in the app follows.
-    .glassSurface(cornerRadius: GlassTokens.Radius.control, interactive: true)
+    // Plain glass, never interactive: on iOS 27 an interactive glass surface
+    // takes a segmented control's taps for itself — the owner's device report of
+    // 2026-09-22, reproduced on the iOS 27 simulator, where plain glass, glass
+    // drawn behind the control and no glass all switched on one tap, as all four
+    // did on iOS 26.5. The rule this used to cite, that a control on
+    // non-interactive glass loses taps, came from synthetic taps, which flip no
+    // Toggle on any glass.
+    .glassSurface(cornerRadius: GlassTokens.Radius.control)
   }
 
   /// Discoverability for a gesture with no visible affordance. One quiet line —
@@ -617,7 +622,7 @@ struct CalendarView: View {
   private var selectionHint: some View {
     Text("Tip: press and hold, then drag across days to fill a stretch at once")
       .font(.caption2)
-      .foregroundStyle(.tertiary)
+      .foregroundStyle(.tertiaryInk)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 
@@ -697,7 +702,7 @@ struct CalendarView: View {
               : "Days that already have a record are kept"
           )
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
         }
         Spacer()
         Button {
@@ -705,7 +710,7 @@ struct CalendarView: View {
         } label: {
           Image(systemName: "xmark")
             .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
             .frame(width: 32, height: 32)
             .background(Circle().fill(Color.primary.opacity(0.06)))
             .contentShape(.circle)

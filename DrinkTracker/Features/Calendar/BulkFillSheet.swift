@@ -84,7 +84,7 @@ struct BulkFillSheet: View {
 
       Text(countCaption)
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
         .fixedSize(horizontal: false, vertical: true)
@@ -140,7 +140,7 @@ struct BulkFillSheet: View {
   private var skippedNote: some View {
     Label(skippedText, systemImage: "checkmark.circle")
       .font(.footnote)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 

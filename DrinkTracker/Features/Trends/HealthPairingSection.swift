@@ -21,11 +21,13 @@ import SwiftUI
 /// the reader already believes in — "62 bpm on nights with drinks, 58 without"
 /// is a verdict no sentence has to deliver. So the discipline is structural
 /// (the plan's four rules, ADR-0050): the domain returns two figures and never
-/// a difference; a sample-size gate hides the whole row below fourteen nights
-/// with a value in *either* column (twenty-eight for heart rate variability,
-/// ADR-0052); no colour, no arrow, no chart; and the
-/// buckets come from the log alone — nothing here reads a heart rate or a
-/// night's sleep to decide anything about drinking.
+/// a difference; a sample-size gate hides the whole row below the range's
+/// floor of nights with a value in *either* column — fourteen at Quarter and
+/// Year, seven at Month, two at Week (ADR-0048's 2026-09-22 amendment), and
+/// twenty-eight for heart rate variability where it is shown (ADR-0052); no
+/// colour, no arrow, no chart; and the buckets come from the log alone —
+/// nothing here reads a heart rate or a night's sleep to decide anything
+/// about drinking.
 ///
 /// ## The heading cannot outlive its content
 ///
@@ -108,7 +110,9 @@ struct HealthPairingSection: View {
   /// since that read has none yet, and the task is already re-reading for
   /// it, so it is not drawn from a read that did not ask for it. The offer:
   /// never answered, no pairing switch on, and the log alone clearing the
-  /// gate on **both** sides — the drink side the design named, and the
+  /// gate on **both** sides at this range's own floor (two nights a bucket
+  /// at Week, seven at Month, fourteen at Quarter and Year — ADR-0048's
+  /// 2026-09-22 amendment) — the drink side the design named, and the
   /// no-drinks side too, because that column holds nights recorded as no
   /// alcohol (ADR-0048) and is not plentiful by nature; an offer gated on one
   /// side could be accepted, granted, and show nothing.
@@ -132,7 +136,9 @@ struct HealthPairingSection: View {
         shown.card = loaded
         shown.rows = rows
       }
-    } else if !settings.hasAnsweredHealthPairingOffer, let request, request.buckets.clearsGate() {
+    } else if !settings.hasAnsweredHealthPairingOffer, let request,
+      request.buckets.clearsGate(minimumNights: PairedFigures.minimumNights(at: request.range))
+    {
       shown.offer = true
     }
     return shown
@@ -169,13 +175,15 @@ enum TemperatureUnit: Hashable, Sendable {
 
 extension PairedMetric {
   /// Nights with a value each bucket needs before this metric's row is
-  /// shown: the domain's base floor, or the larger one it names for heart
-  /// rate variability (ADR-0052). Read by the load, which skips a read the
-  /// log cannot clear, and by the ask, so a sheet lands the first time this
-  /// metric's row is possible and not before.
-  var minimumNights: Int {
+  /// shown at `range`: the domain's floor for the range (two at Week, seven
+  /// at Month, fourteen at Quarter and Year — ADR-0048's 2026-09-22
+  /// amendment), or the larger one it names for heart rate variability
+  /// (ADR-0052), which is shown only at the ranges that hold it. Read by the
+  /// load, which skips a read the log cannot clear, and by the ask, so a
+  /// sheet lands the first time this metric's row is possible and not before.
+  func minimumNights(at range: TrendRange) -> Int {
     switch self {
-    case .restingHeartRate, .sleep, .wristTemperature: PairedFigures.minimumNights
+    case .restingHeartRate, .sleep, .wristTemperature: PairedFigures.minimumNights(at: range)
     case .heartRateVariability: PairedFigures.minimumNightsForHeartRateVariability
     }
   }
@@ -183,8 +191,10 @@ extension PairedMetric {
   /// Whether this metric can have a row at `range`. Heart rate variability
   /// lives at Quarter and Year only (ADR-0052): its floor is more nights
   /// than a month holds, and the wider ranges are where the averaging does
-  /// the work the plan asks of it. Elsewhere it is neither read nor asked
-  /// for, and its switch's caption says where it is shown.
+  /// the work the plan asks of it — the per-range floors of ADR-0048's
+  /// 2026-09-22 amendment scale the base floor, not this one. Elsewhere it
+  /// is neither read nor asked for, and its switch's caption says where it
+  /// is shown.
   func isShown(at range: TrendRange) -> Bool {
     switch self {
     case .restingHeartRate, .sleep, .wristTemperature: true
@@ -349,7 +359,9 @@ final class HealthPairingModel {
   /// query and its own breadcrumb.
   func load(_ read: HealthPairingRead, health: HealthKitService) async {
     let request = read.request
-    guard !read.metrics.isEmpty, request.buckets.clearsGate() else {
+    guard !read.metrics.isEmpty,
+      request.buckets.clearsGate(minimumNights: PairedFigures.minimumNights(at: request.range))
+    else {
       clear()
       return
     }
@@ -359,7 +371,8 @@ final class HealthPairingModel {
       // A metric whose own floor the log cannot clear is not read: the
       // figures would be nil whatever came back, and a query that cannot
       // show anything is a cost and a breadcrumb for nothing (ADR-0052).
-      guard request.buckets.clearsGate(minimumNights: metric.minimumNights) else { continue }
+      guard request.buckets.clearsGate(minimumNights: metric.minimumNights(at: request.range))
+      else { continue }
       let values: [NightValue]
       switch metric {
       case .restingHeartRate:
@@ -395,7 +408,7 @@ final class HealthPairingModel {
       }
       guard !Task.isCancelled else { return }
       if let result = HealthPairing.figures(
-        request.buckets, values: values, minimumNights: metric.minimumNights)
+        request.buckets, values: values, minimumNights: metric.minimumNights(at: request.range))
       {
         figures[metric] = result
       }
@@ -482,7 +495,7 @@ struct HealthPairingCard: View {
         if showsTemperatureNote {
           Text(HealthPairingCopy.temperatureNote)
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, isStacked ? GlassTokens.Spacing.tight : 0)
@@ -559,7 +572,7 @@ struct HealthPairingCard: View {
     )
     .font(.caption)
     .monospacedDigit()
-    .foregroundStyle(.secondary)
+    .foregroundStyle(.secondaryInk)
   }
 
   /// The figure in the reader's numeral face, its unit beside it in default
@@ -577,7 +590,7 @@ struct HealthPairingCard: View {
       if let unit = metric.unitLabel(temperatureUnit: temperatureUnit) {
         unit
           .font(.caption)
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
       }
     }
     .animation(.smooth(duration: 0.22), value: average)
@@ -656,7 +669,7 @@ struct HealthPairingOffer: View {
         Text(HealthPairingCopy.offerCounts(buckets, range: range))
           .font(.caption)
           .monospacedDigit()
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .fixedSize(horizontal: false, vertical: true)
           .padding(.top, GlassTokens.Spacing.tight)
           .accessibilitySortPriority(1)
@@ -731,7 +744,7 @@ struct HealthPairingOffer: View {
     Text(verbatim: "– –")
       .font(GlassTokens.Typography.rowFigure)
       .monospacedDigit()
-      .foregroundStyle(.tertiary)
+      .foregroundStyle(.tertiaryInk)
       .frame(minWidth: figureColumn, alignment: .trailing)
       .accessibilityHidden(true)
   }

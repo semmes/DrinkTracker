@@ -145,7 +145,7 @@ struct DrinkDetailSheet: View {
           // which says what to do.
           Text("Not saved")
             .font(.footnote)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
             .fixedSize(horizontal: false, vertical: true)
         }
         SUButton(model: .primary(logButtonTitle, isEnabled: canLog && !isSaving)) {
@@ -220,7 +220,7 @@ struct DrinkDetailSheet: View {
           // Where this entry came from, and the one fact it already carries.
           Text("From Apple Health, \(adopting.loggedAt.formatted(date: .abbreviated, time: .shortened))")
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
         }
       }
       // Wraps, never truncates — see `liveEstimate` for the squeeze this
@@ -231,7 +231,7 @@ struct DrinkDetailSheet: View {
       Button(action: onCancel) {
         Image(systemName: "xmark")
           .font(.system(size: 15, weight: .semibold))
-          .foregroundStyle(.secondary)
+          .foregroundStyle(.secondaryInk)
           .frame(width: 30, height: 30)
           .contentShape(.circle)
       }
@@ -353,7 +353,7 @@ struct DrinkDetailSheet: View {
         }
       Text("oz")
         .font(.body)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     }
     .padding(.horizontal, GlassTokens.Spacing.cardPadding)
     .frame(minHeight: GlassTokens.Layout.minimumTouchTarget)
@@ -392,7 +392,7 @@ struct DrinkDetailSheet: View {
           Text("\(LoggedDrink.displayPercent(draft.type.abvRange.upperBound))%")
         }
         .font(.caption)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
       }
       .padding(.horizontal, GlassTokens.Spacing.tight)
       .accessibilityElement(children: .combine)
@@ -529,7 +529,7 @@ struct SectionLabel: View {
   var body: some View {
     Text(text)
       .font(.footnote.weight(.medium))
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.secondaryInk)
       .textCase(.uppercase)
       // A heading, so VoiceOver can move between the sheet's sections and
       // the type picker's own "Drink" label reads as the section it sits

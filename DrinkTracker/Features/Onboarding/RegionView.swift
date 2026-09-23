@@ -48,12 +48,12 @@ private struct RegionOptionRow: View {
             .foregroundStyle(.primary)
           Text(subtitle)
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(.secondaryInk)
         }
         Spacer()
         Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
           .font(.title3)
-          .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+          .foregroundStyle(isSelected ? Color.accentColor : Color.secondaryInk)
       }
       .padding(.horizontal, GlassTokens.Spacing.cardPadding)
       .frame(minHeight: 60)

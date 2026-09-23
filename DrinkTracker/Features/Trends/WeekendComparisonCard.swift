@@ -121,7 +121,7 @@ struct WeekendComparisonCard: View {
       // made, and the rounded face is reserved for the ones that are.
       Text("\(Int(published.rounded())) of every 100")
         .font(.footnote)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.secondaryInk)
     }
     .padding(.vertical, GlassTokens.Spacing.tight)
   }

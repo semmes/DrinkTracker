@@ -148,8 +148,32 @@ public struct PairedFigures: Hashable, Sendable {
   /// SD/√n of the night-to-night spread, which at 14 is a little over a
   /// quarter of it; going to 28 would buy less than the step from 7 to 14
   /// bought. Below it the whole row is hidden, never shown with a caveat.
-  /// A noisier type (heart rate variability) passes a larger floor.
+  /// A noisier type (heart rate variability) passes a larger floor, and a
+  /// range too short to hold this one takes the smaller floor
+  /// `minimumNights(at:)` names for it.
   public static let minimumNights = 14
+
+  /// The floor at a range. At Quarter and Year it is the base floor, which
+  /// those ranges hold many times over. At the two rolling ranges it is what
+  /// the range can hold — the owner's ruling of 2026-09-22 that the figures
+  /// show at every range, provided the data is there (ADR-0048's amendment
+  /// of that date): Week has five countable nights (seven, less the two held
+  /// back while Health may still revise them), so its floor is two a bucket,
+  /// the least a mean is a mean of; Month has twenty-eight, and takes the
+  /// seven the base floor was weighed against — SD/√7 is a little over a
+  /// third of the night-to-night spread, where SD/√14 is a quarter. A
+  /// figure at Week is a mean of two to three nights and moves by a night's
+  /// reading; the night counts printed under the row's name are the
+  /// reader's measure of that, which is why the design prints them. Heart
+  /// rate variability's floor is not scaled: that row keeps to Quarter and
+  /// Year (ADR-0052).
+  public static func minimumNights(at range: TrendRange) -> Int {
+    switch range {
+    case .week: 2
+    case .month: 7
+    case .quarter, .year: minimumNights
+    }
+  }
 
   /// The floor for heart rate variability: twice the base (ADR-0052). Its
   /// night-to-night spread is several times resting heart rate's relative to

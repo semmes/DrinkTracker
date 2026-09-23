@@ -204,7 +204,7 @@ struct CountStepper: View {
 
   private func glyphColour(isFilled: Bool, isEnabled: Bool) -> Color {
     if isFilled { return .white }
-    return isEnabled ? Color.accentColor : Color.secondary
+    return isEnabled ? Color.accentColor : Color.secondaryInk
   }
 }
 
