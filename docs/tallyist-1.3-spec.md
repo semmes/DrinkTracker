@@ -12,14 +12,16 @@ Unchanged from `docs/tallyist-1.2-spec.md` ("Project constraints" and
 (`semmes/tallyist-product`, `contract/constraints.md`): no account, no
 servers, no goals, streaks, scores, or advice, no user data shared between
 users, no consumption guidelines, report never instruct, every new
-behavioural surface optional and off or neutral. **The 1.2 train is frozen
-and awaiting App Review**; a fix that must ship in 1.2 is a new build and a
-re-submission, and says so.
+behavioural surface optional and off or neutral. **The 1.2 train is closed:**
+1.2 went live on 2026-09-05.
 
-**1.3 was submitted and is awaiting App Review (owner, 2026-09-14), so this
-train is frozen the same way.** The 1.4 train opened the same day with the
-Apple Watch companion app — `docs/tallyist-1.4-spec.md`, which points at
-`docs/tallyist-watch-plan.md`.
+**1.3 was submitted on 2026-09-14 (owner), approved, and went live on
+2026-09-20** — the store's version history; the owner reported the approval on
+2026-09-23 — **so this train is closed too.** The 1.4 train opened on
+2026-09-14 with the Apple Watch companion app — `docs/tallyist-1.4-spec.md`,
+which points at `docs/tallyist-watch-plan.md`. The What's New the store shows
+for 1.3 is the owner's own text, not the draft this spec's features were
+written against; `docs/app-store-listing.md` records both.
 
 ## Feature A: Year in review share card — done (ADR-0029)
 
