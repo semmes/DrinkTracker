@@ -254,7 +254,8 @@ flat ink, because iOS 27 draws the hierarchical styles on glass at 2.5:1 against
 dark ground; the range picker is native and every segmented picker sits on plain glass,
 because interactive glass takes a segmented control's taps on iOS 27 — the old rule that
 every tappable control goes on interactive glass was a synthetic-tap artefact; and the
-watch app's install alongside a phone build is the Watch app's, not the project's.**
+watch app's install alongside a phone build is the Watch app's, not the project's. The
+owner verified the four fixes on that phone the same night.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3347,4 +3348,9 @@ Open items for v1.2:
   the offer on their own log; the range picker, the two Settings pickers, "Compare with"
   and the calendar's picker each switching on one tap; the three comparison switches
   answering a tap; every card title in dark mode; and, for the watch, the Watch app's
-  Available Apps list after the next phone install.
+  Available Apps list after the next phone install. **Passed on the owner's iPhone
+  (iOS 27) the same night, in their words: "Verified on my phone it's fixed."** That is
+  the four findings on hardware — the rows and the offer at Week and Month, the titles in
+  dark mode, the pickers switching on one tap — recorded in ADR-0048's and ADR-0050's
+  amendments; what the report did not name stays open as stated above (a switch's tap on
+  plain glass, hardware on iOS 26, a 375pt phone, VoiceOver over the native picker).
