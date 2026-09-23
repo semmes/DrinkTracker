@@ -302,6 +302,19 @@ Apple does not say.
    absolute value, and two absolute figures side by side are the idiom of
    every other row ("62 bpm", "58 bpm"). Phase 6 decides; its ADR should argue
    this rather than inherit the median.
+
+   *Decided in Phase 6 (2026-09-22, ADR-0053): the reading, not a
+   deviation. The arithmetic above is the argument, made explicit there —
+   the two columns' mean deviations from a median of the range's own nights
+   sum, weighted by their nights, to the gap between the range's mean and
+   its median, so unless the columns barely differ or the readings are
+   skewed they land on opposite sides of zero, and their signs state the
+   direction of the difference between the columns.
+   The row shows "36.62 °C" beside "36.30 °C", in the unit the reader's
+   Health app shows (`preferredUnits`), and the note under it says that
+   Health shows the same nights as a change from a baseline of its own.
+   Item 2 above then simplifies: a mean of absolute readings converts with
+   the offset, through Foundation's own conversion, exactly.*
 4. **The hardware list in the plan is short by one.** The plan says Series 8
    and later. Apple now lists the SE 3 as well. It changes nothing in code,
    since an unsupported watch is the no-data state, but the Settings caption

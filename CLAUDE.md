@@ -237,8 +237,16 @@ bullet "The health pairing's Phase 5 landed…", ADR-0052): the third row, SDNN 
 milliseconds, behind a floor of twenty-eight nights and at Quarter and Year only, with the
 read, the ask and the gate per metric — rendered end to end on the scratch simulator,
 including the sheet for the third row arriving alone at Year on the same visit that asked
-for the first two at Quarter. Phase 6, wrist temperature, is next, and it carries the
-baseline decision.** These
+for the first two at Quarter. Phase 6, wrist temperature, landed the same night (the
+bullet "The health pairing's Phase 6 landed…", ADR-0053): the fourth and last row, the
+reading itself in the unit the reader's Health app shows, and the baseline decision is to
+have none — the ADR's arithmetic shows a median of the range's own nights would sign the
+difference between the columns in two halves. Rendered end to end on the scratch
+simulator through a synthetic read, because HealthKit lets no app write this type. **The
+design's four rows have all shipped. Phase 7, the release, is next: the privacy policy's
+three copies, the purpose string, the App Privacy answers and the reviewer notes — the
+plan's "Release" section is the authority, and nothing may be cut from main before it.**
+These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
 the record.
@@ -3096,4 +3104,134 @@ Open items for v1.2:
   such (the one piece of new statistics in this feature; its ADR needs its own paragraph
   for the baseline), signed with U+2212, the temperature note under the last row, the
   invisible model restriction handled as a denied read; its switch inherits from the three
-  stored switches before it, or-ed.
+  stored switches before it, or-ed. *(Landed the same night — the next bullet — and the
+  deviation was not built; the ADR says why.)*
+- **The health pairing's Phase 6 landed (2026-09-22, the same night; ADR-0053, and Phase 6
+  amendments to ADR-0049, ADR-0050 and ADR-0051): wrist temperature, the fourth and last
+  row.** **The baseline decision is to have none.** The plan reserved a paragraph for a
+  new statistic — the reader's median over the range, with each night shown as a signed
+  deviation from it, as the design drew ("+0.21", "−0.08"). ADR-0053 makes Phase 0's
+  arithmetic explicit: measure every night against one baseline and average per bucket,
+  and the three groups' deviations (drink nights, marked nights, unlogged nights),
+  weighted by their counts, sum to the range's mean less the baseline; with the median of
+  those same nights that is near zero, and with few unlogged nights the two columns land
+  on **opposite sides of zero by construction** — their two signs together state which
+  column is the higher one, the direction of the difference between the columns, which
+  is the one thing rule 1 says the app never signs. A baseline from other nights loosens
+  the tie and keeps two signed figures read against each other; a baseline over the
+  no-drinks nights makes the drink column the difference itself. So the row is **the
+  reading**: "36.62 °C" beside "36.30 °C", the idiom of every other row, and the pair is
+  the observation. **The read** is a sample query (`HealthKitService.wristTemperature`),
+  not a daily statistic: Apple's one aggregated sample a night is stamped during the sleep
+  and may start before midnight, and a calendar-day bucket would file such a night under
+  the day before it, where the sample's own span lets the domain file it by its middle
+  under the night whose sleep day holds it (`nightlyValues(attribution: .sleepDay)`, the
+  rule ADR-0048 built for it); `.strictEndDate`, absolute Celsius, one breadcrumb per
+  query. **The unit is the reader's Health app's** — `preferredTemperatureUnit()` asks
+  HealthKit's `preferredUnits(for:)` (their choice in Health, or the locale's default)
+  beside a read that returned samples, since the question is answered only for an
+  authorized type; the mean converts with Foundation's own affine conversion at the moment
+  it is drawn, exact for a mean; Celsius for every kind of nothing; the unit rides with the
+  render's figures (`Loaded.temperatureUnit`) and is dropped with them. The figure is to
+  the hundredth of a degree, the symbol in the caption face beside it as "bpm" and "ms"
+  are (Foundation's "°C"/"°F", not a key), spoken as "97.88 degrees Fahrenheit". **The
+  design's temperature note keeps its place and says something else:** "Wrist temperature
+  is the overnight reading your watch records. Apple Health shows it as a change from a
+  baseline of its own." — under the rows while the wrist row is on the card (it is the
+  last row), not on the offer; it exists because the plan's cross-check is the Health app,
+  whose "About Wrist Temperature" page says the same thing in its own words ("Your data is
+  shown as a change from baseline, an average of recent measurements taken during sleep").
+  **The switch** is "Wrist temperature" over "One figure a night, from your watch" (resting
+  heart rate's caption with the night for the day; no model named — the hardware
+  restriction is the empty state), fourth in the Settings order, inheriting from the three
+  before it, or-ed, once (`inheritedPairingFlag` over all three as they stand after their
+  own inheritance; a Phase 3 install gets all three later switches on in one launch). The
+  footnote's third sentence now reads "Sleep and wrist temperature come from nights you
+  wear your watch to bed" — true of this figure, which the watch takes during sleep, where
+  it was not of heart rate variability. **Five design lines did not survive**, listed once
+  in the ADR: the signed two-decimal format with U+2212; the note's text and span; the
+  caption "Set against your own median"; the footnote naming heart rate variability among
+  the nights-in-bed metrics (ADR-0052's cut stands); and the sign's own line in the copy
+  review, which is there and says why there is no sign. App catalog
+  363 → **369** (seven in, one out: the name, the caption, the note, the two sentences,
+  the spoken row, the footnote replacing the sleep-only one; 521 across six catalogs),
+  synced with `xcstringstool` into a scratch copy from a fresh full build and diffed.
+  **Measured with CoreText** (calibrated as before): "36.62 °C" with its unit is 64.0pt in
+  the card's tabular figures, the widest two-digit cell now (over "6h 12m" at 58.5), so the
+  numeric columns go from 133.5 to 139.0pt; on a 375pt phone the leading column keeps
+  156.0pt with four rows and 141.4 against the widest figures ("100.12 °F", three-digit
+  heart rates and milliseconds, a ten-hour sleep) — "Heart rate variability" (138.3) and
+  "Wrist temperature" (123.9) stay on one line everywhere; the header row is unchanged at
+  213.9. **How "no health value is written" was checked:** every added Swift line grepped
+  for the write, store and log APIs — one hit, the switch's `didSet`; the only Health-side
+  writes are the breadcrumb and nothing else; the unit is a preference held for one
+  render. **Reviewed before the PR by an adversarial lens on the code and the records
+  against the plan's rules:** all the rules held (no delta anywhere, the base gate at every
+  range, no physiology reading drinking, the write grep, no model named, the note off the
+  offer); it found **the code asking Health for the unit after every wrist read while five
+  records said "beside a read that returned samples"** — now `if !samples.isEmpty`, and
+  the header's actual rule recorded (the reader's own preference for an authorized type,
+  the locale's default otherwise, an error while undetermined); **"opposite sides of zero
+  by construction" overstated** — the identity is right, but a skew larger than the
+  smaller column's deviation puts both on one side, so the ADR, the plan, the copy review
+  and findings §2 now say "unless the columns barely differ or the readings are skewed",
+  and the decision stands on the two signed figures being read against each other either
+  way; the "five design lines" listed one way in the ADR and another here (fixed to the
+  ADR's); the note missing the file's `fixedSize(horizontal: false, vertical: true)`
+  convention (added); the tier-1 vector's span proving less than its comment said (the
+  second night's sample now straddles the 18:00 boundary so the middle rule is told apart
+  from a start-based one); and "the Health app's own precision" for the hundredths, which
+  no source states — the ADR now cites the design's own two decimals. A unit change made
+  in Health lands on the next read (`HKUserPreferencesDidChange` is not observed; a reopen
+  in the ADR). **No schema change, no CloudKit step, no project-file change, no
+  privacy-policy change — and the policy is now false four times over; no release build
+  from main until Phase 7.** **Verified:** 363 domain tests under both SwiftPM build
+  systems (one new: the
+  two figures are plain means, each night's reading filed by its sleep day — a span
+  crossing midnight and an instant before it both land on the evening — and unlogged
+  nights' readings in neither); 117 integration tests on the iPhone 17 Pro Max simulator
+  (one new: on from any of the three earlier switches, off from none, once, written either
+  way, a stored value winning); the CI-form and signed builds with the same five
+  pre-existing warning lines as Phase 5's log; and **tier 3 on the scratch iPhone 17 Pro
+  simulator, twelve frames in `/tmp/claude-501/phase6-shots/`**. **HealthKit lets no app
+  write this type** — Apple's page says it is read-only and the seeder's
+  `requestAuthorization(toShare:)` for it aborted the process with
+  `AuthorizationDisallowedForSharing` — so the simulator's Health store cannot hold a
+  sample, and the row was rendered two ways: **the real build** for the sheet (a Phase 5
+  install's first Quarter visit listed **Wrist Temperature alone**, under Body
+  Measurements, with the fourth switch inherited on at launch), the breadcrumb (`wrist
+  temperature · 86 days · 0.00 s`, a query over nothing) and the empty state (three rows,
+  no fourth, no note — the unsupported-watch case rendered as itself); and **a scratch
+  copy of this tree** (`/tmp/claude-501/render6`, never the worktree) with the one query
+  replaced by a synthetic read of one reading a night — Fri/Sat/Sun nights 36.60 °C, other
+  nights 36.30, a ±0.03 wobble that cancels — for the card: four rows at Year in light and
+  dark, "97.88 °F" beside "97.34 °F" (the seeder's means converted, the Health app's
+  default unit here being Fahrenheit), the note under the fourth row, the `.xLarge` and
+  AX5 folds ("On nights you logged drinks, 97.88 degrees Fahrenheit, over 32 nights." with
+  the note beneath the last sentences), the four-row offer and its acceptance turning on
+  all four switches and drawing the rows (three at Quarter, with heart rate variability
+  under its floor), Settings with four switches and the fourth footnote, and — after
+  changing the unit in the Health app's own Wrist Temperature page (Browse → Body
+  Measurements → Wrist Temperature → Unit) — **"36.60 °C" beside "36.30 °C"** on the next
+  read: the unit follows Health. **Tooling:** the Health app's welcome flow on a scratch
+  simulator is four taps (Continue, Continue, Next with nothing filled in, Continue, then
+  Don't Allow and OK for notifications) and lands on Summary; the unit picker is at the
+  bottom of a type's page under Options. **Not verified, stated:** the real query against a
+  real sample (only a watch can write one — the stub covers the domain and the drawing, not
+  `HKSampleQueryDescriptor` over this type, though it is the sleep query's shape with the
+  quantity predicate the resting heart rate read uses); the sample's actual timestamps on a
+  real watch, which the sleep-day filing tolerates by the middle; VoiceOver over the four
+  rows; the Health app's own figure for a night against the row (it shows a deviation, so
+  the cross-check is its "Show All Data" list, which prints the absolute readings). **Tier
+  4 for the owner:** the fourth row at Quarter and Year on their own log and watch data,
+  in their Health app's unit; "Show All Data" under Wrist Temperature in Health for one
+  night against what the row would have read; the sheet for wrist temperature arriving
+  alone on their Phase 5 install's next Quarter or Year visit; "Last Health read (wrist
+  temperature)" at Year; and VoiceOver over the row and the note. **The design's four rows
+  have all shipped; Phase 7 is next** — the release: the privacy policy's three copies and
+  their dates, `NSHealthShareUsageDescription` in both configurations, the App Privacy
+  answers, reviewer notes and the claims table, with the plan's "Release" section as the
+  authority. The scratch simulator (`Health-Phase4 scratch`, App Group container
+  `02ED9BEE-…`) is kept booted with the render copy installed and its seeded store for
+  Phase 7's read-through, then deleted; the seeders and the render copy are
+  `/tmp/claude-501/seeder4`, `seeder5`, `seeder6` and `render6`.

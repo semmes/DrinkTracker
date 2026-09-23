@@ -1706,3 +1706,59 @@ figure.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — Apple Health beside the log: wrist temperature (ADR-0053; ADR-0049, ADR-0050 and ADR-0051 amended, 2026-09-22)
+
+The fourth and last row of the pairing's card: the watch's overnight wrist
+temperature, as the reading, in the unit the reader's Health app shows. The
+design gave this row's sign its own line here, because a signed deviation
+"still sits close to rule 1"; the line is below, and says why there is no
+sign. **Seven strings are new and one is replaced — seven keys in, one out**:
+the row's name (also the switch's title), its caption, the note under the
+row, the row's two sentences with their joined spoken form, and the footnote
+in its fourth shape. The unit symbols "°C" and "°F" are Foundation's own and
+not keys.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Wrist temperature" | The fourth row's name on the card and the offer; the fourth switch's title in Settings | The metric's own name, as the Health app prints it. Not "Skin temperature", not "Temperature": the Health app's noun, so a reader finds the same words there. |
+| "One figure a night, from your watch" | The switch's caption | Resting heart rate's caption with the night in place of the day, which is what the reading is (one aggregated sample a night, Apple's own description). It names no watch model: the plan says the caption must not, and a watch that cannot measure it is the no-data state. Replaces the design's "Set against your own median", which described a figure this row does not show. |
+| "36.62" beside "°C" (or "97.92" beside "°F") | The figure cell | A reading to the hundredth of a degree, the Health app's precision for this type, in the unit the reader's Health app shows. No sign, no "+", no "−": the figure is the reading, not a change (ADR-0053). |
+| "Wrist temperature is the overnight reading your watch records. Apple Health shows it as a change from a baseline of its own." | Caption under the rows while the wrist temperature row is on the card | Two sentences, each a fact: what the figure is, and why the same night reads differently in the Health app — the one sentence on the card about another app, there because the plan's cross-check is that app. "A baseline of its own" states whose statistic the deviation is without saying how it is made, which Apple does not publish. Not "your baseline", which would claim a number the app does not have. |
+| "On nights you logged drinks, 36.62 degrees Celsius, over 37 nights." · "On nights recorded as no alcohol, 36.30 degrees Celsius, over 48 nights." | The card at `.xLarge` and above, where the table folds to sentences; and, joined with the row's name, what VoiceOver speaks | The resting heart rate sentences with the reading spoken in full by Foundation's own unit words ("degrees Celsius", "degrees Fahrenheit"). No adjective, no direction, no sign. |
+| "Wrist temperature. On nights you logged drinks, … over … nights. On nights recorded as no alcohol, … over … nights." | The row's VoiceOver label, one key | The name, then the two sentences, whole, for the reason the other rows' keys are whole. |
+| "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep and wrist temperature come from nights you wear your watch to bed." | The section's footnote (replaces the sleep-only third sentence) | The third sentence names the two metrics it is true of: sleep and wrist temperature are what the watch takes during sleep. Heart rate variability stays out of it (ADR-0052: its samples are the day's). Still the one place the app says "wear your watch to bed", and still a statement of when a figure exists, not an instruction. |
+
+**The sign, on its own line, as the design asked.** The design drew "+0.21"
+beside "−0.08", a change from the reader's own median over the range, and
+warned that the sign "still sits close to rule 1". It sits on it: measured
+against a median of the same nights, the two columns' averages land on
+opposite sides of zero unless they barely differ or the readings are
+skewed, and their signs together state which column is the higher one —
+the direction of the difference, which is the one thing rule 1 says the app
+never signs — and two signed deviations are read against each other even
+when they happen to share a sign (the arithmetic is ADR-0053's).
+So the row carries no sign and no baseline. "36.62" beside "36.30" is two
+readings, the idiom of "62" beside "58"; the reader subtracts, as ADR-0050
+says they will, and the app has said nothing.
+
+**Second pass — the figures beside their numbers.** Read as the row renders
+with the seeder's readings in it.
+
+- *"Wrist temperature" over "36.62 °C" and "36.30 °C"*: two figures and two
+  counts. A reader who knows that alcohol raises overnight wrist temperature
+  supplies that; the app supplies neither the word nor the 0.32.
+- *The note beneath*: it explains a difference between two apps' numbers,
+  not a difference between the two columns. "A change from a baseline of its
+  own" describes the Health app's figure and makes no claim about the
+  reader.
+- *The caption's "One figure a night"*: a statement of cadence, as resting
+  heart rate's is. It does not say the reader should wear the watch to bed;
+  the footnote says where the figure comes from, once.
+
+No comparative adjective anywhere in the batch, spoken or shown. No
+exclamation marks. Nothing here says what the reader should do about the
+figure, or about their watch.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

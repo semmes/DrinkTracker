@@ -309,3 +309,43 @@ ADR-0051's amendment).
 **Cost.** The render's simulator number is in
 `docs/health-pairing-phase-0-findings.md` §3 with the others, a floor as
 they are; the phone's is the owner's to read.
+
+## Amendment — 2026-09-22 (Phase 6: the wrist temperature read, and a unit read beside it)
+
+**The fourth and last read type.** `readTypes(for:)` maps
+`.wristTemperature` to `HKQuantityType(.appleSleepingWristTemperature)`
+(`degC, Discrete (Arithmetic)` in the header, iOS 16), and
+`wristTemperature(in:endingBefore:calendar:)` reads it as a **sample
+query**, the sleep read's shape rather than resting heart rate's daily
+statistic: the watch's one aggregated sample a night is stamped during the
+sleep and may start before midnight, and a calendar-day bucket would file
+such a night under the day before it, where the sample's own span lets the
+domain file it by its middle under the night whose sleep day holds it
+(`nightlyValues(attribution: .sleepDay)`, ADR-0048). Samples ending inside
+the window (`.strictEndDate`), values as absolute degrees Celsius, the
+stored unit; one breadcrumb per query, `wrist temperature · N days · T s`,
+a fourth line under `lastHealthPairingReads` and a fourth Diagnostics row.
+Why the reading and not a deviation is ADR-0053.
+
+**One more thing is read, and it is not a health value.**
+`preferredTemperatureUnit()` asks HealthKit's `preferredUnits(for:)` which
+unit the reader's Health app shows this type in — their choice there, or
+the locale's default. The header says the reader's own preference is given
+only for a type the app is authorized to read, the locale's default
+otherwise, and an error while the type's status is not determined; so the
+model asks it beside a read that returned samples (`if !samples.isEmpty`,
+a review catch — the first cut asked after every read, which the records
+had already described as the guarded form), and Celsius stands in for
+every kind of nothing. It is a preference, held with
+the render's figures (`Loaded.temperatureUnit`) and dropped with them; the
+domain's values are never converted, and nothing about the unit is kept.
+Decision 5's "nothing persists" holds as before: the grep of every added
+line finds the switch's `didSet` and the breadcrumb.
+
+**The ask is unchanged in shape.** Per metric, each once per visit, the
+offer the named exception (the Phase 5 amendment above); the fourth type
+joins the switched-on set like the third.
+
+**Cost.** The render's simulator number is in
+`docs/health-pairing-phase-0-findings.md` §3 with the others, a floor as
+they are; the phone's is the owner's to read.

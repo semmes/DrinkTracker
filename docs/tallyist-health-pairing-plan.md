@@ -552,6 +552,45 @@ bullet has the list.*
 one piece of new statistics in this feature and needs its own paragraph in the
 ADR.
 
+*Landed 2026-09-22 (ADR-0053; ADR-0049, ADR-0050 and ADR-0051 amended). The
+baseline decision is to have none: the fourth row shows the reading the
+watch records, averaged over each bucket's nights, to the hundredth of a
+degree in the unit the reader's Health app shows, with no sign and no
+deviation. The argument, in the ADR with Phase 0's arithmetic: a median over
+the range's own nights makes the two columns' mean deviations sum, weighted
+by their nights, to the gap between the range's mean and its median, which
+is small, so unless the columns barely differ or the readings are skewed
+the columns land on opposite sides of zero and their two signs state the
+direction of the difference between the columns — the thing rule 1 says
+the app never signs, and two signed deviations are read against each other
+even when they happen to share a sign; a baseline from other
+nights loosens the tie and keeps two signed figures read against each other;
+a baseline over the no-drinks nights makes the drink column the difference
+itself. The reading is the idiom of every other row, and the pair is the
+observation. Each night's sample — Apple's one aggregated value, stamped
+during the sleep — is read by a sample query and filed under the night whose
+sleep day holds its middle (`.sleepDay`, the rule Phase 1 built for it),
+behind the base gate at every range. The unit comes from HealthKit's
+`preferredUnits` (the reader's choice in Health for an authorized type, or
+the locale's default), asked only beside a read that returned samples, and
+the mean converts with
+Foundation's affine conversion at the moment it is drawn. The design's note
+under the row keeps its place and says what the figure is — "Wrist
+temperature is the overnight reading your watch records. Apple Health shows
+it as a change from a baseline of its own." — because the plan's cross-check
+is the Health app, which shows a change from a baseline that is not in
+HealthKit. The switch, "Wrist temperature" over "One figure a night, from
+your watch", inherits from the three before it, or-ed, once; the footnote's
+third sentence names sleep and wrist temperature as the nights-in-bed
+metrics. The hardware restriction is the empty state, and no model is named.
+Seven app keys in, one out (363 → 369). Verified: 363 domain tests under both
+SwiftPM build systems (one new: the row's two figures are the plain means,
+each night filed by its sleep day, with unlogged nights' readings in neither),
+117 integration tests (one new: the inheritance from any of the three), the
+CI-form and signed builds with no new warning in the changed files, the
+catalog synced from a fresh full build and diffed, and tier 3 on the scratch
+simulator — CLAUDE.md's Phase 6 bullet has the list.*
+
 **Phase 7, release.** Below.
 
 ---
