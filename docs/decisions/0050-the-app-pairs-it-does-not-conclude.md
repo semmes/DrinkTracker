@@ -371,3 +371,42 @@ true of heart rate variability.
 **Four switches, and four rows in the offer.** The offer's rows follow
 `PairedMetric.allCases`, so it shows four "– –" rows and its acceptance
 turns on four switches. The card is at the size the design drew it for.
+
+## Amendment — 2026-09-22 (the owner's review: the numeric columns take a floor)
+
+The owner's review of the shipped four-row card, beside the weekend card
+above it: *"fix the alignment and spacing in the rows below so it matches
+the alignment and spacing of 'Days with a drink' and 'Your log, US
+Adults'."* The heads DRINKS and NO DRINKS sat 8pt apart and each row's
+figures ended wherever their unit let them.
+
+**Why the two cards looked different.** Both had content-sized numeric
+columns in the same grid, with the same 8pt spacing and the same trailing
+alignment — the consequence above chose that on purpose, to keep the label
+column wide on a 375pt phone. What differed was the content: "31 of every
+100" makes the weekend card's second column 96.7pt, so "US adults" (67.8)
+sits with 29pt of column to its left and the two heads are 36.9pt apart;
+the health card's widest cell was "36.62 °C" at 64.0, "NO DRINKS" (67.0)
+filled its column, and the four figures — 49.2, 58.5, 40.7 and 64.0 wide —
+each ended where their unit let them, so the rows read as scattered.
+
+**Decision.** Both numeric columns take a scaled floor of 74pt
+(`figureColumn`, `@ScaledMetric` on the head's text style, the weekday
+table's own device at 88), on the card and on the offer — a minimum, never
+a clip, so a wider figure or head still grows its column. 74 is the
+narrowest width that holds every cell ("36.62 °C" 64.0, "NO DRINKS" 67.0,
+"100.12 °F" 72.8) and puts the two heads 36.8pt apart, the reference
+card's own spacing to a tenth. The cells stay trailing-aligned as the
+reference's are: a numeral still ends where its unit lets it, as "32" ends
+where "of 153" lets it there; what changes is that every row's figures now
+sit in two columns of one width with one gutter.
+
+**Cost, measured.** The label column is what the columns leave: 166pt on a
+402pt phone and 157 on a 393pt one, where "Heart rate variability" (138.3)
+fits; 139 on a 375pt phone, a 0.7pt margin, so there it may wrap to two
+lines — the accepted cost ADR-0032's amendment records for "Monday to
+Thursday" on the same phones. The consequence above that chose
+content-sized columns is superseded for this card; the fold at `.xLarge`
+and above is untouched. Rendered on the scratch simulator through the
+render copy's synthetic read: the four-row card at Year and Quarter in
+light and dark, and the four-row offer.

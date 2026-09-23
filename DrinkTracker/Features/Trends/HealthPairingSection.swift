@@ -445,6 +445,22 @@ struct HealthPairingCard: View {
   /// The weekday table's fold, read from the one shared place.
   private var isStacked: Bool { ComparisonTable.folds(dynamicTypeSize) }
 
+  /// The two numeric columns' width — a floor, so a wider figure or head
+  /// still fits, never a clip. The owner's review of the shipped card
+  /// (2026-09-22) read its heads as jammed and its figures as scattered
+  /// beside the weekend card above, whose columns are content-sized but
+  /// happen to be wide: "US adults" sits in a column "31 of every 100"
+  /// made 96.7pt, so its heads are 36.9pt apart, where "DRINKS" and "NO
+  /// DRINKS" over content-sized columns were 8pt apart and each row's
+  /// figures ended wherever their unit let them. 74 is the narrowest scaled
+  /// width that holds every cell ("36.62 °C" 64.0, "NO DRINKS" 67.0,
+  /// "100.12 °F" 72.8) and puts the two heads 36.8pt apart — the reference
+  /// card's own spacing to a tenth. Its cost is the label column, measured
+  /// in ADR-0050's amendment: 157pt on the owner's 393pt phone, 139 on a
+  /// 375pt one against "Heart rate variability" at 138.3. Scaled with the
+  /// head's text style, as the weekday table's is.
+  @ScaledMetric(relativeTo: .caption2) private var figureColumn: CGFloat = 74
+
   /// The design's temperature note, under the last row and only while the
   /// wrist temperature row is on the card — it is the last row by the
   /// Settings order, so the note sits directly beneath it. It says what the
@@ -496,9 +512,9 @@ struct HealthPairingCard: View {
         CardTitle("Your averages")
           .frame(maxWidth: .infinity, alignment: .leading)
           .gridColumnAlignment(.leading)
-        ComparisonTable.columnHead(Text("Drinks"))
+        ComparisonTable.columnHead(Text("Drinks"), width: figureColumn)
           .accessibilityHidden(true)
-        ComparisonTable.columnHead(Text("No drinks"))
+        ComparisonTable.columnHead(Text("No drinks"), width: figureColumn)
           .accessibilityHidden(true)
       }
       .padding(.bottom, GlassTokens.Spacing.tight)
@@ -565,6 +581,7 @@ struct HealthPairingCard: View {
       }
     }
     .animation(.smooth(duration: 0.22), value: average)
+    .frame(minWidth: figureColumn, alignment: .trailing)
   }
 
   /// From `.xLarge` up, the fold the weekday table takes: the title, then per
@@ -619,6 +636,11 @@ struct HealthPairingOffer: View {
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   private var isStacked: Bool { ComparisonTable.folds(dynamicTypeSize) }
+
+  /// The card's own column floor, so the offer's empty cells sit where the
+  /// figures will (`HealthPairingCard.figureColumn`; a property wrapper
+  /// cannot be shared as a static, the weekday table's own note).
+  @ScaledMetric(relativeTo: .caption2) private var figureColumn: CGFloat = 74
 
   var body: some View {
     SUCard(model: .glass) {
@@ -677,9 +699,9 @@ struct HealthPairingOffer: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .gridColumnAlignment(.leading)
           .accessibilitySortPriority(1)
-        ComparisonTable.columnHead(Text("Drinks"))
+        ComparisonTable.columnHead(Text("Drinks"), width: figureColumn)
           .accessibilityHidden(true)
-        ComparisonTable.columnHead(Text("No drinks"))
+        ComparisonTable.columnHead(Text("No drinks"), width: figureColumn)
           .accessibilityHidden(true)
       }
       .padding(.bottom, GlassTokens.Spacing.tight)
@@ -710,6 +732,7 @@ struct HealthPairingOffer: View {
       .font(GlassTokens.Typography.rowFigure)
       .monospacedDigit()
       .foregroundStyle(.tertiary)
+      .frame(minWidth: figureColumn, alignment: .trailing)
       .accessibilityHidden(true)
   }
 
