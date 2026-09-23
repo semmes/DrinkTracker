@@ -45,11 +45,13 @@ struct SettingsView: View {
   // MARK: - Appearance
 
   /// A display preference only (1.2 spec, Feature A). The widget deliberately
-  /// keeps following the device — see `AppearancePreference`.
+  /// keeps following the device — see `AppearancePreference`. No footnote since
+  /// the owner's copy pass of 2026-09-23, which removed the one saying so; the
+  /// behaviour is unchanged.
   private var appearanceSection: some View {
     SettingsSection(
       title: "Appearance",
-      footnote: "The widget follows the device's appearance either way."
+      footnote: nil
     ) {
       Picker("Appearance", selection: $appearanceRaw) {
         ForEach(AppearancePreference.allCases) { preference in
@@ -101,12 +103,16 @@ struct SettingsView: View {
     }
   }
 
+  /// The owner's wording (2026-09-23). The standard-drink line keeps a second
+  /// sentence for the day rule (`DrinkDraft.dayTemplate`): without it the
+  /// first would be untrue on any day ＋ is repeating a drink the reader
+  /// described.
   private var counterSeedFootnote: LocalizedStringKey {
     switch settings.counterSeed {
     case .standardDrink:
-      return "One tap records one standard drink, with no type — add the type and size later or skip them, it counts either way. Once you describe a drink, the next taps record another of it for the rest of the day. Each day starts back at a standard drink."
+      return "One tap records a standard drink, you can update and define the type if you want, or leave it as is. Once you describe a drink, one tap repeats it for the rest of the day."
     case .usualDrink:
-      return "One tap records the type you log most, at the size and strength you last logged it. Tap the entry to change any of it."
+      return "Records the type you log the most, the size and strength stay until you change it."
     }
   }
 
@@ -260,10 +266,14 @@ struct SettingsView: View {
   /// One footnote for the section, in two forms: with the column picker on
   /// screen it says what the picker is and is not; without it, what turning
   /// a comparison off does. Neither recommends a setting.
+  ///
+  /// Plainer since the owner's copy pass of 2026-09-23. The first sentence says
+  /// where the comparing happens rather than "nothing about your log leaves this
+  /// device", which on its own reads as untrue of a log that syncs to iCloud.
   private var comparisonsFootnote: LocalizedStringKey {
     settings.showsWeeklyAverageComparison
-      ? "Published US statistics your own figures are shown beside, each bundled with its source and year — never data from other Tallyist users, and nothing about your log leaves this device. The survey behind the weekly average prints its table for all adults, for men and for women; Compare with picks the column your average is placed against. It is a choice of reference, not a question about you, and it stays on this device. The other two figures are published for all adults only."
-      : "Published US statistics your own figures are shown beside, each bundled with its source and year — never data from other Tallyist users, and nothing about your log leaves this device. A comparison that is off no longer appears on Trends or the year view."
+      ? "Your figures are compared on this device with published US statistics built into the app, never with data from other Tallyist users. Compare with picks which of the survey's columns your weekly average sits beside. It's a choice of reference, not a question about you, and it stays on this device. The other two sources publish figures for all adults only."
+      : "Your figures are compared on this device with published US statistics built into the app, never with data from other Tallyist users. A comparison that's off doesn't appear on Trends or the year view."
   }
 
   // MARK: - Region
@@ -288,9 +298,11 @@ struct SettingsView: View {
 
   private var regionFootnote: LocalizedStringKey {
     if settings.isUsingFallbackRegion {
-      return "You skipped this during setup, so totals currently use the US definition. Pick one to change it."
+      return "You skipped this during setup, so totals use the US definition until you pick one."
     }
-    return "This is the unit your totals are shown in. Changing it re-expresses everything, including past days — what you drank doesn't change, only how it's counted."
+    // ADR-0002's lens in three short sentences: every day is recounted, the
+    // stored facts are not touched.
+    return "Totals are shown in this unit. Changing it recounts past days too. What you drank doesn't change."
   }
 
   // MARK: - iCloud
@@ -362,17 +374,17 @@ struct SettingsView: View {
 
   private var iCloudFootnote: LocalizedStringKey {
     if Diagnostics.isStoreInMemory {
-      return "The app couldn't open its storage, so drinks logged in this session won't be kept. Restarting the app usually resolves this."
+      return "The app couldn't open its storage, so drinks you log won't be kept. Restarting the app usually fixes this."
     }
     switch Diagnostics.cloudKitStatusCode {
     case "available":
       return hasSynced
         ? "Your log follows your iCloud account across your devices."
-        : "Your log is on this device. Nothing has synced yet — iCloud will keep trying on its own."
+        : "Your log is on this device. Nothing has synced yet, and iCloud will keep trying."
     case "noAccount":
-      return "Your log is kept on this device. Sign into iCloud in the Settings app to sync it across devices."
+      return "Your log is kept on this device. Sign in to iCloud in the Settings app to sync it."
     case "restricted":
-      return "Your log is kept on this device. iCloud access is restricted on this device, for example by Screen Time or a device profile."
+      return "Your log is kept on this device. iCloud is restricted, for example by Screen Time or a device profile."
     case "temporarilyUnavailable":
       return "Your log is kept on this device and will sync when iCloud is available again."
     default:
@@ -425,9 +437,9 @@ struct SettingsView: View {
   private var healthFootnote: LocalizedStringKey {
     switch health.authorization {
     case .authorized:
-      "Your log is written to Health as alcoholic beverages, and what other apps record in Health appears here: their drinks, counted as logged, and a day they recorded as zero drinks, shown as no alcohol. Change access in the Health app under Sharing."
+      "Your drinks are saved to Health as alcoholic beverages. Drinks other apps save there appear in your log, and a day they record as zero shows as no alcohol. Change access in the Health app under Sharing."
     case .denied, .notDetermined:
-      "Your log is kept in the app either way. Turn access on in the Health app under Sharing to save to Health and to see what other apps have recorded there."
+      "Your log is kept in the app either way. Turn on access in the Health app under Sharing to save drinks there and see what other apps record."
     case .unavailable:
       "Your log is kept in the app."
     }
@@ -444,8 +456,10 @@ struct SettingsView: View {
       // No per-type clause: since ADR-0037 a cocktail's two columns are the
       // whole drink's volume and its mixed strength, the same shape as every
       // other typed drink, so the sentence ADR-0035 added for the spirit-pour
-      // model is gone again and the 2026-09-02 wording stands.
-      footnote: "Saves your whole log as a CSV file spreadsheets can open — every drink, drinks counted from Apple Health, and the days recorded as no alcohol, here or in Apple Health. Totals are in your current unit. Size and strength are included for every drink you described; a standard drink logged without a type carries only its count."
+      // model is gone again. The owner's copy pass of 2026-09-23 shortened the
+      // 2026-09-02 wording; "for drinks you described" is what still says an
+      // untyped standard drink and a Health import carry only their count.
+      footnote: "Saves your whole log as a CSV file that spreadsheets can open, including drinks from Apple Health and days recorded as no alcohol. Totals use your current unit. Size and strength appear for drinks you described."
     ) {
       ShareLink(
         item: LogExportFile(
@@ -480,7 +494,7 @@ struct SettingsView: View {
   private var diagnosticsSection: some View {
     SettingsSection(
       title: "Diagnostics (test build)",
-      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent at all; anything starting \"failed\" means the write itself broke. Store mode is what was asked for when the store opened; iCloud sync is what actually happened, and they can disagree — a store opens fine with CloudKit requested and no iCloud account, then simply never syncs. \"IN MEMORY\" means nothing is being saved at all."
+      footnote: "Tap the widget's log button, then come back here. \"never ran\" means the tap didn't reach the intent, and anything starting \"failed\" means the write broke. Store mode is what was requested when the store opened. iCloud sync is what actually happened, and the two can disagree: a store can open with CloudKit requested and no iCloud account, then never sync. \"IN MEMORY\" means nothing is being saved."
     ) {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
         diagnosticRow(
