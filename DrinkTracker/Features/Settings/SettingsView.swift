@@ -196,7 +196,7 @@ struct SettingsView: View {
   private var healthPairingSection: some View {
     SettingsSection(
       title: "Apple Health on Trends",
-      footnote: "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep comes from nights you wear your watch to bed."
+      footnote: "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep and wrist temperature come from nights you wear your watch to bed."
     ) {
       @Bindable var settings = settings
       VStack(spacing: GlassTokens.Spacing.tight) {
@@ -215,6 +215,11 @@ struct SettingsView: View {
           source: "Shown at Quarter and Year",
           isOn: $settings.showsHeartRateVariabilityPairing
         )
+        ComparisonToggle(
+          title: "Wrist temperature",
+          source: "One figure a night, from your watch",
+          isOn: $settings.showsWristTemperaturePairing
+        )
       }
     }
     .onChange(of: settings.showsRestingHeartRatePairing) { _, isOn in
@@ -225,6 +230,9 @@ struct SettingsView: View {
     }
     .onChange(of: settings.showsHeartRateVariabilityPairing) { _, isOn in
       if isOn { pairingSwitchTurnedOn(.heartRateVariability) }
+    }
+    .onChange(of: settings.showsWristTemperaturePairing) { _, isOn in
+      if isOn { pairingSwitchTurnedOn(.wristTemperature) }
     }
   }
 

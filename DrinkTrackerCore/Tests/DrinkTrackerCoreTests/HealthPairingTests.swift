@@ -617,6 +617,74 @@ struct HealthPairingTests {
     #expect(HealthPairing.figures(markedShort.buckets, values: markedShort.values) != nil)
   }
 
+  /// Wrist temperature (ADR-0053): the watch's one reading a night, filed
+  /// under the night whose sleep day holds its middle, and the row's two
+  /// figures are the plain means of those readings — no baseline, no
+  /// deviation, no sign. Nights with nothing logged carry readings too and
+  /// enter neither figure, which is what "the reading, not a change from a
+  /// median of the range" makes structural: no night outside a bucket can
+  /// move a figure inside one.
+  @Test("Wrist temperature is two absolute means, each night's reading filed by the sleep day it fell in")
+  func wristTemperatureIsAbsoluteMeansBySleepDay() {
+    let cal = utc
+    let list = nights(at(2026, 6, 1, in: cal), at(2026, 7, 10, in: cal), calendar: cal)
+    var drinks: [LoggedDrink] = []
+    var markers: [Date] = []
+    var samples: [HealthSample] = []
+    for (index, night) in list.enumerated() {
+      let evening = night.evening
+      let reading: Double
+      // Fifteen drink nights, because the second night's reading files
+      // under the third (below) and leaves fourteen with a value — the gate.
+      if index < 15 {
+        drinks.append(beer(at: evening.addingTimeInterval(hours(21))))
+        reading = 36.5
+      } else if index < 29 {
+        markers.append(evening)
+        reading = 36.25
+      } else {
+        reading = 36.75  // nothing logged: in neither column
+      }
+      // The sample spans the sleep, 23:30 to 06:30, so its middle, 03:00, is
+      // inside the sleep day that began at 18:00 on `evening`. Two are
+      // shaped to tell the filing rules apart: the first night's is an
+      // instant at 23:45, which the sleep-day rule files under `evening`
+      // where a day-after rule would file it under the night before the
+      // list; the second night's spans 17:00 to 21:00 the next afternoon,
+      // so its start is inside this night's sleep day but its middle, 19:00,
+      // is inside the *next* night's — the middle rule files it there, where
+      // it joins that night's own reading (two of 36.5, averaged to one),
+      // and this night is left without a value.
+      let start: Date
+      let end: Date
+      switch index {
+      case 0:
+        start = evening.addingTimeInterval(hours(23.75))
+        end = start
+      case 1:
+        start = evening.addingTimeInterval(hours(41))
+        end = evening.addingTimeInterval(hours(45))
+      default:
+        start = evening.addingTimeInterval(hours(23.5))
+        end = evening.addingTimeInterval(hours(30.5))
+      }
+      samples.append(HealthSample(start: start, end: end, value: reading))
+    }
+    let buckets = HealthPairing.buckets(list, drinks: drinks, alcoholFreeDays: markers, calendar: cal)
+    let values = HealthPairing.nightlyValues(of: samples, for: list, attribution: .sleepDay, calendar: cal)
+    // Every night but the second has a value; the second's reading went to
+    // the third, which still reads 36.5.
+    #expect(values.count == list.count - 1)
+    #expect(values.first?.night == list[0].evening)
+    #expect(values[1].night == list[2].evening)
+    #expect(values[1].value == 36.5)
+    #expect(!values.contains { $0.night == list[1].evening })
+
+    let figures = HealthPairing.figures(buckets, values: values)
+    #expect(figures?.drinks == PairedFigures.Figure(average: 36.5, nights: 14))
+    #expect(figures?.noDrinks == PairedFigures.Figure(average: 36.25, nights: 14))
+  }
+
   /// Plan rule 1: the value type stores exactly two figures, two counts and
   /// the span, and nothing that relates one side to the other. A stored
   /// difference, ratio or verdict changes this list and fails here. `Mirror`

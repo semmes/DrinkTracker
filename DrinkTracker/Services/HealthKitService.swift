@@ -321,6 +321,7 @@ final class HealthKitService {
         case .restingHeartRate: HKQuantityType(.restingHeartRate)
         case .sleep: HKCategoryType(.sleepAnalysis)
         case .heartRateVariability: HKQuantityType(.heartRateVariabilitySDNN)
+        case .wristTemperature: HKQuantityType(.appleSleepingWristTemperature)
         }
       })
   }
@@ -493,6 +494,76 @@ final class HealthKitService {
       guard let stage = SleepStage(healthKitValue: sample.value) else { return nil }
       return SleepSample(start: sample.startDate, end: sample.endDate, stage: stage)
     }
+  }
+
+  /// Sleeping wrist temperature: the watch's one aggregated reading a night
+  /// (Apple's own description — five-second readings through the night,
+  /// corrected and reduced to a single absolute value), over the window's
+  /// samples that end inside it, as absolute degrees Celsius. A sample query
+  /// rather than a daily statistic, on purpose: the sample is stamped during
+  /// the sleep and may start before midnight, so a calendar-day bucket could
+  /// file a night under the day before it; the sample's own span lets the
+  /// domain file it by its middle under the night whose sleep day holds it
+  /// (`HealthPairing.nightlyValues(attribution: .sleepDay)`). What comes back
+  /// is the reading Apple stores — not the change from a baseline the Health
+  /// app shows, which is the Health app's own statistic and is not in
+  /// HealthKit (ADR-0053). Everything the resting heart rate read says about
+  /// empty results, the breadcrumb and what is kept holds here unchanged; a
+  /// watch that cannot measure it is the same empty as a denied read.
+  func wristTemperature(
+    in range: DateInterval,
+    endingBefore now: Date,
+    calendar: Calendar = .current
+  ) async -> [HealthSample] {
+    guard HKHealthStore.isHealthDataAvailable() else { return [] }
+    guard let window = HealthPairing.readWindow(for: range, endingBefore: now, calendar: calendar)
+    else { return [] }
+
+    let descriptor = HKSampleQueryDescriptor(
+      predicates: [
+        .quantitySample(
+          type: HKQuantityType(.appleSleepingWristTemperature),
+          predicate: HKQuery.predicateForSamples(
+            withStart: window.start, end: window.end, options: [.strictEndDate])
+        )
+      ],
+      sortDescriptors: [SortDescriptor(\.startDate)]
+    )
+
+    let started = ContinuousClock.now
+    let samples = try? await descriptor.result(for: store)
+    let elapsed = ContinuousClock.now - started
+    guard !Task.isCancelled else { return [] }
+    Diagnostics.recordHealthPairingRead(
+      "wrist temperature",
+      days: HealthPairing.days(in: window, calendar: calendar),
+      seconds: Double(elapsed.components.seconds)
+        + Double(elapsed.components.attoseconds) / 1e18
+    )
+    guard let samples else { return [] }
+
+    let celsius = HKUnit.degreeCelsius()
+    return samples.map { sample in
+      HealthSample(
+        start: sample.startDate, end: sample.endDate,
+        value: sample.quantity.doubleValue(for: celsius))
+    }
+  }
+
+  /// The unit the reader's Health app shows wrist temperature in — their own
+  /// choice there, or the locale's default (HealthKit's `preferredUnits`:
+  /// the header says it gives the reader's own preference only for a type
+  /// the app is authorized to read and the locale's default otherwise, and
+  /// throws while the type's status is not determined — so the model asks
+  /// it beside a read that returned samples, where the answer is the
+  /// reader's). Celsius, the stored unit, for every kind of nothing. Read
+  /// for one render, never kept.
+  func preferredTemperatureUnit() async -> TemperatureUnit {
+    guard HKHealthStore.isHealthDataAvailable() else { return .celsius }
+    let type = HKQuantityType(.appleSleepingWristTemperature)
+    guard let units = try? await store.preferredUnits(for: [type]), let unit = units[type]
+    else { return .celsius }
+    return unit == HKUnit.degreeFahrenheit() ? .fahrenheit : .celsius
   }
 
   /// One daily statistics query, shared by every *discrete* per-day quantity
