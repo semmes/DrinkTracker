@@ -3235,3 +3235,20 @@ Open items for v1.2:
   `02ED9BEE-…`) is kept booted with the render copy installed and its seeded store for
   Phase 7's read-through, then deleted; the seeders and the render copy are
   `/tmp/claude-501/seeder4`, `seeder5`, `seeder6` and `render6`.
+- **The Health card's numeric columns take a floor (2026-09-22, the owner's review of the
+  shipped card; ADR-0050 amended).** *"Fix the alignment and spacing in the rows below so
+  it matches the alignment and spacing of 'Days with a drink' and 'Your log, US Adults'."*
+  Both cards had content-sized columns in the same grid; the weekend card's second column
+  is made 96.7pt by "31 of every 100", so its heads sit 36.9pt apart, while the health
+  card's widest cell was 64pt, its heads were 8pt apart and its figures (49 to 64pt wide)
+  ended wherever their unit let them. Now `figureColumn`, a scaled floor of 74 on the card
+  and the offer (a minimum, never a clip — the narrowest width holding "36.62 °C" 64.0, "NO
+  DRINKS" 67.0 and "100.12 °F" 72.8), puts the heads 36.8pt apart; the cells stay
+  trailing-aligned as the reference's are. **The cost** is the label column ADR-0050 had
+  protected: 166pt on a 402pt phone, 157 on the owner's 393, and 139 on a 375pt phone
+  against "Heart rate variability" at 138.3 — a possible two-line wrap there, ADR-0032's
+  accepted cost for "Monday to Thursday". No string, key or setting change. Rendered on the
+  scratch simulator through the render copy: the four-row card at Year and Quarter, light
+  and dark, and the four-row offer (`/tmp/claude-501/columns-shots/`). **Not verified:** a
+  375pt phone (no simulator of that width on this Mac; the wrap is computed from CoreText),
+  and the case where a row's numeral is wider than the floor.
