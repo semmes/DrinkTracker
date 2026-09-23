@@ -453,3 +453,7 @@ colours by name — and a tier-2 test (`InkTests`) reads the app target's
 sources for the hierarchical text styles, since no test tier reaches a
 rendered view. The column heads' `.primary` (this record's own rule for
 them) was never affected: primary is drawn at #F2F2F2.
+
+**Verified on the owner's iPhone (iOS 27) the same night** — "Verified on my phone
+it's fixed": the card titles in dark mode and every segmented picker switching on one
+tap, beside the rows at every range (ADR-0048's amendment of this date).

@@ -610,8 +610,9 @@ style is vibrant on glass, and this app's dark ground is black — so every
 text in the app target takes the flat semantic colour now (design-system
 §2). **The range picker is native** (it had missed single taps on
 hardware; design-system §6). **The watch app** was not installed with the
-phone build — a development install's behaviour, not the project's;
-CLAUDE.md's bullet says what to do.*
+phone build — the owner's new Series 12 was missing from the watch app's
+development profiles, which only a run of the watch scheme regenerates;
+not the project's, and CLAUDE.md's bullet says how to check.*
 
 **Phase 7, release.** Below.
 

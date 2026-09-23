@@ -310,3 +310,7 @@ range". If Week's two-night means prove to read as findings in use, the
 honest alternative is not three — six of five nights, the row gone again —
 but the sixth decision's own hiding: Week back to the base floor, one line
 in the function, and the offer with it.
+
+**Verified on the owner's iPhone (iOS 27) the same night** — "Verified on my phone
+it's fixed": the rows and the offer at Week and Month on the owner's own log, with
+the pickers and the ink of the same pass (ADR-0050's amendment of this date).
