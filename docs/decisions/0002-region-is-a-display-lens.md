@@ -51,3 +51,13 @@ If the app ever needed to show a historical figure exactly as it appeared on a g
 day — an export intended as a contemporaneous record, say — that would call for
 rendering *alongside* the current-region total, not for changing how totals are
 computed. The invariant would survive.
+
+---
+
+### Note (2026-09-23) — the Settings sentence, reworded
+
+The owner's copy pass shortened the footnote quoted under Decision to "Totals are
+shown in this unit. Changing it recounts past days too. What you drank doesn't
+change." It states the same two facts: every day, past ones included, is
+recounted in the new unit, and the stored volume and strength are not touched.
+The decision is unchanged. `docs/copy-review-1.4.3.md` has the review.

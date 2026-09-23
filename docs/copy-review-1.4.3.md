@@ -1781,3 +1781,45 @@ Nothing else in the pass changed a string. The per-range floors (ADR-0048's
 and Month under their existing source lines — "From Apple Health, last 7
 days", "…last 30 days", reviewed with Phase 3 — and the ink change is
 colour, not words. House voice intact.
+
+## 2026-09-23 — the Settings copy pass
+
+The owner's edits to the Settings page: remove the Appearance footnote, put
+the counter's two captions in the owner's words, rewrite the Comparisons
+footnote without em dashes and in more natural language, and make every other
+footnote more concise. **Nothing new is claimed.** Each replacement states the
+facts it replaces in fewer words — 542 words out, 419 in — and one fact the
+owner's wording would have dropped, the counter's day rule, is kept as a
+second sentence, the owner's choice when asked. Fifteen app keys out,
+fourteen in, 373 → 372.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "The widget follows the device's appearance either way." | *Retired* from Settings → Appearance, which now has no footnote | The owner removed it. The widget still follows the device (1.2 spec, Feature A); nothing on screen says so now. |
+| "One tap records a standard drink, you can update and define the type if you want, or leave it as is. Once you describe a drink, one tap repeats it for the rest of the day." | Settings → What the counter logs, under Standard drink | The owner's first sentence, punctuation as written. The second is the day rule (ADR-0023's revision), kept at the owner's choice: without it the first is untrue on any day ＋ repeats a drink the reader described. It says what a tap writes. "If you want, or leave it as is" offers the detail without asking for it. |
+| "Records the type you log the most, the size and strength stay until you change it." | The same, under My usual drink | The owner's wording, and true of ADR-0009's rule: the most-logged type, repeated at the size and strength of its most recent entry. "The most" is how often a type is logged, not how much was drunk. |
+| "Your figures are compared on this device with published US statistics built into the app, never with data from other Tallyist users. Compare with picks which of the survey's columns your weekly average sits beside. It's a choice of reference, not a question about you, and it stays on this device. The other two sources publish figures for all adults only." | Settings → Comparisons, footnote while the weekly average is on | The same facts as before: published US statistics, bundled, never other users' data, what Compare with is and is not (ADR-0039's words kept), and why the other two have no column to pick. The first sentence now says *where the comparing happens*. "Nothing about your log leaves this device" was true of a comparison but reads alone as untrue of a log that syncs to iCloud. Nothing recommends a column or a comparison. |
+| "Your figures are compared on this device with published US statistics built into the app, never with data from other Tallyist users. A comparison that's off doesn't appear on Trends or the year view." | The same, while the weekly average is off | The same first sentence. The second states what a switch does, not a reason to flip it. |
+| "Totals are shown in this unit. Changing it recounts past days too. What you drank doesn't change." | Settings → Standard drink size | ADR-0002's lens in three sentences: every day is recounted, the stored facts are not touched. ADR-0002 carries a note. |
+| "You skipped this during setup, so totals use the US definition until you pick one." | The same, before a region is chosen | A fact and when it ends. The rows beneath are the only prompt. |
+| "Your log is on this device. Nothing has synced yet, and iCloud will keep trying." | Settings → iCloud, signed in with nothing synced | The 2026-09-15 sentence without its em dash or "on its own": still two facts and no instruction, and the retry is still the system's, not the reader's. |
+| "Your log is kept on this device. Sign in to iCloud in the Settings app to sync it." | Settings → iCloud, no account | "Sign in to", the verb, for "Sign into"; "across devices" goes, because syncing already means that. An instruction about a system setting, not about drinking. |
+| "Your log is kept on this device. iCloud is restricted, for example by Screen Time or a device profile." | Settings → iCloud, restricted | The second "on this device" goes. |
+| "The app couldn't open its storage, so drinks you log won't be kept. Restarting the app usually fixes this." | Settings → iCloud, footnote while the store is in memory | The same warning, plainer. The label above it, "Not saving — storage unavailable", is unchanged: it is the one alarm house voice allows, and the watch's storage strip uses the same words. |
+| "Your drinks are saved to Health as alcoholic beverages. Drinks other apps save there appear in your log, and a day they record as zero shows as no alcohol. Change access in the Health app under Sharing." | Settings → Apple Health, access allowed | The same three facts (ADR-0014, ADR-0025), with the privacy policy's verb, "saved", which the row above already uses ("Saving to Health"). "Your drinks" rather than "your log": imports are not written back. |
+| "Your log is kept in the app either way. Turn on access in the Health app under Sharing to save drinks there and see what other apps record." | Settings → Apple Health, access not allowed | Shorter. The instruction is about a permission, and "either way" still says nothing is lost by leaving it off. |
+| "Saves your whole log as a CSV file that spreadsheets can open, including drinks from Apple Health and days recorded as no alcohol. Totals use your current unit. Size and strength appear for drinks you described." | Settings → Export | ADR-0015's claims in 36 words for 58. "For drinks you described" carries what the dropped clause said: an untyped standard drink, like a Health import, has only its count. |
+| The Diagnostics footnote, "Tap the widget's log button, then come back here. …" | Settings → Diagnostics, test builds only | The same meaning, without the em dash or semicolons. |
+
+**Unchanged, because they were already short or are labels, not
+microcopy:** Session pace; the Apple Health on Trends footnote and its four
+captions (reviewed with Phase 6); the three source captions; "Your log
+follows your iCloud account across your devices."; "…will sync when iCloud
+is available again."; "…kept on this device either way."; "Your log is kept
+in the app."; About; and the status labels, whose em dashes are separators
+("Not syncing — no iCloud account"). **Not on this page:** the Trends source
+notes keep "not data from other Tallyist users — nothing about your log
+leaves this device"; the owner's pass was the Settings page's.
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.

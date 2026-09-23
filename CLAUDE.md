@@ -3435,3 +3435,38 @@ Open items for v1.2:
   `docs/app-store-listing.md` and 1.3's What's New as shipped; the status lines of the
   1.3 and 1.4 specs. No code, schema, CloudKit, catalog, privacy-policy or project-file
   change.
+- **The Settings copy pass (2026-09-23; ADR-0002 and ADR-0038 notes).** The owner's
+  four edits: remove the Appearance footnote, put the counter's two captions in their
+  words, rewrite the Comparisons footnote without em dashes and in more natural
+  language, and make the page's microcopy more concise. Appearance has no footnote now
+  (the widget still follows the device, unsaid). The counter's captions are the owner's
+  words with their punctuation as written, and the standard-drink line keeps a second
+  sentence, "Once you describe a drink, one tap repeats it for the rest of the day."
+  When asked, the owner chose to keep it, because without it "One tap records a
+  standard drink" is untrue on any day ＋ repeats a described drink
+  (`DrinkDraft.dayTemplate`). The Comparisons footnote opens "Your figures are compared
+  on this device with published US statistics built into the app, never with data from
+  other Tallyist users." That says **where the comparing happens**, replacing "nothing
+  about your log leaves this device", which read alone contradicts iCloud sync.
+  ADR-0039's quoted phrase is kept word for word. The region, iCloud, Apple Health,
+  Export and Diagnostics footnotes say the same facts in fewer words, 542 words out and
+  419 in, and every changed string is in `docs/copy-review-1.4.3.md`. **Left alone on
+  purpose:** the status labels (their em dashes are separators, and "Not saving —
+  storage unavailable" is also the watch strip's text), Session pace, the Apple Health on
+  Trends footnote and captions, the source captions, About, and the pushed Privacy
+  Policy and tip jar pages. The Trends source notes still say "— nothing about your log
+  leaves this device", which was outside the owner's scope. App catalog 373 → **372**
+  (fifteen out, fourteen in, synced from a fresh full build into a scratch copy and
+  diffed; 524 across six catalogs). No schema, CloudKit, privacy-policy or project-file
+  change. **Verified:** the CI-form build, where the one warning in `SettingsView.swift`
+  is the old `ModelContext` line; 119 integration tests; and tier 3 on a throwaway
+  iPhone 17 Pro on iOS 27, deleted afterwards. That render covered every changed
+  footnote a simulator can reach: both counter settings, both Comparisons forms, the
+  region footnote before and after a pick, "no account" and "Not set up", Export and
+  Diagnostics, in light, dark and `accessibility-extra-large`, where every footnote
+  wraps and none truncates. Domain tests were not re-run, since nothing in the package
+  changed. **Not rendered:** the iCloud footnotes for signed in, synced, restricted and
+  the in-memory store, and Health's allowed state. A simulator with no account and no
+  Health grant shows neither. **Tier 4 for the owner:** read the page on their phone,
+  which is signed in with Health allowed, so it shows the footnotes the simulator could
+  not.

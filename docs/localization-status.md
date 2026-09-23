@@ -96,9 +96,12 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **525 keys across six catalogs** — 373 app, 35 widget, 28 core, 4
-shortcuts, 50 watch app, 35 complication (counted 2026-09-22 after the
-owner's device pass of the health pairing: four app keys in, none out — the
+Current: **524 keys across six catalogs** — 372 app, 35 widget, 28 core, 4
+shortcuts, 50 watch app, 35 complication (counted 2026-09-23 after the
+owner's Settings copy pass: fifteen app keys out, fourteen in — the
+Appearance footnote retired, every other rewritten footnote replaced one for
+one, and no other key touched — synced the same way as below; 373 after the
+owner's device pass of the health pairing on 2026-09-22: four app keys in, none out — the
 Trends range picker's "Week", "Month" and "Quarter" and its VoiceOver title
 "Range", which reach the catalog because the picker is native now, where the
 ComponentsKit control drew `String`s the extractor never saw; "Year" was
