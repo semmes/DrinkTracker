@@ -245,3 +245,68 @@ values that live for one render.
   that puts a day's figure on the wrong side of midnight — `NightAttribution`
   gains a case and the read layer picks it; the night and its windows do not
   change.
+
+## Amendment — 2026-09-22 (the owner's device pass: the floor follows the range)
+
+The owner, testing the four rows on their phone: *"Under Trends, Apple
+watch data prompt to grant access only shows up when you select quarter or
+year. They don't appear on month or week trends. We ask them to share past
+30 days and future data so we should show it on all options, provided we
+have the data."* The sixth decision above set one floor — fourteen nights
+with a value in each bucket — and its consequence was that the row could
+never appear at Week (five countable nights against fourteen) and at Month
+only in theory (twenty-eight against twenty-eight). The offer, gated on the
+same floor from the log, is where a reader meets the feature, so it too
+lived at Quarter and Year, and Trends opens on Week. The reopen entry for
+the floor says it is a parameter; this engages it.
+
+**Decision.** The floor is per range. `PairedFigures.minimumNights(at:)`
+is fourteen at Quarter and Year, seven at Month and two at Week; the base
+constant stands, and the two wide ranges still read it. Every gate reads
+the range's floor: the offer's (`HealthPairingSection.resolve`), the
+read's (`HealthPairingModel.load`, which still skips a metric the log
+alone cannot clear), the table's (`figures(_:values:minimumNights:)`) and
+the ask's (the sheet on Trends), through `PairedMetric.minimumNights(at:)`.
+Heart rate variability is untouched: ADR-0052's twenty-eight, at Quarter
+and Year only, its caption still true. Rule 3 holds at every range as it
+did — a gate in both buckets, the whole surface hidden below it, no
+caveat — at two nights on both sides at Week and seven on both at Month.
+
+**Why two and seven.** A Week range holds five countable nights: seven,
+less the two `nights(from:through:completeBy:)` holds back while Health may
+still revise them. Any floor above two makes the row impossible there and
+the ruling unmet, and two is the least a mean is a mean of. Month holds
+twenty-eight, and seven is the number the sixth decision weighed fourteen
+against: SD/√7 is a little over a third of the night-to-night spread,
+where SD/√14 is a quarter. The noise argument that set fourteen does not
+go away at the shorter ranges; it is accepted there, on the owner's ruling,
+and stated here rather than on the card: a figure at Week is a mean of two
+to five nights and moves by a night's reading, and the two columns can
+differ by noise alone, in either direction. The night counts printed under
+each row's name — "2 and 3 nights" — are the reader's measure of that,
+which is what the design prints them for.
+
+**What a reader sees.** The offer can appear at Week or Month once the
+current range's log holds the floor on both sides, so the opening range can
+now show it; the rows follow, resting heart rate, sleep and wrist
+temperature over two or more nights a column at Week and seven at Month.
+"Provided we have the data" is the gate: a week with one marked night
+shows nothing, as before. The authorization window the owner named — iOS
+27's "Past 30 Days and Future Data" — does not enter the gate, and does not
+need to: a reader who took it has readings for the last thirty nights,
+which is Week's and Month's whole span, and Quarter and Year still count
+only the nights that have a value.
+
+**Cost.** Two-night means at Week, and figures there that can change from
+one visit to the next as a night rolls into or out of the window. The
+tier-1 vector pins the four floors and a Week fixture — two drink nights
+and two marked nights among the five countable nights clear it, one marked
+night does not, and the base floor never would — and the means it returns
+are over exactly those nights.
+
+**How to reopen.** The floors are one function with the arithmetic beside
+it, and the design README's own line is "the gate is per row and per
+range". If Week's two-night means prove to read as findings in use, the
+honest alternative is not three — six of five nights, the row gone again —
+but the sixth decision's own hiding: Week back to the base floor, one line
+in the function, and the offer with it.

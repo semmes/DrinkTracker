@@ -410,3 +410,46 @@ content-sized columns is superseded for this card; the fold at `.xLarge`
 and above is untouched. Rendered on the scratch simulator through the
 render copy's synthetic read: the four-row card at Year and Quarter in
 light and dark, and the four-row offer.
+
+## Amendment — 2026-09-22 (the owner's device pass: every range, and the ink)
+
+Two of the owner's four findings from the first device pass of the four
+rows (an iPhone on iOS 27) land here; the floors are ADR-0048's amendment
+of the same date, the offer's ADR-0051's, and the range picker and the
+watch install are the design system's and CLAUDE.md's.
+
+**The third decision's "at every range" stands; its "Quarter and Year are
+where it lives" is superseded.** The gate is still the only condition and
+there is still nothing below it, but the floor is now the range's own —
+two nights a bucket at Week, seven at Month, fourteen at Quarter and Year
+— so the row, the offer and the ask exist at all four ranges. The reopen
+entry "If the Month range should ever show a row" is answered: it can, at
+seven and seven; and Week, which the decision said "cannot clear in
+principle", clears at two. Heart rate variability keeps ADR-0052's
+twenty-eight, Quarter and Year only. Rendered on the scratch simulator over
+the seeded log: at Week, "2 and 2 nights" under each row, the offer with
+"2 nights with drinks logged and 2 recorded as no alcohol, last 7 days";
+at Month, 8 and 16.
+
+**The card's secondary ink was 2.48:1 in dark mode.** "Your averages", the
+source line, the note and the night-count captions took the hierarchical
+`.secondary` style, as every card title in the app did. Inside a glass card
+that style is drawn with vibrancy, and against the black dark ground it
+rendered #4D4D4D on black — measured on the iOS 27 simulator, where the
+same style outside the card, the "FROM APPLE HEALTH" heading, is #8C8C92,
+6.28:1 — and #999999 on white in light, 2.85:1 against 3.54:1 outside. The
+same build on an iOS 26.5 simulator drew the style at #9A9A9A, 7.41:1: the
+dimming is iOS 27's, which is why the owner's phone showed what the earlier
+dark-mode renders on iOS 26.5 had not, and why they said "Dark mode, title
+text is extremely hard to read and low contrast." Every text in the app
+target that took `.secondary` or `.tertiary` now takes the flat semantic
+colour (`.secondaryInk`, `.tertiaryInk` — `GlassTokens.swift`,
+design-system §2): `Color(.secondaryLabel)` and `Color(.tertiaryLabel)`,
+which is what the hierarchical style resolves to off glass, so nothing off
+glass changes; on glass the ink reads as it does beside the glass, measured
+after the change on iOS 27 at 6.36:1 in dark and 3.44:1 in light for the
+same title. Invariant 10 holds — no literal colour, two system semantic
+colours by name — and a tier-2 test (`InkTests`) reads the app target's
+sources for the hierarchical text styles, since no test tier reaches a
+rendered view. The column heads' `.primary` (this record's own rule for
+them) was never affected: primary is drawn at #F2F2F2.

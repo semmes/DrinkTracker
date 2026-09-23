@@ -1762,3 +1762,22 @@ figure, or about their watch.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 2026-09-22 — the owner's device pass of the four rows
+
+Four findings (CLAUDE.md, "The owner's device pass of the four rows…");
+one touches copy. The Trends range picker became a native segmented
+control, so its four names reach the catalog for the first time — the
+ComponentsKit control it replaced drew `String`s the catalog never saw —
+and the control gained a VoiceOver label.
+
+| String | Where | Review |
+|---|---|---|
+| "Week" · "Month" · "Quarter" · "Year" | The Trends range picker's four segments; "Year" is the calendar's existing key, the other three new | Named periods, no invitation — the Iteration-3 review's own line for "Quarter" / "Year", now holding for all four as keys. |
+| "Range" | The picker's title: hidden by the segmented style, spoken by VoiceOver | Names the control and nothing more. Not "Time range", not "Period"; the one word that says what the four segments choose between. |
+
+Nothing else in the pass changed a string. The per-range floors (ADR-0048's
+2026-09-22 amendment) show the existing rows and the existing offer at Week
+and Month under their existing source lines — "From Apple Health, last 7
+days", "…last 30 days", reviewed with Phase 3 — and the ink change is
+colour, not words. House voice intact.

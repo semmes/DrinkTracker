@@ -271,3 +271,22 @@ and at any range, like resting heart rate's and sleep's; the offer's
 acceptance asks for all four types at once and turns on all four switches
 through the same map. The design's last switch has shipped: the section
 holds the four the README drew, and no switch is left to arrive.
+
+## Amendment — 2026-09-22 (the owner's device pass: the offer at every range)
+
+The offer's condition — never answered, no switch on, the log alone
+clearing the gate on both sides at the current range — now reads the
+range's own floor (ADR-0048's amendment of this date, which carries the
+owner's words): two nights a bucket at Week, seven at Month, fourteen at
+Quarter and Year. So the moment of value can come at Week, where Trends
+opens: a reader whose current week holds two drink nights and two nights
+recorded as no alcohol among its five countable nights meets the offer on
+the first visit that does, with the log's own counts under it — "2 nights
+with drinks logged and 2 recorded as no alcohol, last 7 days", the key
+Phase 3 reviewed. The Phase 4 amendment's "not true over Week, where no
+row can exist" is superseded: a row can, at two. The ask on Trends follows
+the same floors per metric, so a metric that arrived switched on is asked
+for the first time *any* range holds its floor; heart rate variability's
+twenty-eight at Quarter and Year is unchanged. Nothing else about the offer
+moves — one answer, final either way, and acceptance asking for every
+shipped type at once.

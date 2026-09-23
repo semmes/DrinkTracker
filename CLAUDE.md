@@ -246,6 +246,15 @@ simulator through a synthetic read, because HealthKit lets no app write this typ
 design's four rows have all shipped. Phase 7, the release, is next: the privacy policy's
 three copies, the purpose string, the App Privacy answers and the reviewer notes — the
 plan's "Release" section is the authority, and nothing may be cut from main before it.**
+**The owner's first device pass of the four rows, on an iPhone running iOS 27, landed
+four findings the same night (the bullet "The owner's device pass of the four rows…";
+ADR-0048, ADR-0050 and ADR-0051 amended): the floor follows the range, so the offer and
+the rows exist at Week and Month too; every secondary and tertiary text in the app takes a
+flat ink, because iOS 27 draws the hierarchical styles on glass at 2.5:1 against the black
+dark ground; the range picker is native and every segmented picker sits on plain glass,
+because interactive glass takes a segmented control's taps on iOS 27 — the old rule that
+every tappable control goes on interactive glass was a synthetic-tap artefact; and the
+watch app's install alongside a phone build is the Watch app's, not the project's.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3252,3 +3261,90 @@ Open items for v1.2:
   and dark, and the four-row offer (`/tmp/claude-501/columns-shots/`). **Not verified:** a
   375pt phone (no simulator of that width on this Mac; the wrap is computed from CoreText),
   and the case where a row's numeral is wider than the floor.
+- **The owner's device pass of the four rows (2026-09-22, an iPhone on iOS 27; ADR-0048,
+  ADR-0050 and ADR-0051 amended).** Four findings, all landed the same night in one code
+  commit and one records commit — the ink change touches every screen, so the four are
+  one PR rather than four. The findings, one by one. **(1) "Under Trends, Apple watch
+  data prompt to grant access only shows up when you
+  select quarter or year… We ask them to share past 30 days and future data so we should
+  show it on all options, provided we have the data."** One floor of fourteen was more than
+  Week's five countable nights or Month's twenty-eight could hold twice, so the offer and
+  the rows lived at Quarter and Year, and Trends opens on Week. **The floor follows the
+  range now** — `PairedFigures.minimumNights(at:)`: two a bucket at Week, seven at Month,
+  fourteen at Quarter and Year — and every gate reads it: the offer's, the read's, the
+  table's and the ask's, through `PairedMetric.minimumNights(at:)`. Rule 3 holds at every
+  range (both buckets, the whole surface hidden below the floor, no caveat); the noise a
+  two-night mean carries is accepted on the owner's ruling and stated in ADR-0048's
+  amendment, not on the card — the night counts under each row's name are the reader's
+  measure of it, which is why the design prints them. Heart rate variability keeps
+  ADR-0052 (twenty-eight nights, Quarter and Year, its caption unchanged); the offer still
+  names all four metrics at Week, where the third's row cannot exist, because the
+  switches are what it turns on. One tier-1 vector (a seven-day range read on the 22nd
+  holds the evenings of the 16th through the 20th; two drink nights and two marked
+  nights clear the floor, one marked night does not, the base floor never would).
+  **Rendered on the scratch iPhone** over the seeded log, through the render copy's
+  synthetic wrist read: the offer at Week — "2 nights with drinks logged and 2 recorded as
+  no alcohol, last 7 days" — accepted, turning all four switches on; the card at Week with
+  three rows over "2 and 2 nights" (no heart rate variability row, and no breadcrumb for
+  it), at Month over "8 and 16", at Quarter three rows over "24 and 48", at Year four over
+  "32 and 63", light and dark; the Week breadcrumbs are in findings §3. **(2) "Dark mode,
+  title text is extremely hard to read and low contrast."** Measured on the iOS 27
+  simulator in the frame the report describes: a card title in `.secondary` inside a glass
+  card rendered #4D4D4D on the card's black, **2.48:1**, where the same style beside the
+  card — the section heading — rendered #8C8C92, 6.28:1; in light, 2.85:1 inside against
+  3.54:1 outside. The same build on an iOS 26.5 simulator drew the title at #9A9A9A,
+  7.41:1: iOS 27 dims hierarchical ink on glass far more than 26.5 did, and this app's
+  dark ground is black, which is why the owner's phone showed what the earlier dark-mode
+  renders on 26.5 had not. **Every text in the app target that took `.secondary` or
+  `.tertiary` now takes `.secondaryInk` / `.tertiaryInk`** (`GlassTokens.swift`:
+  `Color(.secondaryLabel)` and `Color(.tertiaryLabel)`, flat — 97 and 5 sites, plus the
+  `AnyShapeStyle` and `Color` forms), which is what the hierarchical style resolves to off
+  glass, so nothing off glass changes; on glass the title measures **6.36:1 in dark and
+  3.44:1 in light** after the change. `InkTests` (tier 2) reads the app target's sources
+  and fails on the first hierarchical text style; design-system §2 carries the rule; the
+  share cards' `ShareCardInk` is untouched. **(3) "Segment controls are not switching on
+  single tap and often require multiple taps. Feels like they are nested within cards…"**
+  Two causes, both real. The Trends range picker was the last ComponentsKit
+  `SUSegmentedControl` — a row of `Text`s with tap gestures, no button or selected trait,
+  titles the catalog never saw — and is a native segmented control now (four keys in:
+  "Week", "Month", "Quarter" and its VoiceOver label "Range"; "Year" was the calendar's).
+  And **interactive glass eats a segmented control's taps on iOS 27**: a probe on both
+  simulators — one picker each on interactive glass, plain glass, glass drawn behind the
+  control, and none — switched on one tap in every case on 26.5 and in every case but the
+  interactive one on 27. So the five picker surfaces — Trends, the calendar's window
+  picker, Settings' Appearance and counter-seed pickers, and the toggle card that carries
+  "Compare with" — are **plain glass** now. The rule they cited, "a Toggle on
+  non-interactive glassSurface loses taps (drags still land); every tappable control goes
+  on interactive glass" (Feature B, 2026-08, and repeated in this file), came from
+  synthetic taps in a simulator session — the session-pace comment says "only answered
+  drags in testing" — and a synthetic tap flips no Toggle on any glass; it was never a
+  hardware finding. The other ten interactive surfaces (toggles, buttons) are untouched,
+  since the report names only segmented controls. Verified by tap on both simulators:
+  Trends to Month, Quarter and Year, Settings' Appearance to Dark and "Compare with" to
+  Men, the calendar's picker to "Month shown"; the weekly-average switch on plain glass
+  answers a drag on both. **(4) "Apple watch companion app was not installed on my watch
+  when I installed the build on my phone."** Not the project's. The build in the owner's
+  DerivedData (Debug-iphoneos, 20:56 that evening) carries `Watch/DrinkTrackerWatch.app`
+  with `WKApplication`, the companion identifier, 1.4 (1), a 26.0 floor, the complication
+  in its `PlugIns/` and its own provisioning profile; the embed phase, the plists and the
+  verifier are unchanged since the watch's Phase 0. A development install of the iOS app
+  does not reliably carry its watch app onto a paired watch: the routes are the Watch app
+  on the iPhone (My Watch → Available Apps → Install, or General → Automatic App Install)
+  or running the `DrinkTrackerWatch` scheme on the watch, which is how every earlier
+  hardware pass installed it. App catalog 369 → **373** (four in, none out, synced from a
+  fresh full build and diffed; 525 across six catalogs). No schema change, no CloudKit
+  step, no project-file change, no privacy-policy change — **still no release build from
+  main until Phase 7.** **Gates:** 364 domain tests under both SwiftPM build systems; 119
+  integration tests on the iPhone 17 Pro Max simulator (two new); the CI-form build with
+  the same five pre-existing warning lines; the frames are in
+  `/tmp/claude-501/pass7-shots/`. **Tooling:** an `xcodebuild build` aimed at a booted
+  simulator restarted that simulator's daemons once and killed the running app — a black
+  frame and no crash report; relaunch, do not debug. The throwaway iOS 26.5 simulator was
+  deleted after the pass; the scratch iPhone is kept for Phase 7. **Not verified, stated:**
+  a switch's *tap* on plain glass — synthetic taps cannot flip one on any OS — so the
+  weekly-average switch on hardware is the owner's; hardware on iOS 26; a 375pt phone;
+  VoiceOver over the native picker. **Tier 4 for the owner:** the Week and Month rows and
+  the offer on their own log; the range picker, the two Settings pickers, "Compare with"
+  and the calendar's picker each switching on one tap; the three comparison switches
+  answering a tap; every card title in dark mode; and, for the watch, the Watch app's
+  Available Apps list after the next phone install.
