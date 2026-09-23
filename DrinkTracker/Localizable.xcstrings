@@ -434,7 +434,7 @@
     "Each row is two averages of your own Health data over the nights counted here, read from Apple Health on this device. Drinks means nights you logged drinks. No drinks means nights you recorded as no alcohol; a night with nothing logged is in neither column. A night without a reading is not counted. Tallyist keeps none of it." : {
 
     },
-    "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep comes from nights you wear your watch to bed." : {
+    "Each switch puts one figure from Apple Health beside your log on Trends. Read on this device, never stored, never sent. Sleep and wrist temperature come from nights you wear your watch to bed." : {
 
     },
     "Edit" : {
@@ -784,6 +784,16 @@
         }
       }
     },
+    "On nights recorded as no alcohol, %@, over %lld nights." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On nights recorded as no alcohol, %1$@, over %2$lld nights."
+          }
+        }
+      }
+    },
     "On nights you logged drinks, %@ asleep, over %lld nights." : {
       "localizations" : {
         "en" : {
@@ -814,6 +824,16 @@
         }
       }
     },
+    "On nights you logged drinks, %@, over %lld nights." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On nights you logged drinks, %1$@, over %2$lld nights."
+          }
+        }
+      }
+    },
     "One %@ = %@g of alcohol" : {
       "localizations" : {
         "en" : {
@@ -835,6 +855,9 @@
       }
     },
     "One figure a day, from your watch" : {
+
+    },
+    "One figure a night, from your watch" : {
 
     },
     "One tap records one standard drink, with no type — add the type and size later or skip them, it counts either way. Once you describe a drink, the next taps record another of it for the rest of the day. Each day starts back at a standard drink." : {
@@ -1251,6 +1274,22 @@
     },
     "Women" : {
 
+    },
+    "Wrist temperature" : {
+
+    },
+    "Wrist temperature is the overnight reading your watch records. Apple Health shows it as a change from a baseline of its own." : {
+
+    },
+    "Wrist temperature. On nights you logged drinks, %@, over %lld nights. On nights recorded as no alcohol, %@, over %lld nights." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrist temperature. On nights you logged drinks, %1$@, over %2$lld nights. On nights recorded as no alcohol, %3$@, over %4$lld nights."
+          }
+        }
+      }
     },
     "Year" : {
 

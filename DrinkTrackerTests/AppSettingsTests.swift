@@ -192,6 +192,7 @@ struct AppSettingsTests {
     #expect(settings.showsRestingHeartRatePairing == false)
     #expect(settings.showsSleepPairing == false)
     #expect(settings.showsHeartRateVariabilityPairing == false)
+    #expect(settings.showsWristTemperaturePairing == false)
     #expect(settings.isAnyHealthPairingOn == false)
     #expect(settings.hasAnsweredHealthPairingOffer == false)
   }
@@ -291,5 +292,45 @@ struct AppSettingsTests {
     let settings = AppSettings(defaults: defaults)
     #expect(settings.showsHeartRateVariabilityPairing)
     #expect(settings.isAnyHealthPairingOn)
+  }
+
+  /// Phase 6's switch inherits from the three before it, or-ed (ADR-0053):
+  /// on where any earlier switch is on, off where none is, once, and
+  /// written either way.
+  @Test("Wrist temperature arrives on where any earlier switch is on, and off where none is")
+  func wristTemperatureInheritsFromAnyEarlierSwitch() throws {
+    defaults.set(false, forKey: "showsRestingHeartRatePairing")
+    defaults.set(false, forKey: "showsSleepPairing")
+    defaults.set(true, forKey: "showsHeartRateVariabilityPairing")
+    #expect(AppSettings(defaults: defaults).showsWristTemperaturePairing)
+    #expect(defaults.object(forKey: "showsWristTemperaturePairing") as? Bool == true)
+
+    let sleepOnly = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    sleepOnly.set(true, forKey: "showsSleepPairing")
+    sleepOnly.set(false, forKey: "showsHeartRateVariabilityPairing")
+    #expect(AppSettings(defaults: sleepOnly).showsWristTemperaturePairing)
+
+    // A Phase 3 install with resting heart rate on and no later key gets all
+    // three later switches on in the same launch.
+    let phaseThree = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    phaseThree.set(true, forKey: "showsRestingHeartRatePairing")
+    let inherited = AppSettings(defaults: phaseThree)
+    #expect(inherited.showsSleepPairing)
+    #expect(inherited.showsHeartRateVariabilityPairing)
+    #expect(inherited.showsWristTemperaturePairing)
+
+    let none = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    #expect(AppSettings(defaults: none).showsWristTemperaturePairing == false)
+    #expect(none.object(forKey: "showsWristTemperaturePairing") as? Bool == false)
+
+    // Written once: an earlier switch turning on afterwards does not pull it on.
+    AppSettings(defaults: none).showsHeartRateVariabilityPairing = true
+    #expect(AppSettings(defaults: none).showsWristTemperaturePairing == false)
+
+    // A stored value wins, whatever the earlier switches say.
+    let stored = try #require(UserDefaults(suiteName: "AppSettingsTests.\(UUID().uuidString)"))
+    stored.set(true, forKey: "showsRestingHeartRatePairing")
+    stored.set(false, forKey: "showsWristTemperaturePairing")
+    #expect(AppSettings(defaults: stored).showsWristTemperaturePairing == false)
   }
 }

@@ -9,8 +9,10 @@ import SwiftUI
 /// behind each, and nothing that relates one to the other. Resting heart
 /// rate shipped first (Phase 3); sleep is the second row (Phase 4); heart
 /// rate variability the third (Phase 5, ADR-0052: a floor twice the others'
-/// and Quarter and Year only); a later phase adds its own, under the same
-/// heading, from the same parts.
+/// and Quarter and Year only); wrist temperature the fourth and last (Phase
+/// 6, ADR-0053: the reading itself, never a change from a baseline, in the
+/// unit the reader's Health app shows) — all under the same heading, from
+/// the same parts.
 ///
 /// ## What holds the line
 ///
@@ -71,7 +73,8 @@ struct HealthPairingSection: View {
         // read lands, then both the figures and their source line change
         // together, so a figure is never shown under another range's name.
         if let card = shown.card {
-          HealthPairingCard(rows: shown.rows, range: card.request.range)
+          HealthPairingCard(
+            rows: shown.rows, range: card.request.range, temperatureUnit: card.temperatureUnit)
         }
 
         if shown.offer {
@@ -143,6 +146,25 @@ enum PairedMetric: CaseIterable, Hashable, Sendable {
   case restingHeartRate
   case sleep
   case heartRateVariability
+  case wristTemperature
+}
+
+/// The unit the wrist temperature row prints and speaks: the one the reader's
+/// Health app shows the reading in (`HealthKitService.preferredTemperatureUnit`,
+/// ADR-0053), which follows the locale unless they changed it there — so the
+/// figure on the card is the figure a reader can find in Health, in the same
+/// unit. The domain's values stay in Celsius; the conversion happens where
+/// the figure is drawn.
+enum TemperatureUnit: Hashable, Sendable {
+  case celsius
+  case fahrenheit
+
+  var foundationUnit: UnitTemperature {
+    switch self {
+    case .celsius: .celsius
+    case .fahrenheit: .fahrenheit
+    }
+  }
 }
 
 extension PairedMetric {
@@ -153,7 +175,7 @@ extension PairedMetric {
   /// metric's row is possible and not before.
   var minimumNights: Int {
     switch self {
-    case .restingHeartRate, .sleep: PairedFigures.minimumNights
+    case .restingHeartRate, .sleep, .wristTemperature: PairedFigures.minimumNights
     case .heartRateVariability: PairedFigures.minimumNightsForHeartRateVariability
     }
   }
@@ -165,7 +187,7 @@ extension PairedMetric {
   /// for, and its switch's caption says where it is shown.
   func isShown(at range: TrendRange) -> Bool {
     switch self {
-    case .restingHeartRate, .sleep: true
+    case .restingHeartRate, .sleep, .wristTemperature: true
     case .heartRateVariability: range == .quarter || range == .year
     }
   }
@@ -180,6 +202,7 @@ extension AppSettings {
     case .restingHeartRate: showsRestingHeartRatePairing
     case .sleep: showsSleepPairing
     case .heartRateVariability: showsHeartRateVariabilityPairing
+    case .wristTemperature: showsWristTemperaturePairing
     }
   }
 
@@ -191,6 +214,7 @@ extension AppSettings {
     case .restingHeartRate: showsRestingHeartRatePairing = isOn
     case .sleep: showsSleepPairing = isOn
     case .heartRateVariability: showsHeartRateVariabilityPairing = isOn
+    case .wristTemperature: showsWristTemperaturePairing = isOn
     }
   }
 
@@ -273,6 +297,9 @@ final class HealthPairingModel {
   struct Loaded: Equatable {
     let request: HealthPairingRequest
     let figures: [PairedMetric: PairedFigures]
+    /// The unit the wrist temperature row is drawn in, read from Health
+    /// beside its samples (ADR-0053); Celsius where no row was read.
+    let temperatureUnit: TemperatureUnit
   }
 
   private(set) var loaded: Loaded?
@@ -327,6 +354,7 @@ final class HealthPairingModel {
       return
     }
     var figures: [PairedMetric: PairedFigures] = [:]
+    var temperatureUnit = TemperatureUnit.celsius
     for metric in PairedMetric.allCases where read.metrics.contains(metric) {
       // A metric whose own floor the log cannot clear is not read: the
       // figures would be nil whatever came back, and a query that cannot
@@ -348,6 +376,22 @@ final class HealthPairingModel {
           in: request.window, endingBefore: request.today, calendar: request.calendar)
         values = HealthPairing.nightlyValues(
           of: samples, for: request.nights, attribution: .dayAfter, calendar: request.calendar)
+      case .wristTemperature:
+        // The watch's one reading a night, filed under the night whose
+        // sleep day holds its middle, and averaged as it is — the absolute
+        // reading, never a deviation from a baseline (ADR-0053). The unit is
+        // the reader's own Health preference, read beside the samples.
+        let samples = await health.wristTemperature(
+          in: request.window, endingBefore: request.today, calendar: request.calendar)
+        values = HealthPairing.nightlyValues(
+          of: samples, for: request.nights, attribution: .sleepDay, calendar: request.calendar)
+        // Asked only beside samples: a read that returned nothing draws
+        // nothing, so the question would be one more round trip for no row —
+        // and HealthKit answers it with the reader's own choice only for a
+        // type it has authorized, the locale's default otherwise.
+        if !samples.isEmpty {
+          temperatureUnit = await health.preferredTemperatureUnit()
+        }
       }
       guard !Task.isCancelled else { return }
       if let result = HealthPairing.figures(
@@ -356,7 +400,7 @@ final class HealthPairingModel {
         figures[metric] = result
       }
     }
-    let result = Loaded(request: request, figures: figures)
+    let result = Loaded(request: request, figures: figures, temperatureUnit: temperatureUnit)
     guard result != loaded else { return }
     withAnimation(.smooth(duration: 0.25)) {
       loaded = result
@@ -393,11 +437,22 @@ struct HealthPairingCard: View {
 
   let rows: [Row]
   let range: TrendRange
+  /// The unit the wrist temperature row is drawn and spoken in (ADR-0053).
+  let temperatureUnit: TemperatureUnit
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   /// The weekday table's fold, read from the one shared place.
   private var isStacked: Bool { ComparisonTable.folds(dynamicTypeSize) }
+
+  /// The design's temperature note, under the last row and only while the
+  /// wrist temperature row is on the card — it is the last row by the
+  /// Settings order, so the note sits directly beneath it. It says what the
+  /// figure is, because the same nights read differently in the Health app
+  /// (ADR-0053).
+  private var showsTemperatureNote: Bool {
+    rows.contains { $0.metric == .wristTemperature }
+  }
 
   var body: some View {
     SUCard(model: .glass) {
@@ -406,6 +461,15 @@ struct HealthPairingCard: View {
           stackedFigures
         } else {
           figureTable
+        }
+
+        if showsTemperatureNote {
+          Text(HealthPairingCopy.temperatureNote)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, isStacked ? GlassTokens.Spacing.tight : 0)
         }
 
         Divider()
@@ -489,13 +553,13 @@ struct HealthPairingCard: View {
   /// direction.
   private func figureCell(_ metric: PairedMetric, _ average: Double) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: 3) {
-      metric.figure(average)
+      metric.figure(average, temperatureUnit: temperatureUnit)
         .font(GlassTokens.Typography.rowFigure)
         .monospacedDigit()
         .foregroundStyle(.primary)
         .contentTransition(.opacity)
-      if let unit = metric.unit {
-        Text(unit)
+      if let unit = metric.unitLabel(temperatureUnit: temperatureUnit) {
+        unit
           .font(.caption)
           .foregroundStyle(.secondary)
       }
@@ -518,8 +582,8 @@ struct HealthPairingCard: View {
           Text(row.metric.name)
             .font(.subheadline)
             .foregroundStyle(.primary)
-          Text(HealthPairingCopy.drinksSentence(row.metric, row.figures.drinks))
-          Text(HealthPairingCopy.noDrinksSentence(row.metric, row.figures.noDrinks))
+          Text(HealthPairingCopy.drinksSentence(row.metric, row.figures.drinks, temperatureUnit: temperatureUnit))
+          Text(HealthPairingCopy.noDrinksSentence(row.metric, row.figures.noDrinks, temperatureUnit: temperatureUnit))
         }
         .font(.body)
         .foregroundStyle(.primary)
@@ -534,7 +598,7 @@ struct HealthPairingCard: View {
   /// over 18 nights. On nights recorded as no alcohol, 58 beats per minute,
   /// over 31 nights." The long phrases, not the heads; no comparative word.
   private func rowLabel(_ row: Row) -> Text {
-    Text(HealthPairingCopy.rowSentence(row.metric, row.figures))
+    Text(HealthPairingCopy.rowSentence(row.metric, row.figures, temperatureUnit: temperatureUnit))
   }
 }
 
@@ -674,26 +738,33 @@ extension PairedMetric {
     case .restingHeartRate: "Resting heart rate"
     case .sleep: "Sleep"
     case .heartRateVariability: "Heart rate variability"
+    case .wristTemperature: "Wrist temperature"
     }
   }
 
   /// The unit printed beside the figure, where the figure does not carry its
   /// own. Beats per minute and milliseconds do not; hours and minutes do.
-  var unit: LocalizedStringKey? {
+  /// The temperature's is the symbol of the unit the reader's Health app
+  /// shows — Foundation's own "°C" or "°F", not a catalog key.
+  func unitLabel(temperatureUnit: TemperatureUnit) -> Text? {
     switch self {
-    case .restingHeartRate: "bpm"
+    case .restingHeartRate: Text("bpm")
     case .sleep: nil
-    case .heartRateVariability: "ms"
+    case .heartRateVariability: Text("ms")
+    case .wristTemperature: Text(verbatim: temperatureUnit.foundationUnit.symbol)
     }
   }
 
   /// The figure as the table prints it: a whole number of beats per minute
-  /// or of milliseconds, or hours and minutes asleep.
-  func figure(_ average: Double) -> Text {
+  /// or of milliseconds, hours and minutes asleep, or a temperature to the
+  /// hundredth of a degree in the reader's Health unit.
+  func figure(_ average: Double, temperatureUnit: TemperatureUnit) -> Text {
     switch self {
     case .restingHeartRate: Text(verbatim: HealthPairingCopy.beatsPerMinute(average))
     case .sleep: Text(HealthPairingCopy.hoursAndMinutes(average))
     case .heartRateVariability: Text(verbatim: HealthPairingCopy.milliseconds(average))
+    case .wristTemperature:
+      Text(verbatim: HealthPairingCopy.temperatureFigure(average, in: temperatureUnit))
     }
   }
 }
@@ -723,6 +794,42 @@ enum HealthPairingCopy {
     beatsPerMinute(average)
   }
 
+  /// The wrist temperature reading in the unit the reader's Health app
+  /// shows: an absolute temperature, so it converts with the offset —
+  /// Foundation's own conversion, which is exact for a mean of readings
+  /// because the conversion is affine (ADR-0053). The domain's values are
+  /// Celsius; nothing is converted before it is drawn.
+  static func temperature(_ celsius: Double, in unit: TemperatureUnit) -> Measurement<UnitTemperature> {
+    Measurement(value: celsius, unit: UnitTemperature.celsius).converted(to: unit.foundationUnit)
+  }
+
+  /// The reading as the row prints it: to the hundredth of a degree — the
+  /// Health app's own precision for this type — by the same rounding as the
+  /// other figures, the unit's symbol drawn beside it by the cell.
+  static func temperatureFigure(_ celsius: Double, in unit: TemperatureUnit) -> String {
+    temperature(celsius, in: unit).value
+      .formatted(.number.precision(.fractionLength(2)).rounded(rule: .toNearestOrAwayFromZero))
+  }
+
+  /// The reading as a sentence speaks it — "97.88 degrees Fahrenheit" — from
+  /// the same conversion and rounding as the printed figure, in the
+  /// system's own words for the unit.
+  static func spokenTemperature(_ celsius: Double, in unit: TemperatureUnit) -> String {
+    temperature(celsius, in: unit)
+      .formatted(
+        .measurement(
+          width: .wide, usage: .asProvided,
+          numberFormatStyle: .number.precision(.fractionLength(2)).rounded(rule: .toNearestOrAwayFromZero)))
+  }
+
+  /// What the wrist temperature figure is, under the last row while its row
+  /// is on the card: the reading the watch records, which is not the number
+  /// the Health app shows for the same night — Health shows a change from a
+  /// baseline of its own, which is not in HealthKit (ADR-0053). Said once,
+  /// so a reader who checks a night in Health knows why the two differ.
+  static let temperatureNote: LocalizedStringKey =
+    "Wrist temperature is the overnight reading your watch records. Apple Health shows it as a change from a baseline of its own."
+
   /// Time asleep as the table prints it, "6h 12m" with the minutes
   /// zero-padded so a column of them aligns (the design's figure format):
   /// whole hours and minutes to the nearest minute, from the domain's one
@@ -748,7 +855,9 @@ enum HealthPairingCopy {
   /// where the table folds. The count is never below the gate, so the noun is
   /// the plural. Time asleep: "On nights you logged drinks, 6 hours, 12
   /// minutes asleep, over 18 nights."
-  static func drinksSentence(_ metric: PairedMetric, _ figure: PairedFigures.Figure) -> LocalizedStringKey {
+  static func drinksSentence(
+    _ metric: PairedMetric, _ figure: PairedFigures.Figure, temperatureUnit: TemperatureUnit
+  ) -> LocalizedStringKey {
     switch metric {
     case .restingHeartRate:
       "On nights you logged drinks, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
@@ -756,13 +865,17 @@ enum HealthPairingCopy {
       "On nights you logged drinks, \(spokenHoursAndMinutes(figure.average)) asleep, over \(figure.nights) nights."
     case .heartRateVariability:
       "On nights you logged drinks, \(milliseconds(figure.average)) milliseconds, over \(figure.nights) nights."
+    case .wristTemperature:
+      "On nights you logged drinks, \(spokenTemperature(figure.average, in: temperatureUnit)), over \(figure.nights) nights."
     }
   }
 
   /// "On nights recorded as no alcohol, 58 beats per minute, over 31 nights."
   /// Recorded, not "other": the column holds the nights the reader marked, and
   /// a night with nothing logged is in neither (ADR-0048).
-  static func noDrinksSentence(_ metric: PairedMetric, _ figure: PairedFigures.Figure) -> LocalizedStringKey {
+  static func noDrinksSentence(
+    _ metric: PairedMetric, _ figure: PairedFigures.Figure, temperatureUnit: TemperatureUnit
+  ) -> LocalizedStringKey {
     switch metric {
     case .restingHeartRate:
       "On nights recorded as no alcohol, \(beatsPerMinute(figure.average)) beats per minute, over \(figure.nights) nights."
@@ -770,6 +883,8 @@ enum HealthPairingCopy {
       "On nights recorded as no alcohol, \(spokenHoursAndMinutes(figure.average)) asleep, over \(figure.nights) nights."
     case .heartRateVariability:
       "On nights recorded as no alcohol, \(milliseconds(figure.average)) milliseconds, over \(figure.nights) nights."
+    case .wristTemperature:
+      "On nights recorded as no alcohol, \(spokenTemperature(figure.average, in: temperatureUnit)), over \(figure.nights) nights."
     }
   }
 
@@ -777,7 +892,9 @@ enum HealthPairingCopy {
   /// sentences above. Whole, rather than the two joined, so a translation
   /// orders the spoken sentence as its own language does — and so the label
   /// needs no `+` between `Text`s, which iOS 26 deprecates.
-  static func rowSentence(_ metric: PairedMetric, _ figures: PairedFigures) -> LocalizedStringKey {
+  static func rowSentence(
+    _ metric: PairedMetric, _ figures: PairedFigures, temperatureUnit: TemperatureUnit
+  ) -> LocalizedStringKey {
     switch metric {
     case .restingHeartRate:
       "Resting heart rate. On nights you logged drinks, \(beatsPerMinute(figures.drinks.average)) beats per minute, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(beatsPerMinute(figures.noDrinks.average)) beats per minute, over \(figures.noDrinks.nights) nights."
@@ -785,6 +902,8 @@ enum HealthPairingCopy {
       "Sleep. On nights you logged drinks, \(spokenHoursAndMinutes(figures.drinks.average)) asleep, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(spokenHoursAndMinutes(figures.noDrinks.average)) asleep, over \(figures.noDrinks.nights) nights."
     case .heartRateVariability:
       "Heart rate variability. On nights you logged drinks, \(milliseconds(figures.drinks.average)) milliseconds, over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(milliseconds(figures.noDrinks.average)) milliseconds, over \(figures.noDrinks.nights) nights."
+    case .wristTemperature:
+      "Wrist temperature. On nights you logged drinks, \(spokenTemperature(figures.drinks.average, in: temperatureUnit)), over \(figures.drinks.nights) nights. On nights recorded as no alcohol, \(spokenTemperature(figures.noDrinks.average, in: temperatureUnit)), over \(figures.noDrinks.nights) nights."
     }
   }
 

@@ -330,3 +330,44 @@ figure's samples are the day's, not the night's (ADR-0052).
 turns on three switches; the third row can lag the other two for weeks
 while its floor fills (ADR-0052's first consequence), and at Month it is
 absent with its switch on, as its caption says.
+
+## Amendment — 2026-09-22 (Phase 6: the fourth row, wrist temperature)
+
+**The row.** "Wrist temperature" over its night counts, "36.62 °C" beside
+"36.30 °C" — the reading the watch records, to the hundredth of a degree,
+in the unit the reader's Health app shows, the unit's symbol in the caption
+face beside it as "bpm" and "ms" are — fourth and last in the Settings
+order, behind the base gate at every range (ADR-0053, which carries the
+argument for the reading over a deviation from a baseline: a baseline from
+the range's own nights signs the difference between the columns in two
+halves, and rule 1 says the app never signs it). The spoken row: "Wrist
+temperature. On nights you logged drinks, 36.62 degrees Celsius, over 37
+nights. On nights recorded as no alcohol, 36.30 degrees Celsius, over 48
+nights." No word relates the two, still — and no sign does either.
+
+**A note under the last row.** The design's temperature note keeps its
+place and says something else: "Wrist temperature is the overnight reading
+your watch records. Apple Health shows it as a change from a baseline of its
+own." — caption, secondary, under the rows while the wrist temperature row
+is on the card (it is the last row, so the note sits beneath it), and not
+on the offer, which shows no figure to explain. It is the one sentence on
+the card about another app, and it is there because the plan's cross-check
+is that app.
+
+**The widths, measured again.** "36.62 °C" is 64.0pt in the card's tabular
+figures with its unit, the widest two-digit cell now (over "6h 12m" at
+58.5), so the numeric columns go from 133.5 to 139.0pt; on a 375pt phone
+the leading column keeps 156.0pt with four rows, and 141.4 against the
+widest figures ("100.12 °F", three-digit heart rates and milliseconds, a
+ten-hour sleep) — "Heart rate variability" (138.3) and "Wrist temperature"
+(123.9) stay on one line everywhere. The header row is unchanged at 213.9.
+
+**The note and the footnote.** The source note is unchanged, written for
+any number of rows. The footnote's third sentence now names two metrics,
+"Sleep and wrist temperature come from nights you wear your watch to bed" —
+true of this figure, which the watch takes during sleep, where it was not
+true of heart rate variability.
+
+**Four switches, and four rows in the offer.** The offer's rows follow
+`PairedMetric.allCases`, so it shows four "– –" rows and its acceptance
+turns on four switches. The card is at the size the design drew it for.

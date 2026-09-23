@@ -254,3 +254,20 @@ all three rows — one sheet then, not a second one weeks later — and turns
 on all three switches through one map (`setShowsPairing`), so a metric
 added to the list cannot be left off the offer's "every shipped switch" by
 forgetting a line.
+
+## Amendment — 2026-09-22 (Phase 6: the fourth metric arrives)
+
+**Inheritance from the three before it, or-ed**, the rule of the two
+amendments above extended once more: `showsWristTemperaturePairing` is
+decided once when its key is first missing — on if resting heart rate,
+sleep *or* heart rate variability is on, each as it stands after its own
+inheritance, so a Phase 3 install with resting heart rate on gets all three
+later switches on in the same launch — written then, independent after
+(tier 2: on from any one of the three, off from none, a stored value wins,
+and an earlier switch turning on later does not pull it on).
+
+**Its sheet lands the first time its row is possible**, at the base floor
+and at any range, like resting heart rate's and sleep's; the offer's
+acceptance asks for all four types at once and turns on all four switches
+through the same map. The design's last switch has shipped: the section
+holds the four the README drew, and no switch is left to arrive.

@@ -169,11 +169,21 @@ final class AppSettings {
     didSet { defaults.set(showsHeartRateVariabilityPairing, forKey: Keys.heartRateVariabilityPairing) }
   }
 
+  /// Wrist temperature beside the log on Trends, Phase 6's row (ADR-0053):
+  /// the watch's overnight reading as it is, in the unit the reader's Health
+  /// app shows. It arrives the way the two before it did — on for anyone
+  /// with any earlier switch on, the first time this key is missing, written
+  /// then and independent after.
+  var showsWristTemperaturePairing: Bool {
+    didSet { defaults.set(showsWristTemperaturePairing, forKey: Keys.wristTemperaturePairing) }
+  }
+
   /// Whether any pairing switch is on — what the one-time offer's "no
   /// pairing switch is on" condition reads, and what a later metric
   /// inherits.
   var isAnyHealthPairingOn: Bool {
     showsRestingHeartRatePairing || showsSleepPairing || showsHeartRateVariabilityPairing
+      || showsWristTemperaturePairing
   }
 
   /// Whether the one-time offer on Trends has been answered, either way
@@ -210,9 +220,15 @@ final class AppSettings {
     // Phase 5's switch inherits from the two before it, or-ed — each as it
     // stands after its own inheritance, so a device that only ever turned
     // sleep on gets heart rate variability on too (ADR-0051, ADR-0052).
-    self.showsHeartRateVariabilityPairing = Self.inheritedPairingFlag(
+    let heartRateVariabilityPairing = Self.inheritedPairingFlag(
       Keys.heartRateVariabilityPairing, defaults: defaults,
       from: restingHeartRatePairing || sleepPairing)
+    self.showsHeartRateVariabilityPairing = heartRateVariabilityPairing
+    // Phase 6's switch inherits from the three before it, or-ed, each as it
+    // stands after its own inheritance (ADR-0051, ADR-0053).
+    self.showsWristTemperaturePairing = Self.inheritedPairingFlag(
+      Keys.wristTemperaturePairing, defaults: defaults,
+      from: restingHeartRatePairing || sleepPairing || heartRateVariabilityPairing)
     self.hasAnsweredHealthPairingOffer = defaults.bool(forKey: Keys.healthPairingOffer)
   }
 
@@ -308,6 +324,7 @@ final class AppSettings {
     static let restingHeartRatePairing = "showsRestingHeartRatePairing"
     static let sleepPairing = "showsSleepPairing"
     static let heartRateVariabilityPairing = "showsHeartRateVariabilityPairing"
+    static let wristTemperaturePairing = "showsWristTemperaturePairing"
     static let healthPairingOffer = "hasAnsweredHealthPairingOffer"
   }
 }
