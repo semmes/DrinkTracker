@@ -167,14 +167,14 @@ so keep them true.
 
 ## Current state (update me at end of session)
 
-**As of 2026-09-15:** v1.0 live; v1.1 approved and live (2026-09-01); 1.2
-was submitted 2026-09-03; **1.3 is submitted and awaiting App Review (owner,
-2026-09-14), so it is frozen** — a fix that must ship in 1.3 is a new build
-and a re-submission, and says so; **the 1.4 train is open** —
-`MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
+**As of 2026-09-23:** v1.0 live; v1.1 approved and live (2026-09-01); v1.2
+live (2026-09-05, which no record here caught at the time); **v1.3 approved and
+live (2026-09-20; the owner reported the approval on 2026-09-23 — the bullet
+"1.3 is approved and live…")**, so the 1.3 train is closed; **the 1.4 train is
+open** — `MARKETING_VERSION` is 1.4 on main (bumped in its own commit, the 1.3 way),
 its spec is `docs/tallyist-1.4-spec.md`, and its first feature is the **Apple
 Watch companion app**, whose Phases 0 to 6 landed on 2026-09-14 — see the
-last nine bullets of this section and `docs/tallyist-watch-plan.md`. **The
+bullets from "The watch's Phase 0 landed…" on and `docs/tallyist-watch-plan.md`. **The
 owner's device pass of Phases 5 and 6 passed on 2026-09-15**, and the three
 edits it produced have landed with it. **Phase 7 was closed the same day
 without being built**, on the owner's ruling — improve the latency or do not
@@ -256,7 +256,12 @@ because interactive glass takes a segmented control's taps on iOS 27 — the old
 every tappable control goes on interactive glass was a synthetic-tap artefact; and the
 watch app missing from a phone install was the owner's new Series 12 missing from the
 watch app's development profiles, which only a run of the watch scheme regenerates. The
-owner verified the four fixes on that phone the same night.**
+owner verified the four fixes on that phone the same night.** **Getting 1.4 out now needs
+one decision, and it is the owner's (the bullet "1.3 is approved and live…"): plan
+decision 4 puts the health pairing on its own train after the watch, but the pairing is
+merged on main under `MARKETING_VERSION` 1.4, so 1.4 either carries both features —
+after the pairing's Phase 7 and the watch's Phase 8, with decision 4 reversed in an ADR —
+or leaves the pairing out, by an earlier cut or a build-time switch.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -395,7 +400,10 @@ User-side, done 2026-09-03: the 1.2 version was created in ASC and submitted
 with a build of main at or after 5563b74. Still to confirm on the ASC side:
 that the Privacy Policy URL (App Information) and Support URL (version page)
 point at the Pages site, and that the three tip-jar products were selected on
-the version page (they must ship with the first version that contains them). The long-pending catalog population is **done** — and did not need
+the version page (they must ship with the first version that contains them).
+*(Read off the live listing on 2026-09-23: both URLs point at the Pages site; the
+page says "In-App Purchases" but names none, so whether all three products are live
+is not visible from it — the bullet "1.3 is approved and live…".)* The long-pending catalog population is **done** — and did not need
 a GUI build after all (see the localization bullet). A real GUI build over
 the pulled tree afterwards produced **no catalog change at all**, which
 confirms the sync route writes what Xcode would. It also does not add
@@ -475,7 +483,10 @@ Open items for v1.2:
   binaries and lose "Read this policy online" permanently (the policy text
   itself ships natively and still reads offline). That cost is recorded in the
   ADR and does not go away — it only stops growing once 1.2 is the version
-  people are installing.
+  people are installing. *(2026-09-23: (a) is done — the live listing links both
+  URLs at the Pages site — and 1.2 went live on 2026-09-05, so the visibility
+  decision has been actionable since then; it is still the owner's, with (b) as
+  its cost. The bullet "1.3 is approved and live…".)*
 - **1.2 release review (2026-09-02)**, done in a local session with the
   toolchain: 14 change units read at their current state, 8 adversarial
   lenses over the 1.1→main diff with probe tests in scratch copies of the
@@ -509,7 +520,8 @@ Open items for v1.2:
   verbatim traps in onboarding and the core package's legend/size/range
   labels (translation is deferred anyway).
 - **ASC URL repoint is unblocked** now that 1.1 is live: Privacy Policy URL
-  (App Information) and Support URL (version page) → the Pages site.
+  (App Information) and Support URL (version page) → the Pages site. *(Done —
+  read off the live listing on 2026-09-23; the bullet "1.3 is approved and live…".)*
 - **ADR-0025 landed on the open train (2026-09-02, PR #58):** a zero-count Health
   sample from another app now marks a blank day as no alcohol — a read-only
   marker carrying the sample id ("From Apple Health" under "Recorded as no
@@ -3365,3 +3377,61 @@ Open items for v1.2:
   dark mode, the pickers switching on one tap — recorded in ADR-0048's and ADR-0050's
   amendments; what the report did not name stays open as stated above (a switch's tap on
   plain glass, hardware on iOS 26, a 375pt phone, VoiceOver over the native picker).
+- **1.3 is approved and live, and 1.2 went live unrecorded (2026-09-23; records only).**
+  The owner: *"Version 1.3 was approved in the iOS app store."* The store's own public
+  version history — the product page, `https://apps.apple.com/us/app/tallyist/id6798458165`,
+  read the same day, with the iTunes lookup API agreeing on the current version — dates
+  each release: 1.1 at 21:48
+  UTC on 2026-09-01; **1.2 at 02:54 UTC on 2026-09-06, the evening of the 5th at the
+  owner's UTC−4**, which no record here had caught — every status line still had it
+  submitted; and **1.3 at 03:48 UTC on 2026-09-21, the evening of the 20th**. The records
+  give the owner's local date, as they do elsewhere. The store publishes a release date,
+  not an approval date, so "approved" is the owner's word and the date is the release.
+  **What else the live page shows, each a correction to a record rather than work to
+  do:** (a) the Privacy Policy link is `https://semmes.github.io/Tallyist/privacy/` and
+  Support `…/support/`, so ADR-0024's repoint — open in this file since 2026-08-31 — is
+  done, when is not visible; (b) App Privacy reads Data Not Collected, and the page says
+  "In-App Purchases" without naming them; (c) **the subtitle is "Alcoholic Drink
+  Tracker"**, not the listing doc's "Your drinks, tallied.", so it was changed in App
+  Store Connect; and (d) **1.3's What's New is the owner's own shorter text**, not the
+  draft the copy review passed — recorded word for word in `docs/app-store-listing.md`
+  beside that draft. It has no entry in `docs/copy-review-1.4.3.md`, and its "tracks your
+  longest alcohol free streak" uses the word the listing's description ("No goals, no
+  streaks") and the About screen ("It doesn't set goals, keep streaks, or offer
+  advice.") disclaim, and that the review kept out of the drafted sentence on purpose.
+  It was approved, and it heads the page until 1.4's What's New replaces it (the version
+  history keeps it), so it matters only for how 1.4's is written. 1.1's shipped What's New also differs from
+  its draft; 1.2's went out as drafted, its dashes turned to commas and colons. **The
+  2026-09-10 paragraph's "When 1.2 is approved and live" list, answered:** the date is
+  above; the URLs are (a); **the repository-visibility decision ADR-0024 deferred until
+  1.2 is live has been actionable since 2026-09-05**, and it is still the owner's, costed
+  in the bullet "Repo visibility — the listing no longer depends on it"; the 1.3 spec
+  opened long ago. **For 1.4, one decision is the owner's, and nothing here decides
+  it.** Plan decision 4 puts the health pairing on "its own train, after the watch", but
+  its Phases 0 to 6 and its device pass are merged on main (PRs #112 to #122) under
+  `MARKETING_VERSION` 1.4, and main's build reads four Health types the privacy policy
+  says it does not. So 1.4 is one of: (1) **both features** — the pairing's Phase 7 and
+  the watch's Phase 8 land first, one What's New and one set of reviewer notes cover
+  both, and decision 4's reversal gets an ADR; (2) **the watch alone, cut from an earlier
+  commit** — the last merge before the pairing's first read reached the screens is PR
+  #114 (b9c8242; PR #115 added it), the last watch code change PR #111 (7500cfa) — which
+  leaves out PR #121's iOS 27 repairs unless they are carried across; or (3) **the
+  pairing held out of the 1.4 build** by a build-time switch, which is code not yet
+  written. PR #121 weighs on the choice because it repairs code 1.3 shipped: 1.3's build
+  carries `MARKETING_VERSION` 1.3, so it came from a commit before 0df19d6 bumped main,
+  and main just before that bump still has the Trends range picker as
+  `SUSegmentedControl`, 94 lines of `.foregroundStyle(.secondary)` or `(.tertiary)`
+  (main has none), and the calendar's window picker and Settings' Appearance and
+  counter-seed pickers on interactive glass. So 1.3 on iOS 27 most likely shows the
+  low-contrast card titles and the pickers that take more than one tap, which the
+  owner's device pass found on a development build of main — inferred from the source,
+  not seen on the store build. **To read the live listing again:** `curl
+  'https://itunes.apple.com/lookup?bundleId=com.shawnsemmes.DrinkTracker'` gives the
+  current version, its release time and its What's New as JSON; the product page's HTML
+  embeds the whole version history (each version a `TitledParagraph` whose
+  `primarySubtitle` is the version and `secondarySubtitle` the UTC time) and the
+  listing's links. **Changed:** this section's first paragraph; forward pointers in the
+  three places above that held the App Store Connect items open; the status block of
+  `docs/app-store-listing.md` and 1.3's What's New as shipped; the status lines of the
+  1.3 and 1.4 specs. No code, schema, CloudKit, catalog, privacy-policy or project-file
+  change.
