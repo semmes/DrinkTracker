@@ -12,8 +12,14 @@ conditions"), and restated platform-neutrally in the product contract
 (`contract/constraints.md`): no account, no servers, no goals, streaks, scores,
 or advice, no user data shared between users, no consumption guidelines, report
 never instruct, every new behavioural surface optional and off or neutral.
-**The 1.3 train is frozen and awaiting App Review**; a fix that must ship in
-1.3 is a new build and a re-submission, and says so.
+**1.3 is approved and live** (2026-09-20 by the store's version history; the
+owner reported the approval on 2026-09-23), so 1.4 is the next version people
+install. **Before it is cut, one decision is the owner's:** the health pairing
+is merged on main under this version, but its plan puts it on its own train
+after the watch (`docs/tallyist-health-pairing-plan.md`, decision 4), and main
+reads Health types the privacy policy says it does not until that plan's
+Phase 7. `CLAUDE.md`'s bullet "1.3 is approved and live…" sets out the three
+ways 1.4 can go.
 
 ## Feature A: the Apple Watch companion app — in progress
 

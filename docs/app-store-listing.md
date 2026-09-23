@@ -1,10 +1,21 @@
 # App Store listing — paste-ready metadata
 
-**Status:** 1.0 and 1.1 live; 1.2 submitted 2026-09-03 and awaiting App
-Review; 1.3 material ready to paste (reviewed 2026-09-07) · **Owner:** Shawn ·
-App Store Connect → App Information / the version page. Everything here has
-been through the same 1.4.3 tone review as the app's own copy: factual, no
-celebration, no verdicts.
+**Status:** 1.0 (2026-08-25), 1.1 (2026-09-01), 1.2 (2026-09-05) and 1.3
+(2026-09-20) live — the dates are the store's own (its version history, and
+for 1.0 the app's release date), read on 2026-09-23, when the owner reported
+1.3's approval; 1.4 in preparation ·
+**Owner:** Shawn · App Store Connect → App Information / the version page.
+Everything here has been through the same 1.4.3 tone review as the app's own
+copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
+New, which is recorded as a fact, not offered for pasting.
+
+**Where the live listing differs from this file** (read 2026-09-23; the owner
+edited App Store Connect directly): the subtitle reads **"Alcoholic Drink
+Tracker"**, not the one in the table below, and the What's New that shipped for
+1.1 and for 1.3 is the owner's own shorter text rather than the draft here —
+1.3's is recorded under its heading. 1.2's went out as drafted, its dashes
+turned to commas and colons. The Privacy Policy and Support URLs on the listing
+are the Pages ones in the table below.
 
 ## App Information
 
@@ -200,6 +211,22 @@ Notes on what's new in 1.2:
 ```
 
 ## What's New (1.3)
+
+**As shipped** — the owner's own text, written in App Store Connect, the store's
+What's New from 2026-09-20 until 1.4's replaces it (its version history keeps
+it); word for word, wrapped here.
+It has not been through the 1.4.3 review, and its "streak" is a word the
+description above disclaims ("No goals, no streaks").
+
+```
+Re-designed the Today screen around the counter with a shared color scale.
+Added a Cocktail drink type and custom icons throughout, and lets you share a
+year in review as an image. Trends now compares your habits to published US
+averages over your last 12 months, breaks out weekday vs. weekend drinking,
+and tracks your longest alcohol free streak.
+```
+
+**The reviewed draft**, which did not ship:
 
 ```
 Share a year in review: from the year view, a year that has ended can be
