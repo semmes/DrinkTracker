@@ -10,8 +10,9 @@ import SwiftUI
 /// ## One table, and why the other one left
 ///
 /// The card held two tables until ADR-0038's 2026-09-10 amendment: these seven
-/// rows, then the weekend split beside a published rate. The split moved to
-/// `WeekendComparisonCard`, under the new Comparisons heading, because that
+/// rows, then the weekend split beside a published rate. The split moved under
+/// the new Comparisons heading — `WeekendComparison`, a segment of the one
+/// Comparisons card since that amendment's 2026-09-23 successor — because that
 /// heading names the three published comparisons and **these rows are not one
 /// of them** — they are the reader's own log, gated by nothing, and ADR-0038
 /// says so in as many words. A heading spanning them would also do the thing
@@ -47,8 +48,8 @@ import SwiftUI
 /// (`rowFigure` / `rowCount`). The rule that gives that numeral face its
 /// meaning — a published figure stays in default SF, since the design system
 /// allows no second hue to carry "your fact" against "a published fact" (PRD
-/// invariant 10) — now lives with the card that holds both kinds of figure,
-/// `WeekendComparisonCard`. Nothing on this card is published.
+/// invariant 10) — now lives with the segment that holds both kinds of figure,
+/// `WeekendComparison`. Nothing on this card is published.
 struct WeekdayCard: View {
   let totals: [WeekdayTotal]
   let region: Region

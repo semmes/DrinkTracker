@@ -3,7 +3,8 @@
 **Status:** accepted · **Date:** 2026-09-05 · **Relates to:** ADR-0018 (the
 population reference and its rules), ADR-0030 (the window it shares),
 ADR-0006, spec Feature C's "Shape 2", constraints 3 and 5 · **Amended by:**
-ADR-0038 (the two lines are the reader's to show)
+ADR-0038 (the two lines are the reader's to show), and its 2026-09-23
+amendment (the two counts drawn — see the note at the end)
 
 ## Context
 
@@ -76,3 +77,17 @@ first shape, "lower than roughly N% of adults who drink", by the same
 bracket rule as the volume comparison; that is a data-file change and a
 copy change under the same constraints. If the mean reads as a target in
 real use, the sentence loses the reference and keeps the count.
+
+---
+
+## Note (2026-09-23) — the two counts are drawn
+
+ADR-0038's amendment of this date puts the comparisons in one card and draws
+the day counts. The drinking days become two rows — "Your log · 16 of 28" and
+"US adults who drink · average about 7 in 28", this record's sentence split at
+its verb — each over a bar that is its count's share of the window's days, on
+a track that is all of them (the owner's ruling); the published bar is drawn
+from the rounded mean the row prints (`FrequencyReference.displayedDrinkingDays`,
+which the sentence now reads too). Still two counts, still no percentile, rank
+or "most people"; the two sentences are what VoiceOver reads and what the
+accessibility sizes show.
