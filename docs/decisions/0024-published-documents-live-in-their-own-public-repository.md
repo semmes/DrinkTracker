@@ -145,3 +145,79 @@ into `semmes/Tallyist` and have this repository verify its Swift copy against
 the published one instead. That trades the atomic "policy and code change in one
 commit" property for having only one place the text can be wrong, and would be
 worth it if the mirror needs more attention than the text does.
+
+## Amendment (2026-09-23): the repository becomes the product's public site
+
+The owner's marketing-site plan (2026-09-23, not in this repository) proposed a
+fourth repository, `tallyist-site`, for a five-page static site at `tallyist.co`
+that would also host the privacy policy and the support page, with the policy
+kept in step by a check that fetched it from this repository's main branch. The
+plan did not know this record existed. Its route reopened the decision above
+without engaging "How to reopen", and what this record built is the reason that
+route loses, so the owner's choice is recorded here: **the site is built in
+`semmes/Tallyist`.**
+
+**Decision.** `semmes/Tallyist` is Tallyist's public website as well as the home
+of the two documents, and `tallyist.co` will be attached to it as its custom
+domain. The canonical text stays here under `docs/`. The mirror, the daily verify
+job, the token-expiry watch, the three copies and their date check are unchanged,
+and `/privacy/` and `/support/` keep their paths.
+
+**Why not a new repository.**
+
+- It makes a fourth copy of the policy, in a repository none of the three guards
+  reads, while this one would have to go on serving or redirecting forever:
+  `PrivacyPolicyView.hostedURL` in every build since 1.2, and App Store Connect's
+  privacy, support and marketing URLs, all point at `semmes.github.io/Tallyist/`.
+- The plan's check fetched the policy from this repository's main branch. It fails
+  the day this repository goes private, the case this record was written to survive.
+- The policy says it "is published in a public repository at
+  github.com/semmes/Tallyist". On a new repository that sentence would describe one
+  that no longer serves the page it sits on.
+
+**What the domain does to the old addresses.** Once a project site has a custom
+domain, GitHub answers `<user>.github.io/<repo>/<path>` with a 301 to the same path
+on that domain (checked on 2026-09-23 against a project site that has one). Every
+`semmes.github.io/Tallyist/...` link keeps working, the one compiled into shipped
+builds included. `semmes.github.io` has no user site of its own, so no other
+project's address moves.
+
+**What changes in `semmes/Tallyist`.**
+
+- Its README no longer says keeping the policy's claim true is the repository's
+  "only job". It still says the two documents are generated and never edited there.
+- Jekyll stays on, against the plan's "no build step": the two mirrored documents
+  are Markdown rendered through the layout, and the site's hand-written HTML pages,
+  which carry no front matter, are copied through untouched. Nobody builds locally.
+- The site deploys from an Actions workflow that builds with GitHub's own Jekyll and
+  fails on a link that resolves to nothing, anything loaded from another origin, a
+  `<script>`, an image without alt text, or a colour pair under its contrast floor.
+  The mirror pushes with a personal access token, and a push made that way starts
+  the workflow, so a policy change deploys through the same checks. Until launch the
+  branch build keeps serving and the workflow only checks.
+- `url` and `baseurl` in its `_config.yml` change in the same commit that attaches
+  the domain. GitHub ignores a `CNAME` file for a site a workflow deploys; the domain
+  is set in the repository's Pages settings.
+
+**Order.** Verify the domain with GitHub (a TXT record, safe before anything else),
+add it to the repository, then point DNS at Pages, then enforce HTTPS, and only then
+change the three App Store Connect URLs. GitHub's documentation gives this order;
+the reverse leaves a window in which another account's Pages site can claim the
+domain. A later app build can point `PrivacyPolicyView.hostedURL` at
+`tallyist.co/privacy/`, and nothing breaks while it waits.
+
+**Still open, and the owner's.** Whether support moves from the issue tracker to
+email, which is a policy change (its Contact section, all three copies and the
+date). And whether the Android app's documents, published from
+`semmes/TallyistAndroid` and linked from the Android build, move to the new domain,
+which has to be settled before the first Play upload puts that link in users' hands.
+
+## How to reopen (2026-09-23)
+
+If the site outgrows a repository that also holds the documents (a build it needs
+cannot render the two Markdown files, or the mirror's commits make its history hard
+to read), give the site a repository of its own and move the domain with it. This
+repository then serves the documents at `semmes.github.io/Tallyist/` again, where
+every link compiled into a shipped build resolves. But `tallyist.co/privacy/` and
+`/support/` go with the domain, so the new repository has to serve them too, and
+the policy is back to four copies, which needs a fourth guard.

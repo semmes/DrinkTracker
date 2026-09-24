@@ -264,7 +264,9 @@ after the pairing's Phase 7 and the watch's Phase 8, with decision 4 reversed in
 or leaves the pairing out, by an earlier cut or a build-time switch.** **On 2026-09-23 Trends'
 three comparisons became one card segmented by their titles, the day counts drawn as bars
 on full-width tracks at the owner's ruling (the bullet "The comparisons are one card…",
-ADR-0038 amended).**
+ADR-0038 amended).** **The same day the owner chose where the marketing site lives:
+`semmes/Tallyist`, with tallyist.co attached, not a new repository (the bullet "The
+marketing site lives in `semmes/Tallyist`…", ADR-0024 amended).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3588,3 +3590,44 @@ Open items for v1.2:
   gives the view and what the "Lock Screen Widgets" access switch does to a
   `.privacySensitive()` count. No code, schema, CloudKit, catalog, privacy-policy or
   project-file change.
+- **The marketing site lives in `semmes/Tallyist` (2026-09-23; ADR-0024 amended).** The
+  owner's plan for a marketing site on GitHub Pages (`docs/marketing-site-plan.md`,
+  untracked in the main checkout) was reviewed against the record while the owner worked
+  on its design in Claude Design. It assumed a fourth repository, `tallyist-site`, and did
+  not know `semmes/Tallyist` exists. The owner chose to build there and attach
+  `tallyist.co`. That keeps the documents' mirror and checks, and GitHub's 301 from every
+  `semmes.github.io/Tallyist/<path>` to the same path on the domain (tested on another
+  project site) keeps the link compiled into every shipped build working. **Where the work
+  is:** the untracked `Claude outputs/marketing-site-kit/` holds the review
+  (`01-review.md`), verified facts, the plan's copy checked claim by claim against the
+  app, Apple's marketing rules, the app's tokens as CSS with measured contrast
+  (`contrast.py`, dependency-free, `@contrast` pairs declared in the stylesheet), icon
+  exports, the app's glyphs, Apple's badge (downloaded with the owner's go-ahead from the
+  Marketing Tools page for app 6798458165), a screenshot shot list and the domain steps.
+  The site scaffold is draft PR `semmes/Tallyist#1`, not to be merged without the owner:
+  a workflow that builds with GitHub's Jekyll and only checks until the Pages source is
+  switched to Actions and `DEPLOY_FROM_ACTIONS` is set, `scripts/check-links.py`
+  (resolution, fragments, no other origin, no script, alt text), `scripts/contrast.py`,
+  icons, badge, tokens, robots and sitemap, and a new README. **What the review found
+  that the design has to hold:** Apple allows one App Store badge per layout, subordinate
+  to the headline; devices only in Apple's own bezels, unmodified, and no CSS-drawn
+  phones; no Android device on a page with an Apple one; and the platform row must list
+  iPad. The plan's Android copy contradicts the contract: Android 1.0 ships no sign-in,
+  and the fixed wording is "No account is required. Tallyist asks for no sign-in, and has
+  no permission to use the internet." Android is at 1.3, with its own documents at
+  `semmes.github.io/TallyistAndroid/`, not "not started". The watch face does not hide the
+  count when the wrist drops (ADR-0045: the app does, complications hide when the watch
+  comes off). iOS's own secondary grey is 3.44:1 on white, so the site's is darker. And the
+  plan's DNS order is backwards: verify with GitHub first. All four domains sit on
+  name.com's parking page today. **Found in passing, now in `docs/app-store-listing.md`:**
+  the live App Store description is the owner's own, says "two taps" and "Everything lives
+  in Apple Health", and has lost the 3.1.2(a) subscription paragraph. **Open, the owner's:**
+  support by email or the issue tracker (email is a policy change); whether the plan's "no
+  days without" screenshot rule covers the app's own "days with none" figures; whether the
+  tone rule's imperative ban covers the site's headlines; the watch page before or after
+  approval; and where Android's documents live, before the first Play upload. **Worth
+  knowing for the Code session:** the sandbox will not let git create a repository inside
+  this checkout (it refuses `.git/hooks` and `.git/config`), so clone `semmes/Tallyist`
+  into the session's scratch folder; and `sips` writes a temporary file outside the
+  sandbox, so icon resizes need it off. No code, schema, CloudKit, catalog, privacy-policy
+  or project-file change.
