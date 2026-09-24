@@ -25,15 +25,19 @@
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<dict>
-			<!-- AppSettings and Diagnostics, via the App Group suite in
-			     AppGroup.defaults. CA92.1 is the App Group case: the data is
-			     read and written only by this app and its own widget
-			     extension, and never leaves the group container. -->
+			<!-- Two reasons, one per suite. 1C8F.1 is Apple's App Group
+			     reason: AppSettings and Diagnostics live in the App Group suite
+			     (AppGroup.defaults), read and written only by this app and
+			     its widget on this device, and never leaving the group
+			     container. CA92.1 is the app-only reason: the
+			     appearance setting is @AppStorage in the app's own standard
+			     suite, which nothing else reads. -->
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
 				<string>CA92.1</string>
+				<string>1C8F.1</string>
 			</array>
 		</dict>
 	</array>

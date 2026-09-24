@@ -3,7 +3,9 @@
 **Status:** 1.0 (2026-08-25), 1.1 (2026-09-01), 1.2 (2026-09-05) and 1.3
 (2026-09-20) live — the dates are the store's own (its version history, and
 for 1.0 the app's release date), read on 2026-09-23, when the owner reported
-1.3's approval; 1.4 in preparation ·
+1.3's approval; 1.4 in preparation, carrying the Apple Watch app and Apple
+Health on Trends together (ADR-0054), with its description, What's New and
+reviewer notes below ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -85,6 +87,87 @@ Notes on the description, so edits keep it compliant:
   them here in the same breath.
 - **Guideline 1.4.3** is why there are no health claims, no "drink less"
   framing, and no promises — the description only says what the app does.
+
+### Description for 1.4
+
+**Paste one of these before 1.4 is submitted.** The live description (the
+owner's own, read 2026-09-23 and described in the status block above) has no
+subscription paragraph, which guideline 3.1.2(a) requires while recurring tips
+exist, and it says nothing about the two things 1.4 adds. Guideline 2.5.1 asks
+that an app's HealthKit use be indicated in its description, and 1.4 is the
+first version that reads anything from Health beyond alcohol. Either text below
+fixes both. They differ only in voice.
+
+**(A) The reviewed description, updated for 1.4.** One bullet changed (the
+first) and one added:
+
+```
+Tallyist keeps an honest count of what you drink, so you can see your own
+pattern. One tap per drink, like tick marks on a napkin — except this napkin
+does charts.
+
+No goals, no streaks, no lectures, no judgement. Tallyist reports; it never
+grades.
+
+— Log a drink in one tap, from the app, the home-screen widget, or your
+  Apple Watch
+— A counter you can turn up or down, not a form to fill in
+— Calendar of your days, shaded by amount — including days with none, which
+  count as a fact of their own
+— Press and drag across the calendar to fill a stretch of days at once
+— Weekly, monthly, quarterly, and yearly totals with your own average — never
+  a target
+— Export your whole log as a CSV any time; it's your record
+— Log by voice with Siri, or from Shortcuts and the Action button
+— Standard-drink math for the US, UK, and Australia, switchable any time
+— Saves to Apple Health if you allow it, so a doctor can see the full picture
+  if you choose to share it
+— If you turn it on, Trends can show your resting heart rate, sleep, heart
+  rate variability, and wrist temperature from Apple Health beside your log,
+  as your own averages on nights you logged drinks and on nights you recorded
+  as no alcohol. They are read on your device and never stored
+
+Private by design: no account, no server, no ads, no analytics. Your log lives
+on your device, syncs through your own private iCloud, and the developer
+cannot read any of it.
+
+Tallyist is free, and everything in it is free. If it earns a place on your
+home screen, there's an optional tip jar ("Buy me a drink") — a one-time
+$4.99 tip, or recurring support at A Drink Every Month ($4.99/month,
+auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly).
+Tips unlock nothing. Recurring tips renew automatically until cancelled in
+your App Store account settings, at least 24 hours before the period ends;
+Tallyist itself reminds you a week before each renewal so you can cancel
+first if you want.
+
+Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://semmes.github.io/Tallyist/privacy/
+```
+
+**(B) The owner's live description, corrected.** The owner's own words, with
+four changes: "two taps" is "one tap", which is what the app does; the Apple
+Watch and the Health figures on Trends are named, with the size choice
+said to be the iPhone's, since the watch logs a type at its default size; "Everything lives in Apple
+Health on your device" is replaced, because the log lives in the app's own
+storage and Health is optional; and the subscription paragraph and the two
+links are restored.
+
+```
+How much do you actually drink in a week? Most people can't say, the count slips away between Tuesday and Saturday.
+Tallyist gives you an honest picture, without the lecture. Log a drink in one tap, on your iPhone or your Apple Watch. Beer, wine, spirits, or anything else. On iPhone, pick a size, and Tallyist does the math for you. Adjust the details after if you want to, nothing blocks you from logging fast.
+
+See your day, your week, your month. Just the numbers, no streaks, no scores, no judgment either direction. If you turn it on, Trends can also show your resting heart rate, sleep, heart rate variability and wrist temperature from Apple Health beside your log, as your own averages. They are read on your device and never stored.
+Your log lives on your device and syncs through your own private iCloud. Saving to Apple Health is optional. No account to create, no signup, nothing sold or shared.
+
+Tallyist is free, and everything in it is free. There's an optional tip jar: a one-time $4.99 tip, or recurring support at A Drink Every Month ($4.99/month, auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly). Tips unlock nothing. Recurring tips renew automatically until cancelled in your App Store account settings, at least 24 hours before the period ends, and Tallyist reminds you a week before each renewal.
+
+Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://semmes.github.io/Tallyist/privacy/
+```
+
+Both went through the 1.4.3 review with 1.4's other copy
+(`docs/copy-review-1.4.3.md`, "1.4 release"). The prices are ASC's as recorded
+here; check them against ASC before pasting.
 
 ## Keywords (100 chars max)
 
@@ -371,6 +454,120 @@ Notes on what's new in 1.3:
   code. There are still no accounts and no servers of any kind.
 ```
 
+## What's New (1.4)
+
+Reviewed under 1.4.3 (`docs/copy-review-1.4.3.md`, "1.4 release"). The store
+shows the first lines and hides the rest behind "more", so the watch and the
+Health figures come first. No sync timing is promised: the watch's sync has
+not yet run on a TestFlight build (the reviewer notes say the same).
+
+```
+Tallyist is now on Apple Watch. Tap plus to log a drink, hold it to say what
+it was, or record today as no alcohol. Today's count can sit on your watch
+face or in the Smart Stack, and the watch syncs with your iPhone through
+iCloud.
+
+Trends can now show figures from Apple Health beside your log: resting heart
+rate, sleep, heart rate variability, and wrist temperature, each as your
+average on nights you logged drinks and on nights you recorded as no alcohol.
+Each is off until you turn it on, and none of these figures is stored.
+
+Trends' three comparisons now share one card, and the drinking days and
+weekend figures, yours and the published ones, are drawn as bars. On iOS 27,
+text on cards is easier to read and the range and settings pickers switch on
+a single tap.
+```
+
+## Reviewer notes (1.4) — paste into App Review notes
+
+These restate the claims made in the 1.0 Resolution Center response and kept
+through 1.3, and add what 1.4 introduces: a watchOS app, a HealthKit read
+permission for four types, and the remote-notification background mode. The
+closing line of the 1.2 and 1.3 notes ("No new permissions…") is **not**
+repeated, because 1.4 does add a permission; what replaces it says exactly what
+is new. The claims table behind every sentence is in
+`docs/tallyist-1.4-spec.md`, "App Review consistency". Two plans asked for these
+notes to be written as though the 1.0 conversation were being reopened; they
+are. Neither the word "monitoring" nor any watch model appears in them, on
+purpose (`docs/health-pairing-phase-0-findings.md`, ADR-0053).
+
+**Attach** the Trends screenshot of the Apple Health card
+(`Claude outputs/1.4-screenshots/iphone-6.9/iphone-06b-health-quarter-light.png`)
+in App Review Information, because a review device usually has no Health data
+for these types and the section is designed to show nothing then.
+
+**Length:** App Store Connect's Notes field holds 4,000 characters. The block
+below is 3,793. A first draft ran to 5,236 and was cut; any addition has to fit
+the same limit, so count before pasting (`wc -c`).
+
+```
+What's new in 1.4. The four claims of our 1.0 response hold: no goals,
+streaks, scores or advice; no user-generated content shared between users;
+no accounts; no external services.
+
+1. Apple Watch app (new)
+- A companion app for logging on the wrist. Plus logs a drink (Double Tap
+  too, while the app is on screen), a hold of plus logs a chosen type, minus
+  removes today's newest drink, and a button records today as no alcohol. It
+  requires the iPhone app.
+- No account and no network requests of its own. Its log syncs through the
+  user's own private iCloud database, the iPhone app's container. The iPhone
+  sends the watch two settings over WatchConnectivity (region and what plus
+  logs); no drink travels that way.
+- No HealthKit entitlement. The iPhone app saves a watch drink to Health,
+  with the user's permission, the next time it is opened after the drink
+  syncs.
+- Complications show today's count; the rectangular one has a plus. Counts
+  are marked privacy-sensitive, so watchOS redacts them on a locked watch.
+  No notifications, streaks or scores.
+
+2. Background mode: remote-notification (iPhone and watch)
+- Lets the silent notifications CloudKit sends for the user's private
+  database update the store while the app is closed. No visible
+  notification, no push server of ours. The iPhone project has set this
+  since 1.0, but it first reaches the built Info.plist in 1.4.
+
+3. Apple Health on Trends (new, optional read permission)
+- If turned on, Trends shows resting heart rate, sleep, heart rate
+  variability and sleeping wrist temperature, each as the user's average on
+  nights with drinks logged and on nights recorded as no alcohol, side by
+  side with night counts. That is the whole feature.
+- Off by default: one switch per metric in Settings, or a one-time card on
+  Trends. Permission is requested only then, separately from the alcohol
+  permission; never at onboarding, and never again after "Not now".
+- Read on the device for one render: nothing these reads return is saved,
+  synced, written to Health or sent anywhere. App Privacy stays Data Not
+  Collected. The purpose string and the privacy policy
+  (https://semmes.github.io/Tallyist/privacy/) name the four types.
+- No difference is computed; neither figure is coloured, bolded, signed or
+  ranked. No diagnosis, advice, threshold, goal, score, notification, or
+  inference about drinking from physiology. Today is never included.
+- Below a minimum number of nights on both sides, or with no readings,
+  nothing is shown.
+- To see it: when, among the five days from six days ago through two days
+  ago, the log has drinks on two days and two other days recorded as no
+  alcohol (both can be entered from the calendar), Trends at Week shows the
+  card with dashes, and accepting it shows the permission sheet. Figures
+  need Health readings for those nights, normally from an Apple Watch; sleep
+  can be added by hand (Health, Browse, Sleep, Add Data). The attached
+  screenshot is from a simulator with sample Health data. It shows three
+  rows, because an app cannot write wrist temperature to Health.
+- Review builds show a Diagnostics section in Settings. Its "Last Health
+  read" rows hold a metric name, a day count, the read's duration, and which
+  part of the app read it and when; never a value.
+
+4. Other changes
+- Trends' three comparisons share one card, two of them drawn as bars. Same
+  sources, same figures.
+- iOS 27 readability and control fixes, shorter Settings wording, and
+  clearer errors: an unreadable log now says so instead of showing an empty
+  day.
+
+New in 1.4: the watch app, a HealthKit read for four types behind switches
+that start off, and the remote-notification background mode. No new privacy
+label categories, no third-party code, no accounts, no servers.
+```
+
 ## Reminders for the version page
 
 - Age rating: answer the alcohol question honestly — "Alcohol, Tobacco, or
@@ -393,3 +590,30 @@ Notes on what's new in 1.3:
   set, not only the three named above.
 - The tip-jar IAPs must be submitted for review with the first version that
   contains them (select all three products on the version page).
+
+**For 1.4 specifically** (added 2026-09-24):
+
+- **Description:** paste (A) or (B) from "Description for 1.4". The live one
+  lacks the 3.1.2(a) subscription paragraph and says nothing about the Health
+  reads, and 1.4 is the version a reviewer will read it beside.
+- **App Privacy stays Data Not Collected**, and no answer changes. The
+  reasoning, checked against the build rather than assumed, is in
+  `docs/tallyist-1.4-spec.md` ("App Privacy"). The regulated medical device
+  declaration (App Information → App Store Regulations & Permits) stays "No".
+- **Age rating:** no question's answer changes. The Health figures give no
+  diagnosis, guidance or recommendation, so "Medical or Treatment Information"
+  and "Health or Wellness Topics" are unaffected
+  (`docs/health-pairing-phase-0-findings.md`). The lookup API reads 17+ today.
+- **Screenshots:** the watch needs its own set (Apple Watch, one size is
+  enough; 416 × 496 from a 46mm simulator is an accepted size), and every
+  in-app iPhone and iPad shot is still stale since the tab bar. Candidate sets
+  from a seeded scratch simulator are in `Claude outputs/1.4-screenshots/` in
+  the main checkout, with a README saying what each shows and how it was
+  made. Nothing there is uploaded.
+- **App Review Information:** paste "Reviewer notes (1.4)" (3,793 characters,
+  under the field's 4,000) and attach the Health card screenshot it names.
+- **Before submitting,** run one TestFlight build across a phone and a watch
+  on one iCloud account: log on each, with each app closed in turn, and on
+  the watch from the Smart Stack card's plus. The watch's sync has never run
+  on a TestFlight build (Production CloudKit and production push). The What's
+  New and the notes promise no timing for this reason.

@@ -699,7 +699,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Tallyist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tallyist uses read access to show drinks that other apps have recorded in Health alongside your log, and to find the samples it previously saved so editing or removing a logged drink also updates Health.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tallyist reads the drinks other apps record in Health to show them in your log, and the drinks it saved so editing or removing one also updates Health. If you turn them on, it also reads resting heart rate, sleep, heart rate variability and wrist temperature to show your averages beside your log on Trends. These are read on this device and never stored.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tallyist saves the drinks you log to Health, so your data stays in one place that you control.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -731,7 +731,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Tallyist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tallyist uses read access to show drinks that other apps have recorded in Health alongside your log, and to find the samples it previously saved so editing or removing a logged drink also updates Health.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tallyist reads the drinks other apps record in Health to show them in your log, and the drinks it saved so editing or removing one also updates Health. If you turn them on, it also reads resting heart rate, sleep, heart rate variability and wrist temperature to show your averages beside your log on Trends. These are read on this device and never stored.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tallyist saves the drinks you log to Health, so your data stays in one place that you control.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
