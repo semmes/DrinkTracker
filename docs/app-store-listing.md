@@ -17,6 +17,16 @@ Tracker"**, not the one in the table below, and the What's New that shipped for
 turned to commas and colons. The Privacy Policy and Support URLs on the listing
 are the Pages ones in the table below.
 
+**The description differs too** (read 2026-09-23 through the iTunes lookup API,
+which the read above did not check). The live one is 581 characters, the owner's
+own, and not the text under "Description" below. Three things in it disagree with
+the record: it says "Log a drink in two taps", where the app and this file say one;
+it says "Everything lives in Apple Health on your device", where the privacy policy
+says the log lives in the app's own database and Health is optional; and it has no
+subscription paragraph, which the note under "Description" says must stay while
+recurring tips exist (guideline 3.1.2(a): each recurring tip's title, period and
+price, and the Terms of Use and privacy links).
+
 ## App Information
 
 | Field | Value |
