@@ -1,16 +1,22 @@
+import ComponentsKit
 import DrinkTrackerCore
 import SwiftData
 import SwiftUI
 
 /// The published comparisons at the bottom of Trends, under one heading that
-/// names them (ADR-0038's 2026-09-10 amendment).
+/// names them (ADR-0038's 2026-09-10 amendment), in one card segmented by their
+/// titles (its 2026-09-23 amendment).
 ///
 /// Settings → Comparisons carries three switches — "Weekly average",
 /// "Drinking days", "Weekend and weekdays" — and until this section existed a
 /// reader could flip one and watch an unnamed block appear or vanish. Each
-/// switch now has one card carrying that switch's own title, under a
-/// COMPARISONS heading that reads as Settings' own section does, in the
-/// switches' own order.
+/// switch has one segment carrying that switch's own title (the third titled
+/// by its measure, "Days with a drink"), under a COMPARISONS heading that reads
+/// as Settings' own section does, in the switches' own order. The segments
+/// share one glass card, a hairline between each shown segment and the next —
+/// the owner's request of 2026-09-23, and the reopen the 2026-09-10 amendment
+/// named for three source rows reading as chrome. Each segment keeps its own
+/// source line, so no source line's wording depends on which switches are on.
 ///
 /// ## Why the seven weekday rows are not in here
 ///
@@ -26,15 +32,19 @@ import SwiftUI
 /// ## The heading cannot outlive its content
 ///
 /// All three gates are resolved once, here, and the heading's condition is the
-/// literal disjunction of the three. No card re-checks its own switch. That is
-/// structural, not a discipline: a heading over an empty section is impossible
-/// to write without deleting the `if` it lives in — the `asksType` lesson from
-/// ADR-0034's amendment, where a view read the answer to its own question.
+/// literal disjunction of the three. No segment re-checks its own switch. That
+/// is structural, not a discipline: a heading — or a card — over an empty
+/// section is impossible to write without deleting the `if` it lives in — the
+/// `asksType` lesson from ADR-0034's amendment, where a view read the answer to
+/// its own question. The dividers follow the same rule: each is drawn by the
+/// segment below it, and only when a segment above it is shown.
 struct ComparisonsSection: View {
   /// The range's seven weekday totals, already folded by `TrendsView` — the
   /// same array the card above prints, so the two cannot disagree about the
   /// range.
   let weekdayTotals: [WeekdayTotal]
+  /// The range those totals cover, which the weekend segment's header names.
+  let range: TrendRange
   let region: Region
   let calendar: Calendar
 
@@ -60,40 +70,49 @@ struct ComparisonsSection: View {
     // of zeros is a claim about the reader nobody read. Trends draws its own
     // unreadable state when *its* queries fail; these two fetch separately.
     if !shown.isEmpty, !isLogUnreadable {
-      // Mapped once for both cards, as the combined card mapped it once for
-      // both blocks: `loggedDrinks` walks the whole log, and reading it per
-      // card would allocate a second copy of it on every body pass. Skipped
-      // entirely when neither population card is shown — the weekend
-      // comparison reads the weekday totals it was handed, never the log.
+      // Mapped once for both population segments: `loggedDrinks` walks the
+      // whole log, and reading it per segment would allocate a second copy of
+      // it on every body pass. Skipped entirely when neither is shown — the
+      // weekend comparison reads the weekday totals it was handed, never the
+      // log.
       let drinks = shown.needsLog ? entries.loggedDrinks : []
 
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Comparisons")
 
-        if let population = shown.average {
-          WeeklyAverageCard(
-            reference: population.reference,
-            window: population.window,
-            drinks: drinks,
-            region: region,
-            column: settings.comparisonColumn,
-            now: now,
-            calendar: calendar
-          )
-        }
+        SUCard(model: .glass) {
+          VStack(alignment: .leading, spacing: 0) {
+            if let population = shown.average {
+              WeeklyAverageComparison(
+                reference: population.reference,
+                window: population.window,
+                drinks: drinks,
+                region: region,
+                column: settings.comparisonColumn,
+                now: now,
+                calendar: calendar,
+                isFollowed: shown.days != nil || shown.weekend != nil
+              )
+            }
 
-        if let days = shown.days {
-          DrinkingDaysCard(
-            frequency: days.reference,
-            window: days.window,
-            drinks: drinks,
-            now: now,
-            calendar: calendar
-          )
-        }
+            if let days = shown.days {
+              if shown.average != nil { SegmentDivider() }
+              DrinkingDaysComparison(
+                frequency: days.reference,
+                window: days.window,
+                drinks: drinks,
+                now: now,
+                calendar: calendar,
+                isFollowed: shown.weekend != nil
+              )
+            }
 
-        if let weekend = shown.weekend {
-          WeekendComparisonCard(split: weekend.split, reference: weekend.reference)
+            if let weekend = shown.weekend {
+              if shown.average != nil || shown.days != nil { SegmentDivider() }
+              WeekendComparison(split: weekend.split, reference: weekend.reference, range: range)
+            }
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       // `TrendsView`'s stack is centre-aligned, so a leading-aligned section
@@ -116,7 +135,7 @@ struct ComparisonsSection: View {
     var isEmpty: Bool { average == nil && days == nil && weekend == nil }
 
     /// Whether anything shown needs the whole log projected. Only the two
-    /// population cards do.
+    /// population segments do.
     var needsLog: Bool { average != nil || days != nil }
   }
 
