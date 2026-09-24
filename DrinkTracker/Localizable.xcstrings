@@ -260,15 +260,6 @@
     "6–9" : {
 
     },
-    "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the %lld%% who reported drinking, and compared by grams of alcohol." : {
-
-    },
-    "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the %lld%% who reported drinking, and compared by grams of alcohol." : {
-
-    },
-    "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the %lld%% who reported drinking, and compared by grams of alcohol." : {
-
-    },
     "A published rate from a national dietary survey of US adults, 2005 to 2010, drinkers and non-drinkers together: days with a drink of 10 grams of alcohol or more, per 100 person-days, with the weekend as the study defined it. Not data from other Tallyist users." : {
 
     },
@@ -1347,6 +1338,15 @@
 
     },
     "Your average is about %@ units a week." : {
+
+    },
+    "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the %lld%% who reported drinking, and compared by grams of alcohol." : {
+
+    },
+    "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the %lld%% who reported drinking, and compared by grams of alcohol." : {
+
+    },
+    "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the %lld%% who reported drinking, and compared by grams of alcohol." : {
 
     },
     "Your averages" : {

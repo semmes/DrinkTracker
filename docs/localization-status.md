@@ -107,7 +107,9 @@ whose `%@` is the figure as a styled `Text` so a translation can place it,
 scratch copy and diffed before it was copied in; 372 after the owner's
 Settings copy pass earlier that day: fifteen app keys out, fourteen in — the
 Appearance footnote retired, every other rewritten footnote replaced one for
-one, and no other key touched — synced the same way as below; 373 after the
+one, and no other key touched — synced the same way as below, and the same
+count after the weekly average's note that evening: its three column forms out
+and three in; 373 after the
 owner's device pass of the health pairing on 2026-09-22: four app keys in, none out — the
 Trends range picker's "Week", "Month" and "Quarter" and its VoiceOver title
 "Range", which reach the catalog because the picker is native now, where the
