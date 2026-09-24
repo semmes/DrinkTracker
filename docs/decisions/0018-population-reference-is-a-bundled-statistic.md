@@ -6,7 +6,9 @@ ADR-0030 (the window follows the record: twelve months once it can, the
 survey's own span; and a complete year is compared on the year view),
 ADR-0031 (a drinking-days mean beside the volume comparison),
 ADR-0039 (the table's men's and women's columns are bundled and can be
-chosen as the reference, the Total staying the default)
+chosen as the reference, the Total staying the default), ADR-0038's
+2026-09-23 amendment (the reader's figure set large over the sentence — see
+the note at the end)
 
 ## Context
 
@@ -78,3 +80,17 @@ placeholder number; the comparison line is omitted for a zero average
   replaces the derivation outright — swap the file, keep the tests.
 - Any pull toward per-user comparison, sharing, or thresholds is not a
   reopen of this record; the spec's stop conditions end that conversation.
+
+---
+
+## Note (2026-09-23) — the figure is set large; the comparison stays a sentence
+
+Shape 1's "one line of text" is now, at the default sizes, the reader's weekly
+average set large ("19.3 standard drinks a week") over the reviewed sentence,
+unchanged, in the one Comparisons card (ADR-0038's amendment of this date).
+The bracket rule and both phrasings are untouched. A row of twenty figures
+drawing the sentence's share was built and removed at the owner's review; if
+this comparison is ever drawn again it draws the share the sentence names,
+never a marker for the reader, because a marker on a line from least to most
+is a score. The two sentences remain what VoiceOver reads and what the
+accessibility sizes show.

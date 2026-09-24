@@ -133,6 +133,7 @@ struct TrendsView: View {
             // the reader has turned every comparison off.
             ComparisonsSection(
               weekdayTotals: snapshot.weekdays,
+              range: range,
               region: settings.effectiveRegion,
               calendar: calendar
             )

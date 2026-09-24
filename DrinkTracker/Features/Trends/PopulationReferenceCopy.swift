@@ -55,6 +55,51 @@ enum PopulationReferenceCopy {
     }
   }
 
+  /// The Comparisons card's figure line: "21 standard drinks a week", the
+  /// figure set large and rounded because it is the reader's own (design
+  /// system §3), the rest at the size of the text around it. The sentence
+  /// above — "Your average is about 21 standard drinks a week." — is what
+  /// VoiceOver reads and what the accessibility sizes show; this is its
+  /// figure and noun, not a rewording. One key per region and number, the
+  /// noun's form following the displayed digits, as `averageLine`'s do; the
+  /// figure goes in as a `Text` so a translation can place it.
+  static func averageFigure(_ units: Double, region: Region) -> Text {
+    let figure = Text(verbatim: StandardDrink.formatted(units))
+      .font(GlassTokens.Typography.cardValue)
+      .foregroundColor(.primary)
+    let isSingular = StandardDrink.readsAsOne(units)
+    switch region {
+    case .unitedStates, .australia:
+      return isSingular
+        ? Text("\(figure) standard drink a week")
+        : Text("\(figure) standard drinks a week")
+    case .unitedKingdom:
+      return isSingular
+        ? Text("\(figure) unit a week")
+        : Text("\(figure) units a week")
+    }
+  }
+
+  /// The span the population window covers, as the segment's header names it
+  /// — the same keys the Trends chart and the calendar card already print.
+  static func windowTitle(_ window: PopulationReference.Window) -> Text {
+    switch window {
+    case .fourWeeks: Text("Last \(window.days) days")
+    case .twelveMonths: Text("Last 12 months")
+    }
+  }
+
+  /// The span a Trends range covers — the chart card's own titles, so the
+  /// weekend segment names the same days the range picker chose.
+  static func rangeTitle(_ range: TrendRange) -> LocalizedStringKey {
+    switch range {
+    case .week: "Last 7 days"
+    case .month: "Last 30 days"
+    case .quarter: "Last 13 weeks"
+    case .year: "Last 12 months"
+    }
+  }
+
   static func noDrinks(in window: PopulationReference.Window) -> LocalizedStringKey {
     switch window {
     case .fourWeeks: "No drinks in the last 4 weeks."
@@ -93,8 +138,17 @@ enum PopulationReferenceCopy {
   /// to the same window and rounded to whole days: a mean over a population
   /// is not a figure a tenth of a day can be checked against.
   static func drinkingDaysReferenceLine(_ reference: FrequencyReference, windowDays: Int) -> LocalizedStringKey {
-    let mean = Int(reference.drinkingDays(per: windowDays).rounded())
+    let mean = reference.displayedDrinkingDays(per: windowDays)
     return "US adults who drink average about \(mean) in \(windowDays)."
+  }
+
+  /// The same sentence's predicate, beside its subject in the card's row:
+  /// the row label reads "US adults who drink" and the figure "average about
+  /// 7 in 28", so the row still reads as the reviewed sentence, split at the
+  /// verb. The mean is the whole number its bar is drawn from.
+  static func drinkingDaysReferenceFigure(_ reference: FrequencyReference, windowDays: Int) -> LocalizedStringKey {
+    let mean = reference.displayedDrinkingDays(per: windowDays)
+    return "average about \(mean) in \(windowDays)"
   }
 
   /// The weekly average's source, on Trends and on the year view alike — one
@@ -167,8 +221,8 @@ enum PopulationReferenceCopy {
   /// "Among US adults, 31 of every 100 Friday-to-Sunday days include a drink,
   /// and 24 of every 100 other days." Rounded to whole days per hundred.
   static func weekendReferenceLine(_ reference: WeekendReference) -> LocalizedStringKey {
-    let weekend = Int(reference.weekendEpisodesPer100Days.rounded())
-    let other = Int(reference.otherEpisodesPer100Days.rounded())
+    let weekend = reference.displayedWeekendPer100Days
+    let other = reference.displayedOtherPer100Days
     return "Among US adults, \(weekend) of every 100 Friday-to-Sunday days include a drink, and \(other) of every 100 other days."
   }
 
@@ -185,6 +239,11 @@ struct SourceDisclosure<Note: View>: View {
   /// the health pairing passes its own, because its card is not a
   /// comparison and must not be spoken as one (ADR-0050).
   var hint: LocalizedStringKey = "Explains this comparison"
+  /// Space under the note while it is open. Zero where the note is the last
+  /// thing in a card, whose own inset follows; the Comparisons card's segments
+  /// pass the gap the closed source row leaves above their dividing rule, so
+  /// an open note does not sit on it.
+  var openNoteInset: CGFloat = 0
   @ViewBuilder let note: () -> Note
 
   @State private var isExpanded = false
@@ -218,6 +277,7 @@ struct SourceDisclosure<Note: View>: View {
       .font(.caption)
       .foregroundStyle(.secondaryInk)
       .fixedSize(horizontal: false, vertical: true)
+      .padding(.bottom, openNoteInset)
     }
   }
 }
