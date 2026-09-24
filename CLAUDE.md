@@ -3455,7 +3455,9 @@ Open items for v1.2:
   storage unavailable" is also the watch strip's text), Session pace, the Apple Health on
   Trends footnote and captions, the source captions, About, and the pushed Privacy
   Policy and tip jar pages. The Trends source notes still say "— nothing about your log
-  leaves this device", which was outside the owner's scope. App catalog 373 → **372**
+  leaves this device", which was outside the owner's scope. *(Changed the same day at
+  the owner's request — the bullet "The weekly average's note says where the comparing
+  happens…".)* App catalog 373 → **372**
   (fifteen out, fourteen in, synced from a fresh full build into a scratch copy and
   diffed; 524 across six catalogs). No schema, CloudKit, privacy-policy or project-file
   change. **Verified:** the CI-form build, where the one warning in `SettingsView.swift`
@@ -3470,3 +3472,25 @@ Open items for v1.2:
   Health grant shows neither. **Tier 4 for the owner:** read the page on their phone,
   which is signed in with Health allowed, so it shows the footnotes the simulator could
   not.
+- **The weekly average's note says where the comparing happens (2026-09-23; ADR-0038's
+  note extended).** The owner asked for the Settings pass's em-dash change in the Trends
+  source notes too. One note had the em dash and the claim: the weekly average's, one
+  form per survey column, shared by Trends and the year view through
+  `PopulationReferenceCopy.explainer`. Its first sentence now reads "Your average is
+  compared on this device with a published population statistic, never with data from
+  other Tallyist users." The derivation sentence after it is unchanged, so ADR-0018's
+  quote still holds. The drinking-days and weekend notes had neither, so they are
+  unchanged. App catalog three out, three in, still 372, synced and diffed as before.
+  **Verified:** the CI-form build with no warning in the changed file, and tier 3 on a
+  throwaway iPhone 17 Pro on iOS 27, deleted afterwards. The note rendered open on
+  Trends over a seeded log, for All adults (72%) and Men (75%), in light and dark. The
+  integration suite was not re-run, since no test compiles this file. **Not rendered:**
+  the Women form (the same function) and the year view, which needs a complete year of
+  records. **A tooling lesson worth keeping:** `simctl clone` of a simulator whose data
+  matters is not isolated. On the clone of "Health-Phase4 scratch", `simctl
+  get_app_container … groups` returned the *original* device's App Group path, so an app
+  launched there could have written into the store kept for Phase 7. The clone was
+  deleted before anything was installed, and the original's files show no change. The
+  safe route is what the render used instead: a fresh simulator, the app installed, and
+  the original's `Library/Application Support` store files copied in with `cp` while the
+  original is shut down, before the app's first launch.

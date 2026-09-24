@@ -1819,7 +1819,24 @@ is available again."; "…kept on this device either way."; "Your log is kept
 in the app."; About; and the status labels, whose em dashes are separators
 ("Not syncing — no iCloud account"). **Not on this page:** the Trends source
 notes keep "not data from other Tallyist users — nothing about your log
-leaves this device"; the owner's pass was the Settings page's.
+leaves this device"; the owner's pass was the Settings page's. *(Changed later
+the same day, in the next section.)*
+
+**House voice intact.** Factual, no celebration, no judgment, no exclamation
+marks.
+
+## 2026-09-23 — the weekly average's note takes the same wording
+
+The owner asked for the change above in the Trends source notes as well. Only
+one note had an em dash or the claim: the weekly average's, which Trends and
+the year view share and which has one form per survey column. Its first
+sentence now has the shape of the Settings footnote. The derivation sentence
+after it, the disclosure ADR-0018 requires and partly quotes, is unchanged. The drinking-days and weekend notes had neither, so they are
+unchanged too. Three app keys out, three in; 372 app keys.
+
+| String | Where | Reviewed against 1.4.3 |
+| --- | --- | --- |
+| "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the N% who reported drinking, and compared by grams of alcohol." · the same for "US men" and "US women" | The note under the weekly average's source line, on Trends and the year view | The same facts, with no em dash. It says where the comparing happens where it used to say "nothing about your log leaves this device", which read alone as untrue of a log that syncs to iCloud. It still says the figure is published and is not other users' data. The derivation is word for word, so the note still discloses the renormalisation and the grams. It states what the percentage is and adds no verdict about the reader. |
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
