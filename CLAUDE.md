@@ -182,7 +182,9 @@ build it — and on the investigation in ADR-0041's amendment: the CloudKit leg
 cannot be expedited, and WatchConnectivity cannot reach the face at all.
 **Phase 8 is the remaining work** — What's New, reviewer notes carrying the
 new Background Modes entry, the claims table and the privacy policy read
-against the watch, and the owner's screenshots. **Two things are open and
+against the watch, and the owner's screenshots. *(Done on 2026-09-24 with the
+health pairing's Phase 7 — the bullet "1.4's release work…"; the screenshots
+are still the owner's.)* **Two things are open and
 both are the owner's.** The cellular field report: phone and watch drifted
 apart for an evening, no bug was found in the sync path, and the honesty fix
 that came out of it shipped — but the Phase 7 investigation then found one
@@ -227,7 +229,7 @@ landed that night too (the bullet "The health pairing's Phase 3 landed…", ADR-
 ADR-0051): the table on Trends, the Settings switch and the one-time offer. Main now
 carries a Health read the privacy policy denies — "Tallyist reads no other Health
 data" — so NO RELEASE BUILD MAY BE CUT FROM MAIN UNTIL PHASE 7 rewrites the policy and
-the purpose string. Phase 4, sleep duration, landed on 2026-09-22 (the bullet "The health
+the purpose string. *(Phase 7 landed on 2026-09-24 — the bullet "1.4's release work…".)* Phase 4, sleep duration, landed on 2026-09-22 (the bullet "The health
 pairing's Phase 4 landed…", three ADRs amended): the second row, its switch, the offer for
 both, and the design's decision 1 — a later metric arriving switched on, asked for beside
 the table — built; its render pass passed later the same day, once the owner granted the
@@ -261,12 +263,19 @@ one decision, and it is the owner's (the bullet "1.3 is approved and live…"): 
 decision 4 puts the health pairing on its own train after the watch, but the pairing is
 merged on main under `MARKETING_VERSION` 1.4, so 1.4 either carries both features —
 after the pairing's Phase 7 and the watch's Phase 8, with decision 4 reversed in an ADR —
-or leaves the pairing out, by an earlier cut or a build-time switch.** **On 2026-09-23 Trends'
+or leaves the pairing out, by an earlier cut or a build-time switch.** *(Decided on
+2026-09-23: both, ADR-0054.)* **On 2026-09-23 Trends'
 three comparisons became one card segmented by their titles, the day counts drawn as bars
 on full-width tracks at the owner's ruling (the bullet "The comparisons are one card…",
 ADR-0038 amended).** **The same day the owner chose where the marketing site lives:
 `semmes/Tallyist`, with tallyist.co attached, not a new repository (the bullet "The
-marketing site lives in `semmes/Tallyist`…", ADR-0024 amended).**
+marketing site lives in `semmes/Tallyist`…", ADR-0024 amended).** **On 2026-09-23 the
+owner decided that 1.4 carries both features, and on 2026-09-24 both release phases landed as one
+(the bullet "1.4's release work…", ADR-0054):** the privacy policy's three copies, the
+purpose string, the four manifests' UserDefaults reason, What's New, the reviewer notes,
+the claims and App Privacy, the copy review and design-system §9. What is left before 1.4
+can be submitted is the owner's, listed in that bullet, and the complication's
+non-mirroring change (ADR-0055) is a draft PR awaiting the owner's acceptance of its cost.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3631,3 +3640,81 @@ Open items for v1.2:
   into the session's scratch folder; and `sips` writes a temporary file outside the
   sandbox, so icon resizes need it off. No code, schema, CloudKit, catalog, privacy-policy
   or project-file change.
+- **1.4's release work: the watch's Phase 8 and the health pairing's Phase 7, as one
+  (2026-09-24; ADR-0054).** The owner, asked the night of the 23rd: 1.4 carries both;
+  merge the policy when green; fix the complication's mirroring that night; capture
+  candidate screenshots. **Decided and recorded:** ADR-0054 reverses the pairing plan's
+  decision 4, with the cost paid in the reviewer notes (each feature its own section)
+  rather than refuted. **What landed:** (a) **the privacy policy**, both in-repo copies
+  dated September 24, 2026 (the mirror pushes the third on merge): the four Health types,
+  read only behind switches that start off, used for one render and never stored, synced,
+  written back or sent, "Tallyist reads no other Health data" true again after a complete
+  list; Apple Watch paragraphs the watch plan had predicted it would not need (the watch's
+  own copy of the log, the two settings the phone sends it, deleting the watch app); the
+  diagnostic record named without claiming nothing about a read is kept; its privacy
+  claims true of 1.3 while that is live (1.3 does less), though until 1.4 ships the page
+  describes a watch app and switches 1.3 lacks and differs from 1.3's September 3 in-app
+  copy (ADR-0024's publish-ahead cost, stated in ADR-0054). Five app-catalog keys
+  swapped, four of them again after the review, all re-marked `shouldTranslate: false`
+  (still 14 marked, 378 app keys). (b)
+  **`NSHealthShareUsageDescription`** names the four types, Debug and Release (two Edit
+  anchors on `project.pbxproj`, each from its configuration's header); before, a scratch
+  simulator showed the alcohol-only text above a sheet listing heart, sleep and wrist
+  types. (c) **The four privacy manifests' UserDefaults reason**: all declared CA92.1,
+  Apple's app-only reason, and called it "the App Group case"; Apple's reason list (read
+  as JSON from Apple's documentation) makes 1C8F.1 the App Group reason. The app now
+  declares both (its appearance `@AppStorage` is the standard suite); the three others
+  1C8F.1. README corrected with it. (d) **`docs/app-store-listing.md`**: two paste-ready
+  descriptions for 1.4, (A) the reviewed one updated and (B) the owner's live one
+  corrected — both restore the 3.1.2(a) paragraph the live one lost and name the Health
+  reads (guideline 2.5.1); What's New (1.4); reviewer notes (1.4), whose closing line no
+  longer says "no new permissions"; version-page reminders for 1.4. (e)
+  **`docs/tallyist-1.4-spec.md`**: Feature B, the claims tables re-verified against the
+  build (the spec's own restatement of the 1.0 claims was wrong and is corrected), and
+  "App Privacy" — Data Not Collected, with the reasoning. (f) **The copy review's 1.4
+  batch**, including eighteen strings the coverage audit found with no row (the App
+  Intents' strings in the watch catalogs among them). (g) **`docs/design-system.md` §9,
+  the watch** — tokens, states, the dot row with ADR-0044's table, haptics, concealment,
+  the complication families — and Governance renumbered §10. (h) `docs/support.md` gains
+  the watch and Apple Health on Trends. **Found and left open, the owner's:** the watch's
+  hint line ("Hold ＋ to say what it was") measures **2.23:1** on black, under the 4.5:1 its
+  10pt size needs, and a flat ink would not lift it (it is tertiary's own value); the watch
+  and complication type is fixed-size and follows no text-size setting, never recorded as
+  a decision (design-system §9 says so); the watch renders the accent's universal step 500,
+  not the dark step the design README names; the 1.0 Resolution Center response is not in
+  this repository (the contract names `claude/app-review-response.md` in the Claude
+  project), so the notes were written from its restatements; the private contract's
+  `review-claims.md` has no Health-reads row. **The complication (ADR-0055, a draft PR,
+  not merged):** built, verified on scratch simulators, and left for the owner, because
+  its cost turned out larger than the question put to them said: a drink from the card's
+  ＋ reaches CloudKit only through the watch app, with no documented upper bound, where on
+  2026-09-16 a card drink reached the phone in two seconds under the old entitlements
+  (ADR-0047's Context). **What the owner still has to do before 1.4 is
+  submitted:** read the policy and notes as published; paste a description; attach the
+  Health card screenshot; choose and upload screenshots (watch set required; candidates in
+  `Claude outputs/1.4-screenshots/`, with a README); decide ADR-0055; and run one
+  TestFlight build across phone and watch (the watch's sync has never run on one).
+  **Reviewed before the PR** by a five-lens adversarial workflow (policy, listing, claims,
+  design, mechanics), each finding put to a skeptic: **43 confirmed, all acted on.** Four
+  were blocking: the reviewer notes ran to 5,236 characters where App Store Connect's field
+  holds 4,000 (rewritten, now 3,793, and the listing says to count before pasting); What's
+  New said "nothing read from Health is stored", false of the alcohol imports (now "none
+  of these figures"); the notes claimed complications redact in Always-On, which depends
+  on the wearer's Hide Sensitive Complications setting (now "on a locked watch"); and the
+  notes called the simulator screenshot "watch data". The policy gained four exact
+  sentences (the region each drink row stores; the tip jar's product fetch; the watch
+  context's timestamp, with "nothing else about you"; imports deleted in Health, not in
+  the app), and design-system §9 eight corrections. **One left open, the owner's:** §9's
+  item 7, Always-On shows the legend's active-band emphasis and a singular "drink today"
+  beside the concealed tile; a two-line code fix that wants a render the simulator cannot
+  give. **Verified locally (Xcode 27.0):** the policy-date check; the catalog synced from a
+  fresh full generic build (x86_64 set) and diffed each time, five in and five out, then
+  four and four; the four manifests linted; the release worktree builds clean for the
+  simulator. **Tier 3** on a scratch iPhone 18 Pro Max (iOS 27): the Health sheet with the
+  old purpose string, then on a fresh install the new one in full; and the corrected
+  policy screen, rendered again after the review (the frames are in
+  `Claude outputs/1.4-screenshots/evidence/`, untracked). **Tooling:**
+  `simctl status_bar … override --time 9:41` makes screenshot candidates; the Release
+  watch build hides the DEBUG line; writing `lastWatchContextReceived` into the scratch
+  watch's App Group plist prints the ≈ line; the iTunes lookup API read the live
+  description word for word.

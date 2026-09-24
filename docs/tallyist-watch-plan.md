@@ -549,7 +549,9 @@ findings, each recorded so the next reader does not rediscover it:
   four accessory families showing a system glyph; `kind` is final
   (`CounterComplication`) because a placed complication's identity is its kind.
 - Both targets got an empty `Localizable.xcstrings`, a `PrivacyInfo.xcprivacy`
-  declaring the App Group defaults reason (CA92.1), the scaffold entitlements,
+  declaring the App Group defaults reason (CA92.1 as written then; Apple's App
+  Group reason is 1C8F.1, and 1.4's release corrected all four manifests), the
+  scaffold entitlements,
   and the shared `DrinkTrackerWatch` scheme (written from the app's, build
   action on the watch app, no testables). The icon is the iOS PNG in a
   `watchos`-platform icon set; `scripts/make-app-icon.py` writes both now.
@@ -1718,6 +1720,25 @@ from the watch's view within one send.
 ---
 
 ## Phase 8 — release
+
+*Done 2026-09-24, with the health pairing's Phase 7 (ADR-0054). Each item
+below, as it came out: What's New (1.4) and the reviewer notes are in
+`docs/app-store-listing.md` — the draft note's "shows the current sitting's
+count" was corrected to what ADR-0046 built (today's count; the sitting only as
+dots, off by default), and the notes explain the new Background Modes entry;
+the claims table is re-verified in `docs/tallyist-1.4-spec.md`, and the four
+claims hold, though the spec's own restatement of them did not (it had
+substituted "no notifications" for "no goals, streaks, scores, or advice");
+**the privacy policy did need lines**, contrary to this plan's read: it named
+only the phone's widget, said nothing of the watch's own copy of the log or of
+deleting it, and its "only network traffic" sentence left out the settings the
+phone sends the watch; the copy review has its batch, and the one real gap it
+found (the App Intents' strings compiled into the watch targets, never given
+rows) is reviewed there; `docs/design-system.md` gained §9, the watch, with the
+tokens, the dot row and ADR-0044's contrast table, and it measured the hint
+line at 2.23:1, an open accessibility item for the owner. The screenshots are
+the owner's: candidate sets from a seeded scratch simulator are in
+`Claude outputs/1.4-screenshots/` in the main checkout.*
 
 One session, plus your device pass.
 

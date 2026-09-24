@@ -707,14 +707,23 @@ destination.
 
 ## Privacy
 
-`PrivacyInfo.xcprivacy` ships in **both** targets — Apple evaluates each bundle
-separately, and the app's manifest does not cover the widget's appex.
+`PrivacyInfo.xcprivacy` ships in **all four** bundles — the app, its widget, the
+watch app and the complication — because Apple evaluates each bundle separately,
+and the app's manifest does not cover an appex or the watch app.
 
-Both declare no tracking and an empty `NSPrivacyCollectedDataTypes`. The drink log is
+All four declare no tracking and an empty `NSPrivacyCollectedDataTypes`. The drink log is
 health data, but it leaves the device only through the user's own private CloudKit
 database and their own HealthKit store: there is no account system, no server, and no
-networking code in the app at all. Both declare `NSPrivacyAccessedAPICategoryUserDefaults`
-with reason `CA92.1` — the App Group case — which is `AppGroup.defaults`.
+networking code in the app at all. Each declares `NSPrivacyAccessedAPICategoryUserDefaults`
+with reason `1C8F.1`, Apple's App Group reason, for `AppGroup.defaults`; the app adds
+`CA92.1`, the app-only reason, for the one setting kept in its standard suite (the
+appearance `@AppStorage`). Until 1.4 all four named `CA92.1` alone and called it the App
+Group case, which Apple's reason list does not support.
+
+The Apple Health figures on Trends (ADR-0048 to ADR-0053) add nothing to either list:
+they are read on the device for one render and never stored or sent, so they are not
+collection in Apple's sense (`docs/health-pairing-phase-0-findings.md` quotes the
+definition).
 
 **If a backend is ever added, `NSPrivacyCollectedDataTypes` stops being empty** and the
 App Store nutrition labels change with it.
@@ -811,6 +820,16 @@ duplication and a backfill echo, and source-deletion sync stops applying
 because the entry now carries facts the user stated. Multi-count imports
 ("3 drinks") stay read-only — splitting them has no honest Health story yet
 (the ADR says why, and how to reopen).
+
+Beyond the alcohol category, Tallyist reads four more types, **read-only and only
+behind switches that start off**: resting heart rate, sleep, heart rate variability
+and sleeping wrist temperature, shown on Trends as the reader's own averages on nights
+with drinks logged and nights recorded as no alcohol
+([ADR-0048](docs/decisions/0048-a-drinking-night-is-not-a-calendar-day.md) to
+[ADR-0053](docs/decisions/0053-wrist-temperature-is-the-reading-not-a-change-from-a-baseline.md)).
+They are asked for through their own request, never the beverage one, read for one
+render and discarded: nothing from them is stored, synced or written back
+([ADR-0049](docs/decisions/0049-health-context-is-read-never-stored.md)).
 
 ## Not built
 

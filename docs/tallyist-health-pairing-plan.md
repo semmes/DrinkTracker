@@ -39,7 +39,11 @@ You made the first four.
    as a form.
 4. **Its own train, after the watch.** This has its own review surface and its
    own privacy-policy change, and mixing it into a platform launch would make
-   both harder to explain.
+   both harder to explain. *(Reversed on 2026-09-23, ADR-0054: the pairing was
+   built while the watch's release waited, both are on main under 1.4, and
+   1.4 carries both, with their release work done as one. The reviewer notes
+   give each feature its own section, which is how this decision's argument
+   is paid rather than refuted.)*
 
 And three this plan makes, each argued where it lands:
 
@@ -614,7 +618,22 @@ phone build — the owner's new Series 12 was missing from the watch app's
 development profiles, which only a run of the watch scheme regenerates;
 not the project's, and CLAUDE.md's bullet says how to check.*
 
-**Phase 7, release.** Below.
+**Phase 7, release.** Below. *(Done 2026-09-24, with the watch's Phase 8,
+because ADR-0054 put both on 1.4. What each item in "Release" came to: the
+policy's three copies name the four types, read only, never stored, never
+transmitted and revocable, dated September 24, 2026, with Apple Watch
+paragraphs the watch's Phase 8 found missing (the third copy is pushed by the
+mirror on merge); `NSHealthShareUsageDescription` names the four types in both
+configurations — before the change it was seen, on a scratch simulator, above
+a sheet listing heart, sleep and wrist types while speaking only of drinks; App
+Privacy is confirmed as Data Not Collected with the reasoning written into
+`docs/tallyist-1.4-spec.md` ("App Privacy"); the reviewer notes follow this
+section's list of what the feature does and does not do; What's New and the
+copy review are in their files. Two things found on the way: the listing's
+description needs Health named (guideline 2.5.1) and its 3.1.2(a) paragraph
+restored, both paste-ready for the owner; and the four privacy manifests
+declared the app-only UserDefaults reason where the App Group reason is 1C8F.1,
+corrected in the same PR.)*
 
 ---
 

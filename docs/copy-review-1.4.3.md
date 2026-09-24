@@ -1908,3 +1908,173 @@ span).
 
 No comparative adjective anywhere, drawn or written. No exclamation marks.
 Nothing on the card tells the reader what to do. House voice intact.
+
+## 1.4 release — the policy, the purpose string and the listing (ADR-0054, 2026-09-24)
+
+The pairing's Phase 7 and the watch's Phase 8, reviewed as one batch because
+they are one release. Every string below is either shown to a user (the
+purpose string, the policy in the app and at its URL, What's New, the
+description, the support page) or addressed to App Review (the notes, held to
+the same register as before). The tests for each: factual; no celebration, no
+judgment, no exclamation mark; no health claim or promise; no word that makes
+a figure a verdict ("better", "worse", "improve"); never "monitoring" (the
+regulated-medical-device definition's word, Phase 0 findings); no watch model
+named; and, for the policy, every sentence checkable against the build.
+
+**The purpose string** (`NSHealthShareUsageDescription`, Debug and Release;
+not in a catalog, since no `InfoPlist.xcstrings` exists):
+
+> "Tallyist reads the drinks other apps record in Health to show them in your
+> log, and the drinks it saved so editing or removing one also updates Health.
+> If you turn them on, it also reads resting heart rate, sleep, heart rate
+> variability and wrist temperature to show your averages beside your log on
+> Trends. These are read on this device and never stored."
+
+Passes. It names every type the sheet lists above it, which the old text did
+not (it was about alcohol alone, seen above the pairing's four-type sheet on a
+scratch simulator). "If you turn them on" is true: nothing asks for these
+types until a switch is turned on or the offer is accepted. "Your averages" is
+what the card shows, and "beside your log" is where. "These are read on this
+device and never stored" is scoped to the four on purpose: imported alcohol
+drinks *are* stored in the log, so a sentence covering everything read would
+be false. No benefit is claimed.
+
+**The privacy policy** (`docs/privacy-policy.md` and `PrivacyPolicyView.swift`,
+dated September 24, 2026; five in-app keys changed, then four of them again
+after the release review, all re-marked `shouldTranslate: false`, ADR-0021). Each new or changed sentence, with what
+makes it true:
+
+- "for the Tallyist app on iPhone, iPad and Apple Watch" — the app is
+  universal (`TARGETED_DEVICE_FAMILY = 1,2`) and ships a watch app.
+- "A short diagnostic record, such as when your log last synced, when a widget
+  last logged a drink, and when the app last read from Apple Health. It holds
+  none of the figures read for Apple Health on Trends, and it is never sent
+  anywhere." — `Diagnostics` in `Shared/AppGroup.swift`: sync times, a
+  twenty-line timeline that also keeps the times of widget, complication and
+  Siri logs and today's count at each widget build (a count that includes
+  Health imports), and per Health read a metric name, day count, duration,
+  process and time. That is why the sentence covers only the four Trends
+  types; the first draft's "never holds anything read from Health" did not
+  survive the review.
+- "If you use Tallyist on Apple Watch, the watch keeps its own copy of your log
+  in the same way." — the watch app opens its own App Group store (ADR-0041).
+- "Your settings are not synced through iCloud." — `AppSettings` is App Group
+  defaults, deliberately not CloudKit.
+- "…in the Health app, or in the Settings app under Privacy & Security." — the
+  old "in the Health app under Sharing" stays true on iOS 27 (Sharing → Apps
+  lists apps), and the Settings route is the one the pairing's render passes
+  used; both are named rather than one path that may move.
+- The Apple Health on Trends paragraph — the four types and the unit
+  (`HealthKitService.readTypes(for:)`, `preferredTemperatureUnit()`); one switch
+  each, off by default, or the one-time offer (ADR-0051); "read on your device
+  when Trends shows it … and then discarded. None of it is saved in the app,
+  synced to iCloud, written back to Health, or sent anywhere" (ADR-0049, the
+  pairing request's `toShare: []`); "Tallyist reads no other Health data" —
+  true again, after a complete list.
+- The Apple Watch paragraph — `WatchContext` carries region and counter seed,
+  a format version and the time it was sent: "with the time it sent them.
+  Nothing else about you travels that way" names the timestamp and leaves the
+  version, which is not about the reader (the first draft's "Nothing else
+  travels that way" was literally false); "no drink ever does" (ADR-0041); the
+  watch holds no HealthKit entitlement; backfill writes the watch's drinks to
+  Health "by Tallyist on your iPhone or iPad, if you allow it there, the next
+  time you open it after they have synced" — backfill runs on any device with
+  Health share permission, and only when the app comes to the foreground.
+- "Widgets and complications … Nothing about that sharing leaves the device."
+  — the sharing is the App Group store; the sync of what is in it is the
+  iCloud bullet's.
+- "…the two settings your iPhone sends to your own watch…" in the network
+  sentence — the one new transfer.
+- "Deleting the app removes everything it stored on that device. On Apple
+  Watch, deleting the watch app removes the watch's copy." — one group
+  container per device.
+- "Nothing Tallyist reads for Apple Health on Trends is ever stored, so there is
+  nothing of it to delete." — ADR-0049.
+
+No sentence promises a sync time. The policy stays in the owner's no-em-dash
+style in its new sentences; the unchanged ones keep theirs.
+
+**What's New (1.4)** (`docs/app-store-listing.md`): passes. "Tallyist is now on
+Apple Watch" states availability. "Each is off until you turn it on, and
+none of these figures is stored" is two facts, the second limited to the four
+figures like the purpose string, because imported alcohol drinks are stored
+(the first draft's "nothing read from Health is stored" was false). "Record
+today as no alcohol" is the watch button's own reviewed "Record no alcohol
+today"; the watch cannot mark another day. "Easier to read" and "switch
+on a single tap" describe the iOS 27 repairs, measured and verified on the
+owner's phone (ADR-0050's amendment). Not in it, deliberately: "streak" (1.3's
+shipped text used it; the description disclaims it), and any sync timing.
+
+**The description for 1.4, (A) and (B):** passes. (A) changes one bullet and
+adds one, in the reviewed description's own shape. (B) is the owner's live
+text with four corrections, each a fact: "one tap"; the watch named; "Your log
+lives on your device and syncs through your own private iCloud. Saving to
+Apple Health is optional." for "Everything lives in Apple Health on your
+device", which the policy contradicts; and the 3.1.2(a) paragraph restored.
+The Health sentence in both says what is shown and that it is read on the
+device and never stored; it claims no benefit.
+
+**The support page** (`docs/support.md`, mirrored on merge): two new entries.
+"From version 1.4" keeps each true while 1.3 is the version people install.
+"An Apple Watch records them, so without one Health may have none and Trends
+shows nothing" says why the section can be empty without naming a model or
+implying fault. Passes.
+
+**The reviewer notes (1.4):** addressed to App Review, held to the register of
+1.2's and 1.3's. What each feature does, then what it does not do. The closing
+line is rewritten rather than repeated, because 1.4 adds a permission.
+
+**Rows the coverage audit found missing, reviewed now.** These shipped before
+this batch without a row of their own.
+
+- The App Intents' own strings, compiled into both watch targets since the
+  watch's Phase 1 and in the app and widget catalogs since 1.2: "Log One
+  Drink", "Log Drinks", "Record No Alcohol Today", "Records today as a day with
+  no alcohol.", "Logs one or more drinks, asking for the type and how many.",
+  "Drink Type", "Drink", "Size (ounces)", "Strength (% ABV)" and
+  "Log ${quantity} ${drinkType}". Title case where the system's intent titles
+  are title case, sentences where they are descriptions. Each names an action
+  or a parameter and nothing else. Pass.
+- `CFBundleDisplayName` "Tallyist" for the watch app and the complication: the
+  product name. Pass.
+- Diagnostics rows, shown only in debug and TestFlight builds: "Widget
+  timeline", "nothing recorded yet", "never on this device", "none since the
+  last success", "Last Health read (heart rate variability)" and "Last Health
+  read (wrist temperature)". Plain labels for the reader who is testing. Pass.
+- The watch session row's spoken elapsed time, the system formatter's full
+  style ("1 hour, 19 minutes"): a duration and nothing else. Pass.
+
+**Changed after the release review (2026-09-24).** An adversarial review of
+the batch (five lenses, each finding put to a skeptic) confirmed 43 findings;
+the copy they changed, each now a fact:
+
+- Policy, both copies: "The drinks you log: type, size, strength, when, and
+  the region you logged each one under" (each row stores its region, so
+  "Your settings are not synced through iCloud" is true only once that is
+  listed); "if you open the tip jar or leave a tip, Apple's own App Store
+  product and purchase processing" (opening Buy me a drink fetches products
+  whether or not a tip is left), with "related to Tallyist" restored in the
+  in-app copy so the two make the same claim; "on the same iPhone or iPad"
+  for the widget; and "Any entry you logged can be deleted in the app,
+  individually. A drink or a no-alcohol day that another app recorded in
+  Apple Health is deleted in that app or in the Health app, and Tallyist
+  follows." (imports have no remove control, by ADR-0014 and ADR-0025; the
+  old sentence predated this batch and was republished with it).
+- Description (A): "on nights you logged drinks and on nights you recorded as
+  no alcohol", What's New's wording, for "nights with and without drinks",
+  which the second column is not. Description (B): "On iPhone, pick a size",
+  because the watch logs a type at its defaults.
+- What's New: "the drinking days and weekend figures, yours and the published
+  ones, are drawn as bars"; the weekly average has no bar.
+- The reviewer notes, rewritten to 3,793 characters for the 4,000-character
+  field: "records today as no alcohol"; "watchOS redacts them on a locked
+  watch" in place of an Always-On claim that depends on a setting the wearer
+  controls; the attached screenshot named as a simulator with sample Health
+  data, three rows; the policy URL written out; the Diagnostics rows' process
+  and time named; the Week gate stated as the five days it counts.
+- Support: "Check the Health app → Sharing → Apps → Tallyist", matching the
+  new entry's route, which was verified on iOS 27.
+
+No exclamation marks, no em dashes in any new sentence, no benefit claimed.
+
+No exclamation marks anywhere in the batch. House voice intact.
