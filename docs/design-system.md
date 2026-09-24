@@ -1,6 +1,6 @@
 # The Tallyist Design System
 
-**Status:** v1.0, reviewed · **Owner:** design · **Code home:** `DrinkTracker/DesignSystem/` — except `IntensityPalette`, at `Shared/IntensityPalette.swift` since the watch's Phase 1 (2026-09-14) so all four targets read one ramp, beside the shared catalog that holds the `tally.*` symbols and the two accent colours
+**Status:** v1.0, reviewed · **Owner:** design · **Code home:** `DrinkTracker/DesignSystem/` — except `IntensityPalette`, at `Shared/IntensityPalette.swift` since the watch's Phase 1 (2026-09-14) so all four targets read one ramp, beside the shared catalog that holds the `tally.*` symbols and the two accent colours; and the watch's own tokens, `WatchLayout` and `CounterMetrics` in `DrinkTrackerWatch/WatchLayout.swift` (§9)
 **Synced to:** claude.ai/design, project *Tallyist Design System*
 
 Tallyist's visual language is **native iOS with one voice added**. The system does
@@ -81,7 +81,7 @@ extending it.
 
 | Token | Light | Dark | Measured contrast |
 |---|---|---|---|
-| `accent` (interactive text, glyphs, fills) | **500** `#256abf` | **400** `#3987e5` | text: 5.26:1 light / 4.79:1 dark — AA normal, both modes |
+| `accent` (interactive text, glyphs, fills) | **500** `#256abf` | **400** `#3987e5` | text: 5.26:1 light / 4.79:1 dark — AA normal, both modes. The watch renders the asset's universal **500**, not its dark 400 — measured, §9 |
 | `accent.onFill` (label on accent fill) | white | white | 5.39:1 on 500 — AA normal. On dark, fills stay **500** (see review R2) |
 | `brand.deep` (icon field) | 650 `#104281` | 650 | 9.66:1 vs white mark |
 | `data.low / .medium / .high / .veryHigh` | 250 / 450 / 700 / **800** `#05172e` | 600 / 400 / 200 / **100** | per ADR-0007 and its 2026-09-06 amendment, validated both modes. Step 800 is new to the family and is the ramp's floor (L\* 7.6); the dark fourth step is the family's existing 100 |
@@ -100,7 +100,15 @@ dark), the reader's own bars in the Comparisons card and the wash of their track
 chart bars' role, beside a published figure's bar in secondary ink; ADR-0038's
 2026-09-23 amendment), and the bars of the year-in-review share card (`AccentFill`, 500 in both
 modes — a bar's height carries the value, not its colour, so bars take a brand
-token rather than a ramp step; ADR-0029). Everywhere
+token rather than a ramp step; ADR-0029). On the watch (§9), dark ramp only:
+the ＋ disc and the empty day's "Record no alcohol today" capsule (`AccentFill`),
+the − glyph and the type picker's glyphs (`accentColor`), the counter's tile and
+its legend swatches (the ramp by name, the hero band's fold — ADR-0034), the
+session dots from **`.medium`** upward (ADR-0044 — a different floor from the
+chip's `.high`, because a dot answers to 3:1 against its ground and the chip's
+text to 4.5:1 against its fill), and on the complication the tile and the corner's
+disc in the day's band (full colour only; a tinted face shows no band — ADR-0046)
+and the card's ＋ (`AccentFill`; `.quaternary` on a tinted face). Everywhere
 else is system semantic colour (`primary`, `secondary`, `.fill` tiers), so
 surfaces, text, and materials keep Apple's automatic light/dark/vibrancy
 behaviour. `GlassTokens` still defines **no colours**; the brand layer lives in
@@ -169,6 +177,27 @@ and fails on the first hierarchical text style. The share cards' `ShareCardInk`
 is untouched (their own literal site, ADR-0027); a fill may still take a
 hierarchical style, since the rule is about text.
 
+**The rule's scope is the app target, and only it.** `InkTests` walks
+`DrinkTracker/` and nothing else, and `.secondaryInk` / `.tertiaryInk` live in
+`GlassTokens.swift`, which the other targets do not compile. The hierarchical
+styles are still in use on text in: the watch — `CounterView.swift` (the unit
+word, the ≈ line, "Region not set yet", the marked day's two lines and the
+unreadable state's two in `.secondary`; the hint and the DEBUG line in
+`.tertiary`), `WatchBandLegend.swift` (the inactive labels), `SessionDotRow.swift`
+(the "·" and the elapsed time), and as non-text, `SessionDots.swift`'s ring and
+the dimmed − glyph in `CounterDisc.swift`; the complication — the card's words
+in `CounterComplication.swift`; the iOS widget — the unit word and the
+unavailable caption in `.secondary`, the standard-drinks caption in `.tertiary`
+(`QuickLogWidget.swift`); and `Shared/` — `IntensityPalette.ink(.unlogged)`
+returns `.secondary`, which the phone's calendar day numeral reads
+(`IntensityCell.swift`) through a call `InkTests` does not match; whether that
+cell sits on glass is not verified. The watch draws no text on glass (the only
+glass it draws is the − disc, under a glyph), and on its black ground the
+secondary label measures 6.36:1 (§9) — but the watch's hint measures 2.23:1 in `.tertiary`, and that is
+the tertiary label colour's own value on black, not vibrancy, so a flat ink
+would not lift it. **Whether the rule extends to the watch, the complication
+and the widget is open for a later pass**; nothing is changed here.
+
 ---
 
 ## 3. Typography
@@ -188,20 +217,23 @@ Type behaviour.
 | Card value | title, semibold, rounded | `.cardValue` |
 | Sheet title | title2 semibold | `.sheetTitle` |
 | Onboarding headline | largeTitle bold | `.onboardingHeadline` |
-| Section label | footnote medium, uppercase, secondary | `SectionLabel` — a group heading, on the screen ground or at the top of a sheet; carries `.isHeader`. The tracked variant, and the `.sectionLabel` token behind it, retired with `WeekdayCard`'s second table |
-| Card title | footnote regular, sentence case, secondary | `CardTitle` over `.cardLabel` — the same role every card already titles itself with, plus a header trait and a wrapping rule. One step below a `SectionLabel` heading, told apart by **weight and case**, never by ink |
+| Section label | footnote medium, uppercase, `secondaryInk` | `SectionLabel` — a group heading, on the screen ground or at the top of a sheet; carries `.isHeader`. The tracked variant, and the `.sectionLabel` token behind it, retired with `WeekdayCard`'s second table |
+| Card title | footnote regular, sentence case, `secondaryInk` | `CardTitle` over `.cardLabel` — the same role every card already titles itself with, plus a header trait and a wrapping rule. One step below a `SectionLabel` heading, told apart by **weight and case**, never by ink |
 | Column head | caption2 medium, uppercase, tracked, **`.primary`** | `.columnHead` |
 | Segment label | caption2, semibold when selected, one line, 0.8 scale floor; folds to body rows at accessibility sizes | `DrinkTypePicker` (ADR-0036) |
 | Row figure / row count | callout / footnote, semibold rounded, tabular | `.rowFigure`, `.rowCount` |
-| Card label / captions | footnote / caption, secondary | `.cardLabel`, `.supporting` |
+| Card label / supporting text | footnote regular / subheadline, `secondaryInk` | `.cardLabel`, `.supporting` |
 
 A **column head takes `.primary` ink**, not `.secondary`. It is the one place a
 table names its unit, so it carries the meaning the rows dropped; at caption2 a
 secondary head lands near 3.4:1. Hierarchy there comes from size, case and
 tracking — never from thinning the ink (invariant 10).
 
-All roles are relative text styles (Dynamic Type scales them); fixed sizes appear
-only in the two hero numerals and the widget, where layout is width-driven.
+On the phone, all roles are relative text styles (Dynamic Type scales them);
+fixed sizes appear only in the two hero numerals and the widget, where layout is
+width-driven. **The watch app and its complication are the exception: every
+size there is a fixed point size and nothing follows the wearer's text size** —
+a fact, not a recorded decision, and an open accessibility item (§9, "Type").
 Controls wrap text with `minHeight`, never fixed `height` (the Dynamic Type audit
 made this a rule; fixed heights clip).
 
@@ -220,6 +252,18 @@ made this a rule; fixed heights clip).
 Depth comes from the system material (`glassSurface()` → `.glassEffect`), never
 from custom shadows. ComponentsKit shadows are pulled back in `AppTheme` for the
 same reason. One elevation story, owned by the OS.
+
+**Segmented pickers sit on plain glass; buttons and toggles keep interactive
+glass** (`glassSurface(interactive: true)`). On iOS 27 interactive glass takes a
+segmented control's taps, and on 26.5 it did not — the four-ground probe is in
+§6's Range picker row, and the Stat card and Comparison switches rows follow it.
+The one exception is a card that can carry a picker: `ComparisonToggle`, whose
+switches (the comparisons' and Apple Health's) are on plain glass with it. A
+switch's tap on plain glass is still the owner's to confirm on hardware, which
+is why the other toggles have not moved.
+
+These tokens are the phone's. The watch has its own (`WatchLayout`, §9):
+watchOS's layout units are not the phone's.
 
 ---
 
@@ -244,6 +288,9 @@ Never: springs with overshoot on numbers, looping or idle animation, motion that
 draws the eye to a "good" value. If an animation would make a rising number feel
 like a score increasing, it is wrong (ADR-0006 applied to motion).
 
+The watch keeps the same two jobs with its own table, and confirms by haptic
+rather than by anything drawn (§9, "Motion and haptics").
+
 ---
 
 ## 6. Components
@@ -253,7 +300,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | Component | File | Notes |
 |---|---|---|
 | **Count stepper** | `DesignSystem/CountStepper.swift` | `.hero` (68pt targets, filled ＋, optional intensity band), `.prominent` (64pt), `.inline` (44pt); one VoiceOver-adjustable element; the product's signature control |
-| **Hero band + legend** | `CountStepper.bandTile`, `Today/HeroBandLegend.swift` | The day's `DayIntensity` behind the counter, and the four bands named. `IntensityPalette` by name — one of its three non-calendar surfaces, with `liveFigure` and the pace chip (ADR-0034) |
+| **Hero band + legend** | `CountStepper.bandTile`, `Today/HeroBandLegend.swift` | The day's `DayIntensity` behind the counter, and the four bands named. `IntensityPalette` by name — one of its non-calendar surfaces, with `liveFigure`, the pace chip (ADR-0034) and, on the watch, the counter's tile and legend, the session dots and the complication's tile and corner disc (§9). The type's own doc comment (`Shared/IntensityPalette.swift`) still says "three named exceptions" and names only the phone's; it is stale, a follow-up for a code change, not edited here |
 | **Plus-mode pill** | `Today/PlusModePill.swift` | Two log buttons in a capsule track; selection derived from the day template, never stored |
 | **Today drink row** | `Today/TodayDrinkRow.swift` | Symbol, name, size/strength or "Tap to say what it was", time, chevron. No per-region value column — that is History's. Also the day sheet's row since 2026-09-09 (ADR-0034's second amendment): the sheet prints the day's total twice above its list, as Today does |
 | **Primary button** | ComponentsKit `SUButton` via `AppTheme` | Accent fill, one per surface, always a verb phrase |
@@ -271,8 +318,9 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom *animated* drawing beside the icon — the drink glyphs are static symbols, ADR-0036); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset; a 48pt floor, never a fixed height — the sentence wraps at accessibility sizes ("Removed / wine") rather than truncating to "Removed o…" (the 1.3 review) |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll. The pinned header and footer are held to their wrapped height (`fixedSize(horizontal: false, vertical: true)`) so the ScrollView between them is the only child that yields — the outer VStack otherwise proposes the chrome a fair share and its `Text` truncates rather than pushing back (the figure reached the screen as "≈ 1 standard dr…" at AX5). Nothing opens at the medium detent any more. A new entry — the counter's "Add specific" — and adoption open at `.fraction(0.75)`, three-quarters of the sheet's *full* height rather than of the screen (measured on the iPhone 17 Pro: 601pt of 874, against the medium detent's 459pt), because at the medium detent the strength slider sat below the fold once a type was picked — the control the sheet exists for, reachable only by a drag it never announced (owner's review, 2026-09-10); `.large` stays as the second detent. It opens at the large detent whenever it carries the time control — an edit, or History's and the calendar's retroactive add — because the "When" section sat below the medium fold and a reader correcting their history had to know to drag (owner's review, 2026-09-09), and at accessibility sizes, where the medium one is ~459pt at AX5 and the chrome takes ~400pt of it. Three folds on one expression in four days, each one term to reverse |
-| **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated |
-| **Watch counter row** | `DrinkTrackerWatch/CounterView.swift`, `CounterTile.swift`, `WatchLayout.swift` (`CounterMetrics`), `DrinkTrackerCore/CounterRow.swift` | The − disc, the day's tile, the ＋ disc, drawn 44 · 86 · 44 at 4pt gaps inside 8pt margins for a 198pt screen. **Both discs are touch targets and are 44 on every case.** Where that row does not fit — every case under 45mm — the margins give first, until the row stands its own 4pt gap from the glass, and then the tile: 58 on a 40mm, 72 on a 41, 80 on a 44, 83 on a 42, the drawn 86 from the 45mm up. Inside the tile the design's two ratios re-derive the corner (side × 36 / 126) and the numeral (side × 68 / 126), to the point; the bare numeral (56), the hidden bar (40 × 8) and the glyph (34) scale from their drawn size on 86. The view reads its own width and its safe-area inset — watchOS keeps 2pt of the glass clear on each side, so a 40mm's view is 158pt, not 162 — and never a device table; every case's width is pinned at tier 1. ADR-0042, amended 2026-09-19; design reference `docs/design/watch/README.md` |
+| **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated. Small and medium families on `.fill.tertiary`: the count at 44 (small) or 40 (medium) SF Rounded semibold in primary, "drink(s) today" in caption2 secondary, and on the medium family only, while the day's total is above zero, the ≈ line in caption2 tertiary; the ＋ is `LogOneDrinkIntent` — the `plus` glyph at 22 / 24 semibold in the accent tint on a 52 / 60pt `.quaternary` disc, `.buttonStyle(.borderless)`, never `.plain` (it suppresses a widget's interaction). **Unavailable** (ADR-0047) — no App Group, a store that did not open, or a read that failed: the `tally.standard` drop at 0.75 × the numeral's size in its place, "drinks today", no figure and no ＋, and a retry in fifteen minutes; a zero there would claim a day with nothing logged, which is the one thing that state does not know. The complication draws its unavailable entry the same way (§9) |
+| **Unreadable log** | `DesignSystem/UnreadableLogView.swift` | What Calendar, the year view, History and Trends draw in place of their content while their queries' `fetchError` is set: a `ContentUnavailableView` with the `tally.standard` drop (`Image(decorative:)`) and "Your log couldn't be read." Nothing on it acts and nothing states a fact about the log; the next fetch that works puts the screen back (ADR-0004's 2026-09-16 amendments). Today and the watch counter have their own form of it: the drop where the figure would be, "drinks today", and "Today's drinks couldn't be read." (the watch's is in §9) |
+| **Watch counter row** | `DrinkTrackerWatch/CounterView.swift`, `CounterTile.swift`, `WatchLayout.swift` (`CounterMetrics`), `DrinkTrackerCore/CounterRow.swift` | The − disc, the day's tile, the ＋ disc, drawn 44 · 86 · 44 at 4pt gaps inside 8pt margins for a 198pt screen. **Both discs are touch targets and are 44 on every case.** Where that row does not fit — every case under 45mm — the margins give first, until the row stands its own 4pt gap from the glass, and then the tile: 58 on a 40mm, 72 on a 41, 80 on a 44, 83 on a 42, the drawn 86 from the 45mm up. Inside the tile the design's two ratios re-derive the corner (side × 36 / 126) and the numeral (side × 68 / 126), to the point; the bare numeral (56), the hidden bar (40 × 8) and the glyph (34) scale from their drawn size on 86. The view reads its own width and its safe-area inset — watchOS keeps 2pt of the glass clear on each side, so a 40mm's view is 158pt, not 162 — and never a device table; every case's width is pinned at tier 1. The row's states, the rest of the counter, its type and its contrast are §9. ADR-0042, amended 2026-09-19; design reference `docs/design/watch/README.md` |
 | **Watch complication tile** | `DrinkTrackerWatchWidget/CounterComplication.swift` (`tile(side:)`), `DrinkTrackerCore/ComplicationTile.swift` | One tile for the rectangular card and the circular slot: the day's band under the count, 44pt on the card, and in a circular slot **0.83 of the slot's diameter floored to the half point** (42 in the 46mm's 51pt slot, 34.5 in the 40mm's 42), corner **13 on 44 of the side**, continuous; the figure is 24pt SF Rounded semibold and the glyphs 18 at every side — a smaller tile is a smaller ground, not a smaller number. 0.83 is what keeps the corner more than a pixel inside the system's circular mask at every slot it asks for (37 to 51pt), pinned at tier 1. The slot itself is clear; the neutral ground is `.quaternary` (`#252526` on a black face) on a day with no band. On a tinted face every ground is that translucent one and the figures stay solid, because the system flattens a solid fill and the count on it into two inks that measured 1.3:1 apart. The corner family keeps a disc. ADR-0046, amended 2026-09-18; design reference `docs/design/watch/circular-complication-handoff.md` |
 | **Watch complication card row** | `DrinkTrackerWatchWidget/CounterComplication.swift` (`rectangular`), `DrinkTrackerCore/ComplicationCard.swift` | The rectangular card's row: the 44pt tile, the day's words at 11pt in secondary ink, the 44pt ＋ — both 44s fixed on every case, the ＋ being a touch target. The family is not one size: the system gives it from **181pt** of content (a 46mm face) down to **138** (a 40mm Smart Stack), so the row reads its own width and never assumes it. **Wide** — 172pt of content or more: the 45mm's face, the 46 and 49mm in both contexts — gaps of 8 with a Spacer before the ＋, the unit words on one line, the no-alcohol sentence on two. **Narrow** — every other card — the words take the whole column between the tile and the ＋, the gaps are the watch counter's **4**, the unit words may take two lines and the sentence four. The words wrap before they shrink and never go below 0.8; only the 40mm's Smart Stack shrinks the sentence at all (0.90). All fourteen real widths — seven cases, face and Smart Stack, from the system's own metrics — are pinned at tier 1. ADR-0046, second amendment of 2026-09-18 |
 | **Tab bar** | `Navigation/AppTabs.swift` | The system's iOS 26 tab bar, never a drawn one: five tabs, each a glyph over its name — the app's own drop (`tally.standard`) for Today, then the calendar, the three bars, the list and the gear — five custom symbols `tally.tab.*`, the prototype's own glyphs from `docs/design/bottom-nav/icons/`, one weight, built by the drink-glyph generator with the 24-unit box centred on the cap height at the bar's size (ADR-0040 amendment). Selection is accent ink and a neutral glass capsule, never a change of form. One `NavigationStack` per tab, owned here; opens on Today every launch, nothing stored; no minimise-on-scroll, no badge; inactive tabs in primary ink, the selected glyph and word in the accent, the capsule the system's glass (ADR-0040). Design reference: `docs/design/bottom-nav/` |
@@ -290,8 +338,10 @@ on glass; a screen leads with the user's number, never with chrome.
 
 ## 7. Accessibility (non-negotiable layer)
 
-- 44pt targets everywhere; the hero stepper uses 68pt.
-- Dynamic Type: relative styles + `minHeight` wrapping; `FlowLayout` where pills
+- 44pt targets everywhere; the hero stepper uses 68pt. The watch's targets are
+  44 on every case (§9).
+- Dynamic Type (the phone — the watch's type is fixed, an open item in §9):
+  relative styles + `minHeight` wrapping; `FlowLayout` where pills
   can wrap; year grid is read as twelve month summaries, not 365 stops. Text
   pinned beside a ScrollView (a sheet's header and footer) takes
   `fixedSize(horizontal: false, vertical: true)`, or the stack squeezes it and
@@ -301,7 +351,8 @@ on glass; a screen leads with the user's number, never with chrome.
 - VoiceOver: counters are adjustable elements; cells speak date + amount in
   words; every icon-only button has a label.
 - Contrast: every accent role ≥ 4.5:1 in both modes (table in §2 — measured, not
-  assumed).
+  assumed). The watch's accent glyphs are graphical objects held to 3:1, and
+  its measured figures, with the one text that fails, are in §9.
 
 ---
 
@@ -374,7 +425,273 @@ The claude.ai/design prototype *Tallyist iOS Prototype* delivered three changes
 
 ---
 
-## 9. Governance
+## 9. The watch
+
+The watch app (`DrinkTrackerWatch/`) and its complication
+(`DrinkTrackerWatchWidget/CounterComplication.swift`) speak the same language at
+wrist size: the same ramp through the same fold (`IntensityPalette`, **dark
+scheme only** — watchOS has no light mode), the same two accent assets and
+`tally.*` glyphs from `Shared/Assets.xcassets`, the same numeral rule. What they
+do not share is `GlassTokens`: the watch's measurements are `WatchLayout` (the
+same on every case) and `CounterMetrics` (following the screen), in
+`DrinkTrackerWatch/WatchLayout.swift`. The ground is black; the − disc is the
+only glass the app draws (the system's own back button and switch aside).
+Design reference: `docs/design/watch/README.md` — where it and the code
+disagree, the code and the ADRs below win (the disagreements found so far are
+listed under "Open").
+
+### Tokens
+
+| Token | Value | Use |
+|---|---|---|
+| Disc (`discSide`) | 44, every case | − and ＋; the record capsule's minimum height. Aliased from `CounterRow` in the core package, so the number has one home |
+| Gap (`counterGap`) | 4 | between the discs and the tile; also the narrow complication card's gap |
+| Tile, margin, and everything inside the tile | per case | §6, "Watch counter row": 86 as drawn, 58 on a 40mm; corner side × 36 / 126, numeral side × 68 / 126 (46 at 86, 31 at 58), the bare numeral (56), the hidden bar (40 × 8) and the tile glyph (34) scaled from 86 |
+| Disc glyphs | − 19, ＋ 21, semibold | the phone's two-point optical offset: the ＋ sits on a solid fill |
+| Radii | strip 14, toast 12, picker tile 14, legend swatch 3 | continuous corners |
+| Under the row | 7 to the unit word, 1 to the ≈ line, 11 to the legend; 14 from the unit word to the record capsule; 9 to the marked day's lines, 4 between them; 8 to the hint's slot; 14 from the slot to the session switch | `CounterView.counterScroll` |
+| Column | the margin at the sides, 2 top, 4 bottom | |
+| Legend | swatch 9 at radius 3; 7 between bands, 3 between a swatch and its label | `WatchBandLegend` |
+| Session dots | 9 at 5pt gaps, 4 above the line; 6 at 4 on the complication card | `SessionDots` |
+| Picker | margin 10, gap 8, tile at least 62 tall, 4 from glyph to name | two flexible columns |
+
+### Type
+
+The numeral rule holds: the counts the user made are SF Rounded semibold and
+tabular; everything else is default SF.
+
+| Role | Spec |
+|---|---|
+| Count, in the tile | side × 68 / 126 (46 on 86), band ink, 0.6 scale floor |
+| Count, no tile (an unlogged day) | 56 on 86, scaled, primary |
+| Unit word ("drinks today") | 12, secondary |
+| ≈ line, "Region not set yet" | 11, secondary; the figure tabular |
+| Legend labels | 9, tabular; the active band semibold primary, the rest regular secondary |
+| Marked day | "Recorded as no alcohol today" 11 over the second line at 10, both secondary |
+| Hint, toast, storage strip | 10 — the hint tertiary, the toast and strip primary |
+| Record capsule | 13 medium, white |
+| Session line | 11: the count rounded semibold primary; "·" and the elapsed time default SF secondary, tabular |
+| Picker | glyph 20 in the accent over the name at 11, primary |
+| Complication | figure 24 in the tile (card and circular), 22 in the corner; glyphs 0.75 × the figure; the card's words 11 secondary; the card's ＋ 22 semibold |
+
+**Fixed, and undecided — an open accessibility item for the owner.** Every size
+above is a fixed point size: 27 `.font(.system(size:))` call sites across
+`DrinkTrackerWatch/` and `CounterComplication.swift`, and neither target reads a
+text style, a `@ScaledMetric` or `dynamicTypeSize` (grep, 2026-09-23). The only
+text on the watch that follows the wearer's text size is what sets no font: the
+system's own "Show session pace" row, the inline complication, and the corner
+complication's curved words (`.widgetLabel`). No ADR records
+this as a decision; the watch design README says the opposite ("Every text style
+relative"); the Phase 3 and 4 records list larger text sizes as unrendered. It
+needs either a decision with its reason, recorded, or a pass that changes it and
+measures the row at the largest sizes. Nothing is changed here.
+
+### Components
+
+| Component | File | States and notes |
+|---|---|---|
+| **Counter tile** | `CounterTile.swift` | Every look shares one frame, so nothing around the tile moves between them. **Logged:** the band's dark fill, the count in the band's ink. **Unlogged:** no tile — absence drawn as absence — and the bare numeral in primary. **No alcohol:** the `.alcoholFree` fill (primary at 16%) with a 2pt primary-at-35% stroke and the `tally.alcoholfree` glyph — off the ramp. **Redacted or unreadable,** drawn alike: that outline ground and the `tally.standard` drop, no figure, no band. **Hidden** (the wearer's tap): a bar in the band's ink at 55% where the numeral was, the fill kept. Under the hide the numeral and the bar are both laid out and only opacity moves; the no-alcohol, redacted and unreadable looks swap a glyph in for them, a crossfaded insertion and removal (`.smooth(duration: 0.22)`) |
+| **Discs** | `CounterDisc.swift` | **＋:** a white glyph on an `AccentFill` circle, no shadow. **−:** an `accentColor` glyph on `.glassEffect(.regular.interactive(), in: .circle)`. **Dimmed** (− when `LoggedDrink.removableNewest` finds nothing it may remove): 0.4 opacity and a secondary glyph, and it still answers a touch with the refusal haptic. When today's newest drink is Health-owned (imported, or already mirrored to Health), the haptic comes with "Remove that drink on the phone" (ADR-0043); on an empty day, with nothing to remove, the touch gives the haptic alone. **Pressed:** 0.7. The 44pt hit shape is inside the label. A half-second hold on ＋ opens the picker; Double Tap is `.handGestureShortcut(.primaryAction)` on ＋ only. Both discs are hidden from VoiceOver. While today is unreadable neither is drawn; clear 44pt placeholders keep the room |
+| **Band legend** | `WatchBandLegend.swift` | The four bands, the phone's `HeroBandLegend` at wrist size and the same keys. Drawn only while the day is on the ramp — not on an empty day, a no-alcohol day or an unreadable one. Hidden: the labels go to opacity 0 in place, so the swatches do not move. Redacted: the swatches empty to 1pt primary-at-35% outlines. One element per band, `.isSelected` on the active one |
+| **Record capsule** | `CounterView.swift` (`recordNoAlcoholButton`) | The empty day's second control: full width, `AccentFill`, "Record no alcohol today" in white, 10pt of horizontal padding, 44pt minimum height; two lines inside it on the 40 and 41mm (ADR-0042's 2026-09-19 amendment) |
+| **Marked and unreadable lines** | `CounterView.swift` | Marked: "Recorded as no alcohol today" over "Tap the plus sign to change that." or "From Apple Health". Unreadable: "drinks today" over "Today's drinks couldn't be read.", and no discs, legend, hint, switch or dots (ADR-0004's 2026-09-16 amendment) |
+| **Hint and toast** | `CounterView.swift` (`slotContent`) | One slot, never an extra row. The hint "Hold ＋ to say what it was" in tertiary. A toast takes the slot for two seconds: primary text on primary at 10%, radius 12, 10 by 4 padding — "Tap again to show the count", "Remove that drink on the phone", "Not saved", or a picked type's name (ADR-0042's 2026-09-15 amendment). While a session row is showing, it holds the slot instead of the hint |
+| **Storage strip** | `StorageWarningStrip.swift` | While the store runs in memory: `exclamationmark.triangle` at 14 semibold beside "Not saving — storage unavailable", primary ink, on primary at 10% at radius 14, 10 by 6 padding. It takes the hint's slot, and the session switch is not offered under it |
+| **Type picker** | `TypePickerView.swift` | Pushed by the hold, popped by the pick. `DrinkType.selectableCases`, never `.unspecified`. Tiles on primary at 10%; the glyph `Image(decorative:)` in the accent over the name in primary; the whole tile is the target |
+| **Session switch** | `CounterView.swift` (`sessionToggle`) | The system's own toggle row, last on the scroll, off by default; offered only on a day with a drink in it or once it is on, and never under the strip or on an unreadable day (ADR-0044, amended 2026-09-15) |
+
+### The session dot row (ADR-0044)
+
+`DrinkTrackerWatch/SessionDotRow.swift` over `Shared/SessionDots.swift`, the view
+the complication card also draws.
+
+- **Rule.** One dot per drink in the sitting, capped at eight
+  (`SessionPace.dotMaximum`), decided on the *displayed* one-decimal count
+  rounded half up (`SessionPace.dotRow`, tier 1), so 2.45 prints "2.5" over
+  three dots. Above the cap the row draws eight and the line carries the count;
+  there is no truncation mark. The row exists only while
+  `SessionPace.currentSession` returns a value and the watch's "Show session
+  pace" is on, and it recomputes in a 60-second `TimelineView`, never a `Timer`.
+- **Colour.** The dots take the dark fill of the rolling two-hour window's band
+  (`SessionDots.band`, the phone chip's fold) from **`.medium`** up; below it
+  they are 1pt rings in the secondary label colour. Four states — a ring and
+  three fills — where the phone's chip starts at `.high`: a dot answers to 3:1
+  against its ground, the chip's text to 4.5:1 against its fill, and neither
+  floor should be copied to the other.
+- **Line.** `N · 1h 12m`, beneath the dots.
+- **Concealed** — hidden by the tap or redacted — the row is eight rings
+  whatever the count, and the line goes to opacity 0: not placeholdered, since
+  `.privacySensitive()` alone would draw redaction blocks the width of the
+  digits. The card draws eight rings when figureless.
+- **VoiceOver.** One element: the phone card's sentence ("5 drinks this
+  session"), the elapsed time spelled out as its value, concealed or not.
+
+The contrast table, as ADR-0044 states it — WCAG 2 relative luminance from the
+four dark colours as an 8-bit display renders them:
+
+| Band | Dark fill | vs `#000000` | vs `#1C1C1E` |
+|---|---|---|---|
+| `.low` | `#184f95` | 2.59 : 1 | 2.10 : 1 |
+| `.medium` | `#3987e5` | 5.77 : 1 | 4.68 : 1 |
+| `.high` | `#9ec5f4` | 11.75 : 1 | 9.52 : 1 |
+| `.veryHigh` | `#cde2fb` | 15.87 : 1 | 12.86 : 1 |
+
+`.low` fails 3:1 against either ground, so it is the ring. The ring is the
+secondary label colour, `rgba(235,235,245,0.6)` over black, `#8d8d93`: 6.36:1
+(5.16:1 on `#1C1C1E`). The tile border's primary at 35% is not used for it — it
+is 3.01:1 unquantised and 2.998:1 as the `#595959` it renders as. The plan's
+table read 11.76, 15.86, 9.53 and 12.85 for the upper cells, from the
+unquantised component literals; no cell changes side of a threshold on either
+basis.
+
+### Contrast on the watch
+
+| Pair | Figure | Source |
+|---|---|---|
+| The count on its tile | `.low`, white on `#184f95`: **8.10:1**; `.medium` / `.high` / `.veryHigh`, black: 5.77 / 11.75 / 15.87:1 (black on a fill is the fill against black) | computed from the fill's relative luminance for `.low` (1.05 ÷ (0.0796 + 0.05)), and the `.low` pair measured on the counter below. The watch design README gives 6.94:1 for the `.low` cell, which does not reproduce |
+| ＋ glyph on `AccentFill` | white on `#256ABF`, 5.39:1 | §8, R2; the fill measured `#256ABF` below |
+| − glyph on its glass | `#256ABF` on `#202020`, **3.02:1** | measured |
+| Picker glyph on its tile | `#256ABF` on `#191919`, **3.26:1** | measured |
+| Unit word and ≈ line (secondary) on black | `#8D8D93`, **6.36:1** | measured |
+| **Hint (tertiary, 10pt) on black** | `#464649`, **2.23:1** | measured |
+| The card's words (secondary, 11pt) on the Smart Stack card | `#98989F` on `#1C1C1F`, **5.93:1** | measured |
+| The complication noun at 62% of the band's ink, as drawn — not built | 4.17:1 on the 1–2 fill, 3.51:1 on 3–5 | ADR-0046 |
+| A tinted face, before → after `isTinted` | circular 1.34 → 9.18:1, card 1.64 → 7.53:1, the card's ＋ 1.29 → 11.55:1 | ADR-0046, 2026-09-18 |
+
+**How the measured rows were measured** (2026-09-23): a Release build's
+screenshot of the counter on a 46mm watch simulator (416 × 496px, 2×, sRGB,
+8-bit, the black ground `#000000`), with screenshots of the type picker and the
+Smart Stack card at the same size, decoded by a standard-library Python script
+(zlib and the five PNG row filters, no image library). In a band of rows around each line, the ground is the band's modal
+pixel and the ink is the text's plateau: the colour of the fully covered glyph
+interior, held by hundreds of pixels (338 in the hint, 317 in the unit word), not
+an anti-aliased edge. Contrast is WCAG 2 relative luminance with the sRGB
+transfer. The method reproduces ADR-0044's 6.36:1 for the secondary label colour
+and R2's 5.39:1, and the legend's four swatches render the dark ramp's hex values
+exactly.
+
+### Motion and haptics
+
+| Change | Spec |
+|---|---|
+| The count changes value | `.contentTransition(.numericText(value:))` + `.snappy(duration: 0.2)` |
+| The band, redaction, the hide (numeral ↔ bar), the legend's labels, the ≈ line, the dot row's conceal | a crossfade, `.smooth(duration: 0.22)`, never a roll: hiding is a change of subject, not of value. The hide and the legend's labels keep both states laid out; redaction and the no-alcohol glyph replace the numeral under the same crossfade |
+| A toast in and out | `.opacity`, `.smooth(duration: 0.2)`, two seconds |
+
+Every one is `nil` under Reduce Motion. The legend's labels leave in place, so
+nothing shifts (the design's "do not animate the gap"); the dot row's conceal
+changes its width, three dots to eight rings, which ADR-0044 accepts because the
+change *is* the hide.
+
+The receipt for a write is felt, not drawn — no confirmation step, no sheet
+(`WatchHaptics.swift`, ADR-0042): **`.click`** for a drink logged or removed by
+a touch, a pick, or a no-alcohol record; **`.directionUp`** for a drink logged
+by Double Tap — an activation with no press in the last 0.75 s — so a pinch the
+wearer did not mean announces itself; **`.failure`** for a refusal or any write
+that did not land. **Never `.success`**: it reads as praise for the act
+(invariant 8). A pick also names its type in the toast, since the count cannot
+show what kind of drink it was.
+
+### Concealment and redaction (ADR-0045, ADR-0046)
+
+| | The wearer's hide — a tap on the tile, per glance | The system's redaction — Always-On, or the watch off the wrist |
+|---|---|---|
+| The count | a bar in the band's ink; the fill kept | the fill falls to the outline ground; the drop glyph |
+| ≈ line | opacity 0 | redacted (`.privacySensitive()`) |
+| Legend | labels at opacity 0, swatches kept | swatches empty to outlines; the labels stay, the active one in semibold primary (open item 7) |
+| Dot row | eight rings, no line | eight rings, no line |
+| Unit word, controls | kept | the unit word kept, and singular at a count of one (open item 7) |
+| Complications | not reached — the owner's decision | every family: the drop glyph, with the plural words where the family carries words (rectangular, corner, inline; the circular is the glyph alone in its tile), the band gone; the no-alcohol mark goes too, so dry days and drinking days look alike; the spoken label follows the pixels |
+| VoiceOver | unchanged — the screen reader is not the audience | the complication speaks "drinks today" and no count |
+
+Every count on the watch is `.privacySensitive()`. The hide is view-local,
+cleared on launch, never stored, and never gates a write; "Tap again to show the
+count" takes the slot for a moment.
+
+### Complication families
+
+The tile and the card row are §6's "Watch complication tile" and "Watch
+complication card row"; this is the rest.
+
+| Family | Draws |
+|---|---|
+| Circular | the card's tile in a clear slot, the numeral alone — no unit noun (ADR-0046, 2026-09-15); on a no-alcohol day, the glyph alone |
+| Rectangular | the tile, the day's words, and the ＋ — `plus` at 22 semibold, white, in a 44pt circle on `AccentFill` (`.quaternary` on a tinted face), running `LogOneDrinkIntent`, `.buttonStyle(.borderless)` and never `.plain`, absent while the store cannot be read. The tile is hidden from VoiceOver; the words speak for the card. The sitting's dots take a row beneath while one runs and the watch's switch is on. The container is `.fill.tertiary` |
+| Corner | a disc — the band's fill, or `AccessoryWidgetBackground` when there is no band to show — with the figure at 22, and the day's words along the curve, never the count, which would print past redaction |
+| Inline | the glyph and "N drinks today", or the no-alcohol glyph and "Recorded as no alcohol today", or the drop and "drinks today" when figureless; the system's text, no font set |
+
+In the three families with a figure (all but inline): SF Rounded semibold,
+tabular, one line, with a 0.6 scale floor; the glyphs are 0.75 × the figure;
+figures and glyphs are `.widgetAccentable()`. The ink is primary on an unlogged,
+no-alcohol, figureless or tinted day and the band's ink otherwise; the ground is
+the band's fill in full colour and otherwise `.quaternary` in the tile
+(`#252526` measured on a black face — ADR-0046) or `AccessoryWidgetBackground`
+in the corner.
+
+**On a tinted face** (`widgetRenderingMode != .fullColor`) every ground is the
+translucent one and every figure stays solid — the measured before-and-after is
+in the contrast table. The cost is that a tinted face shows no band: four
+distinguishable steps would need a ground near 50%, where a pale-teal numeral
+computes to 2.85:1 and cream to 3.31:1 (30%: 5.67 and 6.59; 40%: 3.96 and 4.59 —
+ADR-0046). Nothing surfaces the card by time or place; it is in the Smart Stack
+because the wearer put it there.
+
+### Accessibility on the watch
+
+- The counter is one adjustable element — "Drinks today", the count as its
+  value, ＋ and − as increment and decrement; the discs and the tile add no stop.
+- Targets are 44 on every case: both discs, the record capsule's height, the
+  card's ＋. The phone's 68pt hero does not apply; picker tiles are at least 62.
+- Catalog glyphs beside words are `Image(decorative:)` (tile, picker, complication). The storage strip's SF Symbol is combined with its sentence (`StorageWarningStrip.swift`) and spoken with it.
+- Colour never alone: the band carries a numeral; no alcohol adds an outline
+  and its own glyph; the strip is a symbol and words.
+- Hiding changes nothing spoken (ADR-0045); a redacted complication's spoken
+  label follows its pixels (ADR-0046).
+
+### Open, for the owner
+
+Recorded, not changed here.
+
+1. **The hint is 2.23:1.** "Hold ＋ to say what it was", 10pt tertiary on black,
+   is under 4.5:1 for text that size and under 3:1 too. The measured colour is
+   exactly the tertiary label colour, `rgba(235,235,245,0.3)` over black — the
+   style's own value, not vibrancy, so §2's flat-ink rule would not lift it.
+   The secondary ink beside it measures 6.36:1.
+2. **The type scale is fixed** (Type, above).
+3. **The watch's accent is step 500, not 400.** `Color.accentColor` renders the
+   asset's universal `#256ABF` on the watch — measured on the − glyph and the
+   picker's glyphs — where the watch design README's token table says 400
+   `#3987e5` in dark. As glyphs they answer to 3:1 and clear it, the − by 0.02
+   (3.02:1 on its glass). Whether the watch should read the dark step (5.77:1
+   on black) is a decision, not a fix.
+4. **`IntensityPalette`'s doc comment is stale** (`Shared/IntensityPalette.swift`,
+   "three named exceptions"): the watch reads the ramp on four surfaces. A
+   comment edit for the next code change.
+5. **The watch design README has drifted from the code** in four places:
+   6.94:1 for white on `.low` (8.10); 11.76 and 15.86 (ADR-0044's basis gives
+   11.75 and 15.87); "every text style relative"; and the accent at 400 in
+   dark. Its token tables also still give the − ground as
+   `glassSurface(cornerRadius: 22, interactive: true)`, though its own Phase 3
+   "Built" notes already record the code's
+   `.glassEffect(.regular.interactive(), in: .circle)`.
+6. **The flat-ink rule stops at the app target** (§2): whether it covers the
+   watch, the complication and the widget is for a later pass.
+7. **Always-On leaves two things showing that the tile withholds.** The
+   legend's labels are not concealed under `.privacy`
+   (`WatchBandLegend.swift`): the active band keeps semibold primary ink while
+   the others are regular secondary, so the emphasis names the band ADR-0045
+   removes the tile's fill to hide. And the unit word stays singular at a count
+   of one (`CounterView.swift`), which the complication and the counter's
+   unreadable state avoid, because a singular noun under a glyph is a count of
+   one (ADR-0046). The code fix is small (the labels to opacity 0 under
+   `.privacy`, and the plural under `.privacy` through
+   `@Environment(\.redactionReasons)`), but it wants a render in Always-On,
+   which the simulator does not offer, so it is not made in this release's
+   records change.
+
+---
+
+## 10. Governance
 
 - Changes to colour tokens: re-run the contrast math and (for ramp steps) the
   ordinal validation. Numbers go in the table; "looks fine" doesn't.
@@ -392,3 +709,22 @@ The claude.ai/design prototype *Tallyist iOS Prototype* delivered three changes
   own drawing) are in §1 and §6 above and not in the claude.ai/design project,
   for the same reason. The synced bundle is now three cards behind: the bar
   readout, the drink glyphs, the type picker.
+- **Drift (2026-09-23):** no sync is recorded since the bundle was generated on
+  2026-08-26, and `DesignSync` cannot authorize in this environment —
+  `/design-login` is unavailable in the desktop Code tab and in an interactive
+  terminal here (CLAUDE.md, the 2026-09-06 By-weekday bullet). The route is the
+  owner's hand, both ways: design bundles arrive by being dropped into
+  `docs/design/`, and bringing the claude.ai/design project up to this document
+  is the owner's to do or to schedule. Added to this document since the note
+  above, and not recorded as synced: the tab bar and its glyphs (ADR-0040 and
+  its amendment); the labelled toolbar item; the cocktail's pills and the
+  sheet's detent folds; the comparisons — the section and its one card, the
+  bars and tracks and their contrast table in §2, the switches and "Compare
+  with" (ADR-0038, ADR-0039); the weekday table and the weekend split
+  (ADR-0032's amendments); the paired-figure table and its offer (ADR-0050 to
+  ADR-0053); the flat-ink rule and the native range picker on plain glass
+  (2026-09-22); the three watch rows in §6 (the counter row, the complication
+  tile, the card row); and, in this change, §9 (the watch's tokens, type,
+  components, dot row and ADR-0044's contrast table, measured contrast, motion
+  and haptics, concealment, complication families), the unreadable-log and
+  widget-unavailable rows, and the plain-glass rule in §4.

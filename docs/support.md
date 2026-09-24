@@ -13,7 +13,8 @@ describe what happened. You'll need a free GitHub account; issues are public,
 so please don't include personal details from your log.
 
 Bug reports are most useful with: what you did, what you expected, what
-happened instead, and your iPhone model and iOS version.
+happened instead, and your iPhone model and iOS version (for the watch app,
+your watch model and watchOS version too).
 
 ## Common questions
 
@@ -45,7 +46,7 @@ of drinks on each. Days that already have a record are never touched.
 
 **Why don't my drinks appear in Apple Health?**
 Health saving is optional and off until you allow it. Check the Health app →
-your profile → Apps → Tallyist, and Tallyist's own Settings screen, which shows
+Sharing → Apps → Tallyist, and Tallyist's own Settings screen, which shows
 the current Health status in plain words.
 
 **I used another app before — does my old data show up?**
@@ -61,6 +62,27 @@ one drink stay as they are. To change or delete what Health holds, do it in
 the app that logged it (or in the Health app) and Tallyist follows. That
 includes a no-alcohol day that came from Health: it has no remove control in
 Tallyist, and logging a drink on that day replaces it.
+
+**Is there an Apple Watch app?**
+From version 1.4, yes. It comes with the iPhone app. Tap **+** to log a drink,
+hold **+** to say what it was, tap **−** to remove today's newest drink, or
+record a day as no alcohol. Today's count can go on your watch face or in the
+Smart Stack, and the Smart Stack card has its own **+**. The watch keeps its
+own copy of your log and syncs with your iPhone through your private iCloud.
+The watch app doesn't use Apple Health itself: drinks you log on the watch are
+saved to Health by your iPhone once they have synced, if you allow it, and a
+drink Health already holds can only be removed on the iPhone.
+
+**What is Apple Health on Trends?**
+From version 1.4, Trends can show four figures from Apple Health beside your
+log: resting heart rate, sleep, heart rate variability, and wrist temperature,
+each as your own average on nights you logged drinks and on nights you
+recorded as no alcohol. They are off until you turn them on in Settings →
+Apple Health on Trends, or from a card on Trends that asks once. An Apple Watch
+records them, so without one Health may have none and Trends shows nothing.
+Tallyist reads them on your device when Trends shows them and never stores
+them. Turn a switch off any time, or remove access in the Health app under
+Sharing → Apps → Tallyist.
 
 **Does my log sync between my devices?**
 Yes, through your own private iCloud, if the device is signed into iCloud.

@@ -24,14 +24,15 @@
 		<dict>
 			<!-- The region and counter seed the settings bridge writes, and the
 			     diagnostics breadcrumbs, all in the App Group suite
-			     (AppGroup.defaults). CA92.1 is the App Group case: read and
-			     written only by this app and its own complication, and never
-			     leaving the group container. -->
+			     (AppGroup.defaults). 1C8F.1 is Apple's App Group reason: read
+			     and written only by this app and its own complication, and
+			     never leaving the group container. The watch app uses no other
+			     defaults suite. -->
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<string>CA92.1</string>
+				<string>1C8F.1</string>
 			</array>
 		</dict>
 	</array>

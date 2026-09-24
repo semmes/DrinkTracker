@@ -97,7 +97,12 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
 Current: **530 keys across six catalogs** — 378 app, 35 widget, 28 core, 4
-shortcuts, 50 watch app, 35 complication (counted 2026-09-23 after the
+shortcuts, 50 watch app, 35 complication (re-counted 2026-09-24 after the 1.4
+privacy policy rewrite, ADR-0054: five app keys out and five in, all of them
+the policy's own — the date and four section bodies — then four of those again
+after the release review, each time synced from a fresh full build into a
+scratch copy, diffed, and re-marked `shouldTranslate: false`, so the marked
+count stays 14; before that, counted 2026-09-23 after the
 Comparisons card became one card, ADR-0038's 2026-09-23 amendment: six app
 keys in, none out, none changed — the four figure lines "%@ standard drinks a
 week" / "%@ standard drink a week" / "%@ units a week" / "%@ unit a week",
