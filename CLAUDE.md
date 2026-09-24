@@ -64,7 +64,7 @@ identity derive from it, and renaming orphans the user's store (README
   `GITHUB_TOKEN` is scoped to this repository alone — so every
   `actions/checkout` in `ci.yml` passes this PAT as `token:`, which checkout
   uses for the superproject *and* its submodules (hence both repos in the
-  grant). Without it all five jobs fail at their checkout step, which reads as
+  grant). Without it every job fails at its checkout step, which reads as
   a CI outage rather than a missing credential. The same daily `token-expiry`
   job watches this one too (`check_token_expiry.py` takes a table of tokens
   now, and a 404 — a fine-grained PAT that authenticates but cannot see the
@@ -100,7 +100,8 @@ purchases work in the simulator with no App Store Connect setup).
 - **GitHub Actions** verifies every PR: domain tests (macOS-native), the iOS
   simulator build (which compiles the watch targets as dependencies), the
   watchOS simulator build, integration tests (ADR-0008), the policy-date
-  check and the glyph generator. GitHub sometimes **drops the PR webhook
+  check, the glyph generator and `watch-wiring` (the watch verifier's
+  per-target entitlement roles, run with `--ci`, ADR-0055). GitHub sometimes **drops the PR webhook
   event** and no run appears — the reliable remedy is a manual
   `workflow_dispatch` of `ci.yml` on the branch (it associates with the PR).
   Never push empty commits to kick CI.
@@ -274,8 +275,10 @@ owner decided that 1.4 carries both features, and on 2026-09-24 both release pha
 (the bullet "1.4's release work…", ADR-0054):** the privacy policy's three copies, the
 purpose string, the four manifests' UserDefaults reason, What's New, the reviewer notes,
 the claims and App Privacy, the copy review and design-system §9. What is left before 1.4
-can be submitted is the owner's, listed in that bullet, and the complication's
-non-mirroring change (ADR-0055) is a draft PR awaiting the owner's acceptance of its cost.
+can be submitted is the owner's, listed in that bullet. **The complication stopped
+mirroring the store once the owner accepted its cost (ADR-0055; the bullet "The watch
+complication stops mirroring…")**, and the TestFlight device check in that ADR gates the
+submission.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -2127,7 +2130,8 @@ Open items for v1.2:
   unverified: `make()` never throws, Diagnostics keeps reporting "shared,
   CloudKit requested", and `CloudKitSyncMonitor.start()` has two call sites,
   both app targets, so a failure raised in the complication's process is
-  recorded nowhere. **Two preconditions gate (1) and (2) entirely** and only
+  recorded nowhere. *(Closed on 2026-09-24 by ADR-0055: the complication no longer
+  mirrors; the bullet "The watch complication stops mirroring…".)* **Two preconditions gate (1) and (2) entirely** and only
   the owner can check them: whether a card is actually placed on the watch face
   or Smart Stack, and whether a Tallyist widget is on a home screen. If neither
   is placed, neither process runs and there is nothing to improve.
@@ -2187,7 +2191,8 @@ Open items for v1.2:
   17853f3 found four days later; the simulator's widget extension, with no iCloud
   container, wrote rows the app displayed. Invariant 5's failure mode now says what is
   real, including that identical configuration does not stop two *entitled* processes
-  both mirroring — the watch app and complication today. **Refused:** the widget iCloud
+  both mirroring — the watch app and complication today *(no longer, since ADR-0055:
+  the bullet "The watch complication stops mirroring…")*. **Refused:** the widget iCloud
   entitlement (TN3164). **The owner's decision, not built:** running the widget's intent
   in the app's process so a widget drink reaches the watch without opening Tallyist —
   no evidence it would export before suspension. **Verified:** 284 domain tests, 88
@@ -3684,7 +3689,7 @@ Open items for v1.2:
   not the dark step the design README names; the 1.0 Resolution Center response is not in
   this repository (the contract names `claude/app-review-response.md` in the Claude
   project), so the notes were written from its restatements; the private contract's
-  `review-claims.md` has no Health-reads row. **The complication (ADR-0055, a draft PR,
+  `review-claims.md` has no Health-reads row. *(Merged later: the bullet "The watch complication stops mirroring…".)* **The complication (ADR-0055, a draft PR,
   not merged):** built, verified on scratch simulators, and left for the owner, because
   its cost turned out larger than the question put to them said: a drink from the card's
   ＋ reaches CloudKit only through the watch app, with no documented upper bound, where on
@@ -3718,3 +3723,35 @@ Open items for v1.2:
   watch build hides the DEBUG line; writing `lastWatchContextReceived` into the scratch
   watch's App Group plist prints the ≈ line; the iTunes lookup API read the live
   description word for word.
+- **The watch complication stops mirroring the store (2026-09-24; ADR-0055, accepted
+  by the owner when this merged).** The owner chose to have the complication's
+  CloudKit-mirroring container investigated and fixed on the night of 2026-09-23. The
+  complication held the iCloud container, CloudKit and `aps-environment`, so every
+  timeline build and every card ＋ set up an `NSCloudKitMirroringDelegate` beside the
+  watch app's on the same store, the collision TN3164 warns about (error 134410) and
+  the one in-app candidate for the cellular evening, never shown to be the cause. **What
+  changed:** `DrinkTrackerWatchWidget.entitlements` holds the App Group alone, like the
+  phone widget's (ADR-0047), so on each device only the app mirrors; `make()` is
+  unchanged. `scripts/verify-watch-setup.py` checks each target's role (the phone app
+  and watch app must hold the three mirroring keys, the two extensions none) and a new
+  CI job, `watch-wiring`, runs it with `--ci`, which skips the local git checks. A
+  tier-2 test, `UnmirroredStoreHistoryTests`, pins that a store opened without
+  mirroring still records persistent history. ADR-0004, 0041, 0046 and 0047, PRD
+  invariant 5, the README, the watch plan and runbook, the lock screen plan and the
+  schema recipe say so, hedged where Apple documents nothing. **The cost, which is why
+  the PR stayed a draft for the owner:** a drink from the card's ＋ reaches CloudKit only
+  through the watch app, with no documented upper bound (TN3163 names a context save or
+  an observed remote change; nothing documents an export at launch), where on
+  2026-09-16 a card drink reached the phone in two seconds under the old entitlements.
+  **Verified on throwaway simulators** (Series 12 46mm, watchOS 27, no iCloud account):
+  the signed `.xcent` before and after; 1,537 lines of the complication's own log with
+  no CloudKit line; the card's ＋ logging, its transaction naming the complication's
+  bundle, the card redrawing; 120 integration tests; the verifier's control and five
+  negative cases. **Not verifiable on a simulator, and the gate before 1.4 is
+  submitted:** the collision itself (every setup fails first with 134400 without an
+  account) and when the watch app exports a card drink. ADR-0055's "Verification" has
+  the three-step device check for the TestFlight build; its "How to reopen" lists the
+  choices if card drinks linger, and putting the three keys back is one file.
+  **Tooling:** a simulator's signed entitlements are in the build's
+  `*.app.xcent` / `*.appex.xcent`; the complication's process logs as
+  `DrinkTrackerWatchWidget` in `simctl spawn … log stream`.

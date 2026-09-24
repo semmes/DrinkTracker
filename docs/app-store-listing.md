@@ -616,4 +616,7 @@ label categories, no third-party code, no accounts, no servers.
   on one iCloud account: log on each, with each app closed in turn, and on
   the watch from the Smart Stack card's plus. The watch's sync has never run
   on a TestFlight build (Production CloudKit and production push). The What's
-  New and the notes promise no timing for this reason.
+  New and the notes promise no timing for this reason. If ADR-0055 is merged,
+  that build is also its device check: tap the card's plus with the watch app
+  force-quit and note when the drink reaches the phone (ADR-0055,
+  "Verification").

@@ -95,6 +95,14 @@ on plain glass); Trends' three comparisons as one card (ADR-0038 amended); the
 Settings copy pass; and, with the release, the four privacy manifests' defaults
 reason corrected to Apple's App Group reason (1C8F.1).
 
+**The complication stops mirroring (ADR-0055).** It holds the App Group alone,
+like the phone widget, so on each device only the app mirrors the store, the
+rule TN3164 advises. The cost, which the owner accepts by merging it, is that a
+drink from the card's ＋ reaches CloudKit only through the watch app, with no
+documented upper bound. The TestFlight device check in ADR-0055 is the gate
+before 1.4 is submitted; if card drinks linger, its "How to reopen" applies,
+and putting the three entitlement keys back is one file.
+
 ## App Review consistency
 
 Re-verified on 2026-09-23 against main, with the watch and the pairing built,
