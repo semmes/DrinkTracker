@@ -269,8 +269,8 @@ has the change and the measurements.
 ### Note (2026-09-23) — the Settings footnote, in plainer words
 
 The owner asked for the section's footnote without em dashes and in more
-natural language, so it no longer uses the card notes' words (the Trends notes
-keep theirs). It still says what the figures are and are not, and its two forms
+natural language, so it no longer uses the card notes' words. It still says
+what the figures are and are not, and its two forms
 still split as the Decision has them: "Your figures are compared on this device
 with published US statistics built into the app, never with data from other
 Tallyist users." Then, while the weekly average is on, what Compare with picks,
@@ -281,3 +281,10 @@ Trends or the year view." One claim changed shape on purpose: "nothing about
 your log leaves this device" was true of a comparison but reads, alone, as
 untrue of a log that syncs to iCloud, so the sentence now says where the
 comparing happens. `docs/copy-review-1.4.3.md` has both forms.
+
+Later the same day the owner asked for the same change in the weekly
+average's note, which Trends and the year view share. Its first sentence now
+reads "Your average is compared on this device with a published population
+statistic, never with data from other Tallyist users." Its derivation sentence
+is unchanged, so the part ADR-0018 quotes still holds. The drinking-days and
+weekend notes had no em dash and did not make the claim, so they are unchanged.
