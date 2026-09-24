@@ -202,12 +202,52 @@ by a reload and needs no floor.
 
 The other two stay open and unbuilt: the watch face's sixty-second reload floor, and
 the complication opening a second mirroring container on every timeline build.
+*(The second is addressed by ADR-0055, proposed — the 2026-09-24 amendment below.)*
 
 The device captures that answered this also correct part of the premise. The drink
 the owner saw sync "when I opened the app" was logged in the **watch app** at
 17:55:12 and imported by the phone at 17:55:59; the phone widget's ＋ tap had never
 reached its intent at all. Where the receiving app was awake, the leg this record is
 about took two to three seconds in both directions.
+
+## Amendment, 2026-09-24 — the complication stops mirroring (ADR-0055, proposed)
+
+**This amendment is tied to ADR-0055, which is proposed:** built and verified as far
+as simulators reach, and accepted only when the owner accepts its cost and its PR
+merges. Until then it describes a draft, and the third latency below is open as the
+2026-09-15 amendment left it.
+
+The third of the three latencies that are this app's own — the complication opening a
+second `NSPersistentCloudKitContainer` on the shared store on every timeline build,
+which the 2026-09-15 amendment named the one hypothesis for the cellular evening that
+lives *inside* this app — is what ADR-0055 addresses. The complication now holds the
+App Group and nothing else: the iCloud container, CloudKit and `aps-environment` are
+gone from its entitlements, exactly as the phone's widget has never had them. On each
+device the app is now the one process that mirrors the store. `make()` is unchanged;
+the entitlement decides who mirrors, and `scripts/verify-watch-setup.py` fails CI if
+the complication regains any of the three keys.
+
+What that settles, and what it does not:
+
+- **The hypothesis is removed, not confirmed.** Nothing has shown that the second
+  container caused the cellular evening. A simulator with no iCloud account cannot
+  produce the collision at all — every mirroring setup fails first with 134400 — and
+  no device has shown it either way. If the out-of-step symptom recurs with ADR-0055
+  in place, the in-app hypothesis is refuted, and the outside causes the handoff
+  recorded on 2026-09-15 are what remain.
+- **The Decision holds unchanged: CloudKit is the only path a row travels.** On the
+  watch that path now has one exporter, the watch app. A drink the complication
+  card's ＋ writes lands in the watch's store and reaches CloudKit only through the
+  watch app's own mirroring. TN3163 documents what schedules an export: a context
+  save, or a remote-change notification the running app observes. That the watch app
+  exports such a drink is expected, but nothing documented makes it export on
+  launch, no upper bound is documented, and no device has shown it. ADR-0055 states
+  that cost in full and names the device check, on a TestFlight build, that gates
+  1.4.
+- **The first latency stays open.** `StoreChangeReloader`'s sixty-second floor loses
+  the cause it was written for, the complication's own CloudKit bookkeeping writes.
+  It is kept: no remaining writer has been measured, and shortening it is the face's
+  own latency, a decision of its own.
 
 ## How to reopen
 
@@ -216,11 +256,17 @@ about took two to three seconds in both directions.
   stale the figure is *at the raise*, which is the only moment a reader is
   there to be misled. So: if raising the wrist within a minute of a drink
   logged on the phone shows the old number for longer than it takes to read
-  it, that is the trigger — and the first thing to examine is the complication
-  opening a second mirroring container on every timeline build, not a new
-  channel. Phase 7's snapshot is refused on its own merits and is not the
-  answer to a later firing of this clause; a record of why is in the
-  amendment above.
+  it, that is the trigger — and the first things to examine are whether the
+  watch app had imported the drink before the raise (the "synced" time on its
+  debug line, in a debug build) and the sixty-second floor in
+  `StoreChangeReloader`, not a new channel. Phase 7's snapshot is refused on its
+  own merits and is not the answer to a later firing of this clause; a record of
+  why is in the 2026-09-15 amendment.
+  *(Reworded 2026-09-24. This bullet first named the complication opening a
+  second mirroring container on every timeline build as the first thing to
+  examine; ADR-0055, proposed, takes that container off the complication — the
+  amendment of that date. If ADR-0055 is not accepted, it is the first thing to
+  examine again.)*
 - If duplicates ever appear across the two stores, the cause is a write
   reaching CloudKit by a second path; the fix is to remove the path, not to
   add a dedup pass.

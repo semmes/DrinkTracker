@@ -56,6 +56,25 @@ jobs:
           git diff --exit-code -- Shared/Assets.xcassets
           test -z "$(git status --porcelain -- Shared/Assets.xcassets)"
 
+  # The watch's wiring, read from the project file and the targets' own files:
+  # memberships of every Shared/ file, the embed phases, the settings that change
+  # what shared code means, and which targets may mirror the store. That last is
+  # the rule ADR-0055 rests on: one process per device mirrors, the app, so an
+  # extension that gains the iCloud container back in Xcode's Capabilities pane
+  # fails here instead of silently mirroring beside its app. --ci skips the
+  # checks about this Mac's checkouts, which mean nothing on a runner. Linux on
+  # purpose, like the two jobs above: it needs only Python.
+  watch-wiring:
+    name: Watch and extension wiring
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.TALLYIST_CONTRACT_TOKEN }}
+      - name: Verify the targets' wiring
+        run: python3 scripts/verify-watch-setup.py --ci
+
   # Tier 1 (docs/PRD.md §4). Pure value types, no simulator and no signing —
   # DrinkTrackerCore declares .macOS(.v15) precisely so this can run natively.
   domain-tests:

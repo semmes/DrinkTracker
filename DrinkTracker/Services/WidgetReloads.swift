@@ -18,7 +18,9 @@ import WidgetKit
 /// - **when a CloudKit import finishes**, which is the moment the store changed.
 ///   On the phone only the app mirrors — the widget has no iCloud container —
 ///   so nothing the widget does can post this event, and a reload cannot cause
-///   the next one. The watch needed a floor for that loop; this does not.
+///   the next one. The watch needed a floor for that loop while its
+///   complication mirrored; from 1.4 it does not (ADR-0055), and the watch's
+///   floor stays until its remaining cost is measured. This one never needed one.
 /// - **when the app leaves the foreground.** An iPhone's home-screen widget
 ///   cannot be seen while the app is in front, so this is the reload the reader
 ///   actually sees, and it reads the store after everything the app did while

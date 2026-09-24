@@ -222,13 +222,19 @@ The app, the widget, the watch app and its complication share
 `group.com.shawnsemmes.DrinkTracker` — both the SwiftData store and `AppSettings`.
 **Every process opens the store through `SharedModelContainer`'s one ladder —
 `make()`, or `open()` where the caller wants the rung back — which takes no options**,
-so none can drift from the others (PRD invariant 5). The home-screen widget
-holds no iCloud container, so it opens the store without mirroring: its writes land
-and the app's mirroring exports them from persistent history the next time it
-runs (TN3163 — documented, not yet measured on a device). On the phone one
-process manages sync (ADR-0047); on the watch both the app and its complication hold
-the entitlement and both mirror, a known open item (ADR-0041). An older note here said such writes "silently
-fail"; that was never observed and is retracted (ADR-0004, 2026-09-16 amendment).
+so none can drift from the others (PRD invariant 5). **On each device the app is
+the one process that mirrors the store** (ADR-0047 for the phone; ADR-0055, proposed,
+for the watch). The home-screen widget and the watch complication hold the App Group
+and no iCloud container, so they open the store without mirroring: their writes land,
+and reach CloudKit only through their app's own mirroring. TN3163 names a context
+save, or a remote-change notification the running app observes, as what schedules an
+export; that the app exports an extension's write is expected, but when is not
+documented and has not been observed on a device (ADR-0055's device check, before 1.4
+ships). `scripts/verify-watch-setup.py` fails CI if either extension regains the iCloud
+container. Until ADR-0055 the complication held the container and mirrored beside the
+watch app (ADR-0041's 2026-09-15 amendment). An older note here said such writes
+"silently fail"; that was never observed and is retracted (ADR-0004, 2026-09-16
+amendment).
 
 The domain layer is a separate package on purpose: SwiftData's `@Model` macro only
 expands inside Xcode, so keeping the math in plain value types makes it testable

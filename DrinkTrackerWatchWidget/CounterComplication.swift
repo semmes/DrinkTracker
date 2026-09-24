@@ -169,6 +169,13 @@ struct CounterProvider: TimelineProvider {
   /// `ModelContext` rather than touching the container's `mainContext` —
   /// the home-screen widget's pattern.
   ///
+  /// This extension holds the App Group and no iCloud container (ADR-0055), so
+  /// `make()` opens the shared store without mirroring, as the phone widget's
+  /// does: a timeline build reads and starts no CloudKit work. Before 1.4 each
+  /// build started a mirroring delegate of its own beside the watch app's (seen
+  /// in this process's log, set up and torn down within the build), the
+  /// two-process collision TN3164 describes.
+  ///
   /// Nil when the store cannot be *read*, not only when it cannot be opened:
   /// a failed fetch used to draw a confident empty day, no dots, and — through
   /// the marker read — a count and a band on a day recorded as no alcohol.

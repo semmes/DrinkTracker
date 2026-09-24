@@ -461,6 +461,44 @@ narrow card — the same "drinks today", and when unavailable no ＋ beside it,
 so a wider column. Always-On; VoiceOver, where no label changed; anything on
 hardware.
 
+## Amendment, 2026-09-24 — the card's ＋ reaches CloudKit through the watch app (ADR-0055, proposed)
+
+**This amendment is tied to ADR-0055, which is proposed:** accepted only when the
+owner accepts the cost below and its PR merges. ADR-0055 takes the iCloud
+container, CloudKit and `aps-environment` off the complication, so it opens the
+watch's store without mirroring, as the phone's widget does, and the watch app is
+the one process on the watch that mirrors. Nothing this record decides about what
+the face shows changes. One thing about where the card's ＋ goes does.
+
+- **The ＋ still logs from the face, and the face still shows it at once.**
+  `LogOneDrinkIntent` runs in the complication's process, writes to the watch's
+  store and reloads the timelines, and the counter reads the same store. On a
+  throwaway Series 12 simulator on 2026-09-23, after the change, the card redrew
+  from 2 to 3 with three dots, the store gained the row, and its history
+  transaction names the complication's bundle.
+- **The residual, stated.** That drink reaches CloudKit, and so the phone, the
+  phone's widget and Health, only through the watch app's own mirroring. TN3163
+  documents what schedules an export: a context save, or a remote-change
+  notification the running app observes. That the watch app exports a drink the
+  complication wrote is expected, but it is not observed on a device, nothing
+  documented makes the watch app export on launch, and no upper bound is
+  documented. So on an evening logged only from the card, the drink may stay on
+  the watch until the watch app next runs, and possibly until its next write of
+  its own. Before this change a card drink may have been exported by the
+  complication's own short-lived mirroring delegate or by the watch app; which
+  one did so on the owner's 2026-09-15 pass is not known, so how much of that
+  path is given up is not known either. ADR-0055 carries the cost in full and the
+  device check, on a TestFlight build, that gates 1.4.
+- **The failure-state rule is unchanged.** A store the complication cannot open
+  or read still shows the glyph and no ＋.
+- **The reload paths are unchanged, and one of them loses its stated cause.**
+  Every write on the watch still reloads all timelines, and the watch app still
+  observes `NSPersistentStoreRemoteChange` and reloads once an import settles.
+  The one-minute floor in `StoreChangeReloader` was written for a loop through the
+  complication's own CloudKit bookkeeping, which a timeline build no longer
+  writes. The floor is kept: no remaining writer has been measured, and
+  shortening it is the face's own latency, a separate decision.
+
 ## How to reopen
 
 - If the owner wants the session count on the face after all, it is one
@@ -511,5 +549,15 @@ hardware.
   ahead of the fact it is signalling. If the face lags on hardware, the two
   things to examine are the sixty-second floor in `StoreChangeReloader` and
   the second `NSPersistentCloudKitContainer` the provider opens on every
-  timeline build (`CounterComplication.swift:173`), both recorded as open in
-  `CLAUDE.md`. The full argument is in ADR-0041's 2026-09-15 amendment.
+  timeline build (`CounterProvider.load(at:)` in `CounterComplication.swift`),
+  both recorded as open in `CLAUDE.md`. The full argument is in ADR-0041's
+  2026-09-15 amendment. *(2026-09-24: the second is addressed by ADR-0055,
+  proposed. The provider still opens the store on every build, and without the
+  iCloud container it no longer mirrors; see the amendment of that date. The
+  citation here was a line number, which has since moved.)*
+- **If a drink logged from the card's ＋ lingers on the watch**, not reaching the
+  phone for hours, ADR-0055's How to reopen has the choices, each its own
+  decision: a watch-app background refresh, a cue on the card that a drink has
+  not synced, making the card's ＋ open the watch app (a change to this record's
+  ＋), or restoring the complication's three entitlement keys and accepting the
+  collision.
