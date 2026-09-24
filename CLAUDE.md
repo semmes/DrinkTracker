@@ -3556,3 +3556,35 @@ Open items for v1.2:
   103.5); UK units on screen; hardware. **Tier 4 for the owner:** the card on their own
   log in both appearances; the tracks on a real display (a wash at 1.2:1 by design);
   VoiceOver stepping each segment as its sentences; a 375pt phone if one is in use.
+- **The Lock Screen widget is planned, not built (2026-09-23; records only).** The owner
+  asked for the steps to build a Lock Screen widget in another session — add and remove
+  drinks from the Lock Screen, in the sizes it offers. The plan is
+  `docs/tallyist-lock-screen-plan.md`, on the health pairing's method: read its "What the
+  platform allows", "Decisions this plan needs" and "Rules that survive to the Lock Screen"
+  in every session, one phase per session, Phase 0 a scratch build and a findings document
+  before any product code. **The shape:** the iPhone Lock Screen's three families —
+  inline, circular, rectangular — are the watch complication's own, so
+  `CounterComplication.swift`'s provider and view move to `Shared/` (two memberships: the
+  iOS widget extension and the watch complication; the verifier's `SHARED_EXTRAS`), a second
+  `Widget` in the iOS bundle draws them, the − is `LoggedDrink.removableNewest` through one
+  repository function the watch's − also calls (ADR-0043's rule, never skipping), and an
+  optional fourth phase adds an iOS 18 control. **Two platform facts, verbatim from Apple's
+  pages, decide it:** "On a locked device, buttons and toggles are inactive and the system
+  doesn't perform actions unless a person authenticates and unlocks their device" — so the
+  widget's ＋ and − work on the Lock Screen once Face ID has opened the padlock and never
+  for anyone else — and a control's intent declared `.alwaysAllowed` runs "at any time,
+  including when the device is locked", so a control is the one route that logs from a
+  locked phone. The Lock Screen renders vibrant (monochrome), so the band is not drawn and
+  the complication's `isTinted` rule fires as it stands; the contrast on a wallpaper is a
+  Phase 0 measurement. **Seven decisions are the owner's before Phase 1**, each with a
+  recommendation in the plan: all three shapes; the circle as the face's tile, no ＋; the −
+  on the rectangle and the same − on the home-screen widget (reversing that widget's
+  "deliberately no −" comment, which predates ADR-0043); a "Log a drink" control with
+  `.alwaysAllowed` and no remove control; no session dots on the Lock Screen; the train
+  after 1.4 rather than 1.4; and whether the face's design transfers or a new bundle is
+  drawn. `docs/PRD.md` §8's open question on a second widget family or a control now points
+  at the plan. Nothing compiled, nothing rendered, no simulator touched; the plan's last
+  section lists what it could not verify, the largest being the content boxes each family
+  gives the view and what the "Lock Screen Widgets" access switch does to a
+  `.privacySensitive()` count. No code, schema, CloudKit, catalog, privacy-policy or
+  project-file change.
