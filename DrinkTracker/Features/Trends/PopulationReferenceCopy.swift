@@ -115,15 +115,21 @@ enum PopulationReferenceCopy {
   /// The note's first paragraph: what the percentages are and are not, for
   /// the column that was read. `drinkersPercent` is the file's own figure
   /// (100 less the column's abstainers — 72, 75 or 69), printed whole.
+  ///
+  /// The first sentence says where the comparing happens, in the shape of
+  /// the Settings footnote since the owner's copy pass of 2026-09-23. It
+  /// replaced "nothing about your log leaves this device", which reads alone
+  /// as untrue of a log that syncs to iCloud. The derivation sentence is
+  /// unchanged; ADR-0018 quotes it.
   static func explainer(in column: PopulationReference.Column, drinkersPercent: Double) -> LocalizedStringKey {
     let percent = Int(drinkersPercent.rounded())
     switch column {
     case .allAdults:
-      return "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      return "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
     case .men:
-      return "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      return "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
     case .women:
-      return "A published population statistic, not data from other Tallyist users — nothing about your log leaves this device. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      return "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
     }
   }
 
