@@ -261,7 +261,10 @@ one decision, and it is the owner's (the bullet "1.3 is approved and live…"): 
 decision 4 puts the health pairing on its own train after the watch, but the pairing is
 merged on main under `MARKETING_VERSION` 1.4, so 1.4 either carries both features —
 after the pairing's Phase 7 and the watch's Phase 8, with decision 4 reversed in an ADR —
-or leaves the pairing out, by an earlier cut or a build-time switch.**
+or leaves the pairing out, by an earlier cut or a build-time switch.** **On 2026-09-23 Trends'
+three comparisons became one card segmented by their titles, the day counts drawn as bars
+on full-width tracks at the owner's ruling (the bullet "The comparisons are one card…",
+ADR-0038 amended).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3470,3 +3473,61 @@ Open items for v1.2:
   Health grant shows neither. **Tier 4 for the owner:** read the page on their phone,
   which is signed in with Health allowed, so it shows the footnotes the simulator could
   not.
+- **The comparisons are one card, and the day counts are bars on tracks (2026-09-23;
+  ADR-0038 amended, notes on ADR-0018, ADR-0031 and ADR-0032).** The owner: *"organize
+  the comparisons into a single card segmented by the titles of Weekly average, drinking
+  days, days with a drink … organize the data visualizations to be more concise, clear
+  and visually interesting."* Read as three headed segments in one card — the reopen
+  ADR-0038's 2026-09-10 amendment already named — not a segmented control, which would
+  hide two of three facts behind a tap. **The owner reviewed a first build before any
+  commit and ruled three things:** keep the single card; remove the people row (twenty
+  figures drawing the weekly average's share, now gone — the sentence carries it); and
+  give every bar a full 100% track, "similar effect to when your tapping and holding on
+  the top trends chart … so users can see where the bar chart ends and how much of it they
+  have or haven't filled". **What shipped:** `COMPARISONS` over one glass card; each
+  segment's title row carries its span on the right ("Last 28 days" / "Last 12 months"
+  for the population window, the Trends range's title for the weekend — the segments
+  cover different days, which one card now shows side by side); each keeps its own source
+  line; a hairline between shown segments, drawn by the segment below only when one above
+  is shown. The weekly average is its figure set large ("19.3 standard drinks a week")
+  over the reviewed sentence. The drinking days and the weekend split (the table turned:
+  the paper's weekend definition as columns, whose figure as rows) are labelled rows with
+  a figure over an 8pt bar that is **its share of its own days, on a track the full width
+  of its column** — the bar's ink as a wash at the Trends selection rail's 14% / 22%, the
+  reader's in the accent and a published figure's in `secondaryInk`. **The track reverses
+  the first build's reasoning, and the ADR says so:** the first build drew no track because
+  copy review Finding 2 took a lone progress bar off the day count; the owner ruled for it
+  with that reasoning in front of them, and what differs from Finding 2's bar is that every
+  scale holds two figures, the reader's and a published one. From `.xLarge` up everything
+  folds to the reviewed sentences, and VoiceOver reads those sentences at every size
+  through `accessibilityRepresentation` (which also retired the deprecated `Text +` from
+  these files). New core file `ComparisonFigures.swift` (`ComparisonBars.share`, and the
+  displayed rounded reference figures the sentences and the bars now share), six tier-1
+  tests. `SourceDisclosure` gains `openNoteInset` (default 0). Files renamed:
+  `PopulationComparisons.swift`, `WeekendComparison.swift`; new `ComparisonCardParts.swift`.
+  **Two things worth keeping.** (a) **A bar measured against the larger figure was built
+  first and rejected on the render**: it drew "7 of 12" the column's full width. (b) **The
+  branch fast-forwarded onto `main` mid-review** (the Settings copy pass, #123/#124, landed
+  while the first build was with the owner): the uncommitted work was set aside in a
+  uniquely tagged stash applied by SHA, the four conflicts were records only, and the
+  catalog was re-synced from a fresh build — the git-merged catalog matched extraction
+  exactly (378 = main's 372 + six). App catalog **378** (six in, none out, none changed),
+  reviewed under 1.4.3 along with the bars and tracks. **Contrast, measured on rendered
+  pixels:** the reader's bar 5.39:1 light / 5.77:1 dark on the card and 4.44 / 4.62 on its
+  track; a published bar 3.73 / 7.42 on the card and 3.24 / 5.82 on its track; the tracks
+  1.15–1.28:1 on purpose, as the rail is. The section is **612pt** where the three cards
+  were 620 on the same log. No schema, CloudKit, setting, network or share-card change; the
+  year view's comparison is unchanged. **Verified:** 370 domain tests under both SwiftPM
+  build systems; 119 integration tests on the iPhone 17 Pro Max simulator; the generic and
+  simulator builds with no warning in the changed files; the policy-date check and the glyph
+  generator clean; and tier 3 on `Comparisons scratch`, a clone of the Phase 4 scratch
+  iPhone (its log reseeded with `sqlite3`; the Health data and the original scratch device
+  untouched): Month in light and dark, a dry month (empty tracks), a heavy log (full
+  tracks); and, on the first build, Quarter, the open note, the `.xLarge` and AX5 folds,
+  a lighter log on the Men column, a one-comparison card, and `origin/main` on the same
+  data for the before frame. **Found in the clone and fixed before review:** an open note
+  sat on the next rule. **Not verified, stated:** VoiceOver (the tool's `inspect` was
+  unavailable); a 375pt phone (the fit is computed: "31 of every 100" needs 92.4pt of
+  103.5); UK units on screen; hardware. **Tier 4 for the owner:** the card on their own
+  log in both appearances; the tracks on a real display (a wash at 1.2:1 by design);
+  VoiceOver stepping each segment as its sentences; a 375pt phone if one is in use.

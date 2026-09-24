@@ -1823,3 +1823,71 @@ leaves this device"; the owner's pass was the Settings page's.
 
 **House voice intact.** Factual, no celebration, no judgment, no exclamation
 marks.
+
+## 1.4 — The comparisons in one card, the day counts drawn (ADR-0038 amended; notes on ADR-0018, ADR-0031, ADR-0032; 2026-09-23)
+
+The owner asked for the three comparisons in a single card segmented by their
+titles, with the figures "more concise, clear and visually interesting", then
+reviewed a first build before anything was committed: the people row went,
+and the bars gained a full-width track. Six new strings, and the bars and
+tracks reviewed as copy — the way the intensity ramp was, because a picture
+makes a statement the way words do (Finding 2 is the precedent: a bar said
+what the words were careful not to).
+
+| String | Where | Review |
+|---|---|---|
+| "%@ standard drinks a week" · "%@ standard drink a week" · "%@ units a week" · "%@ unit a week" | The weekly-average segment's figure line, the figure set large | The reviewed sentence's figure and noun — "Your average is about 19.3 standard drinks a week." — without the verb. The noun agrees with the displayed digits, per region, as the sentence's keys do. No "only", no "just", no "already": a quantity and a rate. |
+| "US adults who drink" | The drinking-days segment's second row label | The population as the reviewed sentence names it. Not "Average drinker" or "Typical adult", which would typify a person; the survey's population, named. |
+| "average about 7 in 28" (and "…88 in 364") | That row's figure | The same sentence's predicate, split at its verb: the row reads "US adults who drink · average about 7 in 28", which is the reviewed sentence. "Average" says it is a mean; "about" says it is rounded to whole days. |
+
+Existing keys reused, each in the sense it was reviewed in: "Your log" and "US
+adults" (the weekend table's heads, now its row labels — and "Your log" also
+heads the drinking-days row), "Friday to Sunday" and "Monday to Thursday" (now
+column heads), "%lld of every 100", "Last 28 days" / "Last 12 months" / "Last 30
+days" / "Last 13 weeks" (the chart card's own titles, naming each segment's
+span).
+
+**The bars and their tracks, reviewed as copy.**
+
+- *The bars.* Each is its figure's share of its own days — "16 of 28" fills
+  sixteen twenty-eighths of its track — and sits in a labelled row with its
+  figure printed above it. Every scale holds two bars, the reader's and a
+  published one; no bar is drawn alone.
+- *The tracks, and Finding 2.* Finding 2 took a progress bar off the day
+  count because a bar filling a drawn container has a full state, and a full
+  state reads as a target. The first build of this card drew its bars with
+  no track for that reason. The owner reviewed it and ruled for the track
+  (*"so users can see where the bar chart ends and how much of it they have or
+  haven't filled"*), and ADR-0038's amendment records the ruling and its cost.
+  Read as copy, the difference from the finding's bar is the second bar on
+  the same scale: the full state is where two facts are measured, not a
+  finish line for one, and nothing on the card names a direction to move in.
+  The day-count card keeps its bare number.
+- *The colours.* The reader's bars take the accent, as the reader's bars on
+  the Trends chart do; a published figure's bar is secondary ink; each track
+  is its bar's ink as a faint wash, as the Trends chart's selection rail is.
+  Blue is not "good" and grey is not "normal" — neither colour is ever the
+  only thing that says whose a bar is, and the numeral rule still separates
+  the reader's rounded counts from a published default-SF figure.
+- *Removed at the owner's review:* a row of twenty people under the weekly
+  average's sentence, the sentence's share in full ink. It had no marker for
+  the reader on purpose — a marker on a least-to-most line is a gauge — and it
+  is gone; the sentence carries the share, as it always has.
+
+**Second pass — the card as it renders**, on three logs:
+
+- *About 19 a week, 16 of the last 28 days:* "19.3 standard drinks a week",
+  "That's lower than roughly 10% of US adults who drink."; a blue bar filling
+  most of its track over "16 of 28", a grey one a quarter along over "average
+  about 7 in 28". The reader sees that their bar is longer. The card says
+  nothing about it.
+- *Seventy a week:* the drinking-days bar fills its track, "28 of 28", beside
+  the published quarter. No red, no warning glyph, no word added — the facts,
+  at the size they are.
+- *No drinks in the window:* the figure line is replaced by the reviewed "No
+  drinks in the last 4 weeks.", and the reader's tracks stand empty beside the
+  published bars. An empty track is not praised; nothing on the card calls it
+  good.
+
+No comparative adjective anywhere, drawn or written. No exclamation marks.
+Nothing on the card tells the reader what to do. House voice intact.

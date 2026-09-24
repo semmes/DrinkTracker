@@ -6,7 +6,8 @@ constraints 3 and 5 · **Amended by:**
 ADR-0038 (the comparison is the reader's to show, and waits for four
 weeks of range — see the amendment below), ADR-0038's own 2026-09-10
 amendment (the comparison leaves this card for the Comparisons section — see
-the last amendment below)
+the 2026-09-10 amendments below), and its 2026-09-23 amendment (the
+comparison turned and drawn — see the note at the end)
 
 ## Context
 
@@ -461,3 +462,22 @@ width (the stacked sentences, as at xLarge), not a scale factor. If "Days
 with a drink" beside the "Drinking days" card reads as two cards about one
 thing, the card title can take the switch's words back and the measure return
 to the column heads — one line each, and a render question.
+
+---
+
+## Note (2026-09-23) — the weekend comparison is turned and drawn
+
+The owner asked for the three comparisons in one card with their figures
+"more concise, clear and visually interesting"; ADR-0038's amendment of the
+same date has the whole change. For this record: the weekend table is turned
+— columns are the paper's weekend definition, rows are whose figure — and each
+figure sits over a bar that is its share of its own days, on a track that is
+all of them (the owner's ruling). That revises this record's "nothing is
+recomputed, normalised, subtracted or ranked" in one place, the drawing: a bar
+seven-twelfths along its track beside one thirty-one hundredths along *is* the
+two figures put on one scale. Both denominators stay printed ("7 of 12", "31
+of every 100"), so the two kinds of figure remain visibly different; nothing
+is subtracted, ranked or worded against the other, and the numeral rule is
+untouched. The seven weekday rows are not in the card, are not drawn, and are
+still never charted — the reason is unchanged. The segment's header now names
+its span, the range the picker chose.

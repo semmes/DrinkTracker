@@ -281,3 +281,169 @@ Trends or the year view." One claim changed shape on purpose: "nothing about
 your log leaves this device" was true of a comparison but reads, alone, as
 untrue of a log that syncs to iCloud, so the sentence now says where the
 comparing happens. `docs/copy-review-1.4.3.md` has both forms.
+
+---
+
+## Amendment (2026-09-23) — one card, segmented by the titles, and the day counts drawn as bars
+
+**Status:** accepted. The decision above is unchanged: the same three
+comparisons, the same three switches, the same sources, gates, order and
+refusals. This is a layout and presentation change under this record, and
+its first half is the reopen the 2026-09-10 amendment already named.
+
+The owner, looking at the three cards: *"On the Trends page under
+'Comparisons' can you organize the comparisons into a single card segmented
+by the titles of Weekly average, drinking days, days with a drink. You can
+also organize the data visualizations to be more concise, clear and visually
+interesting."* "Segmented by the titles" was read as three headed segments in
+one card — the 2026-09-10 amendment's own reopen, "one card with three
+headlined blocks and dividers" — and not as a segmented control showing one
+comparison at a time, which would hide two of three facts behind a tap this
+record's rotation clause exists to avoid. The owner reviewed a first build
+before anything was committed and ruled on it: *"The categories in a single
+card look great. Let's keep that."*, *"Remove the people visualization from
+the weekly average data visualization."*, and *"When showing the bar chart.
+Can you add full 100% background fill. Similar effect to when your tapping
+and holding on the top trends chart … That way users can see where the bar
+chart ends and how much of it they have or haven't filled."* What follows is
+the build after those rulings.
+
+**One card.** `COMPARISONS` over a single glass card; the segments in the
+switches' order, each headed by its title (`CardTitle`, the same words as
+before), a hairline between one shown segment and the next. Every segment
+keeps its **own** source line — the thing that reopen said may not come
+back is a source line whose wording depends on which switches are on, and no
+line here does. The rule that a heading cannot outlive its content extends
+to the card and the rules: `ComparisonsSection` still resolves all three
+gates once, and each divider is drawn by the segment below it only when a
+segment above it is shown, so a card with one comparison has no rule at all.
+
+**Each segment names its span**, right-aligned on its title row: the weekly
+average and the drinking days "Last 28 days" or "Last 12 months" (the
+population window, ADR-0030); days with a drink the range the picker chose
+("Last 30 days", "Last 13 weeks", "Last 12 months"). In one card a reader now
+sees "16 of 28" a few lines above "7 of 12" and "10 of 18" — 17 of 30 — and the
+two segments do cover different days; the headers say so. All five strings
+are existing keys (the chart card's titles and the calendar's "Last %lld
+days").
+
+**At the default sizes:**
+
+- **Weekly average** sets the reader's figure large and rounded — "19.3
+  standard drinks a week", the reader's own numeral (design system §3) — over
+  the reviewed sentence, "That's lower than roughly 10% of US adults who
+  drink." No drawing: a row of twenty figures, five in a hundred of the
+  column's drinkers each with the sentence's share in full ink, was built and
+  **removed at the owner's review**; the sentence states the share itself.
+- **Drinking days** is two rows — "Your log · 16 of 28" and "US adults who
+  drink · average about 7 in 28", the reviewed sentence split at its verb —
+  each over a bar. Still two counts and no percentile (ADR-0031); the
+  published bar is drawn from the rounded mean the row prints.
+- **Days with a drink** is the table turned: columns are the paper's weekend
+  definition, rows are whose figure — "Your log" and "US adults", short
+  enough to leave each column the width "31 of every 100" needs on a 375pt
+  screen (92.4pt of 103.5, measured with CoreText) — and each figure over a
+  bar.
+
+From `.xLarge` up every segment folds to the reviewed sentences, exactly as
+the cards did (`ComparisonTable.folds`), with the span under the title. And
+the sentences are what VoiceOver reads at every size: each segment's
+accessibility representation is the same sentence views the large sizes show,
+so nothing heard is newly worded — and the deprecated `Text` `+` the old
+spoken labels were built with is gone from these files.
+
+### The bars, and their tracks
+
+**A bar is its figure's share of its own days**, and it sits on **a track
+that is all of them** — a capsule the full width of its column, in the bar's
+own ink as a wash. The track is the owner's ruling, quoted above, and its
+look is the owner's reference: the wash the Trends chart's selection rail
+draws behind a touched bar, at the rail's strongest (the ink at 14% in light
+mode, 22% in dark). The bars are 8pt, with their tracks the same.
+
+**The ruling reverses what the first build argued, and the cost is
+recorded.** The first build drew the bars with no track, because the 1.4.3
+copy review's second finding took a progress bar off Trends' day count: a bar
+that fills a drawn container has a full state, and the review called a full
+state a target. The owner saw that reasoning with the build and ruled for the
+track, so that a reader can see where the scale ends and how much of it a
+figure fills. What keeps these bars from being that progress bar is what was
+already true of them: no segment draws a bar alone — every track's scale is
+shared by the reader's figure and a published one, printed above each — and
+the day-count card that finding changed keeps its bare number. A reader who
+drank every day of the window sees a full bar; one who drank on none sees an
+empty track beside the published bar. Both are the facts the figures state.
+
+**Built first and rejected: every bar against the largest figure in its
+chart.** Rendered, it drew "7 of 12" the column's full width and "31 of every
+100" at 53% — a bar that reads as "every day" for a figure that is not.
+`ComparisonBars.share` is pinned at tier 1 (a share never past its track, a
+zero draws none).
+
+**The reader's figure takes the accent, a published figure secondary ink,**
+and each track is its own bar's ink as a wash. The accent already marks the
+reader's own data on Trends — the chart's bars, and the rail behind a touched
+one — so no new colour enters (invariant 10), and the distinction never rests
+on colour alone: every bar sits in a labelled row, and the numeral rule is
+unchanged (the reader's counts rounded, the published figures default SF).
+
+**Measured on the rendered pixels** (iOS 27 simulator, iPhone 17 Pro; card
+ground white in light and black in dark). `secondaryInk` is a translucent
+label colour, so a published bar composites over its track and renders a
+little darker in light mode and lighter in dark than the bare ink:
+
+| Ink | Light | Dark |
+| --- | --- | --- |
+| The reader's bar (accent 500 / 400), on the card | #256ABF, 5.39:1 | #3987E5, 5.77:1 |
+| — against its own track | 4.44:1 | 4.62:1 |
+| The reader's track (accent at 14% / 22%) | #E0EAF6, 1.22:1 | #0D1E32, 1.25:1 |
+| A published bar (`secondaryInk`, over its track), on the card | #848488, 3.73:1 | #9999A0, 7.42:1 |
+| — against its own track | 3.24:1 | 5.82:1 |
+| A published track (`secondaryInk` at 14% / 22%) | #EFEFEF, 1.15:1 | #1F1F20, 1.28:1 |
+
+Every bar clears 3:1 against both the card and its own track. The tracks are
+under 3:1 on purpose, as the rail they come from is: a track shows the
+scale's extent, which the figure's own "of 28" also states in words.
+
+### Consequences
+
+- **Six app-catalog keys in, none out** (372 → 378 after the owner's Settings
+  copy pass the same day): the four figure lines ("%@ standard drinks a week",
+  "%@ standard drink a week", "%@ units a week", "%@ unit a week" — one per
+  region and number, the figure a `Text` so a translation can place it), "US
+  adults who drink", and "average about %lld in %lld". Synced with
+  `xcstringstool` from a fresh generic full build into a scratch copy and
+  diffed: exactly those six against `main`, and the merged catalog identical
+  to the synced one. Reviewed under 1.4.3, as are the bars and their tracks.
+- **A little shorter, not much.** Measured on one log in light mode at Month:
+  the section is 612pt where the three cards were 620. What the one card saves
+  in chrome — two card wrappers and two gaps — the bars and their rows spend.
+  "More concise" is in what is read: at the default sizes one sentence remains
+  where there were four, and every other figure sits beside a short label and
+  its bar.
+- **The drinking-days row label wraps** ("US adults / who drink") because the
+  label column is shared with the weekend segment so the two segments' bars
+  start on one edge; a per-segment width would save a line and lose the edge.
+- `SourceDisclosure` gains `openNoteInset` (0 by default, so its other callers
+  are unchanged): a segment followed by another keeps 14pt under an open note,
+  which the first render drew touching the rule.
+- **The year view's comparison is unchanged** — still its own card, still the
+  sentences, the same words. The two surfaces now differ in form, not in copy.
+- No schema change, no CloudKit step, no new setting, no network, no share
+  card touched. **No new figure**: every length drawn is a figure the card
+  already printed, rounded as it printed it.
+- No test tier reaches the views (app target, no `TEST_HOST`); the arithmetic
+  is tier 1 (`ComparisonFiguresTests`, six tests). The proof of the rest is
+  tier 3 on a scratch simulator over a seeded log, recorded in the commit.
+
+### How to reopen
+
+If a bar reads as a goal in real use — the finding the track was ruled past —
+the tracks go first and the bars second, and the rows stay, which is the table
+this card held before. If the weekly average wants a drawing again, it should
+draw the sentence's share, never a marker for the reader: a marker on a line
+from least to most is a gauge, and a gauge is a score (ADR-0006). If
+"segmented" meant a picker, one comparison at a time, that is this record's
+rotation clause to engage: a reader's choice at the card is ADR-0026's model
+and allowed, but it hides two published facts behind a tap, and the switches
+already let a reader choose which are shown.

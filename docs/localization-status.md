@@ -96,9 +96,16 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **524 keys across six catalogs** — 372 app, 35 widget, 28 core, 4
+Current: **530 keys across six catalogs** — 378 app, 35 widget, 28 core, 4
 shortcuts, 50 watch app, 35 complication (counted 2026-09-23 after the
-owner's Settings copy pass: fifteen app keys out, fourteen in — the
+Comparisons card became one card, ADR-0038's 2026-09-23 amendment: six app
+keys in, none out, none changed — the four figure lines "%@ standard drinks a
+week" / "%@ standard drink a week" / "%@ units a week" / "%@ unit a week",
+whose `%@` is the figure as a styled `Text` so a translation can place it,
+"US adults who drink", and "average about %lld in %lld"; synced with
+`xcstringstool` from a fresh generic full build's x86_64 `.stringsdata` into a
+scratch copy and diffed before it was copied in; 372 after the owner's
+Settings copy pass earlier that day: fifteen app keys out, fourteen in — the
 Appearance footnote retired, every other rewritten footnote replaced one for
 one, and no other key touched — synced the same way as below; 373 after the
 owner's device pass of the health pairing on 2026-09-22: four app keys in, none out — the
