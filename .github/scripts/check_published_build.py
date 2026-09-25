@@ -26,8 +26,8 @@ QUESTIONS = 22
 SUPPORT_BY_STATE = {
     1: (
         [
-            "It is coming with Tallyist 1.4.",
-            "Not yet. It is coming, with the same rules.",
+            "It is coming soon. It will require the iPhone app",
+            "Not yet. It is coming soon, with the same rules.",
             "From version 1.4, the watch app logs a drink",
             "From version 1.4, Trends can show four figures",
         ],
@@ -43,10 +43,10 @@ SUPPORT_BY_STATE = {
             "It installs with the iPhone app.",
             "deleting the watch app removes",
             "The watch app logs a drink",
-            "Not yet. It is coming, with the same rules.",
+            "Not yet. It is coming soon, with the same rules.",
         ],
         [
-            "It is coming with Tallyist 1.4.",
+            "It is coming soon. It will require the iPhone app",
             "From version 1.4",
             "Google Play",
             "On Android",
@@ -60,7 +60,7 @@ SUPPORT_BY_STATE = {
             "On Android, your log is stored on the device",
         ],
         [
-            "It is coming with Tallyist 1.4.",
+            "It is coming soon. It will require the iPhone app",
             "From version 1.4",
             "Not yet.",
         ],

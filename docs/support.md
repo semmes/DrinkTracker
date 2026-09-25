@@ -70,7 +70,7 @@ watch model and watchOS version.
 {% if state >= 2 -%}
 <p>Yes. It installs with the iPhone app. watchOS 26 and later.</p>
 {%- else -%}
-<p>It is coming with Tallyist 1.4. It will require the iPhone app and watchOS 26 or later.</p>
+<p>It is coming soon. It will require the iPhone app and watchOS 26 or later.</p>
 {%- endif %}
 </details>
 
@@ -79,7 +79,7 @@ watch model and watchOS version.
 {% if state >= 3 -%}
 <p>Yes, on Google Play. Same app, same rules.</p>
 {%- else -%}
-<p>Not yet. It is coming, with the same rules.</p>
+<p>Not yet. It is coming soon, with the same rules.</p>
 {%- endif %}
 </details>
 
