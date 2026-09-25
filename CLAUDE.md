@@ -3776,15 +3776,34 @@ Open items for v1.2:
   failure modes (a moved anchor, a doubled one) by hand; all three states rendered
   with a stand-in for Liquid and checked by the new script, which also failed where
   it should (a state-2 page checked as state 1, a leftover tag); both workflows
-  parse. **Not verified locally:** GitHub's own Jekyll, which only the new CI job
-  runs; the live pages after the sync. **Next, and not started:** the site itself on
-  `semmes/Tallyist#1` (a draft, not to be merged without the owner): the design's
-  six pages, Apple's device bezels (downloading them needs the owner's go-ahead with
-  file, source and size), and `platform_state` in `_config.yml` and on `<html
-  data-state>`. The design's icon-beside-the-word lockup is recorded here as the
-  owner's exception to the mark rule (`docs/design-system.md` §1). The kit and the
-  design review are in the untracked `Claude outputs/marketing-site-kit/`
-  (`07-design-review.md`).
+  parse. **Then, after merge (PR #131):** the new CI job passed with GitHub's own
+  Jekyll in all three states; the mirror pushed `semmes/Tallyist` c06f2b1 and
+  verify passed; the live `tallyist.co/support/` showed the 22 questions in state 1
+  with the email card, and `/privacy/` the two web-only lines. The live layout's
+  footer still named `github.com/semmes/Tallyist` until the site's own layout lands.
+  **The site, started on `semmes/Tallyist#1`** (a draft, not to be merged without the
+  owner): `css/site.css` (the design's tokens, contrast measured: nine pairs pass in
+  both schemes), one `_layouts/default.html` for the documents and the site's
+  pages (the policy's 720px column and "This website" note, the support page's
+  card and questions, the header's lockup, a footer without the repository),
+  `platform_state: 1` in `_config.yml` on `<html data-state>`, and the design's 404.
+  Served from the PR's own build and compared with the design's reference captures
+  at 1280 and 390, light and dark. **Waiting on the owner, listed in that PR:**
+  downloading Apple's bezels (`Bezel-iPhone-17.dmg` 252.9 MB and
+  `Bezel-Apple-Watch-Series-11-2025.dmg` 341.4 MB from Apple's design resources
+  CDN; `Bezel-iPhone-18.dmg` 137.5 MB only if the shots are retaken); the design's
+  link preview card, which draws and crops a phone; its two App Store badges on
+  one page; iPad, which the design leaves unnamed where Apple asks every device to
+  be listed; and the "This website" note's "loads nothing from other sites" beside
+  the Smart App Banner, which has Safari fetch the app's details from Apple. The
+  home, Apple Watch and Press pages wait on those answers. **How to look at a
+  build of the site:** `gh run download <run> -R semmes/Tallyist -n github-pages`
+  (a tar inside), then serve it with a `.claude/launch.json` running `python3 -m
+  http.server` and open it with the browser pane's `preview_start`; the pane will
+  not drive a `file://` page, and root-relative links need a server anyway. The
+  design's icon-beside-the-word lockup is recorded here as the owner's exception to
+  the mark rule (`docs/design-system.md` §1). The kit and the design review are in
+  the untracked `Claude outputs/marketing-site-kit/` (`07-design-review.md`).
 - **The owner's watch-to-phone check on hardware (2026-09-24; records only).** The owner:
   *"Confirmed the watch is recording and then syncs with app when opened. Delay of about
   1-2 seconds."* Asked, they said it was an Xcode build from their Mac, that they logged
