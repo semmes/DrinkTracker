@@ -221,3 +221,105 @@ repository then serves the documents at `semmes.github.io/Tallyist/` again, wher
 every link compiled into a shipped build resolves. But `tallyist.co/privacy/` and
 `/support/` go with the domain, so the new repository has to serve them too, and
 the policy is back to four copies, which needs a fourth guard.
+
+## Amendment (2026-09-24): the website says two lines of the policy its own way
+
+The owner's design for the site (a Claude Design handoff, untracked in the owner's
+checkout at `docs/design/marketing-design-handoff/`: 25 MB, most of it images the
+site repository takes what it needs from) renders the policy verbatim with two
+substitutions, so that the owner's GitHub handle is not on the marketing site: the
+sentence that points readers at this repository's history, and the Contact
+section's issue tracker. Offered the alternative, both changes made in the
+canonical policy for 1.4 so that the app, this repository and the website say one
+thing with one date, the owner chose the design's form, on the website only. The
+same design moves support from the issue tracker to email, which the amendment
+above left open.
+
+**Decision.**
+
+- The website's policy differs from `docs/privacy-policy.md` in exactly the lines
+  `WEB_ONLY` names in `.github/scripts/mirror_docs.py`: "This policy is kept under
+  version control; every change to it, and its date, is recorded." in place of the
+  repository sentence, and "Questions about this policy can be sent to
+  tallyist@gmail.com." (a mailto link) in place of the issue tracker. Each entry is
+  the exact canonical text and the text that replaces it. The canonical file keeps
+  both lines as they were. The copy inside the app keeps the repository sentence;
+  it has never had a Contact section. The date is the same in all three.
+- The guards hold the website to exactly that. `render` refuses a canonical text in
+  which a web-only line no longer occurs exactly once, so a sync fails rather than
+  publish a policy nobody decided on. `policy-copies` in `ci.yml` runs the same
+  render on every pull request (`render-all`), so the failure comes before merge.
+  The daily verify compares the published copy with the canonical text after the
+  substitutions, so any other difference still fails it.
+- `docs/support.md` is the design's support page: the design's introduction, an
+  email card for tallyist@gmail.com, the design's eleven questions, and the earlier
+  page's how-to answers, each a `<details>` block. It links neither this repository
+  nor its issue tracker. Support is by email.
+- **Platform state.** The design's site has three states: 1 while only the iPhone
+  app is live, 2 once the watch app is, 3 once Android is. The value is
+  `platform_state`, an integer in `semmes/Tallyist`'s `_config.yml`. It is the
+  site's own setting, not a mirrored file. `docs/support.md` reads it through Liquid,
+  defaulting to 1, and a page carries only its own state's answers: nothing about a
+  later state is in its HTML. The site's layout is to write the same value to
+  `<html data-state>` for the design's CSS. A new CI job, `published-docs`, builds
+  both published copies with GitHub Pages' own Jekyll in each state, and
+  `.github/scripts/check_published_build.py` reads the output: no Liquid left, every
+  question answered, and the sentences that change between states right for the
+  state.
+- **When 1.4 is live,** `platform_state` goes to 2. That shows the watch sentence in
+  the support page's deletion answer and drops the "From version 1.4" that the watch
+  and Apple Health on Trends answers carry until then.
+
+**Costs.**
+
+- The copies now say things differently. The policy in Settings → About says
+  "published in a public repository", and the website says "kept under version
+  control"; this repository's copy sends questions to the issue tracker, and the
+  website's to an email address. Each is true, and both routes reach the developer.
+  It is still the first place where the three copies are not one text, which this
+  record was written to prevent, and why `WEB_ONLY` is guarded rather than trusted.
+- An email reaches the developer with the sender's address. The policy's "the
+  developer never has it in the first place" is about what the app records, and
+  neither copy says what happens to an email. The issue tracker had the same
+  property, in public.
+- `docs/support.md` carries Liquid now, so its view on github.com shows the tags. The
+  published page is the one to read.
+- The handle leaves the site's pages, not the record: the repository is still public
+  and named for the owner, and the app's copy of the policy still names it.
+
+**The domain, 2026-09-24.** `tallyist.co` is attached to the repository's Pages site
+(a branch build from `main`, with `CNAME` holding `tallyist.co`). Its certificate is
+issued, and `semmes.github.io/Tallyist/<path>` answers with a 301 to the same path on
+it, so the App Store's current Privacy Policy and Support URLs work through the
+redirect. Two things happened on the way, and both matter before the domain is
+touched again. A typo in the custom domain (`tallest.co`) sent every
+`semmes.github.io/Tallyist/...` link, the App Store's included, to a name that does
+not resolve, until the owner corrected it. After the correction, Fastly's Boston edge
+went on serving the wrong 301 until the copy it had cached was an hour old: cached at
+20:08, it answered with an `age` header climbing to 3,600 seconds, no
+`cache-control`, and the same redirect for a fresh query string, and at 21:09 it
+fetched the corrected one. `tallyist.co` itself served every page throughout. A change
+to the custom domain is therefore a change to the live listing's links, and a mistake
+in one can outlast its fix by up to an hour at an edge that cached it. Enforce HTTPS
+is not yet on; it is a box in the repository's Pages settings, and the owner's to
+tick.
+
+**For 1.4.** App Store Connect takes a new Privacy Policy, Support or Marketing URL
+only with a version, so they move to `https://tallyist.co/privacy/`,
+`https://tallyist.co/support/` and `https://tallyist.co/` on the 1.4 version. Until
+then the old addresses redirect. `docs/app-store-listing.md` carries the new
+addresses and the step. The app's `PrivacyPolicyView.hostedURL` can stay on the old
+address, which redirects. Moving it saves a hop, but ties the link in every later
+build to the domain staying registered, and that trade is the owner's to make.
+
+## How to reopen (2026-09-24)
+
+- If the app and the website should say the same thing again, make the change in the
+  canonical policy, in both in-repo copies and with a new date, and empty `WEB_ONLY`.
+  The mirror publishes it and the checks hold it.
+- If `WEB_ONLY` ever needs a third entry, take that as the signal that the website is
+  becoming a different policy from the one the app's users read. Move the lines into
+  the canonical text rather than lengthen the list.
+- If support mail needs a sentence in the policy (that an email is read by the
+  developer and used only to reply, say), that sentence belongs in the canonical
+  text, in all three copies.
