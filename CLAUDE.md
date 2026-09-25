@@ -291,6 +291,9 @@ purpose string, the four manifests' UserDefaults reason, What's New, the reviewe
 the claims and App Privacy, the copy review and design-system §9. What is left before 1.4
 can be submitted is the owner's, listed in that bullet, and the complication's
 non-mirroring change (ADR-0055) is a draft PR awaiting the owner's acceptance of its cost.
+The owner's hardware check reported on 2026-09-24 ran on an Xcode build from before the
+release work and ADR-0055's draft, so it is neither that ADR's device check nor the
+TestFlight pass (the bullet "The owner's watch-to-phone check…").
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3801,3 +3804,37 @@ Open items for v1.2:
   design's icon-beside-the-word lockup is recorded here as the owner's exception to
   the mark rule (`docs/design-system.md` §1). The kit and the design review are in
   the untracked `Claude outputs/marketing-site-kit/` (`07-design-review.md`).
+- **The owner's watch-to-phone check on hardware (2026-09-24; records only).** The owner:
+  *"Confirmed the watch is recording and then syncs with app when opened. Delay of about
+  1-2 seconds."* Asked, they said it was an Xcode build from their Mac, that they logged
+  both from the card's ＋ and inside the watch app, and that the drinks showed up once
+  they opened the iPhone app. **Which build that was, read off their Mac:** the newest
+  device build in DerivedData (binaries written 2026-09-23 between 22:56 and 22:58) came
+  from the main checkout while its HEAD was c7843dd (22:00 to 23:13 that night, by the
+  reflog; the later pull to 0e728a6 was a records-only merge), before the release work
+  (#129) and ADR-0055's draft (#130). Its complication's signed entitlements still hold
+  the iCloud container, CloudKit and `aps-environment` (development), so the complication
+  still mirrored, and the store was CloudKit Development over the APNs sandbox. **What it
+  shows:** on the entitlements main ships today, drinks logged from the card's ＋ and in
+  the watch app showed up in the iPhone app once it was opened, after a delay the owner
+  put at about 1 to 2 seconds for the check as a whole, not per route. **What it does
+  not show:** Production CloudKit, so the TestFlight pass the 1.4 reminders ask for is
+  still open; whether a drink reached the phone's store before the app was opened (it has
+  had the remote-notification background mode since the watch's Phase 0, so it may have
+  imported in the background); and anything about ADR-0055, since the complication that
+  holds the App Group alone was not on the watch. It is not a baseline for the card's
+  path either: the watch app was used too, in an order not recorded, and on this build
+  both it and the complication mirrored, so either could have exported the card's drink.
+  **Why it matters for #130:** the card's ＋ is the path ADR-0055 may slow. With the
+  complication no longer mirroring, a card drink reaches CloudKit only through the watch
+  app, with no documented upper bound. An Xcode build of #130, with the watch app
+  force-quit before the card's ＋, would be the like-for-like comparison with this check
+  (both on Development); ADR-0055's own device check ("Verification", step 2: that tap,
+  then each of three triggers) runs on the TestFlight build once the PR has merged, and it
+  gates 1.4's submission, not #130. **How the build was identified, for next time:** `ls
+  -dt ~/Library/Developer/Xcode/DerivedData/DrinkTracker-*`; the folder whose `info.plist`
+  `WorkspacePath` is the main checkout; the binaries' times (`stat`) under
+  `Build/Products/Debug-iphoneos` and `Debug-watchos`, not the simulator folders; `git -C
+  ~/DrinkTracker reflog --date=iso` for the commit HEAD was on when they were written (a
+  later pull moves HEAD); and `codesign -d --entitlements -` on the complication's
+  `.appex`. No code, schema, CloudKit, catalog, privacy-policy or project-file change.
