@@ -2279,3 +2279,22 @@ update to look for.
 
 A plain status: no celebration, and no exclamation mark (the prototype's "Coming
 soon!" was never used). Pass.
+
+## 2026-09-25 — "to one tap" on the website
+
+The owner's wording for `tallyist.co`, changed in `semmes/Tallyist#4`. None of it
+ships in the app.
+
+- **Home page:** the second section's heading reads "From what’s on tap, to one
+  tap." in place of "From what’s on tap, to on tap.", which the review of the
+  website's own pages above kept as the design wrote it. The paragraph under it
+  is unchanged.
+
+The second half now names what its section shows, and claims nothing the review
+above had not already checked against the app: the paragraph says "The Today
+screen and the Home Screen widget both log a drink with a single tap.", and the
+hero's lead line says "One tap per drink". The heading appears nowhere else on the
+site, and the link preview carries the hero, not this line.
+
+A plain description, like its paragraph: no celebration, no judgment, no
+exclamation mark and no em dash. Pass.
