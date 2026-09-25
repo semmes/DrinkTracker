@@ -2117,8 +2117,9 @@ the site's platform state; the page carries only its own state's text.
     platform. On iPhone there is nothing to sign in to. On Android, Tallyist asks
     for no sign-in, and has no permission to use the internet.": the contract's
     fixed Android wording in its own words, with the internet clause kept to
-    Android, since an iPhone app has no such permission to lack. The design
-    offered a Google sign-in that Android 1.0 does not ship.
+    Android, since an iPhone app has no such permission to lack. In states 1 and
+    2 the answer is the design's first two sentences alone. In every state the
+    design promised a Google sign-in that Android 1.0 does not ship.
   - "Where is my data?" "On your devices, in your own private iCloud if iCloud is
     on for Tallyist, and in Apple Health if you let Tallyist save to it." Health
     was missing, and the policy lists it. In state 3 the Android sentence is the
@@ -2136,6 +2137,13 @@ the site's platform state; the page carries only its own state's text.
     grams the earlier page gave (14 g, 8 g, 10 g) and "It never changes what you
     logged, only how it is counted." (ADR-0002). "Recounts past days" alone could
     be read as rewriting them.
+  - "How do I delete my data?" "Any entry you logged can be deleted in the app.
+    A drink or a no-alcohol day that another app recorded in Apple Health is
+    deleted in that app or in the Health app, and Tallyist follows.", the
+    policy's words since the 1.4 release review. The design's "Any entry can be
+    deleted in the app" is not true of an import, which has no remove control
+    (ADR-0014, ADR-0025). Once the watch app is live the answer adds the policy's
+    "On Apple Watch, deleting the watch app removes the watch's copy."
   - "Is there an Apple Watch app?" and "Is there an Android app?" The design's
     answers per state: "It is coming with Tallyist 1.4. It will require the
     iPhone app and watchOS 26 or later." until the watch app is live, then "Yes.
