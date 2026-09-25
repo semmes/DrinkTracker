@@ -2251,3 +2251,31 @@ page's paragraph, icon rule and contact lines. Pass.
 
 No exclamation marks and no em dashes in any new or changed sentence. House voice
 intact.
+
+## 2026-09-24 — "Coming soon" on the website
+
+The owner's wording for `tallyist.co`, in place of "Coming with Tallyist 1.4" for
+the watch app and "Coming" for Android. The site's own pages change in
+`semmes/Tallyist#3`; the support page is generated from `docs/support.md` and
+changes here.
+
+- **Home page:** both platform rows read "Apple Watch · Coming soon" and "Android ·
+  Coming soon", and the watch section's eyebrow reads "Coming soon". The Android
+  heading stays "Android is coming."
+- **Apple Watch page:** the banner reads "Coming soon" beside "Requires the iPhone
+  app and watchOS 26 or later.", and the closing line reads "Coming soon. Requires
+  the iPhone app and watchOS 26 or later."
+- **Support page:** "Is there an Apple Watch app?" answers "It is coming soon. It
+  will require the iPhone app and watchOS 26 or later.", and "Is there an Android
+  app?" answers "Not yet. It is coming soon, with the same rules."
+
+This reverses the choice recorded in the section above, where the design's "Coming
+soon" was set aside because it "would outlive the release". That cost now rests on
+the state switch alone: "Coming soon" names no release, so on the day the watch app
+is live `platform_state` has to go to 2, or the site goes on saying it is coming.
+The step is in the 1.4 reminders in `docs/app-store-listing.md`. The support page's
+how-to answers keep "From version 1.4" until then, because they tell a reader which
+update to look for.
+
+A plain status: no celebration, and no exclamation mark (the prototype's "Coming
+soon!" was never used). Pass.
