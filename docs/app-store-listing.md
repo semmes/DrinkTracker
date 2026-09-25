@@ -17,7 +17,9 @@ Tracker"**, not the one in the table below, and the What's New that shipped for
 1.1 and for 1.3 is the owner's own shorter text rather than the draft here —
 1.3's is recorded under its heading. 1.2's went out as drafted, its dashes
 turned to commas and colons. The Privacy Policy and Support URLs on the listing
-are the Pages ones in the table below.
+are still the `semmes.github.io/Tallyist/` ones, which redirect to `tallyist.co`
+since 2026-09-24; the table below gives the addresses to set with 1.4
+(ADR-0024, amended 2026-09-24).
 
 **The description differs too** (read 2026-09-23 through the iTunes lookup API,
 which the read above did not check). The live one is 581 characters, the owner's
@@ -36,8 +38,9 @@ price, and the Terms of Use and privacy links).
 | Name | **Tallyist** |
 | Subtitle (30 chars max) | `Your drinks, tallied.` |
 | Primary category | Health & Fitness |
-| Privacy Policy URL | `https://semmes.github.io/Tallyist/privacy/` |
-| Support URL | `https://semmes.github.io/Tallyist/support/` |
+| Privacy Policy URL | `https://tallyist.co/privacy/` (from 1.4) |
+| Support URL (version page) | `https://tallyist.co/support/` (from 1.4) |
+| Marketing URL (version page) | `https://tallyist.co/` (from 1.4, optional) |
 | License Agreement | Apple's standard EULA (leave the custom EULA field empty) |
 
 ## Description
@@ -141,7 +144,7 @@ Tallyist itself reminds you a week before each renewal so you can cancel
 first if you want.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://semmes.github.io/Tallyist/privacy/
+Privacy Policy: https://tallyist.co/privacy/
 ```
 
 **(B) The owner's live description, corrected.** The owner's own words, with
@@ -162,7 +165,7 @@ Your log lives on your device and syncs through your own private iCloud. Saving 
 Tallyist is free, and everything in it is free. There's an optional tip jar: a one-time $4.99 tip, or recurring support at A Drink Every Month ($4.99/month, auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly). Tips unlock nothing. Recurring tips renew automatically until cancelled in your App Store account settings, at least 24 hours before the period ends, and Tallyist reminds you a week before each renewal.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Privacy Policy: https://semmes.github.io/Tallyist/privacy/
+Privacy Policy: https://tallyist.co/privacy/
 ```
 
 Both went through the 1.4.3 review with 1.4's other copy
@@ -497,7 +500,7 @@ in App Review Information, because a review device usually has no Health data
 for these types and the section is designed to show nothing then.
 
 **Length:** App Store Connect's Notes field holds 4,000 characters. The block
-below is 3,793. A first draft ran to 5,236 and was cut; any addition has to fit
+below is 3,779. A first draft ran to 5,236 and was cut; any addition has to fit
 the same limit, so count before pasting (`wc -c`).
 
 ```
@@ -538,7 +541,7 @@ no accounts; no external services.
 - Read on the device for one render: nothing these reads return is saved,
   synced, written to Health or sent anywhere. App Privacy stays Data Not
   Collected. The purpose string and the privacy policy
-  (https://semmes.github.io/Tallyist/privacy/) name the four types.
+  (https://tallyist.co/privacy/) name the four types.
 - No difference is computed; neither figure is coloured, bolded, signed or
   ranked. No diagnosis, advice, threshold, goal, score, notification, or
   inference about drinking from physiology. Today is never included.
@@ -610,8 +613,19 @@ label categories, no third-party code, no accounts, no servers.
   from a seeded scratch simulator are in `Claude outputs/1.4-screenshots/` in
   the main checkout, with a README saying what each shows and how it was
   made. Nothing there is uploaded.
-- **App Review Information:** paste "Reviewer notes (1.4)" (3,793 characters,
+- **App Review Information:** paste "Reviewer notes (1.4)" (3,779 characters,
   under the field's 4,000) and attach the Health card screenshot it names.
+- **The website's addresses.** On the 1.4 version, set the Privacy Policy URL
+  (App Information) to `https://tallyist.co/privacy/`, and the Support URL and
+  Marketing URL (the version page) to `https://tallyist.co/support/` and
+  `https://tallyist.co/`. App Store Connect takes these only with a version,
+  which is why they wait for 1.4; until then the listing's `semmes.github.io`
+  addresses redirect to the same pages, and they go on redirecting afterwards.
+  Tick **Enforce HTTPS** in `semmes/Tallyist` → Settings → Pages first
+  (ADR-0024, amended 2026-09-24).
+- **When 1.4 is live,** set `platform_state: 2` in `semmes/Tallyist`'s
+  `_config.yml` (the site's own file, not a mirrored one). The support page
+  then answers the watch question with "Yes" and drops "From version 1.4".
 - **Before submitting,** run one TestFlight build across a phone and a watch
   on one iCloud account: log on each, with each app closed in turn, and on
   the watch from the Smart Stack card's plus. The watch's sync has never run
