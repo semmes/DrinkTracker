@@ -97,7 +97,14 @@ Xcode fails the build rather than quietly mirroring.
   process exported it is not recorded — the complication's own delegate, or a
   watch app that happened to be running — but a two-second export from the card
   is what this change may give up, and it should be read as the likely cost,
-  not a remote one.
+  not a remote one. The owner's check reported on 2026-09-24 ran on an Xcode
+  build of main from before this change (CloudKit Development): drinks logged
+  from the card's ＋ and in the watch app showed up in the phone app about 1 to
+  2 seconds after it was opened. It is not a baseline for the card's path on
+  its own, because the watch app was used too, in an order not recorded, and on
+  that build both processes mirrored. An Xcode build of this branch, with the
+  watch app force-quit before the card's ＋, would be the like-for-like
+  comparison; the device check below is the one that gates 1.4.
 - **Import was not costed either.** Before the change the complication also
   registered an import activity. Whether it ever imported a phone drink on its
   own, ahead of the watch app, is unknown; if it did, a face reloaded from the
