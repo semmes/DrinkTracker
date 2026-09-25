@@ -3742,10 +3742,11 @@ Open items for v1.2:
   `tallyist.co`, so the App Store's current Privacy Policy and Support URLs work
   through the redirect. A typo in the custom domain (`tallest.co`) first sent every
   one of those links to a name that does not resolve; the owner corrected it, and
-  Fastly's Boston edge went on serving the wrong 301 for more than 45 minutes
-  (`age` past 2,700 s, no `cache-control` on the 301, a fresh query string made no
-  difference) while `tallyist.co` served every page. A custom-domain change is a
-  change to the live listing's links. Enforce HTTPS is still off, the owner's box to
+  Fastly's Boston edge went on serving the wrong 301 until its cached copy was an
+  hour old (cached 20:08, `age` up to 3,600 s, no `cache-control`, a fresh query
+  string made no difference; the corrected redirect at 21:09) while `tallyist.co`
+  served every page. A custom-domain change is a change to the live listing's links,
+  and a mistake in one outlives its fix by up to an hour at an edge that cached it. Enforce HTTPS is still off, the owner's box to
   tick. `semmes/Tallyist#2` (merged) set `baseurl: ""` and made the home page's
   links `{{ site.baseurl }}`-relative; with `/Tallyist` they 404ed on the domain.
   **The policy:** the owner chose the design's two web-only lines over the same

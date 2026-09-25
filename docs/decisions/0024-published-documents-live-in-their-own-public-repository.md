@@ -295,12 +295,14 @@ redirect. Two things happened on the way, and both matter before the domain is
 touched again. A typo in the custom domain (`tallest.co`) sent every
 `semmes.github.io/Tallyist/...` link, the App Store's included, to a name that does
 not resolve, until the owner corrected it. After the correction, Fastly's Boston edge
-kept serving the wrong 301 for more than 45 minutes: its `age` header climbed past
-2,700 seconds, the response carried no `cache-control`, and a fresh query string
-made no difference, while `tallyist.co` itself served every page. A change to the
-custom domain is therefore a change to the live listing's links, and a mistake in one
-can outlast its fix by as long as the edge keeps the old redirect. Enforce HTTPS is
-not yet on; it is a box in the repository's Pages settings, and the owner's to tick.
+went on serving the wrong 301 until the copy it had cached was an hour old: cached at
+20:08, it answered with an `age` header climbing to 3,600 seconds, no
+`cache-control`, and the same redirect for a fresh query string, and at 21:09 it
+fetched the corrected one. `tallyist.co` itself served every page throughout. A change
+to the custom domain is therefore a change to the live listing's links, and a mistake
+in one can outlast its fix by up to an hour at an edge that cached it. Enforce HTTPS
+is not yet on; it is a box in the repository's Pages settings, and the owner's to
+tick.
 
 **For 1.4.** App Store Connect takes a new Privacy Policy, Support or Marketing URL
 only with a version, so they move to `https://tallyist.co/privacy/`,
