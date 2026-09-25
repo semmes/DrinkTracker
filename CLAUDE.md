@@ -3895,7 +3895,23 @@ Open items for v1.2:
   its 390px capture shows text cut off that a real 390px viewport does not; measure
   overflow with the browser pane's emulation and JavaScript instead. It also does not
   exit after `--screenshot`: run it under a script that kills its process group.
-  **The owner's to do:** merge `semmes/Tallyist#1` to put the site live, then tick
-  Enforce HTTPS. Switching Pages to Actions and setting `DEPLOY_FROM_ACTIONS` is
-  optional; the branch build serves the same files. At 1.4: the App Store Connect
-  URLs, and `platform_state: 2`.
+  **Live the same night.** The owner ticked Enforce HTTPS and said to merge.
+  `semmes/Tallyist#1` merged as 1930bc0, and the branch build published it within a
+  minute. Checked live over HTTPS:
+  - http redirects to https;
+  - the five pages return 200 with their titles, and an unknown path returns the 404
+    page with a real 404 status;
+  - the stylesheet, the device images, the link preview, the badge and the press zip
+    all load;
+  - all five pages match the previewed build byte for byte, once whitespace is
+    normalised;
+  - the mirror's drift check still passes;
+  - the App Store's two current addresses (`semmes.github.io/Tallyist/privacy/` and
+    `/support/`) end on `https://tallyist.co/…` with a 200. For now they take two
+    hops, because an edge still holds the pre-HTTPS redirect to `http://`.
+
+  **Left, and the owner's:**
+  - At 1.4: the App Store Connect URLs, and `platform_state: 2`.
+  - Optional: switch Pages to Actions and set `DEPLOY_FROM_ACTIONS`, so a deploy waits
+    on the checks. The branch build serves the same files.
+  - The small widget's truncated label has its own task.
