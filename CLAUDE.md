@@ -284,7 +284,10 @@ ADR-0038 amended).** **The same day the owner chose where the marketing site liv
 marketing site lives in `semmes/Tallyist`…", ADR-0024 amended).** **On 2026-09-24
 tallyist.co went live, the support page became the owner's design with email for
 support, and the website's policy took two lines of its own (the bullet "tallyist.co
-is live…", ADR-0024 amended again).** **On 2026-09-23 the
+is live…", ADR-0024 amended again).** **The same night the site's home, Apple Watch
+and Press pages were built on the draft `semmes/Tallyist#1`, in Apple's own device
+images, on the terms the owner accepted (the bullet "The website's own pages are
+built…", ADR-0056).** **On 2026-09-23 the
 owner decided that 1.4 carries both features, and on 2026-09-24 both release phases landed as one
 (the bullet "1.4's release work…", ADR-0054):** the privacy policy's three copies, the
 purpose string, the four manifests' UserDefaults reason, What's New, the reviewer notes,
@@ -3796,7 +3799,8 @@ Open items for v1.2:
   one page; iPad, which the design leaves unnamed where Apple asks every device to
   be listed; and the "This website" note's "loads nothing from other sites" beside
   the Smart App Banner, which has Safari fetch the app's details from Apple. The
-  home, Apple Watch and Press pages wait on those answers. **How to look at a
+  home, Apple Watch and Press pages wait on those answers. *(Answered and built the
+  same night: the bullet "The website's own pages are built…".)* **How to look at a
   build of the site:** `gh run download <run> -R semmes/Tallyist -n github-pages`
   (a tar inside), then serve it with a `.claude/launch.json` running `python3 -m
   http.server` and open it with the browser pane's `preview_start`; the pane will
@@ -3838,3 +3842,60 @@ Open items for v1.2:
   ~/DrinkTracker reflog --date=iso` for the commit HEAD was on when they were written (a
   later pull moves HEAD); and `codesign -d --entitlements -` on the complication's
   `.appex`. No code, schema, CloudKit, catalog, privacy-policy or project-file change.
+- **The website's own pages are built, in Apple's own devices (2026-09-24; ADR-0056).**
+  The owner answered the five questions, and two answers were revised after a
+  correction. The first ruling was that a cropped device and two badges were fine
+  "since it's our own and not apples". Told that Apple's guidelines are the terms
+  attached to the badge and the device images wherever they appear, the owner chose
+  those terms. **What was agreed:** Apple's License Agreement for Apple Design
+  Resources, accepted by the owner in chat and entered at the disk images' prompt on
+  their behalf; the whole iPhone in the link preview; one App Store badge per page,
+  with the home page's closing section a text link, "Available on the App Store"; iPad
+  named once, in the footer; and Safari's App Store banner kept, with a clause in the
+  privacy page's "This website" note. **Built on the draft `semmes/Tallyist#1`:**
+  - the home page (`index.html`, which replaces `index.md`), `watch/index.html` and
+    `press/index.html`, from the design's markup, with Liquid reading
+    `platform_state`;
+  - `_includes/` for the device pictures, the close-ups and the badge;
+  - `scripts/make-images.py`, which flattens each screenshot into Apple's device:
+    iPhone 17 in black, and Apple Watch Series 11, 46mm, Jet Black with a black Sport
+    Band. Both screen openings match the screenshots exactly (1206 × 2622 at 72,69;
+    416 × 496 at 72,192). It writes WebP at 1x and 2x with a PNG fallback, the link
+    preview with the whole phone, plain press screenshots, and a zip of the
+    originals;
+  - the footer's availability line and Apple's trademark credit line, which the
+    guidelines ask for once per website and the design had missed.
+
+  **The bezel files are never committed.** The license allows images of the app in
+  the device, not the device art passed on by itself. They live only under this
+  session's scratchpad, so a later session re-downloads them (Apple's design
+  resources page, Product Bezels) and asks the owner before accepting the license
+  again. **Copy:** the design's, with the corrections listed in the copy review:
+  - the calendar's bands are standard drinks;
+  - the three US surveys;
+  - the average line belongs to Trends;
+  - Android's fixed wording;
+  - no exclamation marks;
+  - the Smart Stack is named as the Smart Stack;
+  - what hides the count on the watch and on the face.
+
+  **Verified:** CI green on each push (GitHub's Jekyll, every link and `srcset`,
+  contrast, outbound links). The built pages were rendered with headless Chrome at
+  1280px and compared section by section with the design's reference captures, and
+  three differences were fixed: the hero device's column, left-set captions, and the
+  Android line length. A JavaScript check on the served pages found no horizontal
+  overflow on any page at 390 or 320px, and the smallest device image stays above
+  Apple's 200px minimum. **Found and not fixed:**
+  - the design's own widget picture shows the small Home Screen widget reading
+    "drinks tod…", which is the app truncating its label;
+  - the Smart Stack picture is in edit mode;
+  - iPhone 17 is not the latest generation Apple asks for (ADR-0056).
+
+  **Tooling:** headless Chrome clamps a small `--window-size` to a wider layout, so
+  its 390px capture shows text cut off that a real 390px viewport does not; measure
+  overflow with the browser pane's emulation and JavaScript instead. It also does not
+  exit after `--screenshot`: run it under a script that kills its process group.
+  **The owner's to do:** merge `semmes/Tallyist#1` to put the site live, then tick
+  Enforce HTTPS. Switching Pages to Actions and setting `DEPLOY_FROM_ACTIONS` is
+  optional; the branch build serves the same files. At 1.4: the App Store Connect
+  URLs, and `platform_state: 2`.
