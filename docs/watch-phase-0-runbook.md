@@ -223,11 +223,20 @@ The checks that matter most, and what each one is protecting:
 | iOS app embeds the watch app | without the Embed Watch Content phase the watch app does not ship at all |
 | Bundle ids nest correctly | `…DrinkTracker.watchkitapp` must be the iOS id plus that suffix |
 | Bundle ids derive from `BUNDLE_ID_PREFIX` | invariant 4; a literal does not fail the build, it silently splits the store |
-| Entitlements complete and derived | CloudKit is the watch's only data path |
+| Entitlements complete and derived, per role (since 2026-09-24) | the watch app holds the App Group, the iCloud container, CloudKit and `aps-environment`, because CloudKit is the watch's only data path; the complication holds the App Group alone, because one process per device mirrors the store, the app (ADR-0055, proposed) |
 | No HealthKit entitlement on the watch | the watch writes no Health data by design |
 | No ComponentsKit on watch targets | app target only |
 | `Shared/` compiled into every target | four targets now, not three |
 | Sync agent free to run | main clone clean and on `main` |
+
+**Changed 2026-09-24 (ADR-0055, proposed until the owner accepts its cost and its PR
+merges):** the entitlements check is per role. Phase 0 gave both watch targets the same
+four keys, as Step 4's scaffold files did. The complication now holds the App Group
+alone, as the phone's widget always has, so it opens the store without mirroring. The
+verifier fails the watch app or the phone app if it lacks any of the three mirroring keys, and fails
+either extension, the complication or the phone's widget, if it holds one. It runs in CI
+as its own job, `watch-wiring` (`verify-watch-setup.py --ci`), so the check no longer
+depends on someone running it by hand.
 
 ---
 

@@ -100,16 +100,26 @@ same ladder for a caller that wants the rung back; it is not a second configurat
 *Failure mode:* two processes that open one store on different terms can disagree
 about its schema — one migrating it under the other — and neither fails loudly.
 **Identical configuration does not by itself stop two processes from both managing
-sync**: any process holding the iCloud container entitlement mirrors, so the watch
-app and its complication both do today — the multiple-container collision Apple's
-TN3164 warns against, open in ADR-0041. On the phone only the app holds the
-entitlement. This invariant's earlier failure mode, that a mirrored store opened without
-CloudKit "silently fails to write", is **retracted** (ADR-0004, 2026-09-16
-amendment): it was never observed, it was written while the widget was failing for
-a different reason, and on 2026-09-16 the widget extension — which holds no iCloud
-container and so opens the store without mirroring — wrote rows the app displayed.
-The widget is the one process on the phone that does not mirror, and that is by
-design: on the phone one process manages sync (ADR-0047).
+sync**: any process holding the iCloud container entitlement mirrors, and two of them
+mirroring one store is the multiple-container collision Apple's TN3164 warns against. So
+the entitlement decides who mirrors, and the rule is **one process per device, the
+app** (ADR-0047 for the phone; ADR-0055, proposed, for the watch). The phone app and
+the watch app hold the iCloud container, CloudKit and `aps-environment`; the
+home-screen widget and the watch complication hold the App Group alone, and read and
+write the store without mirroring. `scripts/verify-watch-setup.py` checks it in CI:
+the two apps must hold the three keys, and either extension holding any of them fails
+the build rather than mirroring beside its app. *(Until ADR-0055 the watch complication
+held the container and mirrored beside the watch app, open in ADR-0041; if ADR-0055 is
+not accepted, that is the state again.)* This invariant's earlier failure mode, that a
+mirrored store opened without CloudKit "silently fails to write", is **retracted**
+(ADR-0004, 2026-09-16 amendment): it was never observed, it was written while the
+widget was failing for a different reason, and on 2026-09-16 the widget extension —
+which holds no iCloud container and so opens the store without mirroring — wrote rows
+the app displayed. What stays unverified on hardware is the other half: that such a
+write reaches CloudKit through its app's mirroring, and when. TN3163 names a context
+save, or a remote-change notification the running app observes, as what schedules an
+export; nothing documented bounds the delay after an extension's write (ADR-0004's
+tier-4 item; ADR-0055's device check, before 1.4 ships).
 
 **6. HealthKit is a mirror, never a dependency.**
 `HealthKitService` returns `nil` rather than throwing; `DrinkStore.backfillHealthKit`

@@ -112,7 +112,10 @@ Wi-Fi, while both said they were in step. Nothing was lost and no bug was found
 in the sync path — the causes are all outside the app, and the investigation is
 recorded in the handoff — but the app asserted a health it had never verified,
 which is the same failure this ADR's first amendment found hiding inside the
-diagnostics themselves, one level up.
+diagnostics themselves, one level up. *("The causes are all outside the app" is
+corrected by the 2026-09-24 amendment below: one candidate lived inside it, and
+ADR-0055, proposed, removes it without its ever having been shown to be the
+cause.)*
 
 **So the third question is asked directly.** `CloudKitSyncMonitor` observes
 `NSPersistentCloudKitContainer.eventChangedNotification` — a plain
@@ -149,6 +152,8 @@ What follows from it:
   of the owner's evening and was unreadable before.
 - **This fixes nothing about the stall itself**, and nothing in the app can.
   It makes the next one visible and stops the app claiming otherwise meanwhile.
+  *(Qualified by the 2026-09-24 amendment below: one in-app candidate was found,
+  and is removed rather than fixed, since it was never shown to cause a stall.)*
 - The monitor only hears events while a process is alive, so a device that sat
   closed all day reports its last transfer, not its last opportunity. That is
   the honest reading of what it knows, and the reason the row says "Last
@@ -461,6 +466,48 @@ Consequences:
   failure produces; "Your log couldn't be read." in dark mode or at accessibility sizes
   (a system `ContentUnavailableView`); VoiceOver hearing "Not saved".
 
+## Amendment, 2026-09-24 — the complication opens without mirroring (ADR-0055, proposed)
+
+**This amendment is tied to ADR-0055, which is proposed:** accepted only when the
+owner accepts its cost and its PR merges. ADR-0055 takes the iCloud container,
+CloudKit and `aps-environment` off the watch complication, so on each device the app
+is the one process that mirrors the store. Three things in this record change with
+it.
+
+**A correction to the 2026-09-15 amendment.** It said no bug was found in the sync
+path and that "the causes are all outside the app". The first half stands. The
+second did not survive the same day: the Phase 7 investigation (ADR-0041's
+2026-09-15 amendment) found one candidate inside the app — the complication opening
+a second `NSPersistentCloudKitContainer` on the shared store on every timeline build,
+beside the watch app's, the collision TN3164 describes. ADR-0055 removes it. It was
+never shown to be the cause of the owner's evening and is not shown now: a simulator
+with no iCloud account cannot produce the collision, and no device has shown it. If
+the out-of-step symptom recurs with ADR-0055 in place, the in-app hypothesis is
+refuted and the outside causes are what remain. `CloudKitSyncMonitor` still records
+and never acts.
+
+**The complication now opens the store the way the widget does.** In a process with
+no iCloud container, `make()`'s `.automatic` opens on the first rung without
+mirroring — the first 2026-09-16 amendment's evidence, from the phone's widget. On a
+throwaway Series 12 simulator with no iCloud account, on 2026-09-23, after the
+change: the complication's process started no mirroring delegate (its log has no line
+mentioning CloudKit), and a card ＋ write landed, with a history transaction naming
+the complication's bundle, in a store carrying the mirroring container's metadata
+tables. `storeMode` is unaffected, since only the apps' launches write it. The rule
+that only the two apps start `CloudKitSyncMonitor` is unchanged, and on the watch the
+app is now the only exporter, so its monitor sees every export the watch makes.
+
+**The tier-4 item now covers the complication too.** The Consequences' unverified
+item — a store once mirrored, opened without CloudKit — and the first paragraph of How
+to reopen were written about the fallback rung. The same unknown now holds on both
+devices in normal use: a process that does not mirror writing into a store its app
+actively mirrors. On the phone the widget has done it since 1.0; on the watch the
+complication does it from ADR-0055 on. TN3163 names a context save, or a
+remote-change notification the running app observes, as what schedules an export;
+that the app exports such a write is expected, but its timing is undocumented and it
+has not been observed on a device. ADR-0055's device check, on a TestFlight build,
+is the gate before 1.4 ships.
+
 ## How to reopen
 
 If Tier 4 testing shows the no-CloudKit rung corrupts or silently drops writes on a
@@ -492,3 +539,8 @@ row can be written already pointing at it, the sample saved after, and the id cl
 Health refuses. That is one store save in the common case, at the price of a row that
 briefly names a sample Health does not yet hold. Writing Health before the log again is
 not the answer; the asymmetry above is why.
+
+On the 2026-09-24 amendment: if ADR-0055's device check shows a drink the complication
+wrote staying on the watch for hours, the choices are in ADR-0055's How to reopen, each
+its own decision. `CloudKitSyncMonitor` stays a recorder under any of them; its rule
+that it never retries, forces or schedules a transfer is not what they change.

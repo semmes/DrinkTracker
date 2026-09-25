@@ -179,6 +179,37 @@ Settings → Diagnostics.
   the seed in ADR-0042's, and the screens in ADR-0004's second 2026-09-16 amendment.
   The Health zero's copy of the refusal, which this list missed, is in ADR-0025's.)*
 
+## Amendment, 2026-09-24 — the watch now works the phone's way (ADR-0055, proposed)
+
+**This amendment is tied to ADR-0055, which is proposed:** accepted only when the owner
+accepts its cost and its PR merges. ADR-0055 takes the iCloud container, CloudKit
+and `aps-environment` off the watch complication, so the watch has the shape this
+record gives the phone: the app is the one process that mirrors the store, and the
+extension reads and writes it without mirroring. Two things above change with it.
+
+- **The watch's floor loses its stated cause, and is kept.** The Consequences say
+  the watch's remote-change observer needed a sixty-second floor because the
+  complication's own container writes bookkeeping that re-triggers it. Without the
+  iCloud container a timeline build only reads, so that writer is gone. The floor
+  stays: no remaining writer has been measured, and shortening it is the face's own
+  latency, a separate decision (ADR-0041's latency 1). The phone's reload on an
+  import's end, with no floor, is unchanged.
+- **The refusal of the widget's iCloud entitlement now holds on the watch too.** Its
+  argument — TN3164's one process managing sync, and an extension that opens the
+  store uncached on every timeline build starting a mirroring container on each — is
+  the one ADR-0055 applies to the complication, and the same cost follows: a drink
+  the complication card's ＋ writes reaches CloudKit only through the watch app's
+  own mirroring. TN3163 names a context save, or a remote-change notification the
+  running app observes, as what schedules an export; export after an extension's
+  write is expected, but its timing is undocumented and it has not been observed on
+  a device (ADR-0055's device check, before 1.4 ships). The Context's evening is
+  worth reading beside that: one card drink (the watch's transaction 187, 17:53:56)
+  was imported on the phone two seconds later (836, 17:53:58), under the old
+  entitlements. Which watch process exported it was not recorded, so, as with
+  ADR-0055's 2026-09-15 check, how much of that speed this gives up is not known. The
+  route this record leaves undecided for the phone, running the intent in the app's
+  process, has no documented watchOS form (ADR-0055's option (d)).
+
 ## How to reopen
 
 - **If a widget ＋ tap on hardware again does nothing**, read Settings → Diagnostics before
