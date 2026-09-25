@@ -2322,3 +2322,28 @@ days at once" (`docs/app-store-listing.md`).
 
 A plain label, like its line: no celebration, no judgment, no exclamation mark and
 no em dash. Pass.
+
+## 2026-09-25 — "multiple days" on the support page
+
+The owner's wording, following "Fill multiple days" on the home page. The support
+page is generated from `docs/support.md` and reaches `tallyist.co/support/` through
+the mirror on merge.
+
+- **"Can I add a drink to an earlier day?"** ends "On the Calendar, press and drag
+  to fill multiple days at once." in place of "On the Calendar, press and drag
+  across days to fill a stretch at once." "Across days" goes with "a stretch", so
+  the sentence does not say days twice.
+- **"What does press and drag on the Calendar do?"** opens "Touch and hold a day,
+  then drag across multiple days" in place of "Touch and hold a day, then drag
+  across a stretch of days". The rest of the answer is unchanged.
+
+Neither sentence claims anything new: the gesture and what it does are ADR-0011's,
+and the rest of each answer stands as the review of the website's support page
+above passed it.
+
+**Still not changed:** the calendar's tip in the app ("Tip: press and hold, then
+drag across days to fill a stretch at once") and the App Store description's "fill
+a stretch of days at once" (`docs/app-store-listing.md`).
+
+A plain description: no celebration, no judgment, no exclamation mark and no em
+dash. Pass.
