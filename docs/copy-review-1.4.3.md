@@ -2078,3 +2078,95 @@ the copy they changed, each now a fact:
 No exclamation marks, no em dashes in any new sentence, no benefit claimed.
 
 No exclamation marks anywhere in the batch. House voice intact.
+
+## The website's support page, and the policy's two web-only lines (ADR-0024 amended, 2026-09-24)
+
+The owner's site design (untracked, at `docs/design/marketing-design-handoff/` in
+the owner's checkout) brought a new support page and two lines of the policy that
+the website says its own way. Both are published at `tallyist.co` through the
+mirror. Neither ships in the app. The tests are this file's own: factual; no
+celebration, no judgment, no exclamation mark; no health claim or promise; and
+every claim checkable against the build or the policy.
+
+**The policy, website copy only.** The canonical text keeps both lines as they
+were. The app's copy keeps the first and has never had a Contact section.
+
+| Where | Reads on the website |
+|---|---|
+| "Changes to this policy" | "This policy is kept under version control; every change to it, and its date, is recorded." |
+| "Contact" | "Questions about this policy can be sent to tallyist@gmail.com." |
+
+The first is narrower than the sentence it replaces, and the 2026-08-31 addendum
+above held that sentence to a claim about verifiability. The website's version
+still promises a dated record of every change, which is true, but no longer says
+where a reader can see it. That is the owner's choice (the handle off the site),
+and the app's copy still names the public repository. Both pass as facts. Neither
+grades anything.
+
+**The support page** (`docs/support.md`, mirrored on merge). Its answers follow
+the site's platform state; the page carries only its own state's text.
+
+- Introduction, the design's: "Tallyist records the drinks you log and shows them
+  back to you as a calendar, totals, and charts. It does not set goals, give
+  advice, or say what is too much. It needs no account and has no servers." Pass.
+- "Email support" over "tallyist@gmail.com", and the bug-report line without its
+  parenthesis. Pass.
+- The design's eleven questions, kept in its words except where a fact needed
+  changing:
+  - "Do I need an account?" In state 3, "No account is required on either
+    platform. On iPhone there is nothing to sign in to. On Android, Tallyist asks
+    for no sign-in, and has no permission to use the internet.": the contract's
+    fixed Android wording in its own words, with the internet clause kept to
+    Android, since an iPhone app has no such permission to lack. The design
+    offered a Google sign-in that Android 1.0 does not ship.
+  - "Where is my data?" "On your devices, in your own private iCloud if iCloud is
+    on for Tallyist, and in Apple Health if you let Tallyist save to it." Health
+    was missing, and the policy lists it. In state 3 the Android sentence is the
+    contract's `privacy.body.android` storage line; the design's Google Drive
+    backup is not built.
+  - "Does Tallyist give advice?" "published US surveys", plural: the app names
+    and dates three sources. The design said "a published US survey".
+  - "What does the tip jar unlock?" "Tallyist never sees your payment details",
+    the policy's words. The design's "never sees it" is not quite true: Apple
+    tells the app that a purchase completed.
+  - "Can I use it without Apple Health?" "Logging, the calendar, Trends, History,
+    and export all work without it." The design's "everything works without it"
+    stops being true with 1.4, whose figures on Trends come from Health.
+  - "How do I change the standard drink size?" The design's answer, with the
+    grams the earlier page gave (14 g, 8 g, 10 g) and "It never changes what you
+    logged, only how it is counted." (ADR-0002). "Recounts past days" alone could
+    be read as rewriting them.
+  - "Is there an Apple Watch app?" and "Is there an Android app?" The design's
+    answers per state: "It is coming with Tallyist 1.4. It will require the
+    iPhone app and watchOS 26 or later." until the watch app is live, then "Yes.
+    It installs with the iPhone app. watchOS 26 and later."; "Not yet. It is
+    coming, with the same rules." until Android is, then "Yes, on Google Play.
+    Same app, same rules."
+  - The rest as designed. Pass.
+- The earlier page's how-to answers, carried over without their em dashes or bold
+  type. Changes of substance:
+  - "How do I record a day without a drink?" (was "…where I didn't drink?"): "On
+    Today, with the counter at zero, tap Record no alcohol today."
+  - "What does press and drag on the Calendar do?": "record them as no alcohol",
+    the app's words, for "mark them alcohol-free".
+  - "How do I cancel a recurring tip?" names the tip jar's own button first, "in
+    Tallyist under Settings → Buy me a drink → Manage or cancel", then the iOS
+    Settings route. The tips half of the old question is the design's tip-jar
+    answer now.
+  - "Does my log sync between my devices?": "shows the sync state", not "the live
+    sync state". Since ADR-0004's 2026-09-15 amendment, Settings says it is
+    syncing only once something has moved.
+  - "What do the calendar colours mean?": "A day recorded as no alcohol gets an
+    outline", the app's term, for "Alcohol-free days".
+  - The watch and Apple Health on Trends answers keep "From version 1.4" until
+    the watch app is live. The watch answer now opens "The watch app logs a drink
+    when you tap the plus", so that the prefix comes and goes at a word boundary.
+  - "I used another app before" keeps both sentences the design's shorter answer
+    had dropped: entries that count more than one drink stay as they are, and a
+    no-alcohol day from Health has no remove control and is replaced by logging a
+    drink on it.
+- Removed: the issue tracker section, with its GitHub account and "issues are
+  public" sentences, and the footer sentence about the public repository.
+
+No exclamation marks and no em dashes in any new or changed sentence. House
+voice intact.

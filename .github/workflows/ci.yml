@@ -34,6 +34,40 @@ jobs:
           token: ${{ secrets.TALLYIST_CONTRACT_TOKEN }}
       - name: Dates agree across the policy's copies
         run: python3 .github/scripts/check_policy_dates.py
+      # The website's copy of the policy differs from the canonical one in the
+      # lines WEB_ONLY names (ADR-0024). An edit that changes the text one of
+      # them replaces would otherwise surface only after merge, as a failed
+      # sync, with the old website copy still live; this fails the PR instead.
+      - name: The published copies render, web-only lines included
+        run: python3 .github/scripts/mirror_docs.py render-all
+
+  # The support page picks some answers with Liquid by the website's platform
+  # state (ADR-0024), and the website builds the published copies with GitHub
+  # Pages' Jekyll. A tag Jekyll cannot render fails that build after merge,
+  # which leaves the old page live and says so only in an email; this builds
+  # both published copies with the same Jekyll, in each state, before merge.
+  # No submodule, so no contract token: it needs this repository's docs alone.
+  published-docs:
+    name: Published documents build (state ${{ matrix.state }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        state: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Lay out a minimal site around the published copies
+        run: |
+          mkdir -p site/_layouts
+          python3 .github/scripts/mirror_docs.py render privacy-policy.md site/privacy-policy.md
+          python3 .github/scripts/mirror_docs.py render support.md site/support.md
+          printf 'baseurl: ""\nplatform_state: %s\n' "${{ matrix.state }}" > site/_config.yml
+          printf '{{ content }}\n' > site/_layouts/default.html
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: site
+          destination: site/_site
+      - name: The pages say what their state should
+        run: python3 .github/scripts/check_published_build.py site/_site "${{ matrix.state }}"
 
   # The drink and tab glyphs are generated output (ADR-0036, ADR-0040): thirteen
   # .symbolset folders written by a dependency-free script from the owner's

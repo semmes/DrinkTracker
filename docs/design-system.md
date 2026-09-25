@@ -44,6 +44,13 @@ geometry there is the reference. Use the mark alone; never lock it up with text,
 never recolour it, never show a partial tally (a tally of three reads as a
 count, and the icon must not appear to count anything).
 
+**One exception, the owner's (2026-09-24):** the website at `tallyist.co` may
+set the app icon beside the word "Tallyist", in its header and in the home
+page's closing section. The owner's site design approves that lockup for
+marketing only (its handoff README, "Brand rules"; the handoff is untracked, in
+the owner's checkout at `docs/design/marketing-design-handoff/`). It is the
+whole icon, never the mark cut out of it, and nothing inside the app uses it.
+
 ### Voice
 
 The verbal identity is already settled law — ADR-0001 (no celebration), ADR-0006

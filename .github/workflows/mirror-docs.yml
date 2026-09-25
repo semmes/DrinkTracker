@@ -90,8 +90,9 @@ jobs:
           Mirror the published documents from the app repository
 
           Generated from docs/ in semmes/DrinkTracker@${GITHUB_SHA:0:7} by
-          .github/scripts/mirror_docs.py. The bodies are canonical there; only
-          the Jekyll front matter is added here (ADR-0024).
+          .github/scripts/mirror_docs.py. The bodies are canonical there; the
+          Jekyll front matter is added here, and the privacy policy's web-only
+          lines replace their canonical ones (ADR-0024).
           MSG
           git push
           echo "Pushed updated published copies."
