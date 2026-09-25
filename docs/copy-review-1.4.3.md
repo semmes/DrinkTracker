@@ -2178,3 +2178,104 @@ the site's platform state; the page carries only its own state's text.
 
 No exclamation marks and no em dashes in any new or changed sentence. House
 voice intact.
+
+## The website's own pages: home, Apple Watch and Press (ADR-0056, 2026-09-24)
+
+The site design's copy for `tallyist.co`, built on the draft `semmes/Tallyist#1`.
+None of it ships in the app. The same tests as the rest of this file apply: factual;
+no celebration, no judgment, no exclamation mark; no health claim or promise; and
+every claim checkable against the build, the policy or the contract.
+
+**Kept as the design wrote it** (each checked against the app): the hero ("Count
+what you drink. See your own pattern." and its lead line); "From what’s on tap, to
+on tap." with its paragraph; "Say what it was, when you feel like it."; "Yesterday
+counts too."; "Session pacing" and its paragraph (the switch is off by default, and
+the card sets no limit and sends nothing); "Phones away." and its line; the eight
+"Everything else." items; "No account required", "No analytics" and "Your own
+storage"; "Free. All of it."; the Apple Watch page's heading and lead; and the press
+page's paragraph, icon rule and contact lines. Pass.
+
+**Changed where a fact needed it:**
+
+- **Platform list:** "Apple Watch · Coming with Tallyist 1.4" and "Android ·
+  Coming", the handoff README's wording. The prototype had "Coming soon" and
+  "Coming soon!", and a list item cannot carry an exclamation mark.
+- **Calendar:** "1 to 2 standard drinks", not "drinks", in the caption and the
+  description. The calendar's bands are standard drinks (ADR-0034). The sentence
+  about the line labelled "Your average" moved to Trends, because the calendar has
+  no such line.
+- **Trends:** "optional references from published US surveys, each named and dated
+  in the app". The app cites three (the Alcohol Research Group, NESARC-III and
+  NHANES), where the design said one. Added: "The dashed line is your own average,
+  not a target."
+- **Android:** "Android is coming." and the contract's fixed wording, "No account
+  is required. Tallyist asks for no sign-in, and has no permission to use the
+  internet." The design offered an optional Google sign-in, which Android 1.0 does
+  not ship. In state 3, the storage line is the contract's `privacy.body.android`.
+- **"Yours, and only yours.":** "Apple Health is optional, and the app works
+  without it", because 1.4's figures on Trends need Health, so "everything works"
+  would not be true. "No servers" now reads "Tallyist runs none. Your log never
+  reaches the developer." The design's "there is nowhere for your log to go" was
+  untrue of the reader's own iCloud and Health.
+- **"Free. All of it.":** the design's "cheers!" is removed; no exclamation marks.
+- **Closing section:** "Available on the App Store", Apple's own phrasing, as a
+  link in place of a second badge (ADR-0056).
+- **Apple Watch page:**
+  - The banner reads "Coming with Tallyist 1.4. Requires the iPhone app and
+    watchOS 26 or later." The design had "Coming soon", which would outlive the
+    release.
+  - "Today’s count, on the face or in the Smart Stack." The design's picture is the
+    Smart Stack, and its card has its own plus.
+  - "Off until you turn it on." is added to the dots, because the session row
+    appears only once a switch is on.
+  - The design's "in the order you logged them" is dropped: every dot takes the
+    window's band, so the order carries nothing.
+  - The hiding sentence says what each surface does: "In the app, tap the count to
+    hide it, and it hides by itself when you lower your wrist. On the watch face, it
+    hides while the watch is locked, as it is once you take it off." The design said
+    the face redacts "when your wrist drops". ADR-0045 says it does not: the app
+    redacts in Always-On, and a complication redacts on a locked watch.
+- **Footer:** "Tallyist is available for iPhone and iPad" (and Apple Watch from
+  state 2), and Apple's trademark credit line (ADR-0056).
+- **"This website" (privacy page):** adds "On iPhone and iPad, Safari may show its
+  own App Store banner at the top of a page, with details Safari fetches from
+  Apple."
+- **Alt text:** true to the pictures. The calendar's text says standard drinks, and
+  the Smart Stack is named as the Smart Stack.
+
+**Found in the design's screenshots, not fixed here:**
+
+- The small Home Screen widget shows "drinks tod…" for "drinks today" (the widget
+  picture on the home page). That is the app's own widget truncating its label.
+- The Smart Stack picture shows the stack in edit mode, with its Edit button.
+
+No exclamation marks and no em dashes in any new or changed sentence. House voice
+intact.
+
+## 2026-09-24 — "Coming soon" on the website
+
+The owner's wording for `tallyist.co`, in place of "Coming with Tallyist 1.4" for
+the watch app and "Coming" for Android. The site's own pages change in
+`semmes/Tallyist#3`; the support page is generated from `docs/support.md` and
+changes here.
+
+- **Home page:** both platform rows read "Apple Watch · Coming soon" and "Android ·
+  Coming soon", and the watch section's eyebrow reads "Coming soon". The Android
+  heading stays "Android is coming."
+- **Apple Watch page:** the banner reads "Coming soon" beside "Requires the iPhone
+  app and watchOS 26 or later.", and the closing line reads "Coming soon. Requires
+  the iPhone app and watchOS 26 or later."
+- **Support page:** "Is there an Apple Watch app?" answers "It is coming soon. It
+  will require the iPhone app and watchOS 26 or later.", and "Is there an Android
+  app?" answers "Not yet. It is coming soon, with the same rules."
+
+This reverses the choice recorded in the section above, where the design's "Coming
+soon" was set aside because it "would outlive the release". That cost now rests on
+the state switch alone: "Coming soon" names no release, so on the day the watch app
+is live `platform_state` has to go to 2, or the site goes on saying it is coming.
+The step is in the 1.4 reminders in `docs/app-store-listing.md`. The support page's
+how-to answers keep "From version 1.4" until then, because they tell a reader which
+update to look for.
+
+A plain status: no celebration, and no exclamation mark (the prototype's "Coming
+soon!" was never used). Pass.
