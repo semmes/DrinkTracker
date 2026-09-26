@@ -4340,7 +4340,17 @@ Open items for v1.2:
   from an earlier commit ships without it, and then it reaches 1.5. **The screenshot
   candidates show both tips as they were.** The calendar pair (`iphone-02-calendar-*`)
   has the old words in the old ink, so if 1.4 carries this they no longer match the app
-  and are the pair worth retaking. The Trends ones (`iphone-03*`, the two dark ones
+  and are the pair worth retaking. *(Retaken the same evening at the owner's request,
+  from a Release build of main at c640a71 on a throwaway iPhone 18 Pro Max on iOS 27,
+  with one tap on the Calendar tab. The drinks are the log the Trends retake rebuilt, the
+  no-alcohol days were read off the original frames, and the log moved three days as in
+  that retake, so today is Sep 26 and the "Last 30 days" card still reads 12, 11 and 7.
+  Diffed against the originals, only the tip (the owner's words, now 3.44:1 and 6.36:1)
+  and the grid (the same log three days later) differ; nothing else moves by more than
+  one level, and that only in the glass. The upload copies are RGB with an sRGB chunk
+  only, the light one with its corner speck painted out like the other light files. The
+  originals are in `iphone-6.9/superseded-2026-09-26/`, and both screenshot READMEs
+  record the retake.)* The Trends ones (`iphone-03*`, the two dark ones
   retaken from 57440d1 for #142 before this merged) have the old ink only, faint enough
   that a retake is optional. **Open, the owner's:** the watch's hint (design-system §9,
   open item 1), the same kind of line, which the watch's `.secondary` would put at
