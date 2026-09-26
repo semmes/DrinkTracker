@@ -115,7 +115,13 @@ extension ShapeStyle where Self == Color {
   /// target's text.
   static var secondaryInk: Color { Color(.secondaryLabel) }
 
-  /// Tertiary ink, by the same rule: `tertiaryLabel`, flat.
+  /// Tertiary ink, by the same rule: `tertiaryLabel`, flat. Never for text a
+  /// reader needs: it measures 1.72:1 on white and 2.23:1 on black, the
+  /// colour's own value, which no flat token lifts (iOS 27 simulator,
+  /// 2026-09-26; `docs/design-system.md` §2). A tip or anything else that
+  /// tells the reader something takes `secondaryInk`. What is left in
+  /// tertiary is a disclosure chevron, a placeholder hidden from VoiceOver
+  /// and a decorative line, and `TertiaryInkTests` names each site.
   static var tertiaryInk: Color { Color(.tertiaryLabel) }
 }
 

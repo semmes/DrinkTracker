@@ -315,6 +315,12 @@ take an ink resolved for the current appearance (the bullet "The chart's axis la
 follow a live appearance change…", ADR-0028's third amendment). The owner decided the
 same day that it ships in 1.4, merged before the archive, and the two dark Trends
 screenshot candidates were retaken from a build that carries it.**
+**The same day the Trends and calendar tips moved from tertiary to secondary ink**,
+from 1.72:1 on white and 2.23:1 on black to 3.44:1 and 6.36:1 (the bullet "The two tips
+take secondary ink…", design-system §2), and the owner reworded the calendar's to "Tip:
+Press and drag across the calendar to fill several days at once.", with "fill a stretch"
+replaced in the App Store description too. Xcode Cloud archives every commit on main, so
+1.4 carries both only if the build the owner submits comes from their merge or later.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4244,7 +4250,9 @@ Open items for v1.2:
   1.3 on iOS 27 most likely shows the lag until 1.4 replaces it (inferred from the source,
   not seen on a store build). **Found, not fixed:** the Trends card's "Tip: drag across
   the bars…" line in `.tertiaryInk` measures 1.72:1 on white and 2.23:1 on black. That is
-  the tertiary label's own value, not a lag, so no ink token lifts it. **Not verified:**
+  the tertiary label's own value, not a lag, so no ink token lifts it. *(It moved to
+  secondary ink the same day, with the calendar's tip: the bullet "The two tips take
+  secondary ink…".)* **Not verified:**
   hardware; Week and Year after a live switch (one code path); the app's own Appearance
   setting as the trigger. **How it was measured, for next time:** `simctl ui <udid>
   appearance light|dark` and `increase_contrast enabled` switch live without a tap. A
@@ -4258,3 +4266,74 @@ Open items for v1.2:
   where exactly 2.0 draws it to 2.0 (wine and the untyped drink are exact; cosmetic, not
   fixed); and a native segmented control draws its selected label semibold only after a
   real tap, so a launch hook that sets the range cannot reproduce a tapped frame.
+- **The two tips take secondary ink (2026-09-26; design-system §2).** A screenshot audit
+  of the 1.4 candidates (`Claude outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-*.png`,
+  untracked in the main checkout) found Trends' "Tip: drag across the bars to see what
+  each one holds" at 1.72:1 on the card's white and 2.23:1 on its black. **Reproduced on a
+  scratch iPhone 18 Pro Max (iOS 27) over a seeded log:** #C5C5C7 on #FFFFFF and #464649
+  on #000000, which is `.tertiaryInk`'s own value, so no flat token lifts it (Increase
+  Contrast takes it to 4.45:1 and 5.42:1). **Every `.tertiaryInk` site in the app target
+  measured the same**, and there are five. **Decided, and the owner's to overrule:** the
+  two tips take `.secondaryInk`, Trends' and the calendar's (then "Tip: press and hold,
+  then drag across days to fill a stretch at once"), because each is the only visible
+  explanation of a gesture with no visible affordance. **The owner then reworded the
+  calendar's tip, from the screenshot:** "Tip: Press and drag across the calendar to
+  fill several days at once.", the website's home-page sentence word for word, and
+  "fill a stretch" goes everywhere else too: the App Store description (the base text
+  and 1.4's version A) now says "fill several days at once" (copy review, 2026-09-26).
+  "Stretch" is now in none of the app's strings, the description, the support page or
+  the live site. The press still has to rest a quarter of a second before the drag or
+  the calendar scrolls, which the old "hold" said; the support page's answer still
+  says "Touch and hold a day". The capital P and the full stop are the owner's; Trends'
+  tip has neither. One app key out and one in (378); the new key has no translator
+  comment, since sync added it. Removing the Trends line would
+  hide the scrub from anyone who has not found it, and the line was reworded in
+  ADR-0028's amendments and kept. Leaving it as incidental text is not open either: WCAG
+  exempts decoration, inactive controls and logotypes, not instructions. The calendar's
+  tip is included because it is the same kind of line with the same numbers, and Trends'
+  comment names it as its precedent; putting it back is one token. **Kept in tertiary,
+  with reasons:** Today's and the day sheet's row chevron, which is the colour the
+  system gives its own chevrons (the Settings app measured the same #C5C5C7 on white,
+  and #5A5A5E on its #1C1C1E cells, 2.48:1), though on the day sheet it is the only
+  visible cue that a described drink opens; the Health offer's "– –" placeholder, hidden
+  from VoiceOver; and onboarding's decorative "(that's five)", also hidden.
+  `TertiaryInkTests` (tier 2, a file of its own beside `InkTests`, which #142 rewrote
+  while this was in review) names those three and fails on any other use. Its negative
+  control, a scratch copy with Trends' tip back in tertiary, failed naming
+  `TrendsView.swift`.
+  `tertiaryInk`'s doc comment says the same. **Measured after:** both tips 3.44:1 on
+  white and 6.36:1 on black, the caption beside each; 5.97:1 and 8.48:1 with Increase
+  Contrast; unchanged after three live appearance switches. Before and after screenshots
+  of both screens on the same log differ only inside the two lines, in both appearances.
+  Secondary's 3.44:1 in light is still under 4.5:1 for 11pt text, but it is the ink of
+  the app's other small captions, so that floor is an app-wide question. The bar-selection
+  design bundle drew the tip `.tertiary`, a departure recorded in §2. No ADR, following
+  the precedent of the drink sheet's detent folds: a code comment, design-system and
+  this bullet. The ink change touched no string; the rewording is the one key above. No
+  schema, CloudKit, setting or project-file change, and invariant 10 holds, since the
+  ink is the system's semantic colour. **Gates, locally
+  (Xcode 27.0):** the CI-form generic build, with only the four existing `Text +`
+  deprecation warnings in `TrendsView.swift`; 121 integration tests on the scratch
+  simulator with `-warn-long-expression-type-checking=25` (the two slow expressions it
+  reports are in `FailedReadTests` and `FailedWriteTests`, and are older), and 123 after
+  main (#142, #144, #145) was merged in. Domain tests were not run, since the package did
+  not change here. **Which release:** 1.3 is live (the lookup API, 2026-09-26) and 1.4 has
+  not been submitted; #142 merged the same afternoon "before the archive", at the owner's
+  call. Xcode Cloud's "Default" workflow archives every commit on main (its "Archive -
+  iOS" check ran on 3714668, 146d92d and cd0ead7), so this merge becomes a 1.4 build, and
+  1.4 ships the change only if the build the owner submits comes from it or later. One
+  from an earlier commit ships without it, and then it reaches 1.5. **The screenshot
+  candidates show both tips as they were.** The calendar pair (`iphone-02-calendar-*`)
+  has the old words in the old ink, so if 1.4 carries this they no longer match the app
+  and are the pair worth retaking. The Trends ones (`iphone-03*`, the two dark ones
+  retaken from 57440d1 for #142 before this merged) have the old ink only, faint enough
+  that a retake is optional. **Open, the owner's:** the watch's hint (design-system §9,
+  open item 1), the same kind of line, which the watch's `.secondary` would put at
+  6.36:1; the medium widget's
+  "≈ N standard drinks" caption in `.tertiary`, not measured; and whether the day
+  sheet's chevron should clear 3:1. **Not verified:** hardware; VoiceOver (no label
+  changed); accessibility sizes (ink only). **Tooling:** the bottom of Trends, where the
+  Health offer lives, is reachable with no tap through a scratch copy whose ScrollView
+  takes `.defaultScrollAnchor(.bottom)` from a `SIMCTL_CHILD_` variable; `simctl ui <udid>
+  increase_contrast enabled` works live; and the Settings app's own chevrons are the
+  system's reference colour. The scratch simulator was deleted afterwards.

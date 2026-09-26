@@ -535,10 +535,13 @@ struct TrendsView: View {
       // Discoverability for a gesture with no visible affordance — the
       // calendar's own precedent. One line, one key for all four ranges.
       // "tap" is gone because on iOS 26 an instantaneous tap does not select:
-      // selection needs the short dwell that begins a scrub.
+      // selection needs the short dwell that begins a scrub. Secondary ink,
+      // not the design's tertiary: this line is the only place a sighted
+      // reader learns the scrub exists, and tertiary measured 1.72:1 on the
+      // card's white and 2.23:1 on its black (design-system §2, 2026-09-26).
       Text("Tip: drag across the bars to see what each one holds")
         .font(.caption2)
-        .foregroundStyle(.tertiaryInk)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 6)
     }
