@@ -52,7 +52,7 @@ watch model and watchOS version.
 
 <details>
 <summary>Can I add a drink to an earlier day?</summary>
-<p>Yes. Add, change, or remove a drink on any past day from History or the Calendar. On the Calendar, press and drag across days to fill a stretch at once.</p>
+<p>Yes. Add, change, or remove a drink on any past day from History or the Calendar. On the Calendar, press and drag to fill multiple days at once.</p>
 </details>
 
 <details>
@@ -70,7 +70,7 @@ watch model and watchOS version.
 {% if state >= 2 -%}
 <p>Yes. It installs with the iPhone app. watchOS 26 and later.</p>
 {%- else -%}
-<p>It is coming with Tallyist 1.4. It will require the iPhone app and watchOS 26 or later.</p>
+<p>It is coming soon. It will require the iPhone app and watchOS 26 or later.</p>
 {%- endif %}
 </details>
 
@@ -79,7 +79,7 @@ watch model and watchOS version.
 {% if state >= 3 -%}
 <p>Yes, on Google Play. Same app, same rules.</p>
 {%- else -%}
-<p>Not yet. It is coming, with the same rules.</p>
+<p>Not yet. It is coming soon, with the same rules.</p>
 {%- endif %}
 </details>
 
@@ -100,7 +100,7 @@ watch model and watchOS version.
 
 <details>
 <summary>What does press and drag on the Calendar do?</summary>
-<p>Touch and hold a day, then drag across a stretch of days to give them all the same answer at once: record them as no alcohol in one tap, or log the same number of drinks on each. Days that already have a record are never touched.</p>
+<p>Touch and hold a day, then drag across multiple days to give them all the same answer at once: record them as no alcohol in one tap, or log the same number of drinks on each. Days that already have a record are never touched.</p>
 </details>
 
 <details>

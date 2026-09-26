@@ -625,7 +625,9 @@ label categories, no third-party code, no accounts, no servers.
   (ADR-0024, amended 2026-09-24).
 - **When 1.4 is live,** set `platform_state: 2` in `semmes/Tallyist`'s
   `_config.yml` (the site's own file, not a mirrored one). The support page
-  then answers the watch question with "Yes" and drops "From version 1.4".
+  then answers the watch question with "Yes" and drops "From version 1.4",
+  and the home and Apple Watch pages stop saying "Coming soon", which names no
+  release and would otherwise stay up.
 - **Before submitting,** run one TestFlight build across a phone and a watch
   on one iCloud account: log on each, with each app closed in turn, and on
   the watch from the Smart Stack card's plus. The watch's sync has never run
