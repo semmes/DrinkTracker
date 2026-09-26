@@ -676,17 +676,20 @@ label categories, no new third-party code, no accounts, no servers.
   2026-09-24 (CLAUDE.md, the bullet "The website's own pages are built…"), and
   `http://tallyist.co/` answers 301 to https.
 - **The TestFlight build** (added 2026-09-26):
-  - **Xcode.** Archive with the Xcode the latest device passes used: 27.0 on
-    this Mac since 2026-09-18. 1.3 was archived with Xcode 26.6 against the
-    iOS 26.5 SDK. The hardware passes from 2026-09-22 on (the four Health
-    rows, the watch-to-phone check, ADR-0055's test) ran on Xcode 27 builds;
-    the watch passes of 2026-09-14 to 16 ran on 26.6.
-  - **Xcode Cloud, if it does the archive.** First give it access to the
-    private `semmes/tallyist-product`. `contract/` has been a submodule of that
-    repository since 2026-09-13, after the last archive, and Apple's Xcode Cloud
-    documentation says submodules need no separate configuration only when
-    their repositories are publicly accessible. A manual Xcode archive is
-    unaffected, because nothing in the build uses `contract/`.
+  - **Which build.** The last code change on the 1.4 train is PR #150 (the
+    watch's hint and the widget's ≈ line), merged as 15a4f9f. Submit a build
+    from that commit or later; anything earlier lacks some of 2026-09-26's
+    fixes. A manual archive has to come from a checkout pulled to it.
+  - **Xcode Cloud already archives main.** Its "Archive - iOS" action
+    succeeded on 146d92d, 15a4f9f, 9891976 and b8eb04b (2026-09-26: 0 errors,
+    32 deprecation warnings), so the private `contract/` submodule does not
+    stop it; nothing in the build uses `contract/`.
+  - **Xcode version.** The hardware passes from 2026-09-22 on (the four
+    Health rows, the watch-to-phone check, ADR-0055's test) ran on Xcode 27.0
+    builds, the watch passes of 2026-09-14 to 16 on 26.6, and 1.3 was archived
+    with 26.6 against the iOS 26.5 SDK. A manual archive on this Mac uses
+    27.0. Xcode Cloud uses the version set in its workflow's Environment,
+    which only App Store Connect shows.
   - **Testing.** Internal testing is enough for the pass.
     `ITSAppUsesNonExemptEncryption` is `NO` on the iOS app. Whether that also
     covers the embedded watch app will show at the first upload.
