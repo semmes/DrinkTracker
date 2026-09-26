@@ -206,6 +206,45 @@ the tertiary label colour's own value on black, not vibrancy, so a flat ink
 would not lift it. **Whether the rule extends to the watch, the complication
 and the widget is open for a later pass**; nothing is changed here.
 
+**Tertiary ink is not for text a reader needs** (2026-09-26). Measured on
+the rendered pixels (iOS 27 simulator, iPhone 18 Pro Max, over a seeded
+log), `.tertiaryInk` drew #C5C5C7 on white (**1.72:1**) and #464649 on black
+(**2.23:1**) at every site in the app target. That is the tertiary label
+colour's own value, not vibrancy or a stale trait, so no flat token lifts
+it; Increase Contrast takes it to 4.45:1 and 5.42:1, but only for the few
+who turn that on. The two lines that explain a gesture with no visible
+affordance therefore take `.secondaryInk`: Trends' "Tip: drag across the
+bars to see what each one holds" and the calendar's "Tip: press and hold,
+then drag across days to fill a stretch at once". Measured after, **3.44:1**
+on white and **6.36:1** on black (5.97:1 and 8.48:1 with Increase Contrast),
+the same as the caption beside each, and the same again after live switches
+between light and dark. They stay quiet by size, caption2 under footnote
+captions, which is how the app tells its other levels apart. In screenshots
+of both screens taken before and after on the same log, no pixel outside the
+two lines changed, in either appearance.
+The bar-selection design bundle drew the Trends tip `.tertiary`; this
+departs from it.
+
+| Site | What it is | Light | Dark | Ink now |
+|---|---|---|---|---|
+| Trends' tip (`TrendsView.swift`) | the only visible mention of the scrub | 1.72 → **3.44:1** | 2.23 → **6.36:1** | `.secondaryInk` |
+| The calendar's tip (`CalendarView.swift`) | the only visible mention of drag-to-fill | 1.72 → **3.44:1** | 2.23 → **6.36:1** | `.secondaryInk` |
+| A logged row's chevron (`TodayDrinkRow.swift`, on Today and the day sheet) | a glyph in the colour the system gives its own chevrons (Settings measured #C5C5C7 on white, 1.72:1, and #5A5A5E on its #1C1C1E cells, 2.48:1). The row is a button that says so to VoiceOver; on Today the footer says "Tap a drink to change what it was.", on the day sheet the chevron is the only visible cue for a described drink | 1.72:1 | 2.23:1 | `.tertiaryInk`, kept |
+| The Health offer's "– –" (`HealthPairingSection.swift`) | a placeholder where a figure will be, hidden from VoiceOver, under a sentence saying what the figures are | 1.72:1 | 2.23:1 | `.tertiaryInk`, kept |
+| "(that's five)" (`WelcomeView.swift`) | decoration under onboarding's tally mark, hidden from VoiceOver | 1.72:1 | 2.23:1 | `.tertiaryInk`, kept |
+
+`TertiaryInkTests` (tier 2) names the three kept sites and fails on any
+other use of the token, so a new one is written down with its reason rather
+than reached for. The tips now sit at the app's floor for small text, not
+above it: secondary's 3.44:1 in light is under 4.5:1 for text this size, the
+system secondary label's own value and the ink of every caption in the app,
+so lifting that floor is a question for the whole app rather than for these
+two lines. Outside the app target, the watch's hint (§9, "Open, for the
+owner", item 1) is the same kind of line and would measure 6.36:1 in the
+watch's `.secondary`; it stays the owner's. The medium Home Screen widget's
+"≈ N standard drinks" caption is also `.tertiary` (`QuickLogWidget.swift`)
+and was not measured.
+
 ---
 
 ## 3. Typography
@@ -664,7 +703,10 @@ Recorded, not changed here.
    is under 4.5:1 for text that size and under 3:1 too. The measured colour is
    exactly the tertiary label colour, `rgba(235,235,245,0.3)` over black — the
    style's own value, not vibrancy, so §2's flat-ink rule would not lift it.
-   The secondary ink beside it measures 6.36:1.
+   The secondary ink beside it measures 6.36:1. On 2026-09-26 the phone's two
+   tips, the same kind of line at the same 2.23:1 on black, moved to secondary
+   (§2, "Tertiary ink is not for text a reader needs"); the watch's hint was
+   left for this decision.
 2. **The type scale is fixed** (Type, above).
 3. **The watch's accent is step 500, not 400.** `Color.accentColor` renders the
    asset's universal `#256ABF` on the watch — measured on the − glyph and the

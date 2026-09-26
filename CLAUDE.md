@@ -309,6 +309,10 @@ small Home Screen widget stopped cutting its words short** — "drinks tod…" i
 marketing screenshot, and cut or shrunk on every iPhone iOS 26 supports — by giving them
 the whole column beside the ＋ and a second line (the bullet "The small widget's words
 wrap…", ADR-0057).
+**The same day the Trends and calendar tips moved from tertiary to secondary ink**,
+from 1.72:1 on white and 2.23:1 on black to 3.44:1 and 6.36:1 (the bullet "The two tips
+take secondary ink…", design-system §2). Xcode Cloud archives every commit on main, so 1.4
+carries it only if the owner submits a build from its merge or later.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4078,3 +4082,57 @@ Open items for v1.2:
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
   marketing site's widget picture still shows the old build.
+- **The two tips take secondary ink (2026-09-26; design-system §2).** A screenshot audit
+  of the 1.4 candidates (`Claude outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-*.png`,
+  untracked in the main checkout) found Trends' "Tip: drag across the bars to see what
+  each one holds" at 1.72:1 on the card's white and 2.23:1 on its black. **Reproduced on a
+  scratch iPhone 18 Pro Max (iOS 27) over a seeded log:** #C5C5C7 on #FFFFFF and #464649
+  on #000000, which is `.tertiaryInk`'s own value, so no flat token lifts it (Increase
+  Contrast takes it to 4.45:1 and 5.42:1). **Every `.tertiaryInk` site in the app target
+  measured the same**, and there are five. **Decided, and the owner's to overrule:** the
+  two tips take `.secondaryInk`, Trends' and the calendar's "Tip: press and hold, then
+  drag across days to fill a stretch at once", because each is the only visible
+  explanation of a gesture with no visible affordance. Removing the Trends line would
+  hide the scrub from anyone who has not found it, and the line was reworded in
+  ADR-0028's amendments and kept. Leaving it as incidental text is not open either: WCAG
+  exempts decoration, inactive controls and logotypes, not instructions. The calendar's
+  tip is included because it is the same kind of line with the same numbers, and Trends'
+  comment names it as its precedent; putting it back is one token. **Kept in tertiary,
+  with reasons:** Today's and the day sheet's row chevron, which is the colour the
+  system gives its own chevrons (the Settings app measured the same #C5C5C7 on white,
+  and #5A5A5E on its #1C1C1E cells, 2.48:1), though on the day sheet it is the only
+  visible cue that a described drink opens; the Health offer's "– –" placeholder, hidden
+  from VoiceOver; and onboarding's decorative "(that's five)", also hidden.
+  `TertiaryInkTests` (tier 2, a new file so it cannot collide with #142's rewrite of
+  `InkTests`) names those three and fails on any other use. Its negative control, a
+  scratch copy with Trends' tip back in tertiary, failed naming `TrendsView.swift`.
+  `tertiaryInk`'s doc comment says the same. **Measured after:** both tips 3.44:1 on
+  white and 6.36:1 on black, the caption beside each; 5.97:1 and 8.48:1 with Increase
+  Contrast; unchanged after three live appearance switches. Before and after screenshots
+  of both screens on the same log differ only inside the two lines, in both appearances.
+  Secondary's 3.44:1 in light is still under 4.5:1 for 11pt text, but it is the ink of
+  every caption in the app, so that floor is an app-wide question. The bar-selection
+  design bundle drew the tip `.tertiary`, a departure recorded in §2. No ADR, following
+  the precedent of the drink sheet's detent folds: a code comment, design-system and
+  this bullet. No string, key, schema, CloudKit, setting or project-file change, and
+  invariant 10 holds, since the ink is the system's semantic colour. **Gates, locally
+  (Xcode 27.0):** the CI-form generic build, with only the four existing `Text +`
+  deprecation warnings in `TrendsView.swift`; 121 integration tests on the scratch
+  simulator with `-warn-long-expression-type-checking=25` (the two slow expressions it
+  reports are in `FailedReadTests` and `FailedWriteTests`, and are older). Domain tests
+  were not run, since the package did not change. **Which release:** 1.3 is live (the
+  lookup API, 2026-09-26) and 1.4 has not been submitted. Xcode Cloud's "Default"
+  workflow archives every commit on main (its "Archive - iOS" check ran on 3714668,
+  146d92d and cd0ead7), so the merge becomes a 1.4 build, and 1.4 ships the change only
+  if the owner submits that build or a later one. A build from 3714668 or earlier ships
+  without it, and it reaches 1.5. The Trends screenshot candidates show the old ink,
+  faint enough that a retake is optional; retaking the dark ones for #142 would pick it
+  up. **Open, the owner's:** the watch's hint (design-system §9, open item 1), the same
+  kind of line, which the watch's `.secondary` would put at 6.36:1; the medium widget's
+  "≈ N standard drinks" caption in `.tertiary`, not measured; and whether the day
+  sheet's chevron should clear 3:1. **Not verified:** hardware; VoiceOver (no label
+  changed); accessibility sizes (ink only). **Tooling:** the bottom of Trends, where the
+  Health offer lives, is reachable with no tap through a scratch copy whose ScrollView
+  takes `.defaultScrollAnchor(.bottom)` from a `SIMCTL_CHILD_` variable; `simctl ui <udid>
+  increase_contrast enabled` works live; and the Settings app's own chevrons are the
+  system's reference colour. The scratch simulator was deleted afterwards.
