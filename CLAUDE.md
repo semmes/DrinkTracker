@@ -4238,16 +4238,17 @@ Open items for v1.2:
   pixel except: Month's dates run Aug 30 to Sep 20 (the log moved three days to keep the
   same 30-day window, and #144 counts the dates back from today) and its total reads "last
   30 days"; Quarter reads 53 of 91 days with no drinks where the original has 50 of 88,
-  because the window now ends on a Saturday. The two READMEs there were not updated: a
-  hook blocks Edit on main-checkout files from a worktree session, so the owner has the
-  notes. 1.3 on iOS 27 most likely shows the lag until 1.4 replaces it (inferred from the
-  source, not seen on a store build). **Found, not fixed:** the Trends card's "Tip: drag
-  across the bars…" line in `.tertiaryInk` measures 1.72:1 on white and 2.23:1 on black.
-  That is the tertiary label's own value, not a lag, so no ink token lifts it. **Not
-  verified:** hardware; Week and Year after a live switch (one code path); the app's own
-  Appearance setting as the trigger. **How it was measured, for next time:** `simctl ui
-  <udid> appearance light|dark` and `increase_contrast enabled` switch live without a tap.
-  A no-tap route to a screen is a scratch copy of the tree (`rsync`, never the worktree)
+  because the window now ends on a Saturday. Both READMEs there record the retake and mark
+  the audit's three Trends issues fixed. A hook blocks the Edit tool on main-checkout
+  files from a worktree session, so they were written by a script at the owner's request.
+  1.3 on iOS 27 most likely shows the lag until 1.4 replaces it (inferred from the source,
+  not seen on a store build). **Found, not fixed:** the Trends card's "Tip: drag across
+  the bars…" line in `.tertiaryInk` measures 1.72:1 on white and 2.23:1 on black. That is
+  the tertiary label's own value, not a lag, so no ink token lifts it. **Not verified:**
+  hardware; Week and Year after a live switch (one code path); the app's own Appearance
+  setting as the trigger. **How it was measured, for next time:** `simctl ui <udid>
+  appearance light|dark` and `increase_contrast enabled` switch live without a tap. A
+  no-tap route to a screen is a scratch copy of the tree (`rsync`, never the worktree)
   whose `@State` initial values read `SIMCTL_CHILD_*` launch environment variables. That
   is how iOS 26.5 was checked when the simulator tool's access request for the new device
   went unanswered. For contrast, the ground is the region's most common pixel and the ink
