@@ -4322,11 +4322,14 @@ Open items for v1.2:
   call. Xcode Cloud's "Default" workflow archives every commit on main (its "Archive -
   iOS" check ran on 3714668, 146d92d and cd0ead7), so this merge becomes a 1.4 build, and
   1.4 ships the change only if the build the owner submits comes from it or later. One
-  from an earlier commit ships without it, and then it reaches 1.5. The Trends screenshot
-  candidates show the old ink, faint enough that a retake is optional; the dark retakes
-  #142 already needs pick it up if taken from this merge or later. **Open, the owner's:**
-  the watch's hint (design-system §9, open item 1), the same
-  kind of line, which the watch's `.secondary` would put at 6.36:1; the medium widget's
+  from an earlier commit ships without it, and then it reaches 1.5. **The screenshot
+  candidates show both tips as they were.** The calendar pair (`iphone-02-calendar-*`)
+  has the old words in the old ink, so if 1.4 carries this they no longer match the app
+  and are the pair worth retaking. The Trends ones (`iphone-03*`, the two dark ones
+  retaken from 57440d1 for #142 before this merged) have the old ink only, faint enough
+  that a retake is optional. **Open, the owner's:** the watch's hint (design-system §9,
+  open item 1), the same kind of line, which the watch's `.secondary` would put at
+  6.36:1; the medium widget's
   "≈ N standard drinks" caption in `.tertiary`, not measured; and whether the day
   sheet's chevron should clear 3:1. **Not verified:** hardware; VoiceOver (no label
   changed); accessibility sizes (ink only). **Tooling:** the bottom of Trends, where the
