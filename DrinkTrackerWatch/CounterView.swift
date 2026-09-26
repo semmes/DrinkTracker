@@ -490,10 +490,15 @@ struct CounterView: View {
     }
   }
 
+  /// The only place the wrist says the hold on ＋ exists, so it is quiet by
+  /// its size, not its ink: the design's tertiary measured 2.23:1 on the
+  /// black ground, the colour's own value, and secondary measures 6.36:1,
+  /// like the unit word and the ≈ line (the owner's call on 2026-09-26, for
+  /// the reason the phone's tips moved; design-system §2 and §9).
   private var hint: some View {
     Text("Hold ＋ to say what it was")
       .font(.system(size: WatchLayout.hintSize))
-      .foregroundStyle(.tertiary)
+      .foregroundStyle(.secondary)
       .multilineTextAlignment(.center)
   }
 

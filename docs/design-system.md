@@ -204,22 +204,27 @@ in the app target to.
 `DrinkTracker/` and nothing else, and `.secondaryInk` / `.tertiaryInk` live in
 `GlassTokens.swift`, which the other targets do not compile. The hierarchical
 styles are still in use on text in: the watch — `CounterView.swift` (the unit
-word, the ≈ line, "Region not set yet", the marked day's two lines and the
-unreadable state's two in `.secondary`; the hint and the DEBUG line in
-`.tertiary`), `WatchBandLegend.swift` (the inactive labels), `SessionDotRow.swift`
-(the "·" and the elapsed time), and as non-text, `SessionDots.swift`'s ring and
-the dimmed − glyph in `CounterDisc.swift`; the complication — the card's words
-in `CounterComplication.swift`; the iOS widget — the unit word and the
-unavailable caption in `.secondary`, the standard-drinks caption in `.tertiary`
-(`QuickLogWidget.swift`); and `Shared/` — `IntensityPalette.ink(.unlogged)`
-returns `.secondary`, which the phone's calendar day numeral reads
-(`IntensityCell.swift`) through a call `InkTests` does not match; whether that
-cell sits on glass is not verified. The watch draws no text on glass (the only
-glass it draws is the − disc, under a glyph), and on its black ground the
-secondary label measures 6.36:1 (§9) — but the watch's hint measures 2.23:1 in `.tertiary`, and that is
-the tertiary label colour's own value on black, not vibrancy, so a flat ink
-would not lift it. **Whether the rule extends to the watch, the complication
-and the widget is open for a later pass**; nothing is changed here.
+word, the ≈ line, "Region not set yet", the marked day's two lines, the
+unreadable state's two and, since 2026-09-26, the hint in `.secondary`; the
+DEBUG line in `.tertiary`), `WatchBandLegend.swift` (the inactive labels),
+`SessionDotRow.swift` (the "·" and the elapsed time), and as non-text,
+`SessionDots.swift`'s ring and the dimmed − glyph in `CounterDisc.swift`; the
+complication — the card's words in `CounterComplication.swift`; the iOS widget —
+the unit word, the unavailable caption and, since 2026-09-26, the
+standard-drinks caption in `.secondary` (`QuickLogWidget.swift`); and `Shared/` —
+`IntensityPalette.ink(.unlogged)` returns `.secondary`, which the phone's
+calendar day numeral reads (`IntensityCell.swift`) through a call `InkTests`
+does not match; whether that cell sits on glass is not verified. The watch
+draws no text on glass (the only glass it draws is the − disc, under a glyph),
+and on its black ground the secondary label measures 6.36:1 (§9). The widget,
+in full colour, draws both hierarchical styles as the flat label colours over
+its own ground, measured on 2026-09-26 (#848489 and #BABABD on #F0F0F1 in
+light are `secondaryLabel`'s and `tertiaryLabel`'s own values composited), so
+there is no vibrancy there for a flat ink to remove; in the Clear and Tinted
+Home Screen styles the system sets each level's ink itself. **Whether the rule
+extends to the watch, the complication and the widget is open for a later
+pass**; tertiary on text is guarded there since 2026-09-26 (the next
+subsection's last paragraph).
 
 **Tertiary ink is not for text a reader needs** (2026-09-26). Measured on
 the rendered pixels (iOS 27 simulator, iPhone 18 Pro Max, over a seeded
@@ -255,11 +260,44 @@ than reached for. The tips now sit at the app's floor for small text, not
 above it: secondary's 3.44:1 in light is under 4.5:1 for text this size, the
 system secondary label's own value and the ink of the app's other small
 captions (the one beside each tip among them), so lifting that floor is a
-question for the whole app rather than for these two lines. Outside the app
-target, the watch's hint (§9, "Open, for the owner", item 1) is the same
-kind of line and would measure 6.36:1 in the watch's `.secondary`; it stays
-the owner's. The medium Home Screen widget's "≈ N standard drinks" caption
-is also `.tertiary` (`QuickLogWidget.swift`) and was not measured.
+question for the whole app rather than for these two lines.
+
+**The same rule outside the app target** (2026-09-26, the owner's call once
+both were measured). The watch's hint "Hold ＋ to say what it was" is the same
+kind of line as the tips: the only mention of the hold on ＋. The medium Home
+Screen widget's "≈ N standard drinks" is the figure Today and the watch
+already print in secondary. Both take the hierarchical `.secondary`, since
+the flat tokens live in the app target. Measured on the rendered pixels of
+Release builds on scratch simulators (a 46mm watch on watchOS 26.5 and 27; an
+iPhone 18 Pro on iOS 27 and an iPhone 17 Pro on iOS 26.5, the medium widget
+holding two drinks). The ground is the line's modal pixel, and the ink the
+pixel farthest from it in luminance. In the
+Clear and Tinted styles the ground is the wallpaper under glass, a gradient,
+so the rule runs over 22px windows along the line and the median is given.
+Those figures depend on the wallpaper; these are over the simulator's
+default.
+
+| Site | Before, `.tertiary` | After, `.secondary` |
+|---|---|---|
+| The watch's hint, 10pt on black, watchOS 26.5 and 27 | #464649, **2.23:1** | #8D8D93, **6.36:1**, the unit word's and the ≈ line's |
+| The widget's ≈ line, iOS 27 Default, light | #BABABD on #F0F0F1, **1.70:1** | #848489, **3.27:1** |
+| The same, dark (and the Dark style) | #65656A on #2B2B2E, **2.44:1** | #9F9FA6, **5.37:1** |
+| The same, iOS 26.5 Default, light / dark | 1.68:1 / 2.48:1 (on #1C1C1F) | 3.24:1 / 6.01:1 |
+| The same, iOS 27 Clear, light / dark (median) | 1.48:1 / 2.70:1 | 2.00:1 / 6.82:1 |
+| The same, iOS 27 Tinted, light / dark (median) | 1.72:1 / 1.78:1 | 2.71:1 / 3.42:1 |
+| The same, Increase Contrast, light / dark | 4.01:1 / 4.32:1 | 5.17:1 / 5.94:1 |
+
+In every pair of frames only the changed line moved; elsewhere no pixel
+differs by more than one unit in one channel. The costs: the widget's
+"drinks today" and ≈ line are now the same size and ink (caption2
+secondary), where Today and the watch keep them one text size apart, and
+3.27:1 in light is under 4.5:1, the app-wide secondary floor above. The watch
+design README drew the hint `.tertiary`; §9 records the departure. The
+watchOS simulator offers no Increase Contrast, so the hint was not measured
+with it. `TertiaryInkTests` now reads `DrinkTrackerWatch/`,
+`DrinkTrackerWatchWidget/` and `DrinkTrackerWidget/` too and fails on the
+hierarchical `.tertiary` as text ink there, save the watch's DEBUG line,
+which a Release build does not compile.
 
 ---
 
@@ -381,7 +419,7 @@ The canonical inventory. Each exists in code; the sync'd cards mirror these.
 | **Onboarding heroes + dots** | `Onboarding/WelcomeView.swift`, `PrivacyView.swift`, `OnboardingFlow.swift` | Tally glyph drawn on stroke-by-stroke (the only custom *animated* drawing beside the icon — the drink glyphs are static symbols, ADR-0036); 76pt glass lock; 3-dot progress with accent capsule. All motion gated by Reduce Motion |
 | **Undo bar** | `UndoDeleteBar` | 10-second window, bottom inset; a 48pt floor, never a fixed height — the sentence wraps at accessibility sizes ("Removed / wine") rather than truncating to "Removed o…" (the 1.3 review) |
 | **Sheet** | `DrinkDetailSheet` | Native detents, pinned estimate+action outside the scroll. The pinned header and footer are held to their wrapped height (`fixedSize(horizontal: false, vertical: true)`) so the ScrollView between them is the only child that yields — the outer VStack otherwise proposes the chrome a fair share and its `Text` truncates rather than pushing back (the figure reached the screen as "≈ 1 standard dr…" at AX5). Nothing opens at the medium detent any more. A new entry — the counter's "Add specific" — and adoption open at `.fraction(0.75)`, three-quarters of the sheet's *full* height rather than of the screen (measured on the iPhone 17 Pro: 601pt of 874, against the medium detent's 459pt), because at the medium detent the strength slider sat below the fold once a type was picked — the control the sheet exists for, reachable only by a drag it never announced (owner's review, 2026-09-10); `.large` stays as the second detent. It opens at the large detent whenever it carries the time control — an edit, or History's and the calendar's retroactive add — because the "When" section sat below the medium fold and a reader correcting their history had to know to drag (owner's review, 2026-09-09), and at accessibility sizes, where the medium one is ~459pt at AX5 and the chrome takes ~400pt of it. Three folds on one expression in four days, each one term to reverse |
-| **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated. Small and medium families on `.fill.tertiary`: the count at 44 (small) or 40 (medium) SF Rounded semibold in primary, on **one line**, shrinking to a **0.6** floor where it is wider than its column — from 20 on an iPhone SE, from 100 on every small widget; the medium never shrinks it — with the line held at its full-size height so the words under it do not move (a `ViewThatFits`: a count that fits is the plain text, drawn as before; one that does not is an overlay on a hidden full-width "0", baseline to baseline), and with **proportional** digits, the one count numeral in the app that is not tabular, by the owner's choice (ADR-0057's amendment of 2026-09-26); "drink(s) today" in caption2 secondary — taking the whole column beside the ＋ (one 12pt gap, no Spacer) and up to **two lines**, wrapping before they shrink, floor 0.8, because the small family's content is 114 to 138pt across iOS 26's iPhones and one line of the plural needs 64.5 (74.7 on the Plus and Pro Max, which draw the widget's text 1.158 times larger); a medium widget never needs the second line (ADR-0057, `QuickLogWidgetRow`) — and on the medium family only, while the day's total is above zero, the ≈ line in caption2 tertiary; the ＋ is `LogOneDrinkIntent` — the `plus` glyph at 22 / 24 semibold in the accent tint on a 52 / 60pt `.quaternary` disc, `.buttonStyle(.borderless)`, never `.plain` (it suppresses a widget's interaction). **Unavailable** (ADR-0047) — no App Group, a store that did not open, or a read that failed: the `tally.standard` drop at 0.75 × the numeral's size in its place, "drinks today", no figure and no ＋, and a retry in fifteen minutes; a zero there would claim a day with nothing logged, which is the one thing that state does not know. The complication draws its unavailable entry the same way (§9) |
+| **Widget** | `DrinkTrackerWidget/QuickLogWidget.swift` | Count + ＋; the app's counter, abbreviated. Small and medium families on `.fill.tertiary`: the count at 44 (small) or 40 (medium) SF Rounded semibold in primary, on **one line**, shrinking to a **0.6** floor where it is wider than its column — from 20 on an iPhone SE, from 100 on every small widget; the medium never shrinks it — with the line held at its full-size height so the words under it do not move (a `ViewThatFits`: a count that fits is the plain text, drawn as before; one that does not is an overlay on a hidden full-width "0", baseline to baseline), and with **proportional** digits, the one count numeral in the app that is not tabular, by the owner's choice (ADR-0057's amendment of 2026-09-26); "drink(s) today" in caption2 secondary — taking the whole column beside the ＋ (one 12pt gap, no Spacer) and up to **two lines**, wrapping before they shrink, floor 0.8, because the small family's content is 114 to 138pt across iOS 26's iPhones and one line of the plural needs 64.5 (74.7 on the Plus and Pro Max, which draw the widget's text 1.158 times larger); a medium widget never needs the second line (ADR-0057, `QuickLogWidgetRow`) — and on the medium family only, while the day's total is above zero, the ≈ line in caption2 secondary, the ink Today and the watch give it (tertiary until 2026-09-26, 1.70:1 in light and 2.44:1 in dark; §2); the ＋ is `LogOneDrinkIntent` — the `plus` glyph at 22 / 24 semibold in the accent tint on a 52 / 60pt `.quaternary` disc, `.buttonStyle(.borderless)`, never `.plain` (it suppresses a widget's interaction). **Unavailable** (ADR-0047) — no App Group, a store that did not open, or a read that failed: the `tally.standard` drop at 0.75 × the numeral's size in its place, "drinks today", no figure and no ＋, and a retry in fifteen minutes; a zero there would claim a day with nothing logged, which is the one thing that state does not know. The complication draws its unavailable entry the same way (§9) |
 | **Unreadable log** | `DesignSystem/UnreadableLogView.swift` | What Calendar, the year view, History and Trends draw in place of their content while their queries' `fetchError` is set: a `ContentUnavailableView` with the `tally.standard` drop (`Image(decorative:)`) and "Your log couldn't be read." Nothing on it acts and nothing states a fact about the log; the next fetch that works puts the screen back (ADR-0004's 2026-09-16 amendments). Today and the watch counter have their own form of it: the drop where the figure would be, "drinks today", and "Today's drinks couldn't be read." (the watch's is in §9) |
 | **Watch counter row** | `DrinkTrackerWatch/CounterView.swift`, `CounterTile.swift`, `WatchLayout.swift` (`CounterMetrics`), `DrinkTrackerCore/CounterRow.swift` | The − disc, the day's tile, the ＋ disc, drawn 44 · 86 · 44 at 4pt gaps inside 8pt margins for a 198pt screen. **Both discs are touch targets and are 44 on every case.** Where that row does not fit — every case under 45mm — the margins give first, until the row stands its own 4pt gap from the glass, and then the tile: 58 on a 40mm, 72 on a 41, 80 on a 44, 83 on a 42, the drawn 86 from the 45mm up. Inside the tile the design's two ratios re-derive the corner (side × 36 / 126) and the numeral (side × 68 / 126), to the point; the bare numeral (56), the hidden bar (40 × 8) and the glyph (34) scale from their drawn size on 86. The view reads its own width and its safe-area inset — watchOS keeps 2pt of the glass clear on each side, so a 40mm's view is 158pt, not 162 — and never a device table; every case's width is pinned at tier 1. The row's states, the rest of the counter, its type and its contrast are §9. ADR-0042, amended 2026-09-19; design reference `docs/design/watch/README.md` |
 | **Watch complication tile** | `DrinkTrackerWatchWidget/CounterComplication.swift` (`tile(side:)`), `DrinkTrackerCore/ComplicationTile.swift` | One tile for the rectangular card and the circular slot: the day's band under the count, 44pt on the card, and in a circular slot **0.83 of the slot's diameter floored to the half point** (42 in the 46mm's 51pt slot, 34.5 in the 40mm's 42), corner **13 on 44 of the side**, continuous; the figure is 24pt SF Rounded semibold and the glyphs 18 at every side — a smaller tile is a smaller ground, not a smaller number. 0.83 is what keeps the corner more than a pixel inside the system's circular mask at every slot it asks for (37 to 51pt), pinned at tier 1. The slot itself is clear; the neutral ground is `.quaternary` (`#252526` on a black face) on a day with no band. On a tinted face every ground is that translucent one and the figures stay solid, because the system flattens a solid fill and the count on it into two inks that measured 1.3:1 apart. The corner family keeps a disc. ADR-0046, amended 2026-09-18; design reference `docs/design/watch/circular-complication-handoff.md` |
@@ -531,7 +569,7 @@ tabular; everything else is default SF.
 | ≈ line, "Region not set yet" | 11, secondary; the figure tabular |
 | Legend labels | 9, tabular; the active band semibold primary, the rest regular secondary |
 | Marked day | "Recorded as no alcohol today" 11 over the second line at 10, both secondary |
-| Hint, toast, storage strip | 10 — the hint tertiary, the toast and strip primary |
+| Hint, toast, storage strip | 10 — the hint secondary (tertiary until 2026-09-26, open item 1), the toast and strip primary |
 | Record capsule | 13 medium, white |
 | Session line | 11: the count rounded semibold primary; "·" and the elapsed time default SF secondary, tabular |
 | Picker | glyph 20 in the accent over the name at 11, primary |
@@ -558,7 +596,7 @@ measures the row at the largest sizes. Nothing is changed here.
 | **Band legend** | `WatchBandLegend.swift` | The four bands, the phone's `HeroBandLegend` at wrist size and the same keys. Drawn only while the day is on the ramp — not on an empty day, a no-alcohol day or an unreadable one. Hidden: the labels go to opacity 0 in place, so the swatches do not move. Redacted: the swatches empty to 1pt primary-at-35% outlines. One element per band, `.isSelected` on the active one |
 | **Record capsule** | `CounterView.swift` (`recordNoAlcoholButton`) | The empty day's second control: full width, `AccentFill`, "Record no alcohol today" in white, 10pt of horizontal padding, 44pt minimum height; two lines inside it on the 40 and 41mm (ADR-0042's 2026-09-19 amendment) |
 | **Marked and unreadable lines** | `CounterView.swift` | Marked: "Recorded as no alcohol today" over "Tap the plus sign to change that." or "From Apple Health". Unreadable: "drinks today" over "Today's drinks couldn't be read.", and no discs, legend, hint, switch or dots (ADR-0004's 2026-09-16 amendment) |
-| **Hint and toast** | `CounterView.swift` (`slotContent`) | One slot, never an extra row. The hint "Hold ＋ to say what it was" in tertiary. A toast takes the slot for two seconds: primary text on primary at 10%, radius 12, 10 by 4 padding — "Tap again to show the count", "Remove that drink on the phone", "Not saved", or a picked type's name (ADR-0042's 2026-09-15 amendment). While a session row is showing, it holds the slot instead of the hint |
+| **Hint and toast** | `CounterView.swift` (`slotContent`) | One slot, never an extra row. The hint "Hold ＋ to say what it was" in secondary, quieter than the lines above it by size alone (open item 1). A toast takes the slot for two seconds: primary text on primary at 10%, radius 12, 10 by 4 padding — "Tap again to show the count", "Remove that drink on the phone", "Not saved", or a picked type's name (ADR-0042's 2026-09-15 amendment). While a session row is showing, it holds the slot instead of the hint |
 | **Storage strip** | `StorageWarningStrip.swift` | While the store runs in memory: `exclamationmark.triangle` at 14 semibold beside "Not saving — storage unavailable", primary ink, on primary at 10% at radius 14, 10 by 6 padding. It takes the hint's slot, and the session switch is not offered under it |
 | **Type picker** | `TypePickerView.swift` | Pushed by the hold, popped by the pick. `DrinkType.selectableCases`, never `.unspecified`. Tiles on primary at 10%; the glyph `Image(decorative:)` in the accent over the name in primary; the whole tile is the target |
 | **Session switch** | `CounterView.swift` (`sessionToggle`) | The system's own toggle row, last on the scroll, off by default; offered only on a day with a drink in it or once it is on, and never under the strip or on an unreadable day (ADR-0044, amended 2026-09-15) |
@@ -616,7 +654,7 @@ basis.
 | − glyph on its glass | `#256ABF` on `#202020`, **3.02:1** | measured |
 | Picker glyph on its tile | `#256ABF` on `#191919`, **3.26:1** | measured |
 | Unit word and ≈ line (secondary) on black | `#8D8D93`, **6.36:1** | measured |
-| **Hint (tertiary, 10pt) on black** | `#464649`, **2.23:1** | measured |
+| Hint (secondary, 10pt) on black | `#8D8D93`, **6.36:1**; in tertiary until 2026-09-26, `#464649`, 2.23:1 | measured, watchOS 26.5 and 27 (§2) |
 | The card's words (secondary, 11pt) on the Smart Stack card | `#98989F` on `#1C1C1F`, **5.93:1** | measured |
 | The complication noun at 62% of the band's ink, as drawn — not built | 4.17:1 on the 1–2 fill, 3.51:1 on 3–5 | ADR-0046 |
 | A tinted face, before → after `isTinted` | circular 1.34 → 9.18:1, card 1.64 → 7.53:1, the card's ＋ 1.29 → 11.55:1 | ADR-0046, 2026-09-18 |
@@ -713,16 +751,19 @@ because the wearer put it there.
 
 ### Open, for the owner
 
-Recorded, not changed here.
+Recorded, not changed here, unless an item says it was decided.
 
-1. **The hint is 2.23:1.** "Hold ＋ to say what it was", 10pt tertiary on black,
-   is under 4.5:1 for text that size and under 3:1 too. The measured colour is
-   exactly the tertiary label colour, `rgba(235,235,245,0.3)` over black — the
-   style's own value, not vibrancy, so §2's flat-ink rule would not lift it.
-   The secondary ink beside it measures 6.36:1. On 2026-09-26 the phone's two
-   tips, the same kind of line at the same 2.23:1 on black, moved to secondary
-   (§2, "Tertiary ink is not for text a reader needs"); the watch's hint was
-   left for this decision.
+1. **The hint was 2.23:1; decided 2026-09-26.** "Hold ＋ to say what it was",
+   10pt tertiary on black, was under 4.5:1 for text that size and under 3:1
+   too. The measured colour was exactly the tertiary label colour,
+   `rgba(235,235,245,0.3)` over black — the style's own value, not vibrancy,
+   so §2's flat-ink rule would not have lifted it. The phone's two tips, the
+   same kind of line at the same 2.23:1 on black, moved to secondary that day
+   (§2, "Tertiary ink is not for text a reader needs"). The owner then chose
+   secondary for the hint too, once it was measured on watchOS 26.5 and 27:
+   `#8D8D93`, **6.36:1**, the ink of the unit word and the ≈ line above it,
+   and quieter than them by its 10pt size alone. The watch design README
+   drew it `.tertiary` (item 5).
 2. **The type scale is fixed** (Type, above).
 3. **The watch's accent is step 500, not 400.** `Color.accentColor` renders the
    asset's universal `#256ABF` on the watch — measured on the − glyph and the
@@ -733,15 +774,18 @@ Recorded, not changed here.
 4. **`IntensityPalette`'s doc comment is stale** (`Shared/IntensityPalette.swift`,
    "three named exceptions"): the watch reads the ramp on four surfaces. A
    comment edit for the next code change.
-5. **The watch design README has drifted from the code** in four places:
+5. **The watch design README has drifted from the code** in five places:
    6.94:1 for white on `.low` (8.10); 11.76 and 15.86 (ADR-0044's basis gives
-   11.75 and 15.87); "every text style relative"; and the accent at 400 in
-   dark. Its token tables also still give the − ground as
+   11.75 and 15.87); "every text style relative"; the accent at 400 in
+   dark; and the hint in `.tertiary`, which is secondary since 2026-09-26
+   (item 1). Its token tables also still give the − ground as
    `glassSurface(cornerRadius: 22, interactive: true)`, though its own Phase 3
    "Built" notes already record the code's
    `.glassEffect(.regular.interactive(), in: .circle)`.
 6. **The flat-ink rule stops at the app target** (§2): whether it covers the
-   watch, the complication and the widget is for a later pass.
+   watch, the complication and the widget is for a later pass. Tertiary on
+   text is guarded there since 2026-09-26 (`TertiaryInkTests`), and only the
+   DEBUG line under the hint still takes it.
 7. **Always-On leaves two things showing that the tile withholds.** The
    legend's labels are not concealed under `.privacy`
    (`WatchBandLegend.swift`): the active band keeps semibold primary ink while

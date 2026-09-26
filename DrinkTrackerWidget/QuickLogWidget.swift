@@ -231,9 +231,14 @@ struct QuickLogWidgetView: View {
           countFigure
           unitWords(countLabel)
           if entry.total > 0 && family != .systemSmall {
+            // Secondary, the ink Today and the watch give this line. Tertiary
+            // measured 1.70:1 on the widget's light ground and 2.44:1 on its
+            // dark one (iOS 27), and 1.48:1 to 2.70:1 in the Clear and Tinted
+            // styles; secondary is 3.27:1 and 5.37:1 (the owner's call,
+            // 2026-09-26; design-system §2).
             Text(verbatim: standardDrinksCaption)
               .font(.caption2)
-              .foregroundStyle(.tertiary)
+              .foregroundStyle(.secondary)
               .lineLimit(1)
               .minimumScaleFactor(0.8)
           }
