@@ -312,8 +312,9 @@ wrap…", ADR-0057).
 **On 2026-09-26 the Trends chart's y-axis labels were found drawing the previous
 appearance's ink after a live light/dark switch on iOS 27, 1.36:1 in dark; both axes now
 take an ink resolved for the current appearance (the bullet "The chart's axis labels
-follow a live appearance change…", ADR-0028's third amendment). Whether it ships in 1.4
-is the owner's call, since 1.4 has not been archived.**
+follow a live appearance change…", ADR-0028's third amendment). The owner decided the
+same day that it ships in 1.4, merged before the archive; the two dark Trends screenshot
+candidates need retaking from a build that carries it.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4083,50 +4084,54 @@ Open items for v1.2:
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
   marketing site's widget picture still shows the old build.
-- **The chart's axis labels follow a live appearance change (2026-09-26; ADR-0028's
-  third amendment).** A screenshot audit of the 1.4 candidates
-  (`Claude outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-dark.png` and
+- **The chart's axis labels follow a live appearance change (2026-09-26; ADR-0028's third
+  amendment).** A screenshot audit of the 1.4 candidates (`Claude
+  outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-dark.png` and
   `iphone-03b-trends-quarter-dark.png`, untracked in the main checkout) measured the
   Trends chart's y-axis labels at 1.36:1 on black, and it was reported as PR #121's class
   of defect, iOS 27 vibrancy on glass. **It is not, and the flat ink alone does not fix
   it.** The ink was #242428, which is light mode's secondary label (#3C3C43 at 60%) over
   black. On a scratch iPhone 18 Pro Max (iOS 27) over a seeded log, `main` draws both axes
   correctly at launch, which is why no earlier render caught it. After every *live*
-  appearance switch the y axis draws the previous appearance's secondary label: #F3F3F9
-  on white (1.11:1) after a switch to light, #242428 on black (1.36:1) after a switch to
+  appearance switch the y axis draws the previous appearance's secondary label: #F3F3F9 on
+  white (1.11:1) after a switch to light, #242428 on black (1.36:1) after a switch to
   dark. The x axis and the card title re-resolve each time. iOS 26.5 does not lag with the
   same build, and a live Dynamic Type change reaches the labels, so only the colour is
   stale. `AxisValueLabel().foregroundStyle(.secondaryInk)` was built first and rendered
   identically to `main`. **What shipped:** `Color.chartAxisInk(_:contrast:)` in
   `GlassTokens.swift`, the system's `secondaryLabel` resolved for the view's own
-  `colorScheme` and `colorSchemeContrast`. That is no literal, so invariant 10 and design-system
-  §2 hold as written. All five `AxisValueLabel`s in `TrendsView` take it (the x axis
-  for consistency; it never lagged), and `TrendsView` reads `colorSchemeContrast`.
-  `InkTests` gains a scanner that requires every `AxisValueLabel` in the app target to be
-  followed by `.foregroundStyle(axisInk)`. It matches nested parentheses and trailing
-  closures, and a self-check shows it catching a bare label, a `.secondaryInk` one and a
-  hierarchical one. Against `main`'s sources it named all five labels and the missing
-  token. design-system §2 carries the rule. **Measured after, iOS 27:** at launch, after
-  three live switches, and after a switch made while Trends was a hidden tab, 3.44:1 in
-  light and 6.36:1 in dark at Month and Quarter, identical to the x axis and card title;
-  Increase Contrast turned on live, 5.97:1 and 8.57:1. On iOS 26.5 the numbers do not
-  change (6.37:1 and 3.44:1). No string, key, schema, CloudKit, setting or project-file
-  change. **Gates, locally (Xcode 27.0):** the CI-form generic build, with only the four
-  existing `Text +` deprecation warnings in `TrendsView.swift`; 122 integration tests
-  (two new) on the scratch simulator, with `-warn-long-expression-type-checking=25` and
-  no warning. Domain tests were not re-run, since the package did not change. **For 1.4:** the owner decides whether this
-  merges before the archive. If it does, the two dark Trends candidates must be retaken
-  from the new build. If it does not, 1.4 ships with the lag, as 1.3 on iOS 27 most likely
-  does already (inferred from the source, not seen on a store build). **Found, not
-  fixed:** the Trends card's "Tip: drag across the bars…" line in `.tertiaryInk` measures
-  1.72:1 on white and 2.23:1 on black. That is the tertiary label's own value, not a
-  lag, so no ink token lifts it. **Not verified:** hardware; Week and Year after a live
-  switch (one code path); the app's own Appearance setting as the trigger. **How it was
-  measured, for next time:** `simctl ui <udid> appearance light|dark` and
-  `increase_contrast enabled` switch live without a tap. A no-tap route to a screen is a
-  scratch copy of the tree (`rsync`, never the worktree) whose `@State` initial values
-  read `SIMCTL_CHILD_*` launch environment variables. That is how iOS 26.5 was checked
-  when the simulator tool's access request for the new device went unanswered. For
-  contrast, the ground is the region's most common pixel and the ink is the pixel
-  farthest from it in luminance; the hex of a stale colour can say which appearance it
-  came from.
+  `colorScheme` and `colorSchemeContrast`. That is no literal, so invariant 10 and
+  design-system §2 hold as written. All five `AxisValueLabel`s in `TrendsView` take it
+  (the x axis for consistency; it never lagged), and `TrendsView` reads
+  `colorSchemeContrast`. `InkTests` gains a scanner that requires every `AxisValueLabel`
+  in the app target to be followed by `.foregroundStyle(axisInk)`. It matches nested
+  parentheses and trailing closures, and a self-check shows it catching a bare label, a
+  `.secondaryInk` one and a hierarchical one. Against `main`'s sources it named all five
+  labels and the missing token. design-system §2 carries the rule. **Measured after, iOS
+  27:** at launch, after three live switches, and after a switch made while Trends was a
+  hidden tab, 3.44:1 in light and 6.36:1 in dark at Month and Quarter, identical to the x
+  axis and card title; Increase Contrast turned on live, 5.97:1 and 8.57:1. On iOS 26.5
+  the numbers do not change (6.37:1 and 3.44:1). No string, key, schema, CloudKit, setting
+  or project-file change. **Gates, locally (Xcode 27.0):** the CI-form generic build, with
+  only the four existing `Text +` deprecation warnings in `TrendsView.swift`; 122
+  integration tests (two new) on the scratch simulator, with
+  `-warn-long-expression-type-checking=25` and no warning. Domain tests were not re-run,
+  since the package did not change. **For 1.4:** the owner decided on 2026-09-26 that it
+  ships in 1.4, so it merged before the archive and joins the 1.4 spec's "Also on this
+  train". What's New already covers it ("On iOS 27, text on cards is easier to read"), and
+  so do the reviewer notes ("iOS 27 readability and control fixes"), so neither changed.
+  The two dark Trends candidates (`iphone-03-trends-month-dark.png`,
+  `iphone-03b-trends-quarter-dark.png`) show the old labels and need retaking from a build
+  that carries this. 1.3 on iOS 27 most likely shows the lag until 1.4 replaces it
+  (inferred from the source, not seen on a store build). **Found, not fixed:** the Trends
+  card's "Tip: drag across the bars…" line in `.tertiaryInk` measures 1.72:1 on white and
+  2.23:1 on black. That is the tertiary label's own value, not a lag, so no ink token
+  lifts it. **Not verified:** hardware; Week and Year after a live switch (one code path);
+  the app's own Appearance setting as the trigger. **How it was measured, for next time:**
+  `simctl ui <udid> appearance light|dark` and `increase_contrast enabled` switch live
+  without a tap. A no-tap route to a screen is a scratch copy of the tree (`rsync`, never
+  the worktree) whose `@State` initial values read `SIMCTL_CHILD_*` launch environment
+  variables. That is how iOS 26.5 was checked when the simulator tool's access request for
+  the new device went unanswered. For contrast, the ground is the region's most common
+  pixel and the ink is the pixel farthest from it in luminance; the hex of a stale colour
+  can say which appearance it came from.

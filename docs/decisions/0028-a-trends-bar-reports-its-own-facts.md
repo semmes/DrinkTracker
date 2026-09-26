@@ -417,7 +417,8 @@ loaded: Automatic appearance at sunset or sunrise, the Control Centre switch, an
 very likely the app's own Appearance setting, though that route was not rendered.
 The labels stay wrong until the next change. 1.3 is live with the same axis code,
 so 1.3 on iOS 27 most likely shows it too. That is inferred from the source, not
-seen on the store build.
+seen on the store build. The owner decided on 2026-09-26 that the change ships in
+1.4, so it merged before 1.4 was archived.
 
 **The guard.** `InkTests` requires every `AxisValueLabel` in the app target to be
 followed by `.foregroundStyle(axisInk)`. Its scanner matches a label's nested
