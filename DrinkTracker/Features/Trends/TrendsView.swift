@@ -28,6 +28,7 @@ struct TrendsView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.colorSchemeContrast) private var colorSchemeContrast
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   @State private var range: TrendRange = .week
@@ -626,6 +627,11 @@ struct TrendsView: View {
     func isDimmed(_ barStart: Date) -> Bool {
       selectedStart.map { $0 != barStart } ?? false
     }
+    // Both axes' labels, resolved here rather than by the chart: on iOS 27 the
+    // y axis resolves a dynamic colour against the previous appearance, and
+    // after a live switch to dark drew its labels at 1.36:1
+    // (`Color.chartAxisInk`).
+    let axisInk = Color.chartAxisInk(colorScheme, contrast: colorSchemeContrast)
 
     return Chart {
       if isBucketed {
@@ -738,7 +744,7 @@ struct TrendsView: View {
       // line, so dropping the grid wholesale would leave the plot with no
       // floor at all — measured, not assumed.
       AxisMarks(position: .leading) { value in
-        AxisValueLabel()
+        AxisValueLabel().foregroundStyle(axisInk)
         if let raw = value.as(Double.self), raw == 0 { AxisGridLine() }
       }
     }
@@ -748,19 +754,19 @@ struct TrendsView: View {
       switch range {
       case .week:
         AxisMarks(values: .stride(by: .day, count: 1)) { _ in
-          AxisValueLabel(format: .dateTime.weekday(.narrow))
+          AxisValueLabel(format: .dateTime.weekday(.narrow)).foregroundStyle(axisInk)
         }
       case .month:
         AxisMarks(values: .stride(by: .day, count: 7)) { _ in
-          AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+          AxisValueLabel(format: .dateTime.month(.abbreviated).day()).foregroundStyle(axisInk)
         }
       case .quarter:
         AxisMarks(values: .stride(by: .month, count: 1)) { _ in
-          AxisValueLabel(format: .dateTime.month(.abbreviated))
+          AxisValueLabel(format: .dateTime.month(.abbreviated)).foregroundStyle(axisInk)
         }
       case .year:
         AxisMarks(values: .stride(by: .month, count: 2)) { _ in
-          AxisValueLabel(format: .dateTime.month(.abbreviated))
+          AxisValueLabel(format: .dateTime.month(.abbreviated)).foregroundStyle(axisInk)
         }
       }
     }

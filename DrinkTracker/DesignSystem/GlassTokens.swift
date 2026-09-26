@@ -10,7 +10,9 @@ import SwiftUI
 /// colours rather than the hierarchical `.secondary` and `.tertiary` styles,
 /// for one measured reason: on glass the hierarchical styles are vibrant, and
 /// against this app's black dark ground that made every card title and
-/// caption 2.5:1.
+/// caption 2.5:1. `Color.chartAxisInk`, after them, is the same secondary label
+/// resolved for one appearance, still no literal: on iOS 27 the Trends chart's
+/// y axis resolves a dynamic colour against the previous appearance.
 enum GlassTokens {
 
   enum Spacing {
@@ -115,4 +117,27 @@ extension ShapeStyle where Self == Color {
 
   /// Tertiary ink, by the same rule: `tertiaryLabel`, flat.
   static var tertiaryInk: Color { Color(.tertiaryLabel) }
+}
+
+extension Color {
+  /// The secondary ink already resolved for one appearance, for Swift Charts'
+  /// axis labels. On iOS 27 the Trends chart's y axis resolves a dynamic colour
+  /// against the appearance *before* the current one: switched live between
+  /// light and dark, its labels drew the other mode's secondary label, #242428
+  /// on black (1.36:1) after a switch to dark and #F3F3F9 on white (1.11:1)
+  /// after a switch to light, while the x axis beside it and every card title
+  /// re-resolved. Measured on the simulator on 2026-09-26; the same build on
+  /// iOS 26.5 re-resolved (`docs/design-system.md` §2, ADR-0028's third
+  /// amendment). `.secondaryInk` lagged in exactly the same way; a resolved
+  /// colour carries no trait lookup, so the labels follow the view's own
+  /// `colorScheme`. Increase Contrast is resolved with it, since
+  /// `secondaryLabel` has a high-contrast variant. The caller reads both from
+  /// the environment, so a change to either re-runs the body that computes
+  /// this. `InkTests` requires every `AxisValueLabel` in the app target to
+  /// take it.
+  static func chartAxisInk(_ scheme: ColorScheme, contrast: ColorSchemeContrast) -> Color {
+    let traits = UITraitCollection(userInterfaceStyle: scheme == .dark ? .dark : .light)
+      .modifyingTraits { $0.accessibilityContrast = contrast == .increased ? .high : .normal }
+    return Color(uiColor: .secondaryLabel.resolvedColor(with: traits))
+  }
 }
