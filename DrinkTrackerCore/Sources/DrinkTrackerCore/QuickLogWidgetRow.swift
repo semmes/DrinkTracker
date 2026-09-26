@@ -10,8 +10,8 @@ import Foundation
 /// Spacer that pushed the ＋ to the trailing edge keeps a gap on each side of
 /// itself: 38 to 62pt. "drinks today" is 64.5pt on one line — 74.7 on the
 /// Plus and Pro Max phones, which draw the widget's text larger — so on every
-/// iPhone iOS 26 supports the words were cut short or shrunk: "drinks tod…" on
-/// the owner's 17 Pro.
+/// iPhone iOS 26 supports the words were cut short or shrunk: "drinks tod…" in
+/// the owner's screenshot from a 17 Pro-size simulator.
 ///
 /// The count and the ＋ keep their sizes, so the words give: they take the
 /// whole column beside the ＋ — the Spacer goes, and its second gap with it —

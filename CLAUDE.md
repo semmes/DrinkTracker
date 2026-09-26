@@ -3936,15 +3936,16 @@ Open items for v1.2:
   12pt gaps — a Spacer keeps one on each side, the watch card's lesson — 38 to 62pt, where
   "drinks today" is 64.5 on one line. **The Plus and Pro Max phones draw a widget's text
   1.158 times larger** (74.7) with the environment still saying the default size; the
-  iPhone 11 and the Air do not. Rendered with the old build on all eleven sizes, the
-  plural was cut short on nine ("drinks…" on the SE) and shrunk on the other two, the
+  iPhone 11 and the Air do not. Rendered on all eleven sizes by a logging copy of the old
+  build, the plural was cut short on nine ("drinks…" on the SE) and shrunk on the other two, the
   singular cut on the SE and the 159pt phones (11 Pro, 12 and 13 mini). And the text
   follows Dynamic Type only so far: "drinks today" stopped growing at 93.5pt on one line,
   at AX1 on the SE and xxLarge on the 17 Pro Max. **What shipped:** the words take the
   whole column beside the ＋ (the Spacer gone, the column framed to the leading edge) and
   may take **two lines**, wrapping before they shrink, floor 0.8; the count (44/40pt) and
   the ＋ (52/60pt) unchanged; one row for both families, and no width read, because where
-  the words fit one line the new row is the old one. `QuickLogWidgetRow` in the core
+  the old row already held the count and the words whole at full size the new one draws
+  the same pixels. `QuickLogWidgetRow` in the core
   package holds the constants the widget reads; eight tier-1 tests pin them against the
   eleven widths (every column holds "drinks" at full size and at the largest text; the
   plural stays on one line only on the iPhone 11 and the Air, the singular everywhere but
@@ -3953,18 +3954,28 @@ Open items for v1.2:
   byte-identical (35 keys). **The widget has no no-alcohol sentence** — its provider reads
   drinks only — so a marked day draws "0 drinks today". **Verified:** 378 domain tests
   under both SwiftPM build systems; the simulator build with the same five warnings as
-  main's; and before against after with the real builds on scratch SE, 17 Pro and 17 Pro
-  Max simulators, light and dark, 0/1/2/12 drinks from a seeded store — the words whole
-  on every frame, every changed pixel left of the ＋, the count rising 7.0pt (9.3 on the
-  Pro Max) because the block stays centred, and **the medium widget identical** (no pixel
-  off by more than one unit in one channel over 24 frames, 16 with none; two states of
-  one build differ by 7,859). A logging build (never committed; it wrote each view's frame
-  to a JSON file in the App Group container) measured the words on all eleven sizes and
-  at every text size from xLarge to AX5 on the SE and the 17 Pro Max, whole everywhere.
-  **Found, and not fixed — the count was to be kept as it is:** on the SE the old column
-  drew any two-digit count as "…"; the wider column now holds 10 to 19 ("16" is 48.8pt in
-  49.95) but not, say, 20 (54.7), and no small widget holds 100 (77.7: "10" over "0" on
-  the old 17 Pro, "1…" on the new). **How the renders ran without a tap:** place widgets
+  main's; and before against after with the real builds from a seeded store, in two
+  passes — scratch SE, 17 Pro and 17 Pro Max simulators at 0/1/2/12 drinks, then the
+  owner's own phone, an **iPhone 15 Pro** (the 162.67pt row; the screenshot was a 17
+  Pro-size simulator), on iOS 27 beside a 17 Pro at 1/2/16/20/80/111, both in light and
+  dark — the words whole on every frame, every changed pixel left of the ＋, the count
+  rising 7.0pt (9.3 on the Pro Max) because the block stays centred while the words gain
+  a line and come back from the 0.8 floor, and **the medium widget identical** (no pixel
+  off by more than one unit in one channel over 48 pairs, 31 with none; two states of one
+  build differ by 7,859). A logging build (never committed; it wrote each view's frame to
+  a JSON file in the App Group container) measured the words on all eleven sizes and at
+  every text size from xLarge to AX5 on the SE and the 17 Pro Max, whole everywhere.
+  **The count changed too, though it was to be kept as it is** — it shares the words'
+  column, and an adversarial review before merging found what the first renders' counts
+  could not show. On the SE the old row drew any two-digit count as "…"; on the 159 to
+  166.5pt phones (eighteen iPhones, the owner's among them) it broke a wide pair over two
+  lines, 20 as "2" over "0" (rendered on the 15 Pro and the 17 Pro). The new column holds
+  every two-digit count on one line on every phone but the SE, and 111 from the 162.67pt
+  phones up. **Left for its own task:** the SE's wider pairs (20 is 54.7pt in 49.95) and
+  100 (77.7), which no small widget holds — "10" over "0" on the old 17 Pro, "1…" on the
+  new, because the words' second line took the height it had wrapped into. The same
+  review confirmed six more record errors and no code defect, all fixed in the ADR and
+  here. **How the renders ran without a tap:** place widgets
   by writing `Library/SpringBoard/IconState.plist` with the device shut down — an entry
   `{elementType: widget, gridSize: small|medium, iconType: custom, bundleIdentifier:
   com.shawnsemmes.DrinkTracker.Widget, containerBundleIdentifier:
@@ -3979,5 +3990,5 @@ Open items for v1.2:
   scripts and frames mid-render and redid the renders, so record numbers in the
   transcript or the records as they arrive. **Tier 4 for the owner:** remove the widget
   and add it again on a phone (a widget change needs that), then read the small widget at
-  1 and 2 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
+  1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
   marketing site's widget picture still shows the old build.

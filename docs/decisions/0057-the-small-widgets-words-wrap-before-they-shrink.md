@@ -74,11 +74,13 @@ beside the ＋ — the Spacer goes, and its second gap with it, with the column 
 the leading edge so the ＋ still sits at the trailing one — and they may take a **second
 line**. They wrap before they shrink, and the floor stays 0.8. No copy changed.
 
-**One row for both families, and no width is read.** Where the words fit on one line the
-new row is the old row: the count at the leading edge, the ＋ at the trailing edge, the
-words left-aligned, so nothing moves. That is every medium widget (its narrowest column
-is 214.95) and, for the plural, the iPhone 11 and the Air. SwiftUI's own wrapping is the
-threshold, so unlike the watch card there is no width to read and nothing to emulate.
+**One row for both families, and no width is read.** Where the old row already held the
+count and the words whole at full size, the new row draws the same pixels: the count at
+the leading edge, the ＋ at the trailing edge, the words left-aligned. That is every
+medium widget (its narrowest column is 214.95). On the iPhone 11 and the Air the plural
+now fits one line too, but the old row drew it shrunk there, so the words draw at full
+size and the count sits slightly higher. SwiftUI's own wrapping is the threshold, so
+unlike the watch card there is no width to read and nothing to emulate.
 
 The constants the widget reads — the two ＋ sides, the gap, the line limit, the floor —
 are `QuickLogWidgetRow` in the core package, pinned at tier 1 against the eleven widths
@@ -90,40 +92,54 @@ lines still fit on every phone; and that the medium family never needs a second 
 
 ## Consequences
 
-**Rendered with the new build.** At the default size the words are whole on all eleven
-sizes: the plural on two full-size lines everywhere but the iPhone 11 and the Air, where
+**Rendered with the logging copy of the new view.** At the default size the words are
+whole on all eleven sizes: the plural on two full-size lines everywhere but the iPhone 11 and the Air, where
 it now fits one line at full size; the singular on one line everywhere but the SE. At
 every larger size from xLarge to AX5, on the SE and the 17 Pro Max, "drinks / today" is
 whole.
 
-**Before against after, the real builds reading a seeded store** (2026-09-26): the SE,
-the 17 Pro and the 17 Pro Max — the smallest widget, the owner's, and the largest — in
-light and dark, at 0, 1, 2 and 12 drinks. On every frame the small widget changes only to
-the left of the ＋: the words, and the count's height. The **medium widget does not
-change**: across all 24 frames no pixel differs by more than one unit in one colour
-channel, 16 frames not at all, and the 249 single-unit pixels sit on the glass ground and
-rim; the same comparison between two states of one build flags 7,859 pixels.
+**Before against after, the real builds reading a seeded store** (2026-09-26), in two
+passes. First the SE, the 17 Pro and the 17 Pro Max — the smallest widget, the
+screenshot's, and the largest — in light and dark, at 0, 1, 2 and 12 drinks. Then, after
+review, the owner's own phone, an iPhone 15 Pro (the 162.67pt row), on iOS 27, beside a
+17 Pro on iOS 26.5, in light and dark, at 1, 2, 16, 20, 80 and 111 drinks. On every frame
+the small widget changes only to the left of the ＋: the words, and the count. The
+**medium widget does not change**: across the 48 before-and-after pairs no pixel differs
+by more than one unit in one colour channel, 31 pairs not at all, and the 571
+single-unit pixels sit on the glass ground and rim; the same comparison between two
+states of one build flags 7,859 pixels. One "before" frame of the second pass caught the
+widget before its first redraw on iOS 27 (it still read 0) and was taken again.
 
 What it costs:
 
 - **The count rises when the words wrap.** The block — count over words — stays centred
-  on the ＋, as it always was, so a second line lifts the count by half of one: 7.0pt on
-  the SE and the 17 Pro and 9.3pt on the 17 Pro Max, measured from the renders. Its size
-  and its left edge do not change.
+  on the ＋, as it always was, so the count rises by half of what the words gain: the
+  second line, and the first line's return from the 0.8 floor the old row drew it at.
+  That is 7.0pt on the SE and the 17 Pro and 9.3pt on the 17 Pro Max, measured from the
+  renders. Its size and its left edge do not change.
+- **A count too wide for one line loses the room it had below.** The old row could break
+  100 over two lines under a single line of words, "10" over "0" on the 17 Pro; with the
+  words on two lines there is no height left, so it is cut short, "1…". It takes a
+  hundred drinks in a day, and neither drawing was right.
 - **The words change shape between 1 and 2 on most phones.** The singular fits one line
   where the plural does not. They wrap only when they must; a forced break would be a
   change to reviewed copy — the watch card's cost, accepted there too.
 - **The widths are English's.** A translation re-measures the constants in the tests;
   the rule does not care what the words are.
 
-Found beside it, and not this decision's: **the count itself is cut short on the SE.**
-The column that was too narrow for the words was too narrow for a two-digit count as
-well, and the old row drew "…" in place of any count from 10 on the SE — the widget's own
-figure, gone. The wider column now holds 10 to 19 ("16" is 48.8pt in 49.95), but not a
-wider pair such as 20 (54.7, computed from its two digits' measured widths), and no
-small widget holds a three-digit count (100 is 77.7): on the 17 Pro the old row broke it
-over two lines, "10" above "0", and the new one cuts it, "1…". The count was to be kept
-as it is; that repair is its own change.
+**The count changes too, though it was to be kept as it is.** It shares the words'
+column, and the old column was too narrow for most two-digit counts. On the SE the old
+row drew any count from 10 as "…" — the widget's own figure, gone. On the 159 to
+166.5pt phones, eighteen iPhones with the owner's iPhone 15 Pro among them, it broke a
+wide pair over two lines — rendered on the 15 Pro and the 17 Pro, computed for the other
+three sizes: 20 as "2" over "0", 80 as "8" over "0", and 111 as "11" over "1", while a
+narrow pair such as 16 (48.8pt) stayed whole. The new column holds every two-digit count
+on one line on every phone but the SE (the widest, 80, measures 56.6pt with CoreText,
+against the 159pt phones' 60.1), and 111 from the 162.67pt phones up — rendered whole on
+both. What is left is the SE and three-digit counts: the
+SE now holds 10 to 19 ("16" in 49.95) but not a wider pair such as 20 (54.7, computed
+from its two digits' measured widths), and no small widget holds 100 (77.7). That repair
+is its own change.
 
 StandBy shows the small family with narrower margins than the Home Screen on every phone
 (116.43 on the SE against 113.95), so the Home Screen is the case that binds.
@@ -135,8 +151,8 @@ whose small widget is another set of sizes (the rule reads no width, so it wraps
 it must, but nothing was rendered there); StandBy and the tinted and clear Home Screen
 styles (layout does not change with the rendering mode); Bold Text, which widens the
 words; VoiceOver, whose label is unchanged; and the phones whose frames were measured by
-the logging build but not photographed with the real one — every size but the SE, the 17
-Pro and the 17 Pro Max.
+the logging build but not photographed with the real one — every size but the SE, the
+162.67pt row (the owner's 15 Pro), the 17 Pro and the 17 Pro Max.
 
 ## How to reopen
 
