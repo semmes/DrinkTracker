@@ -324,8 +324,9 @@ replaced in the App Store description too. Xcode Cloud archives every commit on 
 **That evening the watch's hint and the medium widget's "≈" line took secondary ink as
 well**, on the owner's call once both were measured: 2.23:1 to 6.36:1 on the wrist, 1.70:1
 to 3.27:1 and 2.44:1 to 5.37:1 on the widget (the bullet "The watch's hint and the
-widget's ≈ line take secondary ink…", design-system §2 and §9). The same rule about which
-build 1.4 comes from applies.
+widget's ≈ line take secondary ink…", design-system §2 and §9). **The owner then said it
+goes out with 1.4**, so the build submitted for 1.4 comes from its merge, 15a4f9f (#150),
+or later, and a build that late carries the two tips too.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4456,11 +4457,14 @@ Open items for v1.2:
   2026-09-26) and 1.4 has not been submitted. Xcode Cloud archives every commit on main,
   so 1.4 carries this only if the build the owner submits comes from this merge or later;
   a build from an earlier commit ships without it, and then it reaches 1.5. The watch app
-  and the widget ship in the one iOS archive, so they travel together. **The watch
-  counter screenshot candidate shows the old ink:** `watch-46mm/watch-01-counter.png` and
-  its upload copy measure the hint at 2.23:1, so it is the frame to retake if 1.4 carries
-  this; the session candidate shows the dot row in the hint's place, and no iPhone
-  candidate shows the widget. **Not verified:** hardware; Always-On (the simulator offers
+  and the widget ship in the one iOS archive, so they travel together. *(Merged as
+  15a4f9f, #150, with all ten checks green; the owner then said it goes out with 1.4, so
+  the 1.4 build comes from that commit or later, which carries #147's tips too. The 1.4
+  spec's "Also on this train" says so.)* **The watch counter screenshot candidate shows
+  the old ink:** `watch-46mm/watch-01-counter.png` and its upload copy measure the hint
+  at 2.23:1, so, with 1.4 carrying this, it is the frame to retake; the session
+  candidate shows the dot row in the hint's place, and no iPhone candidate shows the
+  widget. **Not verified:** hardware; Always-On (the simulator offers
   none); the hint with Increase Contrast, which the watchOS simulator refuses ("Runtime does
   not support increased contrast"); VoiceOver (no label changed); other wallpapers under
   Clear and Tinted; StandBy; iPad. **Tooling:** the Home Screen's style is a file, settable
