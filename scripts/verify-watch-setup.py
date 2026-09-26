@@ -69,6 +69,24 @@ MEANING_SETTINGS = ("SWIFT_VERSION", "SWIFT_DEFAULT_ACTOR_ISOLATION",
 WATCH_APP = "DrinkTrackerWatch"
 WATCH_WIDGET = "DrinkTrackerWatchWidget"
 
+# The four product targets. A membership check compares against these, so a
+# Shared/ file compiled into one more target than it names fails as surely as
+# one compiled into fewer (the test bundle compiles Shared/ too and is left out).
+PRODUCTS = ("DrinkTracker", "DrinkTrackerWidgetExtension", WATCH_APP, WATCH_WIDGET)
+
+# One process per device mirrors the store: the app (ADR-0055, TN3164). The two
+# apps hold the iCloud container, CloudKit and aps; the two extensions hold the
+# App Group and nothing that would let them mirror beside their app. Keyed by
+# the entitlements file each target's CODE_SIGN_ENTITLEMENTS names.
+MIRRORING_KEYS = ("com.apple.developer.icloud-container-identifiers",
+                  "com.apple.developer.icloud-services", "aps-environment")
+ENTITLEMENT_ROLES = {
+    "DrinkTracker": ("DrinkTracker/DrinkTracker.entitlements", True),
+    WATCH_APP: ("DrinkTrackerWatch/DrinkTrackerWatch.entitlements", True),
+    WATCH_WIDGET: ("DrinkTrackerWatchWidget/DrinkTrackerWatchWidget.entitlements", False),
+    "DrinkTrackerWidgetExtension": ("DrinkTrackerWidget/DrinkTrackerWidget.entitlements", False),
+}
+
 PASS, FAIL, PEND, INFO = "PASS", "FAIL", "PENDING", "  ·"
 results = []
 
@@ -397,9 +415,9 @@ def check_project():
         if filename not in on_disk:
             record(FAIL, f"Shared/{filename}", "named here but not on disk")
             continue
-        actual = tuple(name for name in expected
+        actual = tuple(name for name in PRODUCTS
                        if name in targets and filename in project.source_files(targets[name]))
-        if actual == expected:
+        if set(actual) == set(expected):
             record(PASS, f"Shared/{filename}", ", ".join(expected))
         else:
             record(FAIL, f"Shared/{filename}",
@@ -427,26 +445,34 @@ def check_files():
             record(PEND, "A watch scheme is shared",
                    "share the DrinkTrackerWatch scheme, or CI cannot build it")
 
-    for target in (WATCH_APP, WATCH_WIDGET):
-        path = os.path.join(ROOT, target, target + ".entitlements")
+    for target, (relpath, mirrors) in ENTITLEMENT_ROLES.items():
+        path = os.path.join(ROOT, relpath)
         if not os.path.exists(path):
             record(PEND, f"{target} entitlements", "Phase 0 writes it")
             continue
         body = open(path, encoding="utf-8").read()
-        missing = [k for k in ("com.apple.security.application-groups",
-                               "com.apple.developer.icloud-container-identifiers",
-                               "aps-environment") if k not in body]
+        required = ("com.apple.security.application-groups",) + (MIRRORING_KEYS if mirrors else ())
+        missing = [k for k in required if k not in body]
+        extra = [k for k in MIRRORING_KEYS if k in body] if not mirrors else []
         if missing:
             record(FAIL, f"{target} entitlements complete", "missing: " + ", ".join(missing))
+        elif extra:
+            record(FAIL, f"{target} does not mirror",
+                   "holds " + ", ".join(extra) + " — an extension with the iCloud "
+                   "container mirrors the store beside its app (TN3164; ADR-0055: "
+                   "one process per device mirrors, the app)")
         elif "$(BUNDLE_ID_PREFIX)" not in body:
             record(FAIL, f"{target} entitlements derive from BUNDLE_ID_PREFIX",
                    "hardcoded identifier — invariant 4")
-        elif "healthkit" in body.lower():
+        elif target.startswith(WATCH_APP) and "healthkit" in body.lower():
             record(FAIL, f"{target} has no HealthKit entitlement",
                    "the watch writes no Health data by design")
         else:
-            record(PASS, f"{target} entitlements", "group + iCloud + aps, all derived")
+            record(PASS, f"{target} entitlements",
+                   "group + iCloud + aps, all derived" if mirrors
+                   else "App Group only, derived — does not mirror")
 
+    for target in (WATCH_APP, WATCH_WIDGET):
         catalog = os.path.join(ROOT, target, "Localizable.xcstrings")
         if os.path.isdir(os.path.join(ROOT, target)):
             if os.path.exists(catalog):
@@ -554,7 +580,10 @@ def check_git():
 # ------------------------------------------------------------------ main ----
 
 def main():
-    check_git()
+    # --ci skips the checks about this Mac's checkouts, worktrees and sync
+    # agent, which mean nothing on a runner; everything else is the same run.
+    if "--ci" not in sys.argv[1:]:
+        check_git()
     check_project()
     check_files()
 

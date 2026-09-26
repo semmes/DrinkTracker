@@ -77,6 +77,17 @@ struct DrinkTrackerWatchApp: App {
 /// mode). An evening logged entirely on the phone with the watch app never
 /// launched still reaches the face only at the next reload — recorded in
 /// ADR-0046 as the residual.
+///
+/// The notification is also how this app learns of a drink the complication's
+/// ＋ wrote. The complication does not mirror (ADR-0055), so that drink reaches
+/// CloudKit only through this app's own mirroring, which TN3163 says schedules
+/// an export on a context save or on a remote change it observes while it
+/// runs. Whether a launch or a push wake exports a drink the complication wrote
+/// while this app was not running is not documented. On the owner's watch, on an
+/// Xcode build, a watch-app launch the owner did not report making did not send
+/// it within twenty minutes, and opening the app did (ADR-0055's section "Measured on the owner's
+/// devices"); a push wake has not been observed. ADR-0055's device check, on a
+/// TestFlight build, comes before 1.4 ships.
 /// Every notification is handled on the main queue, so the state below needs
 /// no lock of its own; `@MainActor` rather than a lock is also what keeps the
 /// reload off whatever thread Core Data posts from.
@@ -87,11 +98,16 @@ final class StoreChangeReloader {
   private var observer: NSObjectProtocol?
 
   /// A floor between reloads. The notification fires for *any* writer to the
-  /// store file, and the complication's own container — opened on every
-  /// timeline build — writes CloudKit bookkeeping of its own, so a reload
-  /// can post the notification that would ask for the next one. The floor
-  /// breaks that loop; the face is never more than this far behind a change
-  /// the app is running for, and a reload on every raise covers the rest.
+  /// store file. It was written for a loop: the complication's own container,
+  /// opened on every timeline build, mirrored and wrote CloudKit bookkeeping of
+  /// its own, so a reload could post the notification that asked for the next
+  /// one. From 1.4 the complication does not mirror (ADR-0055), so a timeline
+  /// build only reads and that writer is gone; no remaining one has been
+  /// measured. The floor stays until it is: it still rate-limits reloads during
+  /// this app's own import and export bursts, and shortening it is the face's
+  /// own latency, a decision of its own. The face is never more than this far
+  /// behind a change the app is running for, and a reload on every raise
+  /// covers the rest.
   private static let minimumInterval: TimeInterval = 60
 
   func start() {
