@@ -4079,6 +4079,64 @@ Open items for v1.2:
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
   marketing site's widget picture still shows the old build.
+- **Trends names the days its total covers, and Month's last date stays on the card
+  (2026-09-26; a copy review entry and two design-system rows, no ADR).** The
+  2026-09-26 screenshot audit (the untracked `Claude outputs/1.4-screenshots/
+  app-store-upload/README.md`, "App issues") found three things on Trends, and this
+  change is two of them. **(1) The total's label.** The stat card under the chart read
+  "this week" / "this month", but Week and Month are the trailing 7 and 30 days
+  (`TrendRange.startDate`): the audit's Month frame had "18 this month" under "Last 30
+  days" while the calendar's September, the 1st to the 23rd, held 13. `sumLabel` now
+  reads "last 7 days" / "last 30 days", the chart title's words lowercased, like
+  Quarter's and Year's. App catalog two out, two in, still 378, synced from a fresh
+  generic full build's x86_64 `.stringsdata` into a scratch copy and diffed.
+  **(2) Month's last x-axis date.** It crowded the card's edge every day, not only on
+  the audit's date: `.stride(by: .day, count: 7)` counts forward from the range's
+  first day, so its fifth label is always yesterday's, two bars from the end. In the
+  renders Swift Charts drew a label whose middle fell inside the plot and left out one
+  whose middle fell past it (every label drawn or missing in these renders, at Month
+  and Quarter and at two text sizes, fits that rule). So on a 440pt screen "Sep 25" ran half its width past the plot, to 420.7pt
+  against the card's border at 420, and on the 375pt SE it was left out, leaving the
+  last eight days unlabelled. `monthAxisDates` is now four dates a week apart counted
+  back from today (today − 27 to − 6), and the last label ends at 363.0pt on the 440pt
+  screen and 313.0 on the SE. Quarter and Year keep their strides: a month's name is
+  14 to 19pt wide, so the most one can run past the plot is about 10pt, inside the
+  card's 16pt padding; the worst case rendered, Quarter on 1 Nov 2026 (a Sunday),
+  ended "Nov" at 400.0pt inside the 403.6 plot. **(3) Found with it:** at
+  accessibility-extra-large Month's dates had already grown into one run ("Aug 28Sep
+  4Sep 11Sep 18" before, the same with the new dates). Every x-axis label now takes
+  `collisionResolution: .greedy`, which keeps every other Month date there. At the
+  default size frames match the build without it to within 2 of 255 on all four
+  ranges, and at accessibility-extra-large Week, Quarter and Year keep all their
+  labels. **Not in this change:** the audit's third issue, the y-axis labels' ink on
+  dark (about 1.4:1 on iOS 27). A worktree on `claude/trends-axis-ink` was created the
+  same afternoon for it, and the x-axis labels take the same default ink, so that fix
+  should cover both axes. **Verified:** tier 3 on two throwaway iOS 27 simulators, an
+  iPhone 18 Pro Max (440pt) and an iPhone SE 3rd generation (375pt), both deleted
+  afterwards. Each held a copy of the Phase 4 scratch store, and the before and after
+  builds came from scratch copies instrumented to open on Trends at a given range and
+  date. Frames covered Month in light and dark, Week, Quarter and Year, Month and
+  Quarter on faked dates (1 Aug, 6 Jun, 1 and 3 Oct, 1 Nov 2026), xxxLarge and
+  accessibility-extra-large. Pixel diffs between the builds are confined to the stat
+  label, Month's axis row and the home indicator. Also run: the integration suite (120
+  tests) in CI's form on the SE, and the generic simulator build with no new warning
+  (TrendsView's four are the existing `Text +` lines). **No test tier reaches the
+  view** (app target, no `TEST_HOST`). Domain tests were not re-run, since no package
+  code changed. **Not verified:** the axis at accessibility sizes on the SE or at AX5,
+  because the chart sits behind the tab bar there and a zero-tap render cannot scroll;
+  VoiceOver, which is unchanged (the chart is one adjustable element); hardware.
+  **For 1.4:** it is merged on main, so an archive from main carries it; whether 1.4 is
+  archived from a commit that includes it is the owner's call. No recommended
+  screenshot changes: the audit's upload set leaves out the Month frame, and the
+  Quarter frame's label and axis are unchanged. No schema, CloudKit, setting,
+  privacy-policy or project-file change. **Tooling:** (a) for zero-tap renders, a
+  scratch copy of the tree (`git archive` or `rsync`, never the worktree) can read
+  `-scratchTab trends -scratchRange month -scratchToday <ISO 8601>` launch arguments
+  in its `@State` initialisers and in place of `Date()`; (b) `simctl get_app_container
+  <udid> <bundle> groups` prints the group id, a tab and the path, and passing the
+  group id as the container argument fails; (c) a render that starts while a build is
+  running can capture a blank frame, so wait longer before retaking it rather than
+  debugging it.
 - **The small widget's count shrinks on one line (2026-09-26; ADR-0057 amended).** The
   count ADR-0057 left: it shares the words' column at a fixed 44pt, so on an SE every
   count from 20 drew as a bare "…" (rendered: 20, 80, 100, 199 and 999), and 100 was cut
