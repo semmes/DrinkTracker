@@ -1448,6 +1448,12 @@
     "last 13 weeks" : {
 
     },
+    "last 30 days" : {
+
+    },
+    "last 7 days" : {
+
+    },
     "longest run of %lld days with none" : {
 
     },
@@ -1483,12 +1489,6 @@
 
     },
     "the dashed line is your average, %@" : {
-
-    },
-    "this month" : {
-
-    },
-    "this week" : {
 
     },
     "unit total" : {
