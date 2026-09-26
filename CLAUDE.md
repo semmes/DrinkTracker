@@ -4059,7 +4059,8 @@ Open items for v1.2:
   every two-digit count on one line on every phone but the SE, and 111 from the 162.67pt
   phones up. **Left for its own task:** the SE's wider pairs (20 is 54.7pt in 49.95) and
   100 (77.7), which no small widget holds — "10" over "0" on the old 17 Pro, "1…" on the
-  new, because the words' second line took the height it had wrapped into. The same
+  new, because the words' second line took the height it had wrapped into. *(Done the
+  same day — the bullet "The small widget's count shrinks on one line…".)* The same
   review confirmed six more record errors and no code defect, all fixed in the ADR and
   here. **How the renders ran without a tap:** place widgets
   by writing `Library/SpringBoard/IconState.plist` with the device shut down — an entry
@@ -4078,3 +4079,51 @@ Open items for v1.2:
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
   marketing site's widget picture still shows the old build.
+- **The small widget's count shrinks on one line (2026-09-26; ADR-0057 amended).** The
+  count ADR-0057 left: it shares the words' column at a fixed 44pt, so on an SE every
+  count from 20 drew as a bare "…" (rendered: 20, 80, 100, 199 and 999), and 100 was cut
+  short on every small widget. **The owner's two answers:** it shrinks on one line to a
+  **0.6** floor, the rule of every other count numeral in the app (Today's hero, the watch
+  counter, the complication); running it into the ＋'s 12pt gap and leaving it were
+  declined. And the digits stay **proportional**, although the other three counts are
+  tabular. **What shipped:** `countLineLimit` and `countMinimumScale` in
+  `QuickLogWidgetRow`, plus `countScale(forWidth:inColumn:)` as the rule. Seven tier-1
+  tests read the ten digits' measured advances, whose sum bounds a count's width because
+  pairs kern only tighter. In the widget a **`ViewThatFits`** draws a count that fits
+  with the old `Text`, untouched. A count that does not fit becomes an **overlay on a
+  hidden "0" as wide as the column, baseline to baseline**, so it keeps the full-size
+  line and the words don't move. No copy, catalog (35 keys, synced and byte-identical),
+  schema, CloudKit or project-file change. **Three things only rendering found.** (a) The
+  first build held the line with a baseline-aligned `ZStack`, and the renders showed it
+  shrinking counts that fit ("16" on the medium widget). A zero-width `HStack`
+  placeholder did the same. The overlay proposes the count the column's exact width. (b)
+  The overlay alone moved every fitting count up one pixel on the 3x Pro Max, which the
+  harness could not reproduce. That is why `ViewThatFits` keeps it off counts that fit.
+  (c) SwiftUI does not scale continuously. It sets a shrunk count on a quarter-point grid,
+  with about 0.1pt to spare, and never under 26.5pt. So in the SE's column 80 draws at
+  38.75, 100 at 28.0 and 199 at 28.25, and **200 is cut short** (it needs 26.43). The SE
+  holds every count to 199, not the 299 the arithmetic alone gave, and the tests claim a
+  count whole only 0.02 above the floor. **Found with a macOS SwiftUI harness:**
+  `ImageRenderer` over a copy of the row, sized like the SE's widget, with each shrunk
+  count's size found by matching its pixels against fixed sizes. That takes seconds
+  against a minute per state on a simulator, and it reproduced the `ZStack` defect
+  exactly. **Verified:** 385 domain tests under both SwiftPM build systems, no slow
+  expressions in the new tests; the simulator build with no warning in the widget; and
+  before against after on throwaway SE and 17 Pro Max simulators (iOS 26.5), deleted
+  afterwards. Light mode at thirteen counts from 1 to 999, dark at 2, 20 and 100, 32
+  pairs:
+  - every count that fits is pixel-identical (1 to 19 and 21 on the SE, to 111 on the
+    Pro Max);
+  - the SE's "…" and the Pro Max's "1…" became whole shrunk counts, on one baseline;
+  - 200, 299 and 999 on the SE are cut short, as predicted;
+  - every changed pixel is left of the ＋;
+  - the medium widget is identical in all 32.
+
+  The integration tests and the watch build were not re-run locally, because nothing they
+  compile changed; CI runs both.
+  **Cost, recorded:** on the SE the count's size changes between neighbours (19 and 21 at
+  44pt, 20 at 40, 22 at 41.5), because each pair of proportional digits is its own width.
+  Tabular digits are the reopen. **Tier 4 for the owner:** remove the widget and add it
+  again. On their iPhone 15 Pro (the 162.67pt row) every count below 100 draws as
+  ADR-0057's build drew it, so the change shows only at 100 or more; on an SE it shows
+  from 20.
