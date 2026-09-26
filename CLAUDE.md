@@ -170,10 +170,13 @@ purchases work in the simulator with no App Store Connect setup).
 
 `docs/app-store-listing.md` is the paste-ready ASC metadata (description with
 the guideline-3.1.2(a) subscription block — keep prices in sync with ASC),
-plus support URL (`docs/support.md`) and privacy URL. Age rating 17+ (alcohol
-references); App Privacy is **Data Not Collected** — the privacy policy's
-claims are written to be checkable against the manifests and entitlements,
-so keep them true.
+plus support URL (`docs/support.md`) and privacy URL. Age rating: the store
+shows 18+, with "Frequent" alcohol references (product page, 2026-09-26; the
+lookup API's 17+ is a legacy field). App Privacy is **Data Not Collected** —
+the privacy policy's claims are written to be checkable against the manifests
+and entitlements, so keep them true. **Screenshots uploaded to App Store
+Connect must have no alpha channel**, and the simulator screenshots taken for 1.4
+all had one (`docs/app-store-listing.md`, the 1.4 screenshot reminder).
 
 ---
 
