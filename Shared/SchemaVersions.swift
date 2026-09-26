@@ -51,6 +51,14 @@ import SwiftData
 ///    `.custom` stage. **Stop first**: the store mirrors to CloudKit, which
 ///    cannot migrate deployed record types — a non-additive change likely
 ///    needs a new CloudKit schema strategy and its own ADR before any code.
+/// 3. **The first process to open the upgraded store may not mirror.** The
+///    phone's widget and, from 1.4, the watch complication open the store
+///    without CloudKit (ADR-0047, ADR-0055), and either can open it first —
+///    watchOS updates apps in the background and the face rebuilds on its
+///    own. Whether a lightweight migration run there keeps what the mirroring
+///    container needs is unverified. On a device, after the bump, let the
+///    extension open a real mirrored store first, then confirm the app's
+///    mirroring resumes with no reset (Settings → Diagnostics, Last synced).
 ///
 /// **CloudKit needs the new field too, and that is a console step.** The
 /// Development environment learns a new attribute the first time a debug

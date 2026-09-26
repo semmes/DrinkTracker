@@ -377,20 +377,28 @@ enum SharedModelContainer {
   /// *identical* configuration (PRD invariant 5) and no call site can drift.
   ///
   /// **What happens in a process with no iCloud container entitlement** — the
-  /// home-screen widget, the only such process: `.automatic` opens on the
-  /// first rung *without mirroring*, and its writes land and persist. On
+  /// home-screen widget, and from 1.4 the watch complication (ADR-0055):
+  /// `.automatic` opens on the first rung *without mirroring*, and its writes
+  /// land and persist. On
   /// 2026-09-16 the simulator's widget extension wrote three `DrinkEntry` rows
   /// whose persistent-history transactions name
   /// `com.shawnsemmes.DrinkTracker.Widget`, and the app displayed them. The app's
-  /// own mirroring exports such rows from persistent history the next time it
-  /// runs (TN3163). An earlier comment here (6f759f6) said writes from such a
+  /// own mirroring is expected to export such rows from persistent history:
+  /// TN3163 names a context save, or a remote-change notification the running
+  /// app observes, as what schedules an export. When the app exports them after
+  /// an extension's write is not documented. On the owner's watch, on an Xcode
+  /// build (CloudKit Development), the watch app sent the complication's writes
+  /// only once it was opened, one after 21 minutes 46 seconds (ADR-0055,
+  /// "Measured on the owner's devices"); on the phone it has not been observed.
+  /// An earlier comment here (6f759f6) said writes from such a
   /// process "fail silently". That was never observed: it was written while the
   /// widget's one-tap log was failing for a different reason, which 17853f3
   /// found four days later — a non-optional `@Parameter` with no default, which
   /// abandoned the tap during resolution, before `perform()` was entered. It is
   /// retracted (ADR-0004, 2026-09-16 amendment). The argument that still points
-  /// the same way is TN3164's: one process manages sync, which is why the widget
-  /// is not given the entitlement (ADR-0047).
+  /// the same way is TN3164's: one process manages sync, so on each device the
+  /// app mirrors and neither extension holds the entitlement (ADR-0047 for the
+  /// widget, ADR-0055 for the complication).
   ///
   /// That is also why the CloudKit fallback lives *here* rather than at the call
   /// site. The app used to carry its own fallback that dropped the group container
@@ -406,7 +414,11 @@ enum SharedModelContainer {
   /// mirrored reopens cleanly without CloudKit. Both processes now run the same
   /// ladder, so they agree at any given moment, but two processes opening the
   /// store while iCloud availability is changing could still land on different
-  /// rungs. Confirming that needs a device.
+  /// rungs. Confirming that needs a device. So does the rest of ADR-0055's
+  /// check, on a TestFlight build before 1.4 ships: when a write by an extension
+  /// that does not mirror, into a store its app is actively mirroring, reaches
+  /// CloudKit through the app. Seen once on the watch, after 21 minutes 46
+  /// seconds, with no bound documented; not yet on the phone.
   static func make() throws -> ModelContainer {
     try open().container
   }

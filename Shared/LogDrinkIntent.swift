@@ -225,6 +225,12 @@ struct LogDrinkIntent: AppIntent {
 /// more*, not a type), and it structurally cannot repeat the resolution failure
 /// that silently broke the typed intent — there is nothing to resolve.
 ///
+/// Where it runs: in the extension that places it (the phone's widget, the
+/// watch's complication card), and neither extension mirrors the store
+/// (ADR-0047, ADR-0055). The drink lands in the App Group store, and the app on
+/// that device exports it from persistent history through its own mirroring.
+/// From the phone's App Shortcut it runs inside the app's own process instead.
+///
 /// Minus deliberately has no widget counterpart. Removing an entry must retire
 /// its HealthKit sample, and only the app process does that reliably; a widget
 /// delete would leave Health holding a sample for a drink that no longer exists.
