@@ -2409,8 +2409,8 @@ exclamation mark and no em dash. Pass.
 
 ## 2026-09-26 — "See how it works" on the website
 
-New copy for `tallyist.co`, on the draft `semmes/Tallyist#6`. Nothing ships in the
-app.
+New copy for `tallyist.co`, in `semmes/Tallyist#6`, merged and live on 2026-09-26.
+Nothing ships in the app.
 
 - **Home page, the hero:** a link under the App Store badge reads "See how it
   works", followed by a down arrow drawn like the feature icons (decorative, hidden

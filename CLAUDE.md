@@ -4337,8 +4337,8 @@ Open items for v1.2:
   takes `.defaultScrollAnchor(.bottom)` from a `SIMCTL_CHILD_` variable; `simctl ui <udid>
   increase_contrast enabled` works live; and the Settings app's own chevrons are the
   system's reference colour. The scratch simulator was deleted afterwards.
-- **The website's first screen says there is more (2026-09-26; draft `semmes/Tallyist#6`,
-  the owner's to merge).** The owner saw visitors stop at tallyist.co's first screen.
+- **The website's first screen says there is more (2026-09-26; `semmes/Tallyist#6`, merged
+  the same day as 9629148 on the owner's review).** The owner saw visitors stop at tallyist.co's first screen.
   Measured on the live site, in the browser pane and then with headless Chrome: the home
   page's hero is about 950px tall at every width above 1,200px whatever the window's
   height (a 654px phone, 88px above it, 136px below), so on the common laptop and desktop
@@ -4368,14 +4368,14 @@ Open items for v1.2:
   and 27px of the next heading; 820×1080 the heading and the start of its paragraph;
   390×664 the badge, the link and 107px of the phone. The page is about 11% shorter at
   desktop widths; the Apple Watch and Press pages take the section rules too.
-  **Deviations from the design, the owner's to accept or refuse:** the 72px headline on
+  **Deviations from the design, accepted by the owner with the merge:** the 72px headline on
   short windows, the 560px hero phone on laptops, the removed platform list, the
   hairlines, the new link. **Verified:** a stand-in render of the built page (the live
   page's HTML with the branch's edits and stylesheet, root-relative URLs made relative
   for `file://`) whose numbers matched the live site exactly before the change, captured
   with headless Chrome at the six viewports, light and dark; **the CI build of the branch
   matches the stand-in byte for byte** (home page, watch page, stylesheet); the site's
-  contrast check, 9 pairs passing, no colour changed; CI green on the draft. **Not
+  contrast check, 9 pairs passing, no colour changed; CI green on the PR. **Not
   verified:** real Safari with the Smart App Banner (about 80px, computed from the
   measured positions, not rendered); a 375pt phone; the pages under Windows' fonts, since
   the captures used macOS Chrome with the system font. The before-and-after composites,
@@ -4389,6 +4389,9 @@ Open items for v1.2:
   whatever `TMPDIR` says); a wait on `document.images` must skip lazy images below the
   fold, or it never resolves; and a rule inserted inside a `@media` block *before* the
   base rule it overrides loses on equal specificity, silently, which cost one render
-  here. **Still open, the owner's:** merge or refuse the draft; once it is live, the same
-  measurement at the six viewports on the live site is the check, and a five-second test
-  with a few people ("what does this page offer?") is the one that matters.
+  here. **Merged and live the same day:** the owner compared the CI build, served locally
+  by `Claude outputs/site-fold/serve.py` (the `site-preview` entry in `.claude/launch.json`,
+  untracked), with the live site and said to merge; Pages carried the merge within a
+  minute, and the live page measures identically to the stand-in at all six viewports.
+  What is left is the test that matters, a five-second one with a few people ("what does
+  this page offer?"), which no measurement replaces.
