@@ -2374,6 +2374,39 @@ chart instead.
 A value and a noun, as before: no verdict, no comparison between windows, no
 exclamation mark and no em dash. Pass.
 
+## 2026-09-26 — "several days" in the app and the App Store description
+
+The owner's wording, after seeing the calendar's tip in its new secondary ink
+(design-system §2): "fill a stretch" gives way to "several days" wherever it was
+left.
+
+- **The calendar's tip** (`CalendarView.selectionHint`) reads "Tip: Press and drag
+  across the calendar to fill several days at once." in place of "Tip: press and
+  hold, then drag across days to fill a stretch at once". After "Tip: " it is the
+  sentence the website's home page already carries under "Fill multiple days".
+- **The App Store description** (`docs/app-store-listing.md`, the description and
+  its 1.4 version A) says "Press and drag across the calendar to fill several days
+  at once" in place of "fill a stretch of days at once". Version B never had the
+  line.
+
+Nothing new is claimed: the gesture and what it does are ADR-0011's. One detail
+the new tip leaves to the reader is that a press has to rest for a quarter of a
+second before the drag (`dragSelectGesture`, `LongPressGesture(minimumDuration:
+0.25)`), or the finger scrolls the calendar instead; the old tip's "hold" said
+so. The support page and the description already call the gesture "press and
+drag", and the support page's answer begins "Touch and hold a day", so the tip
+now matches what is already published. It also differs from Trends' tip in
+form, "Tip: Press" with a capital and a full stop where Trends has "Tip: drag"
+and none; the owner's wording ships as written.
+
+With these, the two items the website's entries above left as "Still not
+changed" are changed. "Stretch" no longer appears in the app's strings, the
+description, the support page or the live site (its five pages read on
+2026-09-26).
+
+A plain instruction, like the one it replaces: no celebration, no judgment, no
+exclamation mark and no em dash. Pass.
+
 ## 2026-09-26 — "See how it works" on the website
 
 New copy for `tallyist.co`, on the draft `semmes/Tallyist#6`. Nothing ships in the

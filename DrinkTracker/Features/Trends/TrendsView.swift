@@ -28,6 +28,7 @@ struct TrendsView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.colorSchemeContrast) private var colorSchemeContrast
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   @State private var range: TrendRange = .week
@@ -534,10 +535,13 @@ struct TrendsView: View {
       // Discoverability for a gesture with no visible affordance — the
       // calendar's own precedent. One line, one key for all four ranges.
       // "tap" is gone because on iOS 26 an instantaneous tap does not select:
-      // selection needs the short dwell that begins a scrub.
+      // selection needs the short dwell that begins a scrub. Secondary ink,
+      // not the design's tertiary: this line is the only place a sighted
+      // reader learns the scrub exists, and tertiary measured 1.72:1 on the
+      // card's white and 2.23:1 on its black (design-system §2, 2026-09-26).
       Text("Tip: drag across the bars to see what each one holds")
         .font(.caption2)
-        .foregroundStyle(.tertiaryInk)
+        .foregroundStyle(.secondaryInk)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 6)
     }
@@ -626,6 +630,11 @@ struct TrendsView: View {
     func isDimmed(_ barStart: Date) -> Bool {
       selectedStart.map { $0 != barStart } ?? false
     }
+    // Both axes' labels, resolved here rather than by the chart: on iOS 27 the
+    // y axis resolves a dynamic colour against the previous appearance, and
+    // after a live switch to dark drew its labels at 1.36:1
+    // (`Color.chartAxisInk`).
+    let axisInk = Color.chartAxisInk(colorScheme, contrast: colorSchemeContrast)
 
     return Chart {
       if isBucketed {
@@ -738,7 +747,7 @@ struct TrendsView: View {
       // line, so dropping the grid wholesale would leave the plot with no
       // floor at all — measured, not assumed.
       AxisMarks(position: .leading) { value in
-        AxisValueLabel()
+        AxisValueLabel().foregroundStyle(axisInk)
         if let raw = value.as(Double.self), raw == 0 { AxisGridLine() }
       }
     }
@@ -755,18 +764,22 @@ struct TrendsView: View {
       case .week:
         AxisMarks(values: .stride(by: .day, count: 1)) { _ in
           AxisValueLabel(format: .dateTime.weekday(.narrow), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       case .month:
         AxisMarks(values: monthAxisDates) { _ in
           AxisValueLabel(format: .dateTime.month(.abbreviated).day(), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       case .quarter:
         AxisMarks(values: .stride(by: .month, count: 1)) { _ in
           AxisValueLabel(format: .dateTime.month(.abbreviated), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       case .year:
         AxisMarks(values: .stride(by: .month, count: 2)) { _ in
           AxisValueLabel(format: .dateTime.month(.abbreviated), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       }
     }

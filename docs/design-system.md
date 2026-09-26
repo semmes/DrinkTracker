@@ -185,6 +185,21 @@ and fails on the first hierarchical text style. The share cards' `ShareCardInk`
 is untouched (their own literal site, ADR-0027); a fill may still take a
 hierarchical style, since the rule is about text.
 
+**A chart's axis labels take the secondary ink already resolved for the current
+appearance**, `Color.chartAxisInk(colorScheme, contrast:)` (2026-09-26, ADR-0028's
+third amendment). On iOS 27 the Trends chart's y axis resolves a dynamic colour
+against the appearance *before* the current one. After a live switch its labels
+drew the other mode's secondary label, #F3F3F9 on white (**1.11:1**) and #242428
+on black (**1.36:1**), while the x axis and the card title re-resolved. The flat
+`.secondaryInk` lagged the same way, since it is still a dynamic colour. A colour
+resolved from the view's own `colorScheme` and `colorSchemeContrast` leaves the
+chart nothing to resolve. It is the system's semantic colour resolved by name,
+not a literal. Measured after the change on the iOS 27 simulator: at launch and
+after every live switch, 3.44:1 in light and 6.36:1 in dark, the same as the x
+axis and the card title; with Increase Contrast, 5.97:1 and 8.57:1. iOS 26.5
+never lagged. Both axes take it, and `InkTests` requires every `AxisValueLabel`
+in the app target to.
+
 **The rule's scope is the app target, and only it.** `InkTests` walks
 `DrinkTracker/` and nothing else, and `.secondaryInk` / `.tertiaryInk` live in
 `GlassTokens.swift`, which the other targets do not compile. The hierarchical
@@ -205,6 +220,46 @@ secondary label measures 6.36:1 (§9) — but the watch's hint measures 2.23:1 i
 the tertiary label colour's own value on black, not vibrancy, so a flat ink
 would not lift it. **Whether the rule extends to the watch, the complication
 and the widget is open for a later pass**; nothing is changed here.
+
+**Tertiary ink is not for text a reader needs** (2026-09-26). Measured on
+the rendered pixels (iOS 27 simulator, iPhone 18 Pro Max, over a seeded
+log), `.tertiaryInk` drew #C5C5C7 on white (**1.72:1**) and #464649 on black
+(**2.23:1**) at every site in the app target. That is the tertiary label
+colour's own value, not vibrancy or a stale trait, so no flat token lifts
+it; Increase Contrast takes it to 4.45:1 and 5.42:1, but only for the few
+who turn that on. The two lines that explain a gesture with no visible
+affordance therefore take `.secondaryInk`: Trends' "Tip: drag across the
+bars to see what each one holds" and the calendar's, which the owner
+reworded the same day to "Tip: Press and drag across the calendar to fill
+several days at once." (copy review, 2026-09-26). Measured after, **3.44:1**
+on white and **6.36:1** on black (5.97:1 and 8.48:1 with Increase Contrast),
+the same as the caption beside each, and the same again after live switches
+between light and dark. They stay quiet by size, caption2 under footnote
+captions, which is how the app tells its other levels apart. In screenshots
+of both screens taken before and after on the same log, no pixel outside the
+two lines changed, in either appearance.
+The bar-selection design bundle drew the Trends tip `.tertiary`; this
+departs from it.
+
+| Site | What it is | Light | Dark | Ink now |
+|---|---|---|---|---|
+| Trends' tip (`TrendsView.swift`) | the only visible mention of the scrub | 1.72 → **3.44:1** | 2.23 → **6.36:1** | `.secondaryInk` |
+| The calendar's tip (`CalendarView.swift`) | the only visible mention of drag-to-fill | 1.72 → **3.44:1** | 2.23 → **6.36:1** | `.secondaryInk` |
+| A logged row's chevron (`TodayDrinkRow.swift`, on Today and the day sheet) | a glyph in the colour the system gives its own chevrons (Settings measured #C5C5C7 on white, 1.72:1, and #5A5A5E on its #1C1C1E cells, 2.48:1). The row is a button that says so to VoiceOver; on Today the footer says "Tap a drink to change what it was.", on the day sheet the chevron is the only visible cue for a described drink | 1.72:1 | 2.23:1 | `.tertiaryInk`, kept |
+| The Health offer's "– –" (`HealthPairingSection.swift`) | a placeholder where a figure will be, hidden from VoiceOver, under a sentence saying what the figures are | 1.72:1 | 2.23:1 | `.tertiaryInk`, kept |
+| "(that's five)" (`WelcomeView.swift`) | decoration under onboarding's tally mark, hidden from VoiceOver | 1.72:1 | 2.23:1 | `.tertiaryInk`, kept |
+
+`TertiaryInkTests` (tier 2) names the three kept sites and fails on any
+other use of the token, so a new one is written down with its reason rather
+than reached for. The tips now sit at the app's floor for small text, not
+above it: secondary's 3.44:1 in light is under 4.5:1 for text this size, the
+system secondary label's own value and the ink of the app's other small
+captions (the one beside each tip among them), so lifting that floor is a
+question for the whole app rather than for these two lines. Outside the app
+target, the watch's hint (§9, "Open, for the owner", item 1) is the same
+kind of line and would measure 6.36:1 in the watch's `.secondary`; it stays
+the owner's. The medium Home Screen widget's "≈ N standard drinks" caption
+is also `.tertiary` (`QuickLogWidget.swift`) and was not measured.
 
 ---
 
@@ -664,7 +719,10 @@ Recorded, not changed here.
    is under 4.5:1 for text that size and under 3:1 too. The measured colour is
    exactly the tertiary label colour, `rgba(235,235,245,0.3)` over black — the
    style's own value, not vibrancy, so §2's flat-ink rule would not lift it.
-   The secondary ink beside it measures 6.36:1.
+   The secondary ink beside it measures 6.36:1. On 2026-09-26 the phone's two
+   tips, the same kind of line at the same 2.23:1 on black, moved to secondary
+   (§2, "Tertiary ink is not for text a reader needs"); the watch's hint was
+   left for this decision.
 2. **The type scale is fixed** (Type, above).
 3. **The watch's accent is step 500, not 400.** `Color.accentColor` renders the
    asset's universal `#256ABF` on the watch — measured on the − glyph and the
