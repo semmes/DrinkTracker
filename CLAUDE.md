@@ -4065,7 +4065,8 @@ Open items for v1.2:
   every two-digit count on one line on every phone but the SE, and 111 from the 162.67pt
   phones up. **Left for its own task:** the SE's wider pairs (20 is 54.7pt in 49.95) and
   100 (77.7), which no small widget holds — "10" over "0" on the old 17 Pro, "1…" on the
-  new, because the words' second line took the height it had wrapped into. The same
+  new, because the words' second line took the height it had wrapped into. *(Done the
+  same day — the bullet "The small widget's count shrinks on one line…".)* The same
   review confirmed six more record errors and no code defect, all fixed in the ADR and
   here. **How the renders ran without a tap:** place widgets
   by writing `Library/SpringBoard/IconState.plist` with the device shut down — an entry
@@ -4084,6 +4085,112 @@ Open items for v1.2:
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
   marketing site's widget picture still shows the old build.
+- **Trends names the days its total covers, and Month's last date stays on the card
+  (2026-09-26; a copy review entry and two design-system rows, no ADR).** The
+  2026-09-26 screenshot audit (the untracked `Claude outputs/1.4-screenshots/
+  app-store-upload/README.md`, "App issues") found three things on Trends, and this
+  change is two of them. **(1) The total's label.** The stat card under the chart read
+  "this week" / "this month", but Week and Month are the trailing 7 and 30 days
+  (`TrendRange.startDate`): the audit's Month frame had "18 this month" under "Last 30
+  days" while the calendar's September, the 1st to the 23rd, held 13. `sumLabel` now
+  reads "last 7 days" / "last 30 days", the chart title's words lowercased, like
+  Quarter's and Year's. App catalog two out, two in, still 378, synced from a fresh
+  generic full build's x86_64 `.stringsdata` into a scratch copy and diffed.
+  **(2) Month's last x-axis date.** It crowded the card's edge every day, not only on
+  the audit's date: `.stride(by: .day, count: 7)` counts forward from the range's
+  first day, so its fifth label is always yesterday's, two bars from the end. In the
+  renders Swift Charts drew a label whose middle fell inside the plot and left out one
+  whose middle fell past it (every label drawn or missing in these renders, at Month
+  and Quarter and at two text sizes, fits that rule). So on a 440pt screen "Sep 25" ran half its width past the plot, to 420.7pt
+  against the card's border at 420, and on the 375pt SE it was left out, leaving the
+  last eight days unlabelled. `monthAxisDates` is now four dates a week apart counted
+  back from today (today − 27 to − 6), and the last label ends at 363.0pt on the 440pt
+  screen and 313.0 on the SE. Quarter and Year keep their strides: a month's name is
+  14 to 19pt wide, so the most one can run past the plot is about 10pt, inside the
+  card's 16pt padding; the worst case rendered, Quarter on 1 Nov 2026 (a Sunday),
+  ended "Nov" at 400.0pt inside the 403.6 plot. **(3) Found with it:** at
+  accessibility-extra-large Month's dates had already grown into one run ("Aug 28Sep
+  4Sep 11Sep 18" before, the same with the new dates). Every x-axis label now takes
+  `collisionResolution: .greedy`, which keeps every other Month date there. At the
+  default size frames match the build without it to within 2 of 255 on all four
+  ranges, and at accessibility-extra-large Week, Quarter and Year keep all their
+  labels. **Not in this change:** the audit's third issue, the y-axis labels' ink on
+  dark (about 1.4:1 on iOS 27). A worktree on `claude/trends-axis-ink` was created the
+  same afternoon for it, and the x-axis labels take the same default ink, so that fix
+  should cover both axes. **Verified:** tier 3 on two throwaway iOS 27 simulators, an
+  iPhone 18 Pro Max (440pt) and an iPhone SE 3rd generation (375pt), both deleted
+  afterwards. Each held a copy of the Phase 4 scratch store, and the before and after
+  builds came from scratch copies instrumented to open on Trends at a given range and
+  date. Frames covered Month in light and dark, Week, Quarter and Year, Month and
+  Quarter on faked dates (1 Aug, 6 Jun, 1 and 3 Oct, 1 Nov 2026), xxxLarge and
+  accessibility-extra-large. Pixel diffs between the builds are confined to the stat
+  label, Month's axis row and the home indicator. Also run: the integration suite (120
+  tests) in CI's form on the SE, and the generic simulator build with no new warning
+  (TrendsView's four are the existing `Text +` lines). **No test tier reaches the
+  view** (app target, no `TEST_HOST`). Domain tests were not re-run, since no package
+  code changed. **Not verified:** the axis at accessibility sizes on the SE or at AX5,
+  because the chart sits behind the tab bar there and a zero-tap render cannot scroll;
+  VoiceOver, which is unchanged (the chart is one adjustable element); hardware.
+  **For 1.4:** it is merged on main, so an archive from main carries it; whether 1.4 is
+  archived from a commit that includes it is the owner's call. No recommended
+  screenshot changes: the audit's upload set leaves out the Month frame, and the
+  Quarter frame's label and axis are unchanged. No schema, CloudKit, setting,
+  privacy-policy or project-file change. **Tooling:** (a) for zero-tap renders, a
+  scratch copy of the tree (`git archive` or `rsync`, never the worktree) can read
+  `-scratchTab trends -scratchRange month -scratchToday <ISO 8601>` launch arguments
+  in its `@State` initialisers and in place of `Date()`; (b) `simctl get_app_container
+  <udid> <bundle> groups` prints the group id, a tab and the path, and passing the
+  group id as the container argument fails; (c) a render that starts while a build is
+  running can capture a blank frame, so wait longer before retaking it rather than
+  debugging it.
+- **The small widget's count shrinks on one line (2026-09-26; ADR-0057 amended).** The
+  count ADR-0057 left: it shares the words' column at a fixed 44pt, so on an SE every
+  count from 20 drew as a bare "…" (rendered: 20, 80, 100, 199 and 999), and 100 was cut
+  short on every small widget. **The owner's two answers:** it shrinks on one line to a
+  **0.6** floor, the rule of every other count numeral in the app (Today's hero, the watch
+  counter, the complication); running it into the ＋'s 12pt gap and leaving it were
+  declined. And the digits stay **proportional**, although the other three counts are
+  tabular. **What shipped:** `countLineLimit` and `countMinimumScale` in
+  `QuickLogWidgetRow`, plus `countScale(forWidth:inColumn:)` as the rule. Seven tier-1
+  tests read the ten digits' measured advances, whose sum bounds a count's width because
+  pairs kern only tighter. In the widget a **`ViewThatFits`** draws a count that fits
+  with the old `Text`, untouched. A count that does not fit becomes an **overlay on a
+  hidden "0" as wide as the column, baseline to baseline**, so it keeps the full-size
+  line and the words don't move. No copy, catalog (35 keys, synced and byte-identical),
+  schema, CloudKit or project-file change. **Three things only rendering found.** (a) The
+  first build held the line with a baseline-aligned `ZStack`, and the renders showed it
+  shrinking counts that fit ("16" on the medium widget). A zero-width `HStack`
+  placeholder did the same. The overlay proposes the count the column's exact width. (b)
+  The overlay alone moved every fitting count up one pixel on the 3x Pro Max, which the
+  harness could not reproduce. That is why `ViewThatFits` keeps it off counts that fit.
+  (c) SwiftUI does not scale continuously. It sets a shrunk count on a quarter-point grid,
+  with about 0.1pt to spare, and never under 26.5pt. So in the SE's column 80 draws at
+  38.75, 100 at 28.0 and 199 at 28.25, and **200 is cut short** (it needs 26.43). The SE
+  holds every count to 199, not the 299 the arithmetic alone gave, and the tests claim a
+  count whole only 0.02 above the floor. **Found with a macOS SwiftUI harness:**
+  `ImageRenderer` over a copy of the row, sized like the SE's widget, with each shrunk
+  count's size found by matching its pixels against fixed sizes. That takes seconds
+  against a minute per state on a simulator, and it reproduced the `ZStack` defect
+  exactly. **Verified:** 385 domain tests under both SwiftPM build systems, no slow
+  expressions in the new tests; the simulator build with no warning in the widget; and
+  before against after on throwaway SE and 17 Pro Max simulators (iOS 26.5), deleted
+  afterwards. Light mode at thirteen counts from 1 to 999, dark at 2, 20 and 100, 32
+  pairs:
+  - every count that fits is pixel-identical (1 to 19 and 21 on the SE, to 111 on the
+    Pro Max);
+  - the SE's "…" and the Pro Max's "1…" became whole shrunk counts, on one baseline;
+  - 200, 299 and 999 on the SE are cut short, as predicted;
+  - every changed pixel is left of the ＋;
+  - the medium widget is identical in all 32.
+
+  The integration tests and the watch build were not re-run locally, because nothing they
+  compile changed; CI runs both.
+  **Cost, recorded:** on the SE the count's size changes between neighbours (19 and 21 at
+  44pt, 20 at 40, 22 at 41.5), because each pair of proportional digits is its own width.
+  Tabular digits are the reopen. **Tier 4 for the owner:** remove the widget and add it
+  again. On their iPhone 15 Pro (the 162.67pt row) every count below 100 draws as
+  ADR-0057's build drew it, so the change shows only at 100 or more; on an SE it shows
+  from 20.
 - **The chart's axis labels follow a live appearance change (2026-09-26; ADR-0028's third
   amendment).** A screenshot audit of the 1.4 candidates (`Claude
   outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-dark.png` and

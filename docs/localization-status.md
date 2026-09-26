@@ -97,7 +97,11 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
 Current: **530 keys across six catalogs** — 378 app, 35 widget, 28 core, 4
-shortcuts, 50 watch app, 35 complication (re-counted 2026-09-24 after the 1.4
+shortcuts, 50 watch app, 35 complication (re-counted 2026-09-26 after the
+Trends total's card named the window it covers: two app keys out, "this week"
+and "this month", and two in, "last 7 days" and "last 30 days", none changed,
+synced from a fresh generic full build's x86_64 `.stringsdata` into a scratch
+copy and diffed before it was copied in; re-counted 2026-09-24 after the 1.4
 privacy policy rewrite, ADR-0054: five app keys out and five in, all of them
 the policy's own — the date and four section bodies — then four of those again
 after the release review, each time synced from a fresh full build into a

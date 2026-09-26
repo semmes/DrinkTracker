@@ -751,22 +751,32 @@ struct TrendsView: View {
     .chartXAxis {
       // Labels only. With the grid gone the dashed average is the single
       // reference behind the bars instead of one line among a dozen.
+      //
+      // Greedy: a label that would overlap the one before it is left out.
+      // Nothing overlaps at the default text sizes, so nothing is left out
+      // there. At accessibility-extra-large on a 440pt screen, Month's four
+      // dates grew into one run ("Aug 30Sep 6Sep 13Sep 20") and greedy keeps
+      // every other one; Week, Quarter and Year kept all of theirs.
       switch range {
       case .week:
         AxisMarks(values: .stride(by: .day, count: 1)) { _ in
-          AxisValueLabel(format: .dateTime.weekday(.narrow)).foregroundStyle(axisInk)
+          AxisValueLabel(format: .dateTime.weekday(.narrow), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       case .month:
-        AxisMarks(values: .stride(by: .day, count: 7)) { _ in
-          AxisValueLabel(format: .dateTime.month(.abbreviated).day()).foregroundStyle(axisInk)
+        AxisMarks(values: monthAxisDates) { _ in
+          AxisValueLabel(format: .dateTime.month(.abbreviated).day(), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       case .quarter:
         AxisMarks(values: .stride(by: .month, count: 1)) { _ in
-          AxisValueLabel(format: .dateTime.month(.abbreviated)).foregroundStyle(axisInk)
+          AxisValueLabel(format: .dateTime.month(.abbreviated), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       case .year:
         AxisMarks(values: .stride(by: .month, count: 2)) { _ in
-          AxisValueLabel(format: .dateTime.month(.abbreviated)).foregroundStyle(axisInk)
+          AxisValueLabel(format: .dateTime.month(.abbreviated), collisionResolution: .greedy)
+            .foregroundStyle(axisInk)
         }
       }
     }
@@ -784,6 +794,27 @@ struct TrendsView: View {
     .accessibilityAdjustableAction { direction in step(direction) }
     .accessibilityAction(.escape) { clearSelection() }
     .accessibilityAction(named: Text("Clear selection")) { clearSelection() }
+  }
+
+  /// Month's four date labels, a week apart and counted back from today:
+  /// today − 27, − 20, − 13 and − 6.
+  ///
+  /// A label is drawn from its tick to the right, so the last one needs room
+  /// after it. `.stride(by: .day, count: 7)` counts forward from the range's
+  /// first day, which puts its fifth label on yesterday, two bars from the end.
+  /// In the renders Swift Charts drew a label whose middle fell inside the plot
+  /// and left out one whose middle fell past it, so a drawn label can run half
+  /// its width past the plot: on a 440pt screen that fifth label ran to the
+  /// card's border (the plot ends at 403.6pt, "Sep 25" at 420.7pt, the border
+  /// at 420), and on a 375pt screen it was left out. Counted back from today,
+  /// the last label always has a week of bars after it. Quarter and Year keep
+  /// their strides: a month's name is half as wide, so the most it can run past
+  /// the plot is about 10pt, inside the card's padding.
+  private var monthAxisDates: [Date] {
+    let lastDay = calendar.startOfDay(for: today)
+    return [-27, -20, -13, -6].compactMap {
+      calendar.date(byAdding: .day, value: $0, to: lastDay)
+    }
   }
 
   /// The selected bar's slot inside the plot, in the plot's own coordinates:
@@ -972,10 +1003,16 @@ struct TrendsView: View {
     }
   }
 
+  /// The window the total covers, in `chartTitle`'s words, lowercased to read
+  /// under the figure. Week and Month are the trailing 7 and 30 days
+  /// (`TrendRange.startDate`), not the calendar's week or month. These labels
+  /// once said "this week" and "this month", and at Month that put a total
+  /// reaching back into the previous month beside the calendar's card for the
+  /// month, which counts from the 1st.
   private var sumLabel: LocalizedStringKey {
     switch range {
-    case .week: "this week"
-    case .month: "this month"
+    case .week: "last 7 days"
+    case .month: "last 30 days"
     case .quarter: "last 13 weeks"
     case .year: "last 12 months"
     }
