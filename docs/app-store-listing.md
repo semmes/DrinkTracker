@@ -38,7 +38,7 @@ price, and the Terms of Use and privacy links).
 | Name | **Tallyist** |
 | Subtitle (30 chars max) | `Your drinks, tallied.` |
 | Primary category | Health & Fitness |
-| Privacy Policy URL | `https://tallyist.co/privacy/` (from 1.4) |
+| Privacy Policy URL (App privacy page) | `https://tallyist.co/privacy/` (from 1.4) |
 | Support URL (version page) | `https://tallyist.co/support/` (from 1.4) |
 | Marketing URL (version page) | `https://tallyist.co/` (from 1.4, optional) |
 | License Agreement | Apple's standard EULA (leave the custom EULA field empty) |
@@ -495,12 +495,12 @@ are. Neither the word "monitoring" nor any watch model appears in them, on
 purpose (`docs/health-pairing-phase-0-findings.md`, ADR-0053).
 
 **Attach** the Trends screenshot of the Apple Health card
-(`Claude outputs/1.4-screenshots/iphone-6.9/iphone-06b-health-quarter-light.png`)
-in App Review Information, because a review device usually has no Health data
+(`Claude outputs/1.4-screenshots/app-store-upload/iphone-6.9-1320x2868/iphone-06b-health-quarter-light.png`,
+the copy without an alpha channel) in App Review Information, because a review device usually has no Health data
 for these types and the section is designed to show nothing then.
 
 **Length:** App Store Connect's Notes field holds 4,000 characters. The block
-below is 3,779. A first draft ran to 5,236 and was cut; any addition has to fit
+below is 3,783. A first draft ran to 5,236 and was cut; any addition has to fit
 the same limit, so count before pasting (`wc -c`).
 
 ```
@@ -568,14 +568,19 @@ no accounts; no external services.
 
 New in 1.4: the watch app, a HealthKit read for four types behind switches
 that start off, and the remote-notification background mode. No new privacy
-label categories, no third-party code, no accounts, no servers.
+label categories, no new third-party code, no accounts, no servers.
 ```
 
 ## Reminders for the version page
 
-- Age rating: answer the alcohol question honestly — "Alcohol, Tobacco, or
-  Drug Use or References: Infrequent/Mild" lands the app at 17+, which is
-  correct for this category.
+- Age rating: answer the alcohol question honestly. This line used to say
+  "Infrequent/Mild" lands the app at 17+, which was never right. The live
+  product page shows **18+**, with "Frequent" for Alcohol, Tobacco, Drug Use
+  or References (read 2026-09-26). The lookup API's 17+ is the same answer on
+  Apple's scale for devices before OS 26, where frequent is 17+; infrequent
+  would be 12+ there and 13+ on OS 26
+  (`docs/health-pairing-phase-0-findings.md`, "Seen in passing"). What App
+  Store Connect holds is visible only there.
 - App Privacy: **Data Not Collected** (matches the privacy manifests; see
   docs/privacy-policy.md for the reasoning App Review can follow).
 - Screenshots: Today (counter), Calendar (with a drag selection), Trends,
@@ -592,13 +597,17 @@ label categories, no third-party code, no accounts, no servers.
   toolbar, and the calendar's toolbar reads "Year" — retake the whole in-app
   set, not only the three named above.
 - The tip-jar IAPs must be submitted for review with the first version that
-  contains them (select all three products on the version page).
+  contains them. Apple's rule, then and now, is per type: the first in-app
+  purchase of each type is submitted with a new app version. The 1.4 bullet
+  on in-app purchases below applies it to the two recurring tips.
 
 **For 1.4 specifically** (added 2026-09-24):
 
 - **Description:** paste (A) or (B) from "Description for 1.4". The live one
   lacks the 3.1.2(a) subscription paragraph and says nothing about the Health
-  reads, and 1.4 is the version a reviewer will read it beside.
+  reads, and 1.4 is the version a reviewer will read it beside. Read the
+  in-app purchases bullet below first: if the recurring tips will not be sold
+  with 1.4, drop the subscription paragraph before pasting.
 - **App Privacy stays Data Not Collected**, and no answer changes. The
   reasoning, checked against the build rather than assumed, is in
   `docs/tallyist-1.4-spec.md` ("App Privacy"). The regulated medical device
@@ -606,23 +615,92 @@ label categories, no third-party code, no accounts, no servers.
 - **Age rating:** no question's answer changes. The Health figures give no
   diagnosis, guidance or recommendation, so "Medical or Treatment Information"
   and "Health or Wellness Topics" are unaffected
-  (`docs/health-pairing-phase-0-findings.md`). The lookup API reads 17+ today.
+  (`docs/health-pairing-phase-0-findings.md`). The product page shows 18+ with
+  "Frequent" alcohol references (2026-09-26), not the 17+ this file used to
+  give.
+- **In-app purchases, before pasting a description.** The live product page
+  lists one in-app purchase, "Buy the creator a drink" at $4.99 (2026-09-26).
+  Neither recurring tip appears. Descriptions (A) and (B) both carry the
+  guideline 3.1.2(a) paragraph naming the monthly and yearly tips, so check
+  both subscriptions' status in App Store Connect (Monetization →
+  Subscriptions) before submitting.
+  - **To sell them with 1.4:** Apple's help says the first auto-renewable
+    subscription "must be submitted with a new app version", "together with
+    its subscription group", and everything reviewed together goes in "the
+    same draft submission". The same page also says in-app purchases "aren't
+    supported on Apple Watch" and should be removed from an Apple Watch app
+    version's submission. 1.4 is an iOS version that carries a watch app, and
+    whether that sentence applies to it was not verified.
+  - **If they will not be sold:** remove the subscription paragraph from the
+    description before pasting it.
 - **Screenshots:** the watch needs its own set (Apple Watch, one size is
   enough; 416 × 496 from a 46mm simulator is an accepted size), and every
   in-app iPhone and iPad shot is still stale since the tab bar. Candidate sets
   from a seeded scratch simulator are in `Claude outputs/1.4-screenshots/` in
   the main checkout, with a README saying what each shows and how it was
   made. Nothing there is uploaded.
-- **App Review Information:** paste "Reviewer notes (1.4)" (3,779 characters,
+  - **Upload from `app-store-upload/`, not the folders beside it.** Apple's
+    specification says "Images can't include alpha channels or
+    transparencies". The simulator screenshots taken for 1.4 (`simctl io …
+    screenshot`) were all RGBA PNGs, although every pixel was opaque. The
+    files in `app-store-upload/` are RGB copies with the same pixels, except
+    a 4 × 4 simulator speck painted out of the top-left corner of the nine
+    `-light` iPhone files, and its README gives a recommended order.
+  - **The iPhone set.** Up to 10 files per size. After uploading the 6.9"
+    set, delete 1.3's 6.5" set (8 files at 1284 × 2778). Apple uses the 6.5"
+    set for the 6.3" and 6.1" iPhones, so if it stays, every iPhone smaller
+    than 6.9" goes on showing 1.3's screens. The 1320 × 2868 files cannot be
+    scaled to 1284 × 2778 without cropping, because the aspect ratios differ.
+  - **The iPad set.** The 13" set is "Required if app runs on iPad". The four
+    live iPad shots carry over and meet it, though they are out of date.
+  - **The description.** Apple's help for watchOS apps says "Ensure your
+    description includes the app's functionality on Apple Watch." Descriptions
+    (A) and (B) each name the watch in one clause. A line saying what the watch
+    does would need the 1.4.3 review before it is pasted.
+- **App Review Information:** paste "Reviewer notes (1.4)" (3,783 characters,
   under the field's 4,000) and attach the Health card screenshot it names.
-- **The website's addresses.** On the 1.4 version, set the Privacy Policy URL
-  (App Information) to `https://tallyist.co/privacy/`, and the Support URL and
-  Marketing URL (the version page) to `https://tallyist.co/support/` and
-  `https://tallyist.co/`. App Store Connect takes these only with a version,
-  which is why they wait for 1.4; until then the listing's `semmes.github.io`
-  addresses redirect to the same pages, and they go on redirecting afterwards.
-  Tick **Enforce HTTPS** in `semmes/Tallyist` → Settings → Pages first
-  (ADR-0024, amended 2026-09-24).
+  Their closing line said "no third-party code" until 2026-09-26, which was
+  false: the app has linked ComponentsKit and AutoLayout through Swift Package
+  Manager since 1.0. It now says "no new third-party code", as the 1.2 and 1.3
+  notes did. "Sign-in required" stays unchecked, since the app has no
+  accounts; check that the contact details carried over from 1.3 are current.
+- **The website's addresses.** For 1.4, set the Privacy Policy URL to
+  `https://tallyist.co/privacy/`. Apple's help puts that field in the sidebar
+  under App privacy (Privacy Policy, Edit), and says "Any changes to the URLs
+  releases with your next app version". Then set the Support URL and Marketing
+  URL on the version page to `https://tallyist.co/support/` and
+  `https://tallyist.co/`. The Marketing URL is not new: the live listing's is
+  `https://semmes.github.io/Tallyist/`. Until 1.4 the listing's
+  `semmes.github.io` addresses redirect to the same pages, and they go on
+  redirecting afterwards. Enforce HTTPS is already on: the owner ticked it on
+  2026-09-24 (CLAUDE.md, the bullet "The website's own pages are built…"), and
+  `http://tallyist.co/` answers 301 to https.
+- **The TestFlight build** (added 2026-09-26):
+  - **Which build.** The last code change on the 1.4 train is PR #150 (the
+    watch's hint and the widget's ≈ line), merged as 15a4f9f. Submit a build
+    from that commit or later; anything earlier lacks some of 2026-09-26's
+    fixes. A manual archive has to come from a checkout pulled to it.
+  - **Xcode Cloud already archives main.** Its "Archive - iOS" action
+    succeeded on 146d92d, 15a4f9f, 9891976 and b8eb04b (2026-09-26: 0 errors,
+    32 deprecation warnings), so the private `contract/` submodule does not
+    stop it; nothing in the build uses `contract/`.
+  - **Xcode version.** The hardware passes from 2026-09-22 on (the four
+    Health rows, the watch-to-phone check, ADR-0055's test) ran on Xcode 27.0
+    builds, the watch passes of 2026-09-14 to 16 on 26.6, and 1.3 was archived
+    with 26.6 against the iOS 26.5 SDK. A manual archive on this Mac uses
+    27.0. Xcode Cloud uses the version set in its workflow's Environment,
+    which only App Store Connect shows.
+  - **Testing.** Internal testing is enough for the pass.
+    `ITSAppUsesNonExemptEncryption` is `NO` on the iOS app. Whether that also
+    covers the embedded watch app will show at the first upload.
+  - **Which drinks to judge.** The phone and the watch run Xcode builds, which
+    sync to CloudKit Development. The TestFlight build syncs to Production,
+    which is a separate database. Judge the pass only on drinks logged after
+    the TestFlight build is installed. The TestFlight build opens the same
+    local store on each device, so the rows the Xcode builds wrote stay in
+    it, including the six test drinks from 2026-09-24. Whether it then
+    exports them to Production was not checked. Removing the test drinks
+    before the install keeps the readings clean.
 - **When 1.4 is live,** set `platform_state: 2` in `semmes/Tallyist`'s
   `_config.yml` (the site's own file, not a mirrored one). The support page
   then answers the watch question with "Yes" and drops "From version 1.4",

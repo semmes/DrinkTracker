@@ -172,11 +172,16 @@ purchases work in the simulator with no App Store Connect setup).
 ## App Store material
 
 `docs/app-store-listing.md` is the paste-ready ASC metadata (description with
-the guideline-3.1.2(a) subscription block — keep prices in sync with ASC),
-plus support URL (`docs/support.md`) and privacy URL. Age rating 17+ (alcohol
-references); App Privacy is **Data Not Collected** — the privacy policy's
-claims are written to be checkable against the manifests and entitlements,
-so keep them true.
+the guideline-3.1.2(a) subscription block — keep prices in sync with ASC, and
+drop the block if the recurring tips are not on sale; on 2026-09-26 the store
+listed only the one-time tip), plus support URL (`docs/support.md`) and privacy
+URL. Age rating: the store shows 18+, with "Frequent" alcohol references
+(product page, 2026-09-26); the lookup API's 17+ is the same answer on Apple's
+scale for devices before OS 26. App Privacy is **Data Not Collected** —
+the privacy policy's claims are written to be checkable against the manifests
+and entitlements, so keep them true. **Screenshots uploaded to App Store
+Connect must have no alpha channel**, and the simulator screenshots taken for 1.4
+all had one (`docs/app-store-listing.md`, the 1.4 screenshot reminder).
 
 ---
 
@@ -468,7 +473,9 @@ point at the Pages site, and that the three tip-jar products were selected on
 the version page (they must ship with the first version that contains them).
 *(Read off the live listing on 2026-09-23: both URLs point at the Pages site; the
 page says "In-App Purchases" but names none, so whether all three products are live
-is not visible from it — the bullet "1.3 is approved and live…".)* The long-pending catalog population is **done** — and did not need
+is not visible from it — the bullet "1.3 is approved and live…". 2026-09-26: the page
+names one, "Buy the creator a drink" at $4.99, and neither recurring tip; see the 1.4
+in-app purchases reminder in `docs/app-store-listing.md`.)* The long-pending catalog population is **done** — and did not need
 a GUI build after all (see the localization bullet). A real GUI build over
 the pulled tree afterwards produced **no catalog change at all**, which
 confirms the sync route writes what Xcode would. It also does not add
