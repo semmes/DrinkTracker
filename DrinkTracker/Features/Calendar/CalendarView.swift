@@ -621,9 +621,11 @@ struct CalendarView: View {
   /// the tap path works without ever reading it. Quiet by its size, not its
   /// ink: tertiary measured 1.72:1 on the screen's white and 2.23:1 on its
   /// black, too faint for the one place the drag is explained, so it takes
-  /// secondary like Trends' tip (design-system §2, 2026-09-26).
+  /// secondary like Trends' tip (design-system §2, 2026-09-26). After "Tip: "
+  /// its sentence is the one on the website's home page and in the App Store
+  /// description, so the three say one thing (copy review, 2026-09-26).
   private var selectionHint: some View {
-    Text("Tip: press and hold, then drag across days to fill a stretch at once")
+    Text("Tip: Press and drag across the calendar to fill several days at once.")
       .font(.caption2)
       .foregroundStyle(.secondaryInk)
       .frame(maxWidth: .infinity, alignment: .leading)
