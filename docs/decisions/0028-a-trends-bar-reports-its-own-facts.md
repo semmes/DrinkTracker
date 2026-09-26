@@ -363,6 +363,72 @@ both readout states, both zero-day states, the identical card height, the
 crossfade, and dark mode, by driving the selection programmatically and filming
 the result.
 
+## Third amendment (2026-09-26): the axis labels take an ink resolved for the current appearance
+
+A screenshot audit of the 1.4 candidates measured the chart's y-axis labels at
+**1.36:1** on the black dark ground at Month and at Quarter, where the x-axis
+labels in the same frames measured 6.36:1. It was reported as the class of defect
+the 2026-09-22 ink change fixed for text (design-system §2): iOS 27 dimming a
+hierarchical style on glass, escaping `InkTests` because a bare
+`AxisValueLabel()` names no style.
+
+**It is a different defect, and the flat ink does not fix it.** The labels' ink
+was #242428, which is light mode's secondary label (#3C3C43 at 60%) over black,
+not a dimmed dark one. On a scratch iPhone 18 Pro Max simulator (iOS 27) over a
+seeded log, `main` at 146d92d draws both axes correctly at launch (6.36:1 in
+dark, 3.44:1 in light), and the renders before this one were all taken from a
+launch. Switched live between the two appearances, the **y axis draws the
+appearance before the current one**: #F3F3F9 on white (1.11:1) after a switch to
+light, and #242428 on black (1.36:1) after a switch to dark, for as many switches
+as were tried. The x axis beside it, the card title and every other text
+re-resolved each time. The same cycle on an iOS 26.5 simulator with the same
+build does not lag (6.37:1 and 3.44:1 throughout), so this is iOS 27's. A live
+Dynamic Type change does reach the y labels at the new size, so the colour alone
+is stale. `AxisValueLabel().foregroundStyle(.secondaryInk)` was built and gave
+frames identical to `main`'s: the flat token is still a dynamic colour, and the
+axis resolves it against the same stale appearance.
+
+**The change.** Both axes' labels take `Color.chartAxisInk(colorScheme,
+contrast: colorSchemeContrast)` (`GlassTokens.swift`): the system's
+`secondaryLabel` resolved for the view's own appearance and Increase Contrast.
+It is a colour with no trait lookup left for the chart to get wrong. It is still no
+literal, since it is the system's semantic colour resolved by name, so invariant
+10 and design-system §2's "no custom greys" hold as written. The x axis did not
+lag, but takes the same ink, so the two axes cannot drift apart on some later
+release. `TrendsView` reads `colorSchemeContrast` so that a change of either
+setting re-runs the body that resolves it. **Measured after the change**, every
+frame against the card's own ground, the y labels equal to the x labels and the
+card title each time:
+
+| State | Light | Dark |
+|---|---|---|
+| At launch, Month and Quarter | #8A8A8E, 3.44:1 | #8D8D93, 6.36:1 |
+| After each of three live switches, Month and Quarter | #8A8A8E, 3.44:1 | #8D8D93, 6.36:1 |
+| Appearance switched while Trends was a hidden tab, then Trends reopened | #8A8A8E, 3.44:1 | #8D8D93, 6.36:1 |
+| Increase Contrast turned on live | #636369, 5.97:1 | #A5A5AB, 8.57:1 |
+| iOS 26.5, launch and three live switches, Quarter | #8A8A8E, 3.44:1 | #8E8E94, 6.37:1 |
+
+3.44:1 in light is the secondary label's own value on white, the same as every
+card title since 2026-09-22. It is under 4.5:1, as it was before, and the change
+does not touch it.
+
+**Who met it.** On iOS 27, anyone whose appearance changes while Trends is
+loaded: Automatic appearance at sunset or sunrise, the Control Centre switch, and
+very likely the app's own Appearance setting, though that route was not rendered.
+The labels stay wrong until the next change. 1.3 is live with the same axis code,
+so 1.3 on iOS 27 most likely shows it too. That is inferred from the source, not
+seen on the store build.
+
+**The guard.** `InkTests` requires every `AxisValueLabel` in the app target to be
+followed by `.foregroundStyle(axisInk)`. Its scanner matches a label's nested
+parentheses and a trailing closure, and a self-check proves it catches a bare
+label, a `.secondaryInk` one and a hierarchical one. Run against `main`'s
+`TrendsView` and `GlassTokens`, it names all five labels and the missing token.
+
+**Not verified:** hardware; Week and Year after a live switch (one code path with
+Month and Quarter, and Week was seen at launch); the app's own Appearance setting;
+VoiceOver, which reads no axis label (the chart is one adjustable element).
+
 ## How to reopen
 
 If users ask what a bar is *relative to*, the honest answer is more
@@ -408,3 +474,9 @@ colour set in the asset catalog (light `#0d366b`, dark `#9ec5f4`) — the
 `AccentFill` precedent from ADR-0029 — plus a design-system §2 roles row with
 the three measured contrast figures. Not a widening of `IntensityPalette`'s
 doc comment: that comment forbids styling uses specifically, and this is one.
+
+If a later iOS re-resolves a dynamic colour on the chart's y axis after a live
+appearance change (switch appearance with Trends open, and read the labels'
+pixels against the x axis), `Color.chartAxisInk` can give way to `.secondaryInk`,
+with `InkTests`' axis-label style changed to match. Until then, never style an
+axis label with a dynamic colour, flat or hierarchical.

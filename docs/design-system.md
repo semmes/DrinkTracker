@@ -185,6 +185,21 @@ and fails on the first hierarchical text style. The share cards' `ShareCardInk`
 is untouched (their own literal site, ADR-0027); a fill may still take a
 hierarchical style, since the rule is about text.
 
+**A chart's axis labels take the secondary ink already resolved for the current
+appearance**, `Color.chartAxisInk(colorScheme, contrast:)` (2026-09-26, ADR-0028's
+third amendment). On iOS 27 the Trends chart's y axis resolves a dynamic colour
+against the appearance *before* the current one. After a live switch its labels
+drew the other mode's secondary label, #F3F3F9 on white (**1.11:1**) and #242428
+on black (**1.36:1**), while the x axis and the card title re-resolved. The flat
+`.secondaryInk` lagged the same way, since it is still a dynamic colour. A colour
+resolved from the view's own `colorScheme` and `colorSchemeContrast` leaves the
+chart nothing to resolve. It is the system's semantic colour resolved by name,
+not a literal. Measured after the change on the iOS 27 simulator: at launch and
+after every live switch, 3.44:1 in light and 6.36:1 in dark, the same as the x
+axis and the card title; with Increase Contrast, 5.97:1 and 8.57:1. iOS 26.5
+never lagged. Both axes take it, and `InkTests` requires every `AxisValueLabel`
+in the app target to.
+
 **The rule's scope is the app target, and only it.** `InkTests` walks
 `DrinkTracker/` and nothing else, and `.secondaryInk` / `.tertiaryInk` live in
 `GlassTokens.swift`, which the other targets do not compile. The hierarchical
