@@ -4464,7 +4464,15 @@ Open items for v1.2:
   the old ink:** `watch-46mm/watch-01-counter.png` and its upload copy measure the hint
   at 2.23:1, so, with 1.4 carrying this, it is the frame to retake; the session
   candidate shows the dot row in the hint's place, and no iPhone candidate shows the
-  widget. **Not verified:** hardware; Always-On (the simulator offers
+  widget. *(Retaken the same evening at the owner's request, from a Release build of
+  main at 9891976 on a throwaway Series 12 46mm on watchOS 27, with no taps. Diffed
+  against the original, only the hint (now 6.36:1) and the clock differ: 5:37 where the
+  original reads 11:24, since the watchOS simulator refuses `simctl status_bar`
+  overrides. The upload copy is RGB with an sRGB chunk only, and it matches the capture
+  pixel for pixel under Pillow and ImageIO. The originals are in
+  `watch-46mm/superseded-2026-09-26/`, and both screenshot READMEs record the retake,
+  written by script at the owner's choice since a hook blocks editing the main
+  checkout.)* **Not verified:** hardware; Always-On (the simulator offers
   none); the hint with Increase Contrast, which the watchOS simulator refuses ("Runtime does
   not support increased contrast"); VoiceOver (no label changed); other wallpapers under
   Clear and Tinted; StandBy; iPad. **Tooling:** the Home Screen's style is a file, settable
