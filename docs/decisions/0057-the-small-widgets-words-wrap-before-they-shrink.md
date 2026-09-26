@@ -144,10 +144,14 @@ is its own change: the amendment of the same day, below.
 StandBy shows the small family with narrower margins than the Home Screen on every phone
 (116.43 on the SE against 113.95), so the Home Screen is the case that binds.
 
+**Passed on the owner's phone** (2026-09-26, after PR #140 merged, and before the
+amendment below), in the owner's words: "Working as expected on the widget." The report
+does not say which counts or which appearance were read.
+
 ## Not verified
 
-A real device, where a widget change needs the widget removed and added again; any iPad,
-whose small widget is another set of sizes (the rule reads no width, so it wraps wherever
+Anything on a device beyond that report; any iPad, whose small widget is another set of
+sizes (the rule reads no width, so it wraps wherever
 it must, but nothing was rendered there); StandBy and the tinted and clear Home Screen
 styles (layout does not change with the rendering mode); Bold Text, which widens the
 words; VoiceOver, whose label is unchanged; and the phones whose frames were measured by

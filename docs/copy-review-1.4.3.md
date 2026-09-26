@@ -2406,3 +2406,30 @@ description, the support page or the live site (its five pages read on
 
 A plain instruction, like the one it replaces: no celebration, no judgment, no
 exclamation mark and no em dash. Pass.
+
+## 2026-09-26 — "See how it works" on the website
+
+New copy for `tallyist.co`, in `semmes/Tallyist#6`, merged and live on 2026-09-26.
+Nothing ships in the app.
+
+- **Home page, the hero:** a link under the App Store badge reads "See how it
+  works", followed by a down arrow drawn like the feature icons (decorative, hidden
+  from assistive technology), and points at the heading of the section below,
+  "From what's on tap, to one tap." It takes the place of the hero's three-line
+  platform list (iPhone · Available now, Apple Watch · Coming soon, Android ·
+  Coming soon), which the closing section keeps.
+
+It reports what the link does, in the reader's terms: the sections below show the
+app working. It sets no goal, praises nothing and asks nothing about the reader's
+drinking. "See" is an imperative only in the grammatical sense, like "Read the
+privacy policy" on the same page, which the review of the website's own pages
+passed: it names where a link goes, not what the reader should do about their log.
+No exclamation mark, no em dash. Pass.
+
+**Why it exists:** visitors were stopping at the first screen, which on common
+laptop and desktop windows ended inside the hero's own bottom padding with nothing
+below it in view. The link is the one cue on the first screen that says so in words;
+the rest of that change is layout, in the stylesheet.
+
+**Not changed:** the closing section's "Available on the App Store" and its
+platform list, and the Apple Watch section's "About Tallyist on Apple Watch".

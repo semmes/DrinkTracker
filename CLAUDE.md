@@ -308,7 +308,7 @@ TestFlight pass (the bullet "The owner's watch-to-phone check…"). **On 2026-09
 small Home Screen widget stopped cutting its words short** — "drinks tod…" in the owner's
 marketing screenshot, and cut or shrunk on every iPhone iOS 26 supports — by giving them
 the whole column beside the ＋ and a second line (the bullet "The small widget's words
-wrap…", ADR-0057).
+wrap…", ADR-0057); it passed on the owner's phone the same day.
 **On 2026-09-26 the Trends chart's y-axis labels were found drawing the previous
 appearance's ink after a live light/dark switch on iOS 27, 1.36:1 in dark; both axes now
 take an ink resolved for the current appearance (the bullet "The chart's axis labels
@@ -4095,7 +4095,9 @@ Open items for v1.2:
   transcript or the records as they arrive. **Tier 4 for the owner:** remove the widget
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
-  marketing site's widget picture still shows the old build.
+  marketing site's widget picture still shows the old build. **Passed on the owner's
+  phone the same day, after PR #140 merged,** in their words: "Working as expected on the
+  widget." (The report does not say which counts or which appearance were read.)
 - **Trends names the days its total covers, and Month's last date stays on the card
   (2026-09-26; a copy review entry and two design-system rows, no ADR).** The
   2026-09-26 screenshot audit (the untracked `Claude outputs/1.4-screenshots/
@@ -4344,6 +4346,64 @@ Open items for v1.2:
   takes `.defaultScrollAnchor(.bottom)` from a `SIMCTL_CHILD_` variable; `simctl ui <udid>
   increase_contrast enabled` works live; and the Settings app's own chevrons are the
   system's reference colour. The scratch simulator was deleted afterwards.
+- **The website's first screen says there is more (2026-09-26; `semmes/Tallyist#6`, merged
+  the same day as 9629148 on the owner's review).** The owner saw visitors stop at tallyist.co's first screen.
+  Measured on the live site, in the browser pane and then with headless Chrome: the home
+  page's hero is about 950px tall at every width above 1,200px whatever the window's
+  height (a 654px phone, 88px above it, 136px below), so on the common laptop and desktop
+  windows the first screen ended inside the hero's own bottom padding with the next
+  section's edge just out of view (1512×850: the whole phone, then 32px of empty ground;
+  1920×950: the whole hero, the edge 4px below the fold; 1366×650: the App Store badge
+  itself 14px below it); the tint between sections is 1.12:1 in light and 1.23:1 in dark,
+  a surface, not an edge; and on a phone (390×664) the first screen ended on the three
+  platform lines, which read like a footer, with Safari's Smart App Banner pushing the
+  phone's edge off it. The design handoff never addressed the fold, and its header is
+  "not sticky" by its own spec. **Six changes, on the owner's go-ahead, all in
+  `css/site.css` but for the hero's markup and its `sizes`:** the hero ends near its
+  content (bottom padding 32 to 56px, the section after it 40 to 64px, the hero phone
+  never under 560px and full size only from about 1,000px of window height; under 800px
+  of height the hero's top is 40px, the headline 72px on a 16px margin, the lead's margin
+  24px, and the row top-aligned so the text keeps its place while the phone runs past the
+  fold); "See how it works", a link under the badge to the next section's heading, with an
+  arrow drawn like the feature icons and smooth in-page scrolling that is plain under
+  reduced motion (the copy review has its row); on a phone the hero phone is 70vw wide and
+  the hero's platform list is gone, the closing section keeping its own; card sections
+  carry a hairline at both edges in the footer's separator colour; `--section-y` is
+  `clamp(56px, 7vw, 96px)`, was `clamp(72px, 10vw, 136px)`, the compact and statement
+  sections scaled with it; and the short-window rule keeps the badge on the first screen
+  at 1366×650. **Where the first screen ends now:** 1366×650 on the badge and the link
+  with the phone 26px past the fold; 1440×770 on the link, then the next section's edge
+  with 38px of it showing; 1512×850 the link, then the edge with 23px; 1920×950 the edge
+  and 27px of the next heading; 820×1080 the heading and the start of its paragraph;
+  390×664 the badge, the link and 107px of the phone. The page is about 11% shorter at
+  desktop widths; the Apple Watch and Press pages take the section rules too.
+  **Deviations from the design, accepted by the owner with the merge:** the 72px headline on
+  short windows, the 560px hero phone on laptops, the removed platform list, the
+  hairlines, the new link. **Verified:** a stand-in render of the built page (the live
+  page's HTML with the branch's edits and stylesheet, root-relative URLs made relative
+  for `file://`) whose numbers matched the live site exactly before the change, captured
+  with headless Chrome at the six viewports, light and dark; **the CI build of the branch
+  matches the stand-in byte for byte** (home page, watch page, stylesheet); the site's
+  contrast check, 9 pairs passing, no colour changed; CI green on the PR. **Not
+  verified:** real Safari with the Smart App Banner (about 80px, computed from the
+  measured positions, not rendered); a 375pt phone; the pages under Windows' fonts, since
+  the captures used macOS Chrome with the system font. The before-and-after composites,
+  the measurement JSON and the four scripts are in the untracked
+  `Claude outputs/site-fold/`, and the composites went to the owner in the session.
+  **Tooling worth keeping:** exact-viewport captures with files on disk are headless
+  Chrome over the DevTools pipe (`--remote-debugging-pipe`, fds 3 and 4,
+  `Emulation.setDeviceMetricsOverride`), which needs no local port, since the sandbox
+  blocks binding one; Chrome itself must run with the sandbox off (it exits 21, "Failed
+  to create socket directory", on its singleton socket in the real Darwin temp dir,
+  whatever `TMPDIR` says); a wait on `document.images` must skip lazy images below the
+  fold, or it never resolves; and a rule inserted inside a `@media` block *before* the
+  base rule it overrides loses on equal specificity, silently, which cost one render
+  here. **Merged and live the same day:** the owner compared the CI build, served locally
+  by `Claude outputs/site-fold/serve.py` (the `site-preview` entry in `.claude/launch.json`,
+  untracked), with the live site and said to merge; Pages carried the merge within a
+  minute, and the live page measures identically to the stand-in at all six viewports.
+  What is left is the test that matters, a five-second one with a few people ("what does
+  this page offer?"), which no measurement replaces.
 - **The watch's hint and the widget's ≈ line take secondary ink (2026-09-26; design-system
   §2 and §9).** The two lines the bullet "The two tips take secondary ink…" left open,
   measured and then decided by the owner. **Measured first, on main's Release build** on
