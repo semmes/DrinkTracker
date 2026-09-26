@@ -139,14 +139,14 @@ against the 159pt phones' 60.1), and 111 from the 162.67pt phones up — rendere
 both. What is left is the SE and three-digit counts: the
 SE now holds 10 to 19 ("16" in 49.95) but not a wider pair such as 20 (54.7, computed
 from its two digits' measured widths), and no small widget holds 100 (77.7). That repair
-is its own change.
+is its own change: the amendment of the same day, below.
 
 StandBy shows the small family with narrower margins than the Home Screen on every phone
 (116.43 on the SE against 113.95), so the Home Screen is the case that binds.
 
-**Passed on the owner's phone** (2026-09-26, after PR #140 merged), in the owner's
-words: "Working as expected on the widget." The report does not say which counts or which
-appearance were read.
+**Passed on the owner's phone** (2026-09-26, after PR #140 merged, and before the
+amendment below), in the owner's words: "Working as expected on the widget." The report
+does not say which counts or which appearance were read.
 
 ## Not verified
 
@@ -157,6 +157,112 @@ styles (layout does not change with the rendering mode); Bold Text, which widens
 words; VoiceOver, whose label is unchanged; and the phones whose frames were measured by
 the logging build but not photographed with the real one — every size but the SE, the
 162.67pt row (the owner's 15 Pro), the 17 Pro and the 17 Pro Max.
+
+## Amendment, 2026-09-26 — the count shrinks on one line
+
+**Context.** The decision above kept the count as it was, and the count was where the
+row still failed. It shares the words' column, 49.95pt on an SE to 73.89 on a 17 Pro
+Max, at a fixed 44pt in SF Rounded semibold with proportional digits. Measured with
+CoreText, whose digits agree with the simulator's frames to the hundredth ("0" 28.42,
+"16" 48.84, "100" 77.74), every two-digit count fits every column but the SE's, where
+20 (54.66) and every wider pair does not, and 100 fits none. With no line limit, the
+count wraps into whatever height the widget has left. The words' second line took that
+height, so a count too wide was cut short. Rendered before this change on a scratch SE,
+20, 80, 100, 199 and 999 all drew as a bare "…". The 17 Pro and the 17 Pro Max draw
+100 as "1…".
+
+**Decision (the owner's, asked the same day).** The count is one line and may shrink to
+a floor of **0.6**. That is the rule every other count numeral in the app already uses:
+Today's hero (`CountStepper`), the watch counter (`CounterTile`) and the complication's
+tile. The words and the ＋ do not change. Two other answers were offered and not taken.
+One let the count run into the 12pt gap before the ＋, the only width beside the column
+(the count and the words already share it): it would have held every two-digit count on
+the SE with the digits touching the ＋'s disc, and never 100. The other left the count as
+ADR-0057 drew it.
+
+The owner also kept the **proportional digits**, though the other three counts are
+tabular. Tabular digits would redraw every count with a 1 in it wider (11 from 41.8pt to
+56.3). On the SE they would shrink every count from 10, and 100 would need 0.59, under
+the floor.
+
+**A count that fits is drawn exactly as before, and one that shrinks keeps the full-size
+line.** A `ViewThatFits` picks between two views. The first is the old `Text`, untouched,
+which it takes whenever the count's natural width fits the column. The second draws the
+count as an overlay on a hidden "0" as wide as the column, aligned by baseline, with the
+line limit and the floor. So a shrunk count sits on the baseline the full-size count sat
+on, and the words under it do not move. Each part was needed, and each was found by
+rendering, not reasoning:
+
+- A plain one-line text drew a shrunk count on a shorter line, and the words rose 7.5pt
+  with it (measured in a SwiftUI harness sized like the SE's widget).
+- The first build held the line with a baseline-aligned `ZStack` of the same two texts.
+  The simulator showed it shrinking counts that fit, "16" on the medium widget among
+  them, and a zero-width `HStack` placeholder did the same in the harness.
+- The overlay alone proposes the count the column's exact width and drew every fitting
+  count unchanged on the SE. On the 17 Pro Max it moved each one up a pixel, a third of
+  a point, which the harness could not reproduce. `ViewThatFits` keeps the overlay off
+  every count that fits.
+
+**What SwiftUI actually draws.** It does not scale continuously. Measured by matching the
+harness's pixels against fixed sizes, a shrunk count is set on a **quarter-point grid**
+with about a tenth of a point to spare, never under **26.5pt** (0.6 × 44 is 26.4). In the
+SE's column: 20 at 40.0pt, 80 at 38.75, 99 at 39.0, 100 at 28.0, 111 at 34.75, 199 at
+28.25 and 250 at 26.5. **200 is cut short**, because it needs 26.43pt. So the SE holds
+every count to **199**, and some counts above it. Every other small widget holds every
+count to 999, the 159pt phones' widest (800) at 0.71. On the 17 Pro Max, 100 draws at
+about 0.95. Every two-digit count stays at full size on every phone but the SE, and the
+SE's two-digit counts draw at 0.88 (80) to full size: 21, 31 and the other pairs ending in
+1 fit at 44. The medium family never shrinks a count of four digits or fewer.
+
+**Pinned at tier 1**, beside ADR-0057's constants in `QuickLogWidgetRow`:
+`countLineLimit`, `countMinimumScale`, and `countScale(forWidth:inColumn:)`, the rule as
+a function. The tests read each digit's measured advance. A count is never wider than
+the sum of its digits' advances, since pairs kern only tighter (by up to 3.4pt, never
+looser), so the tests use that sum as an upper bound. They claim a count whole only where
+it clears the floor by 0.02, the grid's margin. What they pin: every two-digit count at
+full size on every phone but the SE, 10 to 19 at full size there and 20 not; the SE's
+two-digit counts at 0.88 or more; every count whole to 199 on the SE and to 999
+elsewhere; 100 shrunk on every small widget, about 0.64 on the SE and 0.95 on the
+largest; and the medium never shrinking.
+
+**Rendered, before against after,** with the real builds reading a seeded store on
+scratch SE and 17 Pro Max simulators (iOS 26.5). Light mode at 1, 2, 16, 19, 20, 21, 80,
+99, 100, 111, 199, 299 and 999 drinks, dark at 2, 20 and 100, and 200 in the after build
+only. **Before,** the SE drew every count from 20 as a bare "…", and the Pro Max drew
+100, 199, 299 and 999 as "1…", "2…" and "9…".
+
+**After:**
+- Every count that fits is pixel-identical to before: 1 to 19 and 21 on the SE, and
+  every rendered count to 111 on the Pro Max.
+- On the SE, 20, 80, 99, 100, 111 and 199 shrink. 200, 299 and 999 are cut short ("2…",
+  "9…"), as the grid predicts. On the Pro Max, 100, 199, 299 and 999 shrink.
+- The sizes read from the ink agree with the harness to a pixel's precision: on the SE
+  20 at about 39.9pt and 100 and 199 at about 28.2; on the Pro Max 100 at about 41.7.
+  Every count's ink ends on the same baseline.
+- Every changed pixel is inside the count's box, left of the ＋, and nothing outside the
+  small widget changed.
+- The medium widget is identical in all 32 pairs: no pixel differs by more than one unit
+  in one channel.
+
+The first two builds were rendered the same way, and the renders are what showed their
+defects.
+
+**Costs.**
+- **On the SE the count's size changes between neighbours.** 19 and 21 draw at 44pt,
+  20 at 40 and 22 at 41.5, because proportional digits make each pair its own width. The
+  change is at most 12% of the size, and only on the SE's two-digit counts. Tabular
+  digits would draw all of them at one size (0.89), at the costs above.
+- **A count past the floor is still cut short:** 200 and some counts above it on the
+  SE, and four-digit counts on the smaller phones (from 1,000 on the 159 to 162.67pt
+  ones). Neither is a day anyone logs.
+- **The change from full size to shrunk is abrupt.** A count one drink wider changes
+  size in the same step as its digits change. The numeric content transition animates
+  the digits, and the size change was seen only in end states.
+
+**Not verified:** hardware (remove and re-add the widget); the transition between a
+full-size and a shrunk count, seen only as end states; the other nine small sizes, which
+were computed from their columns and not rendered; StandBy; any iPad; Bold Text, which
+does not touch a fixed-size count.
 
 ## How to reopen
 
@@ -172,4 +278,12 @@ the logging build but not photographed with the real one — every size but the 
 - If a new iPhone arrives, read its small family from `chrono.sql` on a simulator of it —
   one create, boot, read and delete — and add its row to the tests; if its text is drawn
   at a third size, measure the words on it first.
-- The count's own truncation on the SE is a separate decision, above.
+- The count's own truncation was a separate decision, made in the amendment above. If
+  its size changing between neighbours on an SE reads as noise, tabular digits
+  (`.monospacedDigit()` on the count, as the other three counts have) draw every
+  two-digit count there at one size, 0.89. The cost is in the amendment: every count
+  with a 1 redraws wider, and 100 on the SE needs 0.59, so the floor would go to 0.55.
+- If a count past the floor turns up in use (200 on an SE), the floor is the lever:
+  `QuickLogWidgetRow.countMinimumScale`, the tests' `wholeAtLeast`, and a render, since
+  SwiftUI's grid, not the arithmetic, decides the edge. Running the count into the ＋'s
+  gap was declined, and it would not reach three digits anyway.

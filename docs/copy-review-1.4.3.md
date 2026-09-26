@@ -2347,3 +2347,62 @@ a stretch of days at once" (`docs/app-store-listing.md`).
 
 A plain description: no celebration, no judgment, no exclamation mark and no em
 dash. Pass.
+
+## 2026-09-26 — Trends names the days its total covers
+
+The total's card under the Trends chart (`TrendsView.sumLabel`) now names the
+window it counts in the chart title's own words, lowercased to read under the
+figure:
+
+| Range | Was | Now |
+|---|---|---|
+| Week | "this week" | "last 7 days" |
+| Month | "this month" | "last 30 days" |
+| Quarter | "last 13 weeks" | unchanged |
+| Year | "last 12 months" | unchanged |
+
+Week and Month are the trailing 7 and 30 days, not the calendar's week or month,
+so the old labels named different days from the ones the figure counts. The
+2026-09-26 screenshot audit found "18 this month" under a chart titled "Last 30
+days", while the calendar's card for September, the 1st to the 23rd, held 13; the
+other five were in the last week of August. The new labels are the Quarter and
+Year form the review above passed in
+the 2026-08 addendum, whose row described them as "matching 'this week' / 'this
+month'". That pairing is gone, and all four labels now match the title over the
+chart instead.
+
+A value and a noun, as before: no verdict, no comparison between windows, no
+exclamation mark and no em dash. Pass.
+
+## 2026-09-26 — "several days" in the app and the App Store description
+
+The owner's wording, after seeing the calendar's tip in its new secondary ink
+(design-system §2): "fill a stretch" gives way to "several days" wherever it was
+left.
+
+- **The calendar's tip** (`CalendarView.selectionHint`) reads "Tip: Press and drag
+  across the calendar to fill several days at once." in place of "Tip: press and
+  hold, then drag across days to fill a stretch at once". After "Tip: " it is the
+  sentence the website's home page already carries under "Fill multiple days".
+- **The App Store description** (`docs/app-store-listing.md`, the description and
+  its 1.4 version A) says "Press and drag across the calendar to fill several days
+  at once" in place of "fill a stretch of days at once". Version B never had the
+  line.
+
+Nothing new is claimed: the gesture and what it does are ADR-0011's. One detail
+the new tip leaves to the reader is that a press has to rest for a quarter of a
+second before the drag (`dragSelectGesture`, `LongPressGesture(minimumDuration:
+0.25)`), or the finger scrolls the calendar instead; the old tip's "hold" said
+so. The support page and the description already call the gesture "press and
+drag", and the support page's answer begins "Touch and hold a day", so the tip
+now matches what is already published. It also differs from Trends' tip in
+form, "Tip: Press" with a capital and a full stop where Trends has "Tip: drag"
+and none; the owner's wording ships as written.
+
+With these, the two items the website's entries above left as "Still not
+changed" are changed. "Stretch" no longer appears in the app's strings, the
+description, the support page or the live site (its five pages read on
+2026-09-26).
+
+A plain instruction, like the one it replaces: no celebration, no judgment, no
+exclamation mark and no em dash. Pass.
