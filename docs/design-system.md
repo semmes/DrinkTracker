@@ -252,13 +252,13 @@ departs from it.
 other use of the token, so a new one is written down with its reason rather
 than reached for. The tips now sit at the app's floor for small text, not
 above it: secondary's 3.44:1 in light is under 4.5:1 for text this size, the
-system secondary label's own value and the ink of every caption in the app,
-so lifting that floor is a question for the whole app rather than for these
-two lines. Outside the app target, the watch's hint (§9, "Open, for the
-owner", item 1) is the same kind of line and would measure 6.36:1 in the
-watch's `.secondary`; it stays the owner's. The medium Home Screen widget's
-"≈ N standard drinks" caption is also `.tertiary` (`QuickLogWidget.swift`)
-and was not measured.
+system secondary label's own value and the ink of the app's other small
+captions (the one beside each tip among them), so lifting that floor is a
+question for the whole app rather than for these two lines. Outside the app
+target, the watch's hint (§9, "Open, for the owner", item 1) is the same
+kind of line and would measure 6.36:1 in the watch's `.secondary`; it stays
+the owner's. The medium Home Screen widget's "≈ N standard drinks" caption
+is also `.tertiary` (`QuickLogWidget.swift`) and was not measured.
 
 ---
 

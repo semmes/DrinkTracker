@@ -318,7 +318,7 @@ candidates need retaking from a build that carries it.**
 **The same day the Trends and calendar tips moved from tertiary to secondary ink**,
 from 1.72:1 on white and 2.23:1 on black to 3.44:1 and 6.36:1 (the bullet "The two tips
 take secondary ink…", design-system §2). Xcode Cloud archives every commit on main, so 1.4
-carries it only if the owner submits a build from its merge or later.
+carries it only if the build the owner submits comes from its merge or later.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4237,7 +4237,9 @@ Open items for v1.2:
   (inferred from the source, not seen on a store build). **Found, not fixed:** the Trends
   card's "Tip: drag across the bars…" line in `.tertiaryInk` measures 1.72:1 on white and
   2.23:1 on black. That is the tertiary label's own value, not a lag, so no ink token
-  lifts it. **Not verified:** hardware; Week and Year after a live switch (one code path);
+  lifts it. *(It moved to secondary ink the same day, with the calendar's tip: the bullet
+  "The two tips take secondary ink…".)* **Not verified:** hardware; Week and Year after a
+  live switch (one code path);
   the app's own Appearance setting as the trigger. **How it was measured, for next time:**
   `simctl ui <udid> appearance light|dark` and `increase_contrast enabled` switch live
   without a tap. A no-tap route to a screen is a scratch copy of the tree (`rsync`, never
@@ -4267,15 +4269,16 @@ Open items for v1.2:
   and #5A5A5E on its #1C1C1E cells, 2.48:1), though on the day sheet it is the only
   visible cue that a described drink opens; the Health offer's "– –" placeholder, hidden
   from VoiceOver; and onboarding's decorative "(that's five)", also hidden.
-  `TertiaryInkTests` (tier 2, a new file so it cannot collide with #142's rewrite of
-  `InkTests`) names those three and fails on any other use. Its negative control, a
-  scratch copy with Trends' tip back in tertiary, failed naming `TrendsView.swift`.
+  `TertiaryInkTests` (tier 2, a file of its own beside `InkTests`, which #142 rewrote
+  while this was in review) names those three and fails on any other use. Its negative
+  control, a scratch copy with Trends' tip back in tertiary, failed naming
+  `TrendsView.swift`.
   `tertiaryInk`'s doc comment says the same. **Measured after:** both tips 3.44:1 on
   white and 6.36:1 on black, the caption beside each; 5.97:1 and 8.48:1 with Increase
   Contrast; unchanged after three live appearance switches. Before and after screenshots
   of both screens on the same log differ only inside the two lines, in both appearances.
   Secondary's 3.44:1 in light is still under 4.5:1 for 11pt text, but it is the ink of
-  every caption in the app, so that floor is an app-wide question. The bar-selection
+  the app's other small captions, so that floor is an app-wide question. The bar-selection
   design bundle drew the tip `.tertiary`, a departure recorded in §2. No ADR, following
   the precedent of the drink sheet's detent folds: a code comment, design-system and
   this bullet. No string, key, schema, CloudKit, setting or project-file change, and
@@ -4283,15 +4286,17 @@ Open items for v1.2:
   (Xcode 27.0):** the CI-form generic build, with only the four existing `Text +`
   deprecation warnings in `TrendsView.swift`; 121 integration tests on the scratch
   simulator with `-warn-long-expression-type-checking=25` (the two slow expressions it
-  reports are in `FailedReadTests` and `FailedWriteTests`, and are older). Domain tests
-  were not run, since the package did not change. **Which release:** 1.3 is live (the
-  lookup API, 2026-09-26) and 1.4 has not been submitted. Xcode Cloud's "Default"
-  workflow archives every commit on main (its "Archive - iOS" check ran on 3714668,
-  146d92d and cd0ead7), so the merge becomes a 1.4 build, and 1.4 ships the change only
-  if the owner submits that build or a later one. A build from 3714668 or earlier ships
-  without it, and it reaches 1.5. The Trends screenshot candidates show the old ink,
-  faint enough that a retake is optional; retaking the dark ones for #142 would pick it
-  up. **Open, the owner's:** the watch's hint (design-system §9, open item 1), the same
+  reports are in `FailedReadTests` and `FailedWriteTests`, and are older), and 123 after
+  main (#142, #144, #145) was merged in. Domain tests were not run, since the package did
+  not change here. **Which release:** 1.3 is live (the lookup API, 2026-09-26) and 1.4 has
+  not been submitted; #142 merged the same afternoon "before the archive", at the owner's
+  call. Xcode Cloud's "Default" workflow archives every commit on main (its "Archive -
+  iOS" check ran on 3714668, 146d92d and cd0ead7), so this merge becomes a 1.4 build, and
+  1.4 ships the change only if the build the owner submits comes from it or later. One
+  from an earlier commit ships without it, and then it reaches 1.5. The Trends screenshot
+  candidates show the old ink, faint enough that a retake is optional; the dark retakes
+  #142 already needs pick it up if taken from this merge or later. **Open, the owner's:**
+  the watch's hint (design-system §9, open item 1), the same
   kind of line, which the watch's `.secondary` would put at 6.36:1; the medium widget's
   "≈ N standard drinks" caption in `.tertiary`, not measured; and whether the day
   sheet's chevron should clear 3:1. **Not verified:** hardware; VoiceOver (no label
