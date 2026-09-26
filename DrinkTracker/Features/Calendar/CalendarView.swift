@@ -618,11 +618,14 @@ struct CalendarView: View {
   }
 
   /// Discoverability for a gesture with no visible affordance. One quiet line —
-  /// the tap path works without ever reading it.
+  /// the tap path works without ever reading it. Quiet by its size, not its
+  /// ink: tertiary measured 1.72:1 on the screen's white and 2.23:1 on its
+  /// black, too faint for the one place the drag is explained, so it takes
+  /// secondary like Trends' tip (design-system §2, 2026-09-26).
   private var selectionHint: some View {
     Text("Tip: press and hold, then drag across days to fill a stretch at once")
       .font(.caption2)
-      .foregroundStyle(.tertiaryInk)
+      .foregroundStyle(.secondaryInk)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 
