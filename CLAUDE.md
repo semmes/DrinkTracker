@@ -308,7 +308,7 @@ TestFlight pass (the bullet "The owner's watch-to-phone check…"). **On 2026-09
 small Home Screen widget stopped cutting its words short** — "drinks tod…" in the owner's
 marketing screenshot, and cut or shrunk on every iPhone iOS 26 supports — by giving them
 the whole column beside the ＋ and a second line (the bullet "The small widget's words
-wrap…", ADR-0057).
+wrap…", ADR-0057); it passed on the owner's phone the same day.
 **On 2026-09-26 the Trends chart's y-axis labels were found drawing the previous
 appearance's ink after a live light/dark switch on iOS 27, 1.36:1 in dark; both axes now
 take an ink resolved for the current appearance (the bullet "The chart's axis labels
@@ -4090,7 +4090,9 @@ Open items for v1.2:
   transcript or the records as they arrive. **Tier 4 for the owner:** remove the widget
   and add it again on a phone (a widget change needs that), then read the small widget at
   1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
-  marketing site's widget picture still shows the old build.
+  marketing site's widget picture still shows the old build. **Passed on the owner's
+  phone the same day, after PR #140 merged,** in their words: "Working as expected on the
+  widget." (The report does not say which counts or which appearance were read.)
 - **Trends names the days its total covers, and Month's last date stays on the card
   (2026-09-26; a copy review entry and two design-system rows, no ADR).** The
   2026-09-26 screenshot audit (the untracked `Claude outputs/1.4-screenshots/
