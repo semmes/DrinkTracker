@@ -296,7 +296,11 @@ can be submitted is the owner's, listed in that bullet, and the complication's
 non-mirroring change (ADR-0055) is a draft PR awaiting the owner's acceptance of its cost.
 The owner's hardware check reported on 2026-09-24 ran on an Xcode build from before the
 release work and ADR-0055's draft, so it is neither that ADR's device check nor the
-TestFlight pass (the bullet "The owner's watch-to-phone check…").
+TestFlight pass (the bullet "The owner's watch-to-phone check…"). **On 2026-09-26 the
+small Home Screen widget stopped cutting its words short** — "drinks tod…" in the owner's
+marketing screenshot, and cut or shrunk on every iPhone iOS 26 supports — by giving them
+the whole column beside the ＋ and a second line (the bullet "The small widget's words
+wrap…", ADR-0057).
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3914,4 +3918,66 @@ Open items for v1.2:
   - At 1.4: the App Store Connect URLs, and `platform_state: 2`.
   - Optional: switch Pages to Actions and set `DEPLOY_FROM_ACTIONS`, so a deploy waits
     on the checks. The branch build serves the same files.
-  - The small widget's truncated label has its own task.
+  - The small widget's truncated label has its own task. *(Fixed on 2026-09-26 — the
+    bullet "The small widget's words wrap…", ADR-0057. The site's widget picture was
+    taken from the old build, so it still shows "drinks tod…" until it is retaken.)*
+- **The small widget's words wrap before they shrink (2026-09-26; ADR-0057).** The
+  owner's marketing screenshot showed the small Home Screen widget on a 17 Pro reading "2"
+  over "drinks tod…". **It was every iPhone, not that one.** The small family's real
+  sizes are on disk, as the watch's were: `data/Library/chronod/chrono.sql`, table
+  `HostConfigs`, host `…::SpringBoard-Homescreen`, a keyed archive whose
+  `_metricsSpecification.metricsByFamily` gives each family's `size` and
+  `margins.contentMargins` (`"1"` small, `"2"` medium; the `Ambient-Infograph` host is
+  StandBy). Read on an iOS 26.5 simulator of each of the 31 iPhones iOS 26 supports —
+  create, boot, read with `?immutable=1`, delete, four at a time — they are eleven sizes,
+  146pt (SE) to 176.67 (16 and 17 Pro Max), with margins 9/82 of the side, so 113.95 to
+  137.89pt of content; iOS 27.0 gives the same eleven, and Apple's published table (148,
+  158…) predates iOS 26. The row left the words the content less the 52pt ＋ and **two**
+  12pt gaps — a Spacer keeps one on each side, the watch card's lesson — 38 to 62pt, where
+  "drinks today" is 64.5 on one line. **The Plus and Pro Max phones draw a widget's text
+  1.158 times larger** (74.7) with the environment still saying the default size; the
+  iPhone 11 and the Air do not. Rendered with the old build on all eleven sizes, the
+  plural was cut short on nine ("drinks…" on the SE) and shrunk on the other two, the
+  singular cut on the SE and the 159pt phones (11 Pro, 12 and 13 mini). And the text
+  follows Dynamic Type only so far: "drinks today" stopped growing at 93.5pt on one line,
+  at AX1 on the SE and xxLarge on the 17 Pro Max. **What shipped:** the words take the
+  whole column beside the ＋ (the Spacer gone, the column framed to the leading edge) and
+  may take **two lines**, wrapping before they shrink, floor 0.8; the count (44/40pt) and
+  the ＋ (52/60pt) unchanged; one row for both families, and no width read, because where
+  the words fit one line the new row is the old one. `QuickLogWidgetRow` in the core
+  package holds the constants the widget reads; eight tier-1 tests pin them against the
+  eleven widths (every column holds "drinks" at full size and at the largest text; the
+  plural stays on one line only on the iPhone 11 and the Air, the singular everywhere but
+  the SE; two lines fit every height; the medium never wraps). No copy, catalog, schema,
+  CloudKit or project-file change; the widget catalog synced from the new build is
+  byte-identical (35 keys). **The widget has no no-alcohol sentence** — its provider reads
+  drinks only — so a marked day draws "0 drinks today". **Verified:** 378 domain tests
+  under both SwiftPM build systems; the simulator build with the same five warnings as
+  main's; and before against after with the real builds on scratch SE, 17 Pro and 17 Pro
+  Max simulators, light and dark, 0/1/2/12 drinks from a seeded store — the words whole
+  on every frame, every changed pixel left of the ＋, the count rising 7.0pt (9.3 on the
+  Pro Max) because the block stays centred, and **the medium widget identical** (no pixel
+  off by more than one unit in one channel over 24 frames, 16 with none; two states of
+  one build differ by 7,859). A logging build (never committed; it wrote each view's frame
+  to a JSON file in the App Group container) measured the words on all eleven sizes and
+  at every text size from xLarge to AX5 on the SE and the 17 Pro Max, whole everywhere.
+  **Found, and not fixed — the count was to be kept as it is:** on the SE the old column
+  drew any two-digit count as "…"; the wider column now holds 10 to 19 ("16" is 48.8pt in
+  49.95) but not, say, 20 (54.7), and no small widget holds 100 (77.7: "10" over "0" on
+  the old 17 Pro, "1…" on the new). **How the renders ran without a tap:** place widgets
+  by writing `Library/SpringBoard/IconState.plist` with the device shut down — an entry
+  `{elementType: widget, gridSize: small|medium, iconType: custom, bundleIdentifier:
+  com.shawnsemmes.DrinkTracker.Widget, containerBundleIdentifier:
+  com.shawnsemmes.DrinkTracker, widgetIdentifier: QuickLogWidget, uniqueIdentifier,
+  displayIdentifier}` at the head of `iconLists[0]` (the kept 17 Pro's own layout was the
+  specimen, read only); move the app's and Settings' icons into `buttonBar`, because
+  closing an app zooms back to its icon's page; seed `ZDRINKENTRY` with `sqlite3`; and
+  redraw with the app's own leave-foreground reload (ADR-0047) — `simctl launch` the app,
+  launch Settings over it, terminate both. **Two traps:** seeding drinks seconds before
+  now across midnight counts some as yesterday (a "12" drew as 4); and **a Mac restart
+  empties `/tmp`, the session scratchpad with it** — this session lost its builds,
+  scripts and frames mid-render and redid the renders, so record numbers in the
+  transcript or the records as they arrive. **Tier 4 for the owner:** remove the widget
+  and add it again on a phone (a widget change needs that), then read the small widget at
+  1 and 2 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
+  marketing site's widget picture still shows the old build.
