@@ -317,8 +317,10 @@ same day that it ships in 1.4, merged before the archive; the two dark Trends sc
 candidates need retaking from a build that carries it.**
 **The same day the Trends and calendar tips moved from tertiary to secondary ink**,
 from 1.72:1 on white and 2.23:1 on black to 3.44:1 and 6.36:1 (the bullet "The two tips
-take secondary ink…", design-system §2). Xcode Cloud archives every commit on main, so 1.4
-carries it only if the build the owner submits comes from its merge or later.
+take secondary ink…", design-system §2), and the owner reworded the calendar's to "Tip:
+Press and drag across the calendar to fill several days at once.", with "fill a stretch"
+replaced in the App Store description too. Xcode Cloud archives every commit on main, so
+1.4 carries both only if the build the owner submits comes from their merge or later.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4256,9 +4258,19 @@ Open items for v1.2:
   on #000000, which is `.tertiaryInk`'s own value, so no flat token lifts it (Increase
   Contrast takes it to 4.45:1 and 5.42:1). **Every `.tertiaryInk` site in the app target
   measured the same**, and there are five. **Decided, and the owner's to overrule:** the
-  two tips take `.secondaryInk`, Trends' and the calendar's "Tip: press and hold, then
-  drag across days to fill a stretch at once", because each is the only visible
-  explanation of a gesture with no visible affordance. Removing the Trends line would
+  two tips take `.secondaryInk`, Trends' and the calendar's (then "Tip: press and hold,
+  then drag across days to fill a stretch at once"), because each is the only visible
+  explanation of a gesture with no visible affordance. **The owner then reworded the
+  calendar's tip, from the screenshot:** "Tip: Press and drag across the calendar to
+  fill several days at once.", the website's home-page sentence word for word, and
+  "fill a stretch" goes everywhere else too: the App Store description (the base text
+  and 1.4's version A) now says "fill several days at once" (copy review, 2026-09-26).
+  "Stretch" is now in none of the app's strings, the description, the support page or
+  the live site. The press still has to rest a quarter of a second before the drag or
+  the calendar scrolls, which the old "hold" said; the support page's answer still
+  says "Touch and hold a day". The capital P and the full stop are the owner's; Trends'
+  tip has neither. One app key out and one in (378); the new key has no translator
+  comment, since sync added it. Removing the Trends line would
   hide the scrub from anyone who has not found it, and the line was reworded in
   ADR-0028's amendments and kept. Leaving it as incidental text is not open either: WCAG
   exempts decoration, inactive controls and logotypes, not instructions. The calendar's
@@ -4281,8 +4293,9 @@ Open items for v1.2:
   the app's other small captions, so that floor is an app-wide question. The bar-selection
   design bundle drew the tip `.tertiary`, a departure recorded in §2. No ADR, following
   the precedent of the drink sheet's detent folds: a code comment, design-system and
-  this bullet. No string, key, schema, CloudKit, setting or project-file change, and
-  invariant 10 holds, since the ink is the system's semantic colour. **Gates, locally
+  this bullet. The ink change touched no string; the rewording is the one key above. No
+  schema, CloudKit, setting or project-file change, and invariant 10 holds, since the
+  ink is the system's semantic colour. **Gates, locally
   (Xcode 27.0):** the CI-form generic build, with only the four existing `Text +`
   deprecation warnings in `TrendsView.swift`; 121 integration tests on the scratch
   simulator with `-warn-long-expression-type-checking=25` (the two slow expressions it

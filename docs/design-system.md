@@ -229,8 +229,9 @@ colour's own value, not vibrancy or a stale trait, so no flat token lifts
 it; Increase Contrast takes it to 4.45:1 and 5.42:1, but only for the few
 who turn that on. The two lines that explain a gesture with no visible
 affordance therefore take `.secondaryInk`: Trends' "Tip: drag across the
-bars to see what each one holds" and the calendar's "Tip: press and hold,
-then drag across days to fill a stretch at once". Measured after, **3.44:1**
+bars to see what each one holds" and the calendar's, which the owner
+reworded the same day to "Tip: Press and drag across the calendar to fill
+several days at once." (copy review, 2026-09-26). Measured after, **3.44:1**
 on white and **6.36:1** on black (5.97:1 and 8.48:1 with Increase Contrast),
 the same as the caption beside each, and the same again after live switches
 between light and dark. They stay quiet by size, caption2 under footnote

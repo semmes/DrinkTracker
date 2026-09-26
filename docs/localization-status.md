@@ -98,6 +98,11 @@ complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
 Current: **530 keys across six catalogs** — 378 app, 35 widget, 28 core, 4
 shortcuts, 50 watch app, 35 complication (re-counted 2026-09-26 after the
+calendar's tip was reworded: one app key out, "Tip: press and hold, then drag
+across days to fill a stretch at once", and one in, "Tip: Press and drag across
+the calendar to fill several days at once.", none changed, synced the same way
+as below, and the new key has no translator comment, since sync added it;
+re-counted 2026-09-26 after the
 Trends total's card named the window it covers: two app keys out, "this week"
 and "this month", and two in, "last 7 days" and "last 30 days", none changed,
 synced from a fresh generic full build's x86_64 `.stringsdata` into a scratch
