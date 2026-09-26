@@ -534,8 +534,9 @@ changes.** App Store Connect Help, "Age ratings values and definitions":
 The feature shows two averages of the reader's own data and gives no diagnosis,
 guidance or recommendation, which is what the plan's four rules exist to
 guarantee. On the rating itself these answers should not matter either:
-CLAUDE.md records the app at 17+, the top of the older scale, which a frequent
-alcohol answer alone produces (18+ on OS 26 and later), and neither health
+CLAUDE.md records the app at 17+ (18+ since 2026-09-26, read off the product
+page), the top of the older scale, which a frequent alcohol answer alone
+produces (18+ on OS 26 and later), and neither health
 answer rates higher than that. "Seen in passing", below, is why that sentence
 says "should".
 

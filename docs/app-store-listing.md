@@ -500,7 +500,7 @@ the copy without an alpha channel) in App Review Information, because a review d
 for these types and the section is designed to show nothing then.
 
 **Length:** App Store Connect's Notes field holds 4,000 characters. The block
-below is 3,779. A first draft ran to 5,236 and was cut; any addition has to fit
+below is 3,783. A first draft ran to 5,236 and was cut; any addition has to fit
 the same limit, so count before pasting (`wc -c`).
 
 ```
@@ -574,10 +574,13 @@ label categories, no new third-party code, no accounts, no servers.
 ## Reminders for the version page
 
 - Age rating: answer the alcohol question honestly. This line used to say
-  "Infrequent/Mild" lands the app at 17+. The live product page shows **18+**,
-  with "Frequent" for Alcohol, Tobacco, Drug Use or References (read
-  2026-09-26). The lookup API's 17+ is a legacy field. What App Store Connect
-  holds is visible only there.
+  "Infrequent/Mild" lands the app at 17+, which was never right. The live
+  product page shows **18+**, with "Frequent" for Alcohol, Tobacco, Drug Use
+  or References (read 2026-09-26). The lookup API's 17+ is the same answer on
+  Apple's scale for devices before OS 26, where frequent is 17+; infrequent
+  would be 12+ there and 13+ on OS 26
+  (`docs/health-pairing-phase-0-findings.md`, "Seen in passing"). What App
+  Store Connect holds is visible only there.
 - App Privacy: **Data Not Collected** (matches the privacy manifests; see
   docs/privacy-policy.md for the reasoning App Review can follow).
 - Screenshots: Today (counter), Calendar (with a drag selection), Trends,
@@ -594,14 +597,17 @@ label categories, no new third-party code, no accounts, no servers.
   toolbar, and the calendar's toolbar reads "Year" — retake the whole in-app
   set, not only the three named above.
 - The tip-jar IAPs must be submitted for review with the first version that
-  contains them. That was the rule when the tip jar shipped; the 1.4 bullet
-  on in-app purchases below has what the live listing shows now.
+  contains them. Apple's rule, then and now, is per type: the first in-app
+  purchase of each type is submitted with a new app version. The 1.4 bullet
+  on in-app purchases below applies it to the two recurring tips.
 
 **For 1.4 specifically** (added 2026-09-24):
 
 - **Description:** paste (A) or (B) from "Description for 1.4". The live one
   lacks the 3.1.2(a) subscription paragraph and says nothing about the Health
-  reads, and 1.4 is the version a reviewer will read it beside.
+  reads, and 1.4 is the version a reviewer will read it beside. Read the
+  in-app purchases bullet below first: if the recurring tips will not be sold
+  with 1.4, drop the subscription paragraph before pasting.
 - **App Privacy stays Data Not Collected**, and no answer changes. The
   reasoning, checked against the build rather than assumed, is in
   `docs/tallyist-1.4-spec.md` ("App Privacy"). The regulated medical device
@@ -636,14 +642,15 @@ label categories, no new third-party code, no accounts, no servers.
   - **Upload from `app-store-upload/`, not the folders beside it.** Apple's
     specification says "Images can't include alpha channels or
     transparencies". The simulator screenshots taken for 1.4 (`simctl io …
-    screenshot`) were all RGBA PNGs, although every pixel was opaque. The files in `app-store-upload/`
-    are RGB copies with the same pixels, and its README gives a recommended
-    order.
+    screenshot`) were all RGBA PNGs, although every pixel was opaque. The
+    files in `app-store-upload/` are RGB copies with the same pixels, except
+    a 4 × 4 simulator speck painted out of the top-left corner of the nine
+    `-light` iPhone files, and its README gives a recommended order.
   - **The iPhone set.** Up to 10 files per size. After uploading the 6.9"
     set, delete 1.3's 6.5" set (8 files at 1284 × 2778). Apple uses the 6.5"
     set for the 6.3" and 6.1" iPhones, so if it stays, every iPhone smaller
     than 6.9" goes on showing 1.3's screens. The 1320 × 2868 files cannot be
-    resized to 1284 × 2778, because the aspect ratios differ.
+    scaled to 1284 × 2778 without cropping, because the aspect ratios differ.
   - **The iPad set.** The 13" set is "Required if app runs on iPad". The four
     live iPad shots carry over and meet it, though they are out of date.
   - **The description.** Apple's help for watchOS apps says "Ensure your
@@ -665,12 +672,15 @@ label categories, no new third-party code, no accounts, no servers.
   `https://tallyist.co/`. The Marketing URL is not new: the live listing's is
   `https://semmes.github.io/Tallyist/`. Until 1.4 the listing's
   `semmes.github.io` addresses redirect to the same pages, and they go on
-  redirecting afterwards. Enforce HTTPS is already on (ticked on 2026-09-24;
-  ADR-0024, amended 2026-09-24).
+  redirecting afterwards. Enforce HTTPS is already on: the owner ticked it on
+  2026-09-24 (CLAUDE.md, the bullet "The website's own pages are built…"), and
+  `http://tallyist.co/` answers 301 to https.
 - **The TestFlight build** (added 2026-09-26):
-  - **Xcode.** Archive with the Xcode the device passes used: 27.0 on this
-    Mac since 2026-09-18. 1.3 was archived with Xcode 26.6 against the iOS
-    26.5 SDK, and every hardware pass of 1.4 ran on Xcode 27 builds.
+  - **Xcode.** Archive with the Xcode the latest device passes used: 27.0 on
+    this Mac since 2026-09-18. 1.3 was archived with Xcode 26.6 against the
+    iOS 26.5 SDK. The hardware passes from 2026-09-22 on (the four Health
+    rows, the watch-to-phone check, ADR-0055's test) ran on Xcode 27 builds;
+    the watch passes of 2026-09-14 to 16 ran on 26.6.
   - **Xcode Cloud, if it does the archive.** First give it access to the
     private `semmes/tallyist-product`. `contract/` has been a submodule of that
     repository since 2026-09-13, after the last archive, and Apple's Xcode Cloud
@@ -683,7 +693,11 @@ label categories, no new third-party code, no accounts, no servers.
   - **Which drinks to judge.** The phone and the watch run Xcode builds, which
     sync to CloudKit Development. The TestFlight build syncs to Production,
     which is a separate database. Judge the pass only on drinks logged after
-    the TestFlight build is installed.
+    the TestFlight build is installed. The TestFlight build opens the same
+    local store on each device, so the rows the Xcode builds wrote stay in
+    it, including the six test drinks from 2026-09-24. Whether it then
+    exports them to Production was not checked. Removing the test drinks
+    before the install keeps the readings clean.
 - **When 1.4 is live,** set `platform_state: 2` in `semmes/Tallyist`'s
   `_config.yml` (the site's own file, not a mirrored one). The support page
   then answers the watch question with "Yes" and drops "From version 1.4",
