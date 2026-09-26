@@ -4185,3 +4185,58 @@ Open items for v1.2:
   again. On their iPhone 15 Pro (the 162.67pt row) every count below 100 draws as
   ADR-0057's build drew it, so the change shows only at 100 or more; on an SE it shows
   from 20.
+- **The website's first screen says there is more (2026-09-26; draft `semmes/Tallyist#6`,
+  the owner's to merge).** The owner saw visitors stop at tallyist.co's first screen.
+  Measured on the live site, in the browser pane and then with headless Chrome: the home
+  page's hero is about 950px tall at every width above 1,200px whatever the window's
+  height (a 654px phone, 88px above it, 136px below), so on the common laptop and desktop
+  windows the first screen ended inside the hero's own bottom padding with the next
+  section's edge just out of view (1512×850: the whole phone, then 32px of empty ground;
+  1920×950: the whole hero, the edge 4px below the fold; 1366×650: the App Store badge
+  itself 14px below it); the tint between sections is 1.12:1 in light and 1.23:1 in dark,
+  a surface, not an edge; and on a phone (390×664) the first screen ended on the three
+  platform lines, which read like a footer, with Safari's Smart App Banner pushing the
+  phone's edge off it. The design handoff never addressed the fold, and its header is
+  "not sticky" by its own spec. **Six changes, on the owner's go-ahead, all in
+  `css/site.css` but for the hero's markup and its `sizes`:** the hero ends near its
+  content (bottom padding 32 to 56px, the section after it 40 to 64px, the hero phone
+  never under 560px and full size only from about 1,000px of window height; under 800px
+  of height the hero's top is 40px, the headline 72px on a 16px margin, the lead's margin
+  24px, and the row top-aligned so the text keeps its place while the phone runs past the
+  fold); "See how it works", a link under the badge to the next section's heading, with an
+  arrow drawn like the feature icons and smooth in-page scrolling that is plain under
+  reduced motion (the copy review has its row); on a phone the hero phone is 70vw wide and
+  the hero's platform list is gone, the closing section keeping its own; card sections
+  carry a hairline at both edges in the footer's separator colour; `--section-y` is
+  `clamp(56px, 7vw, 96px)`, was `clamp(72px, 10vw, 136px)`, the compact and statement
+  sections scaled with it; and the short-window rule keeps the badge on the first screen
+  at 1366×650. **Where the first screen ends now:** 1366×650 on the badge and the link
+  with the phone 26px past the fold; 1440×770 on the link, then the next section's edge
+  with 38px of it showing; 1512×850 the link, then the edge with 23px; 1920×950 the edge
+  and 27px of the next heading; 820×1080 the heading and the start of its paragraph;
+  390×664 the badge, the link and 107px of the phone. The page is about 11% shorter at
+  desktop widths; the Apple Watch and Press pages take the section rules too.
+  **Deviations from the design, the owner's to accept or refuse:** the 72px headline on
+  short windows, the 560px hero phone on laptops, the removed platform list, the
+  hairlines, the new link. **Verified:** a stand-in render of the built page (the live
+  page's HTML with the branch's edits and stylesheet, root-relative URLs made relative
+  for `file://`) whose numbers matched the live site exactly before the change, captured
+  with headless Chrome at the six viewports, light and dark; **the CI build of the branch
+  matches the stand-in byte for byte** (home page, watch page, stylesheet); the site's
+  contrast check, 9 pairs passing, no colour changed; CI green on the draft. **Not
+  verified:** real Safari with the Smart App Banner (about 80px, computed from the
+  measured positions, not rendered); a 375pt phone; the pages under Windows' fonts, since
+  the captures used macOS Chrome with the system font. The before-and-after composites,
+  the measurement JSON and the four scripts are in the untracked
+  `Claude outputs/site-fold/`, and the composites went to the owner in the session.
+  **Tooling worth keeping:** exact-viewport captures with files on disk are headless
+  Chrome over the DevTools pipe (`--remote-debugging-pipe`, fds 3 and 4,
+  `Emulation.setDeviceMetricsOverride`), which needs no local port, since the sandbox
+  blocks binding one; Chrome itself must run with the sandbox off (it exits 21, "Failed
+  to create socket directory", on its singleton socket in the real Darwin temp dir,
+  whatever `TMPDIR` says); a wait on `document.images` must skip lazy images below the
+  fold, or it never resolves; and a rule inserted inside a `@media` block *before* the
+  base rule it overrides loses on equal specificity, silently, which cost one render
+  here. **Still open, the owner's:** merge or refuse the draft; once it is live, the same
+  measurement at the six viewports on the live site is the check, and a five-second test
+  with a few people ("what does this page offer?") is the one that matters.
