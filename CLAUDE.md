@@ -313,8 +313,8 @@ wrap…", ADR-0057).
 appearance's ink after a live light/dark switch on iOS 27, 1.36:1 in dark; both axes now
 take an ink resolved for the current appearance (the bullet "The chart's axis labels
 follow a live appearance change…", ADR-0028's third amendment). The owner decided the
-same day that it ships in 1.4, merged before the archive; the two dark Trends screenshot
-candidates need retaking from a build that carries it.**
+same day that it ships in 1.4, merged before the archive, and the two dark Trends
+screenshot candidates were retaken from a build that carries it.**
 **The same day the Trends and calendar tips moved from tertiary to secondary ink**,
 from 1.72:1 on white and 2.23:1 on black to 3.44:1 and 6.36:1 (the bullet "The two tips
 take secondary ink…", design-system §2), and the owner reworded the calendar's to "Tip:
@@ -4233,23 +4233,39 @@ Open items for v1.2:
   ships in 1.4, so it merged before the archive and joins the 1.4 spec's "Also on this
   train". What's New already covers it ("On iOS 27, text on cards is easier to read"), and
   so do the reviewer notes ("iOS 27 readability and control fixes"), so neither changed.
-  The two dark Trends candidates (`iphone-03-trends-month-dark.png`,
-  `iphone-03b-trends-quarter-dark.png`) show the old labels and need retaking from a build
-  that carries this. 1.3 on iOS 27 most likely shows the lag until 1.4 replaces it
-  (inferred from the source, not seen on a store build). **Found, not fixed:** the Trends
-  card's "Tip: drag across the bars…" line in `.tertiaryInk` measures 1.72:1 on white and
-  2.23:1 on black. That is the tertiary label's own value, not a lag, so no ink token
-  lifts it. *(It moved to secondary ink the same day, with the calendar's tip: the bullet
-  "The two tips take secondary ink…".)* **Not verified:** hardware; Week and Year after a
-  live switch (one code path);
-  the app's own Appearance setting as the trigger. **How it was measured, for next time:**
-  `simctl ui <udid> appearance light|dark` and `increase_contrast enabled` switch live
-  without a tap. A no-tap route to a screen is a scratch copy of the tree (`rsync`, never
-  the worktree) whose `@State` initial values read `SIMCTL_CHILD_*` launch environment
-  variables. That is how iOS 26.5 was checked when the simulator tool's access request for
-  the new device went unanswered. For contrast, the ground is the region's most common
-  pixel and the ink is the pixel farthest from it in luminance; the hex of a stale colour
-  can say which appearance it came from.
+  **The two dark Trends candidates were retaken the same day**, from a Release build of
+  the tree `main` has after #142 merged (57440d1, which carries PR #144's two Trends
+  changes), on a throwaway iPhone 18 Pro Max (iOS 27) by taps, and are in place in both
+  `Claude outputs/1.4-screenshots/iphone-6.9/` and `app-store-upload/` (the upload copies
+  are 8-bit RGB with an sRGB chunk and no alpha, checked pixel-identical with Pillow and
+  ImageIO). The originals and their upload copies are in
+  `iphone-6.9/superseded-2026-09-26/`. The seeder was lost with `/tmp`, so the log was
+  rebuilt from the frames, and light frames from it matched the light originals pixel for
+  pixel except: Month's dates run Aug 30 to Sep 20 (the log moved three days to keep the
+  same 30-day window, and #144 counts the dates back from today) and its total reads "last
+  30 days"; Quarter reads 53 of 91 days with no drinks where the original has 50 of 88,
+  because the window now ends on a Saturday. Both READMEs there record the retake and mark
+  the audit's three Trends issues fixed. A hook blocks the Edit tool on main-checkout
+  files from a worktree session, so they were written by a script at the owner's request.
+  1.3 on iOS 27 most likely shows the lag until 1.4 replaces it (inferred from the source,
+  not seen on a store build). **Found, not fixed:** the Trends card's "Tip: drag across
+  the bars…" line in `.tertiaryInk` measures 1.72:1 on white and 2.23:1 on black. That is
+  the tertiary label's own value, not a lag, so no ink token lifts it. *(It moved to
+  secondary ink the same day, with the calendar's tip: the bullet "The two tips take
+  secondary ink…".)* **Not verified:**
+  hardware; Week and Year after a live switch (one code path); the app's own Appearance
+  setting as the trigger. **How it was measured, for next time:** `simctl ui <udid>
+  appearance light|dark` and `increase_contrast enabled` switch live without a tap. A
+  no-tap route to a screen is a scratch copy of the tree (`rsync`, never the worktree)
+  whose `@State` initial values read `SIMCTL_CHILD_*` launch environment variables. That
+  is how iOS 26.5 was checked when the simulator tool's access request for the new device
+  went unanswered. For contrast, the ground is the region's most common pixel and the ink
+  is the pixel farthest from it in luminance; the hex of a stale colour can say which
+  appearance it came from. **Retake traps:** a 12 oz beer at 5% computes to
+  1.0000000000000002 standard drinks, so a two-beer day draws the chart's y axis to 3
+  where exactly 2.0 draws it to 2.0 (wine and the untyped drink are exact; cosmetic, not
+  fixed); and a native segmented control draws its selected label semibold only after a
+  real tap, so a launch hook that sets the range cannot reproduce a tapped frame.
 - **The two tips take secondary ink (2026-09-26; design-system §2).** A screenshot audit
   of the 1.4 candidates (`Claude outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-*.png`,
   untracked in the main checkout) found Trends' "Tip: drag across the bars to see what
