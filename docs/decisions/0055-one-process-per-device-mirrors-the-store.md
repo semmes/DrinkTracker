@@ -1,10 +1,12 @@
 # 0055 — One process per device mirrors the store: the app
 
-**Status:** proposed — built and verified as far as simulators reach on
-2026-09-24; accepted when the owner accepts the cost below and the PR merges ·
-**Date:** 2026-09-24 · **Relates to:** ADR-0041 (its 2026-09-15 amendment,
-latency 3), ADR-0046 (the complication), ADR-0047 (the phone widget, which
-already works this way), ADR-0004 (invariant 5's failure mode); TN3164, TN3163
+**Status:** accepted by the owner on 2026-09-24, after a test on their iPhone
+and watch that did not tell this build from the one before it (Measured on the
+owner's devices); the TestFlight device check under Verification still gates
+1.4's submission · **Date:** 2026-09-24 · **Relates to:** ADR-0041 (its
+2026-09-15 amendment, latency 3), ADR-0046 (the complication), ADR-0047 (the
+phone widget, which already works this way), ADR-0004 (invariant 5's failure
+mode); TN3164, TN3163
 
 ## Context
 
@@ -14,8 +16,8 @@ opening its own CloudKit-mirroring container on the shared store — and chose t
 have it investigated and fixed that night. The cost the question named was that
 a drink logged from the card's ＋ would reach the phone only once the watch app
 next runs. This record states that cost more fully than the question did,
-because the investigation found it larger, and the PR stays a draft until the
-owner has read it.
+because the investigation found it larger, and the PR stayed a draft until the
+owner had read it and had it tested on their own devices.
 
 **What the complication did.** Phase 0 gave both watch targets the same
 entitlements — the App Group, the iCloud container, CloudKit and
@@ -84,11 +86,15 @@ Xcode fails the build rather than quietly mirroring.
   context save, or a remote-change notification the running app observes.
   Nothing documented makes the watch app export on launch, and it schedules no
   background refresh; CloudKit's silent push wakes it only when another device
-  exports. So on an evening logged only from the card, the drink may stay on
-  the watch until the watch app next runs, and possibly until the app's next
-  write of its own. **No upper bound is documented.** The phone, the phone's
-  widget and Health see the drink only after that.
-- **It gives up a path that has been seen working on hardware.** On 2026-09-15
+  exports. So on an evening logged only from the card, the drink may stay on the
+  watch past the watch app's next run. **No upper bound is documented.** The
+  phone, the phone's widget and Health see the drink only after that. On the
+  owner's devices the card drink tapped on each build with no sync running on
+  the watch waited until the owner opened the watch app: 21 minutes 46 seconds
+  on this build, the last 20 of them with the app's mirroring set up and its
+  import stalled, and 59 seconds on the build before it, where the app was
+  opened sooner (Measured on the owner's devices).
+- **It may give up a path seen working on hardware.** On 2026-09-15
   a card ＋ was found in the phone's History, with its Health sample, after the
   phone's next foreground. And ADR-0047's Context records the strongest data
   point there is: on 2026-09-16 a card drink written by the complication at
@@ -96,15 +102,12 @@ Xcode fails the build rather than quietly mirroring.
   (the phone's 836), two seconds later, under the old entitlements. Which
   process exported it is not recorded — the complication's own delegate, or a
   watch app that happened to be running — but a two-second export from the card
-  is what this change may give up, and it should be read as the likely cost,
-  not a remote one. The owner's check reported on 2026-09-24 ran on an Xcode
-  build of main from before this change (CloudKit Development): drinks logged
-  from the card's ＋ and in the watch app showed up in the phone app about 1 to
-  2 seconds after it was opened. It is not a baseline for the card's path on
-  its own, because the watch app was used too, in an order not recorded, and on
-  that build both processes mirrored. An Xcode build of this branch, with the
-  watch app force-quit before the card's ＋, would be the like-for-like
-  comparison; the device check below is the one that gates 1.4.
+  is what this change may give up, and this record first read it as the likely
+  cost. The test on the owner's devices makes it less likely: on hardware no
+  mirroring setup in the watch's store coincided with any of the complication's
+  writes, even on the build that entitled it to mirror, so every export seen
+  was most likely the watch app's. It does not show that the complication never
+  exported, and the TestFlight check below is the one that gates 1.4.
 - **Import was not costed either.** Before the change the complication also
   registered an import activity. Whether it ever imported a phone drink on its
   own, ahead of the watch app, is unknown; if it did, a face reloaded from the
@@ -122,8 +125,8 @@ Xcode fails the build rather than quietly mirroring.
 the one in-app suspect for the cellular evening with it, and every timeline
 build now only reads: no delegate set up and torn down, no scheduler
 registration, per build. The watch app becomes the only exporter on the watch,
-so `CloudKitSyncMonitor` there sees every export (the complication's were
-invisible to it).
+so `CloudKitSyncMonitor` there sees every export (any the complication made
+were invisible to it; none was seen on hardware).
 
 **Knock-on.**
 
@@ -132,10 +135,14 @@ invisible to it).
   rewritten: no remaining writer has been measured, and shortening it is the
   face's own latency, a separate decision (ADR-0041's latency 1).
 - A write by a process that does not mirror, into a store the app on the same
-  device actively mirrors, is unverified on hardware on either device
-  (ADR-0004's tier-4 item). The phone widget has done it since 1.0; its writes
-  were seen landing on a simulator, and SwiftData records history for such a
-  writer (the new tier-2 test), but the export path after it is unobserved.
+  device actively mirrors (ADR-0004's tier-4 item), has now been seen exported on
+  the watch: on this build the watch app sent the complication's writes only once
+  it was opened, and a watch-app process the owner did not report opening set
+  up mirroring and did not send them for twenty minutes (Measured on the owner's
+  devices). On the phone it is still unread: the widget has done it
+  since 1.0, its writes were seen landing on a simulator, and SwiftData records
+  history for such a writer (the new tier-2 test), but no phone's export of one
+  has been read.
 - After a future schema bump the complication, like the widget, may be the first
   process to open the upgraded store; `SchemaVersions.swift`'s recipe carries
   the device step.
@@ -175,20 +182,29 @@ with no iCloud account, the card placed in the Smart Stack, 2026-09-23:
 collision itself (error 134410 — "another instance of this persistent store
 actively syncing"), since without an account every setup fails first with
 134400; and whether and when the watch app exports a drink the complication
-wrote. The watch app's own setup failed with 134400 on the relaunch above, as
-it does on every launch here. **The device check**, on a TestFlight build
-(Production CloudKit and production push, which the watch's sync has never run
-on), phone and watch on one account:
+wrote. The watch app's own setup failed with 134400 on the relaunch above, as it
+does on every launch here. The owner's devices, on Xcode builds and CloudKit
+Development, recorded no error 134410 in either store's CloudKit events during
+the test, and the card drink tapped with no sync running on the watch left only
+when the watch app was opened (Measured on the owner's devices). **The device
+check**, on a TestFlight build (Production CloudKit and production push, which
+the watch's sync has never run on), phone and watch on one account:
 
 1. The shipped complication's entitlements, from the device build
    (`codesign -d --entitlements - …DrinkTrackerWatchWidget.appex`): App Group
    only.
-2. With the watch app force-quit, tap the card's ＋ and note the time. Then,
-   separately: raise the watch app; leave it closed and log a drink on the phone
-   (which pushes to the watch); and log a drink in the watch app. After each,
-   read the phone's Settings → Diagnostics timeline and "Last synced" for when
-   the card's drink arrived, and watch the phone's History for it and its
-   Health sample.
+2. Give each of the three triggers its own card drink. For each, force-quit the
+   watch app, confirm in a full process listing that it is not running, tap the
+   card's ＋, note the time, and list processes again during the wait (on the
+   Xcode build a watch-app process appeared within 14 seconds of the 22:47:14
+   tap). Leave the first such drink alone for twenty minutes and record whether
+   anything sends it; on this change's Xcode build nothing did in 21 minutes,
+   which is the cost the owner accepted and not by itself a reason to reopen.
+   Then apply one trigger per drink: raise the watch app; with it closed, log a
+   drink on the phone (which pushes to the watch); log a drink in the watch app.
+   After each, read the phone's Settings → Diagnostics timeline and "Last
+   synced" for when that card drink arrived, and watch the phone's History for
+   it and its Health sample.
 3. The watch-side lines in Console.app from the watch app's process: "Observed
    context save", "Observed remote store notification", "Exporting changes
    since", after each of the three.
@@ -196,15 +212,159 @@ on), phone and watch on one account:
 If none of the three exports the card's drink promptly, How to reopen applies
 before 1.4 is submitted, not after.
 
+## Measured on the owner's devices, 2026-09-24
+
+The owner asked for this change to be tested on their iPhone 15 Pro (iOS 27.0)
+and Apple Watch Series 12 (watchOS 27.0), one iCloud account, with Xcode builds,
+so CloudKit Development and the APNs sandbox. First the build already on both
+devices, main at c7843dd, whose complication holds the iCloud container,
+CloudKit and `aps-environment`; then this change's build
+(d353351), installed at 22:33. Times are each device's own, read from copies of
+the App Group store: persistent history (which process wrote each change) and
+both stores' CloudKit events (setup, import, export). The owner tapped; the rest
+was remote.
+
+**The build whose complication is entitled to mirror (c7843dd).** Three card ＋
+taps:
+
+| Tap | The watch before it | Watch export | Phone import |
+|---|---|---|---|
+| 22:22:06 | Watch app force-quit by the test at 22:21:12; a mirroring setup at 22:21:33 fits it restarting; no CloudKit event after 22:21:36 | 22:23:05, when the owner opened the watch app | 22:23:08, 62 s |
+| 22:23:14 | The owner had just opened the watch app and logged a drink in it (22:23:07); its exports ended at 22:23:09 | 22:23:29 to 22:24:08 | 22:24:09, 54 s |
+| 22:27:10 | The watch app's delegate importing since 22:27:06, no setup before it; the import running at the tap (begun 22:27:07) failed at 22:27:11 and another ran at once | 22:27:12 to 22:27:13 | 22:27:13, 3 s |
+
+Times are truncated to the second; the intervals come from the unrounded
+times. The phone removed the two 22:23 drinks at 22:26:01. The import that
+failed at 22:27:11 ended with error 134419, a code Core Data's public header
+does not list; it was not looked into.
+
+**This change's build (d353351).**
+
+- **22:35:43.** The owner recalls tapping the card, but the row was written by
+  the watch app's process through the app's own ＋. The card's intent never ran:
+  it records "entered (one-drink)" before it opens the store, and nothing was
+  recorded. A tap on the card's body, which opens the app, would reconcile the
+  two. The watch app exported it at 22:35:43 to 22:35:44, and the phone imported
+  it at 22:40:12, when the phone app next came to the foreground.
+- **22:45:52 and 22:45:53.** Card ＋, written by the complication, while the
+  watch app was resident (it had exported on its own at 22:40:24). The test
+  force-quit the watch app at 22:45:59, and these two then waited with the next
+  drink.
+- **22:47:14.** Card ＋, written by the complication, with the card on screen in
+  the Smart Stack and no watch-app process in a full listing at 22:47:00. A
+  watch-app process was listed by 22:47:28; at 22:48:55 it set up mirroring and
+  began an import, which then made no progress. That it was suspended is
+  inferred from the stall: `devicectl` lists no run state. Remote launches of
+  the watch app failed from 23:01 to 23:04 while its link was down. The owner
+  opened the watch app at about 23:08:59: the import ended at 23:09:00, the
+  export ran from 23:09:00 to 23:09:01, and the phone imported all three drinks
+  at 23:09:01. **No export for 21 minutes 46 seconds.**
+
+**What it shows.**
+
+- **It did not tell the two builds apart for a card drink with the watch app
+  idle.** The matching pair is 22:22:06 on the old build and 22:47:14 on this
+  one. Both were card drinks tapped with no sync running on the watch, and both
+  waits ended only when the owner opened the watch app: the watch's export
+  began 59 seconds and 21 minutes 46 seconds after the tap, and the phone had
+  the drinks at 62 seconds and 21 minutes 47 seconds. The difference is when
+  the app was opened. The 3-second drink had the watch app's delegate already
+  importing, and the 22:23:14 drink had the app used seconds before, so neither
+  pairs with a drink on this build.
+- **The complication's own mirroring was never seen on hardware.** None of its
+  six writes on the old build that day (21:14:12, 21:17:19, 21:17:20, 22:22:06,
+  22:23:14, 22:27:10) coincides with a mirroring setup in the watch's store; on
+  the simulator pair two did. Every setup during the test fits a watch-app
+  process (the event table names no process, so on the old build this rests on
+  timing; on this change's build only the app can set one up): four came within
+  about 21 seconds of a force-quit, a reopen or the phone app's launch, and the
+  22:48:55 one about 90 seconds after its process was first listed (22:47:28).
+  So every export seen here is most likely the watch app's. That does not show
+  the complication never exports on hardware.
+- **The idle card drink on each build waited until the watch app was opened**:
+  59 seconds on the old build, where the owner opened it sooner, and 21 minutes
+  46 seconds on this one. The test could not show whether the old build's would
+  have waited longer, or whether its complication ever exports on its own. On
+  this build a resident watch app that had gone quiet held three card drinks
+  for over twenty minutes. On the old build a card drink tapped seven seconds
+  after the app was used began exporting 15 seconds after the tap, and the
+  export itself took 39 seconds. No bound is documented, and none was found.
+- **No error 134410** appeared in either store's CloudKit events that night, on
+  either build.
+- **The phone was not in the foreground throughout.** It was launched remotely
+  at 22:34:21 and came back to the foreground at least twice, around 22:35:22
+  and 22:40:12, the second time when the owner opened it to check. Its store
+  holds one import open from 22:40:39 to 23:09:01, ending within a second of
+  the watch's export, which fits a suspended phone app woken by the push. The
+  wait measured here is the watch's, not the phone's.
+
+**Also seen, and not explained.** A watch-app start, going by a mirroring
+setup or a process listing, came four times when the owner had not reported
+opening the app: at 22:21:33, 21 seconds after a
+force-quit (not the settings bridge: the watch had received no new context
+since 21:20); at 22:34:22, a second after the phone app was launched, which
+fits the settings bridge delivering (ADR-0041); at 22:35:27, 21 seconds after
+another force-quit and 5 seconds after the phone sent a context, so either, or
+someone opening it; and by 22:47:28, just before or after the card's ＋. And the
+22:35:43 drink above, written by the app's ＋ when the owner recalls the card.
+
+**How the decision was made.** The owner first declined this change on my
+recommendation. The question put to them said merging makes a card drink wait
+on the watch until the watch app is opened, 22 minutes here with no upper
+bound, and described not merging as keeping "the complication syncing itself,
+as now", which the test never showed. Behind the recommendation was a
+comparison of mine that set the 21 minutes 46 seconds against the 3-second
+drink, the wrong pair; the question did not show it. Told that the test had not
+separated the builds, the owner was asked again, and that question still
+recommended not merging: an entitlement change just before 1.4, for a collision
+no device has shown, adds risk with no measured gain. The owner chose to merge
+it against that recommendation. What the decision weighs is the documented
+collision, which no device has shown, against a cost this test did not show the
+change adds, since the idle card drink on each build waited until the watch app
+was opened. The risk of changing entitlements just before 1.4 is part of what
+it accepts, and the TestFlight check under Verification is where that risk is
+read.
+
+**How it was measured, for next time.**
+
+- **Store copies.** `xcrun devicectl device copy from --device <UDID>
+  --domain-type appGroupDataContainer --domain-identifier
+  group.com.shawnsemmes.DrinkTracker --source "Library/Application
+  Support/default.store" --destination <local path>`, and the same for `-wal`
+  and `-shm`. Take all three every time and retry: the watch's link
+  drops when the wrist is down, and a store copied without its WAL reads stale.
+  Open copies of the copies, because opening one checkpoints its WAL.
+- **Reading them.** The writing process is `ATRANSACTION.ZPROCESSIDTS` (with
+  `ZAUTHORTS` and `ZBUNDLEIDTS`) joined to `ATRANSACTIONSTRING`; CloudKit
+  events are `ANSCKEVENT`, type 0 setup, 1 import, 2 export. Times are seconds
+  since 2001-01-01. In SQLite compare them with an integer, not with
+  `strftime`'s text, or every row is dropped silently.
+- **Breadcrumbs.** The App Group's preferences plist, copied the same way:
+  `diagnosticTimeline` and `lastWidgetLog` say whether the card's intent ran,
+  `lastWatchContextReceived` when the phone last sent a context, and
+  `lastSyncSucceededAt` the watch app's last sync.
+- **Processes.** `xcrun devicectl device info processes --device <UDID>` pads
+  its lines with trailing spaces and can return a partial or empty list when the
+  link drops, so trust only a full listing (hundreds of lines). It gives no run
+  state. The watch app restarted within about 21 seconds of two force-quits
+  here, and not for over a minute after a third, so take a listing before each
+  tap rather than assuming.
+- **Screens and taps.** `xcrun devicectl device capture screenshot --device
+  <UDID> --destination <file>` shows what the watch shows, so check the card is
+  on screen before asking for a tap. `devicectl` has no touch input, so the
+  owner taps, and remote launches fail while the link is down. Installs used
+  `xcrun devicectl device install app --device <UDID> <path to .app>`, the watch
+  app installed on the watch directly.
+
 ## How to reopen
 
-- **If the device pass shows card drinks lingering for hours**, the choices,
-  each its own decision: a watch-app background refresh (about four an hour, and
-  only with the complication on the active face; a few seconds each; an export
-  inside one is not guaranteed); a cue on the card that a drink has not synced;
-  making the card's ＋ open the watch app (a product change to ADR-0046); or
-  restoring the three entitlement keys and accepting the collision, which is one
-  file.
+- **If the device pass shows a card drink that none of the three triggers under
+  Verification exports promptly**, the choices, each its own decision: a
+  watch-app background refresh (about four an hour, and only with the
+  complication on the active face; a few seconds each; an export inside one is
+  not guaranteed); a cue on the card that a drink has not synced; making the
+  card's ＋ open the watch app (a product change to ADR-0046); or restoring the
+  three entitlement keys and accepting the collision, which is one file.
 - If Apple documents a background app-process route for a widget button's
   intent on watchOS, (d) becomes the fix that keeps the export prompt.
 - If the owner's out-of-step symptom recurs with this in place, the in-app

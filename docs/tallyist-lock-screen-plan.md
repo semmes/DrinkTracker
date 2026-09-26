@@ -240,7 +240,7 @@ And the invariants in `docs/PRD.md` §2 this work touches:
   identifier, no new container: the Lock Screen widget is a second `Widget` in the existing
   iOS widget extension, which opens the store through `SharedModelContainer.make()` like
   every other caller and holds no iCloud container (ADR-0047's refusal stands: one process
-  manages sync on the phone, and since ADR-0055, proposed, on the watch too). A drink
+  manages sync on the phone, and since ADR-0055 on the watch too). A drink
   logged on the Lock Screen reaches CloudKit only through the app's own mirroring, exactly
   as a drink logged on the Home Screen widget does today; when is not documented (the
   2026-09-24 note under "Reloads, and what reaches the watch").
@@ -343,19 +343,21 @@ new kind is covered without a line. What does not change: a drink logged in the 
 reaches CloudKit, and so the watch, only through the app's own mirroring (ADR-0047's
 residual; the app-process intent is the owner's undecided route and is not this plan's).
 
-**Note, 2026-09-24 (ADR-0055, proposed until the owner accepts its cost and its PR
-merges).** Both hosts of the shared provider are now extensions that do not mirror: the
-iOS widget extension by ADR-0047, and the watch complication by ADR-0055, which took the
-iCloud container, CloudKit and `aps-environment` off it so that on each device the app
-is the one process that mirrors the store. The moved code therefore opens the store the
-same way in both hosts, and `scripts/verify-watch-setup.py` fails CI if either extension
-regains the container. This plan first said a Lock Screen drink "exports when the app
-next runs", which is more than is documented. TN3163 names a context save, or a
-remote-change notification the running app observes, as what schedules an export;
-nothing documented makes the app export on launch, and no device has yet shown how soon
-an extension's write is exported. ADR-0055's device check, on a TestFlight build, is the
-first reading of that case, on the watch; a Lock Screen drink is the phone's instance of
-it, as a Home Screen widget drink already is.
+**Note, 2026-09-24 (ADR-0055, accepted by the owner the same day).** Both hosts of the
+shared provider are now extensions that do not mirror: the iOS widget extension by
+ADR-0047, and the watch complication by ADR-0055, which took the iCloud container,
+CloudKit and `aps-environment` off it so that on each device the app is the one process
+that mirrors the store. The moved code therefore opens the store the same way in both
+hosts, and `scripts/verify-watch-setup.py` fails CI if either extension regains the
+container. This plan first said a Lock Screen drink "exports when the app next runs",
+which is more than is documented. TN3163 names a context save, or a remote-change
+notification the running app observes, as what schedules an export; nothing documented
+makes the app export on launch. On the owner's watch, on an Xcode build of ADR-0055,
+the watch app sent the complication's writes only once it was opened, one after 21
+minutes 46 seconds (ADR-0055's section "Measured on the owner's devices"), and its
+device check on a TestFlight build comes before 1.4 ships. A Lock Screen drink is the
+phone's instance of that case, as a Home Screen widget drink already is, and no phone's
+export of one has been read.
 
 ### Vibrant, redaction, unavailable
 

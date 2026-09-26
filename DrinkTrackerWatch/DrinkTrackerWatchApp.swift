@@ -83,8 +83,11 @@ struct DrinkTrackerWatchApp: App {
 /// CloudKit only through this app's own mirroring, which TN3163 says schedules
 /// an export on a context save or on a remote change it observes while it
 /// runs. Whether a launch or a push wake exports a drink the complication wrote
-/// while this app was not running is not documented and not yet observed on a
-/// device; ADR-0055 names that as the check before 1.4 ships.
+/// while this app was not running is not documented. On the owner's watch, on an
+/// Xcode build, a watch-app launch the owner did not report making did not send
+/// it within twenty minutes, and opening the app did (ADR-0055's section "Measured on the owner's
+/// devices"); a push wake has not been observed. ADR-0055's device check, on a
+/// TestFlight build, comes before 1.4 ships.
 /// Every notification is handled on the main queue, so the state below needs
 /// no lock of its own; `@MainActor` rather than a lock is also what keeps the
 /// reload off whatever thread Core Data posts from.

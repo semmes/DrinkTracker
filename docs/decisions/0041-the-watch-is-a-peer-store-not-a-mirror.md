@@ -202,7 +202,7 @@ by a reload and needs no floor.
 
 The other two stay open and unbuilt: the watch face's sixty-second reload floor, and
 the complication opening a second mirroring container on every timeline build.
-*(The second is addressed by ADR-0055, proposed — the 2026-09-24 amendment below.)*
+*(The second is addressed by ADR-0055 — the 2026-09-24 amendment below.)*
 
 The device captures that answered this also correct part of the premise. The drink
 the owner saw sync "when I opened the app" was logged in the **watch app** at
@@ -210,12 +210,11 @@ the owner saw sync "when I opened the app" was logged in the **watch app** at
 reached its intent at all. Where the receiving app was awake, the leg this record is
 about took two to three seconds in both directions.
 
-## Amendment, 2026-09-24 — the complication stops mirroring (ADR-0055, proposed)
+## Amendment, 2026-09-24 — the complication stops mirroring (ADR-0055)
 
-**This amendment is tied to ADR-0055, which is proposed:** built and verified as far
-as simulators reach, and accepted only when the owner accepts its cost and its PR
-merges. Until then it describes a draft, and the third latency below is open as the
-2026-09-15 amendment left it.
+**This amendment is tied to ADR-0055, which the owner accepted on 2026-09-24**
+after a test on their iPhone and watch that did not tell its build from the one
+before it (ADR-0055's section "Measured on the owner's devices").
 
 The third of the three latencies that are this app's own — the complication opening a
 second `NSPersistentCloudKitContainer` on the shared store on every timeline build,
@@ -232,7 +231,8 @@ What that settles, and what it does not:
 - **The hypothesis is removed, not confirmed.** Nothing has shown that the second
   container caused the cellular evening. A simulator with no iCloud account cannot
   produce the collision at all — every mirroring setup fails first with 134400 — and
-  no device has shown it either way. If the out-of-step symptom recurs with ADR-0055
+  the owner's devices, on Xcode builds, recorded no error 134410 in either store's
+  CloudKit events during the test. If the out-of-step symptom recurs with ADR-0055
   in place, the in-app hypothesis is refuted, and the outside causes the handoff
   recorded on 2026-09-15 are what remain.
 - **The Decision holds unchanged: CloudKit is the only path a row travels.** On the
@@ -240,8 +240,11 @@ What that settles, and what it does not:
   card's ＋ writes lands in the watch's store and reaches CloudKit only through the
   watch app's own mirroring. TN3163 documents what schedules an export: a context
   save, or a remote-change notification the running app observes. That the watch app
-  exports such a drink is expected, but nothing documented makes it export on
-  launch, no upper bound is documented, and no device has shown it. ADR-0055 states
+  exports such a drink is expected, but nothing documented makes it export on launch
+  and no upper bound is documented. On the owner's devices, on an Xcode build of
+  ADR-0055 (CloudKit Development), it exported the card's drinks only once it was
+  opened, one after 21 minutes 46 seconds; on the build before ADR-0055 the one idle
+  card drink also waited until the app was opened, after 59 seconds. ADR-0055 states
   that cost in full and names the device check, on a TestFlight build, that gates
   1.4.
 - **The first latency stays open.** `StoreChangeReloader`'s sixty-second floor loses
@@ -264,8 +267,8 @@ What that settles, and what it does not:
   why is in the 2026-09-15 amendment.
   *(Reworded 2026-09-24. This bullet first named the complication opening a
   second mirroring container on every timeline build as the first thing to
-  examine; ADR-0055, proposed, takes that container off the complication — the
-  amendment of that date. If ADR-0055 is not accepted, it is the first thing to
+  examine; ADR-0055 takes that container off the complication — the
+  amendment of that date. If ADR-0055 is ever reversed, it is the first thing to
   examine again.)*
 - If duplicates ever appear across the two stores, the cause is a write
   reaching CloudKit by a second path; the fix is to remove the path, not to

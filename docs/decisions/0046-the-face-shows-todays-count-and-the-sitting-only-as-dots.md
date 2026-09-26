@@ -461,14 +461,15 @@ narrow card — the same "drinks today", and when unavailable no ＋ beside it,
 so a wider column. Always-On; VoiceOver, where no label changed; anything on
 hardware.
 
-## Amendment, 2026-09-24 — the card's ＋ reaches CloudKit through the watch app (ADR-0055, proposed)
+## Amendment, 2026-09-24 — the card's ＋ reaches CloudKit through the watch app (ADR-0055)
 
-**This amendment is tied to ADR-0055, which is proposed:** accepted only when the
-owner accepts the cost below and its PR merges. ADR-0055 takes the iCloud
-container, CloudKit and `aps-environment` off the complication, so it opens the
-watch's store without mirroring, as the phone's widget does, and the watch app is
-the one process on the watch that mirrors. Nothing this record decides about what
-the face shows changes. One thing about where the card's ＋ goes does.
+**This amendment is tied to ADR-0055, which the owner accepted on 2026-09-24**
+after a test on their devices (its section "Measured on the owner's devices").
+ADR-0055 takes the iCloud container, CloudKit and `aps-environment` off the
+complication, so it opens the watch's store without mirroring, as the phone's
+widget does, and the watch app is the one process on the watch that mirrors.
+Nothing this record decides about what the face shows changes. One thing about
+where the card's ＋ goes does.
 
 - **The ＋ still logs from the face, and the face still shows it at once.**
   `LogOneDrinkIntent` runs in the complication's process, writes to the watch's
@@ -480,15 +481,20 @@ the face shows changes. One thing about where the card's ＋ goes does.
   phone's widget and Health, only through the watch app's own mirroring. TN3163
   documents what schedules an export: a context save, or a remote-change
   notification the running app observes. That the watch app exports a drink the
-  complication wrote is expected, but it is not observed on a device, nothing
-  documented makes the watch app export on launch, and no upper bound is
-  documented. So on an evening logged only from the card, the drink may stay on
-  the watch until the watch app next runs, and possibly until its next write of
-  its own. Before this change a card drink may have been exported by the
-  complication's own short-lived mirroring delegate or by the watch app; which
-  one did so on the owner's 2026-09-15 pass is not known, so how much of that
-  path is given up is not known either. ADR-0055 carries the cost in full and the
-  device check, on a TestFlight build, that gates 1.4.
+  complication wrote is expected, nothing documented makes the watch app export
+  on launch, and no upper bound is documented. On the owner's devices, on an
+  Xcode build of ADR-0055 (CloudKit Development), it sent the card's drinks only
+  once it was opened, one after 21 minutes 46 seconds; on the build before
+  ADR-0055 the one idle card drink also waited until the app was opened, after
+  59 seconds (ADR-0055's section "Measured on the owner's devices"). So on an
+  evening logged only from the card, the drink may stay on the watch past the
+  watch app's next run: on that build a watch-app process the owner did not
+  report opening did not send it for twenty minutes. Before this change a card
+  drink may have been exported by the complication's own short-lived mirroring
+  delegate or by the watch app; which one did so on the owner's 2026-09-15 pass
+  is not known, so how much of that path is given up is not known either.
+  ADR-0055 carries the cost in full and the device check, on a TestFlight build,
+  that gates 1.4.
 - **The failure-state rule is unchanged.** A store the complication cannot open
   or read still shows the glyph and no ＋.
 - **The reload paths are unchanged, and one of them loses its stated cause.**
@@ -536,28 +542,28 @@ the face shows changes. One thing about where the card's ＋ goes does.
   width the card was given is one log line away — the geometry is already
   read — and the fourteen widths in `ComplicationCardTests` are what to
   correct first.
-- ~~If the face lags the phone on hardware more than a raise away, the reopen
-  is Phase 7's channel used for a reload signal rather than a row — a
-  `WCSession` message that asks the watch to reload, carrying no data.~~
-  **Answered and closed, 2026-09-15.** It cannot work, for a reason this
-  record should have seen: `DrinkTrackerWatchWidget` holds no `WCSession` and
-  cannot — WatchConnectivity is delivered to the *watch app*, and the face is
-  only ever redrawn by `WidgetCenter.reloadAllTimelines()` from there — so a
-  reload ping reaches the face only in the case where the app is already
-  running and already reloading. And a reload of a store CloudKit has not
-  updated yet is the same stale figure drawn again: the signal would arrive
-  ahead of the fact it is signalling. If the face lags on hardware, the two
-  things to examine are the sixty-second floor in `StoreChangeReloader` and
-  the second `NSPersistentCloudKitContainer` the provider opens on every
-  timeline build (`CounterProvider.load(at:)` in `CounterComplication.swift`),
-  both recorded as open in `CLAUDE.md`. The full argument is in ADR-0041's
-  2026-09-15 amendment. *(2026-09-24: the second is addressed by ADR-0055,
-  proposed. The provider still opens the store on every build, and without the
+- ~~If the face lags the phone on hardware more than a raise away, the reopen is
+  Phase 7's channel used for a reload signal rather than a row — a `WCSession`
+  message that asks the watch to reload, carrying no data.~~ **Answered and
+  closed, 2026-09-15.** It cannot work, for a reason this record should have
+  seen: `DrinkTrackerWatchWidget` holds no `WCSession` and cannot —
+  WatchConnectivity is delivered to the *watch app*, and the face is only ever
+  redrawn by `WidgetCenter.reloadAllTimelines()` from there — so a reload ping
+  reaches the face only in the case where the app is already running and already
+  reloading. And a reload of a store CloudKit has not updated yet is the same
+  stale figure drawn again: the signal would arrive ahead of the fact it is
+  signalling. If the face lags on hardware, the two things to examine are the
+  sixty-second floor in `StoreChangeReloader` and the second
+  `NSPersistentCloudKitContainer` the provider opens on every timeline build
+  (`CounterProvider.load(at:)` in `CounterComplication.swift`), both recorded as
+  open in `CLAUDE.md`. The full argument is in ADR-0041's 2026-09-15 amendment.
+  *(2026-09-24: the second is addressed by ADR-0055, accepted by the owner the
+  same day. The provider still opens the store on every build, and without the
   iCloud container it no longer mirrors; see the amendment of that date. The
   citation here was a line number, which has since moved.)*
-- **If a drink logged from the card's ＋ lingers on the watch**, not reaching the
-  phone for hours, ADR-0055's How to reopen has the choices, each its own
-  decision: a watch-app background refresh, a cue on the card that a drink has
-  not synced, making the card's ＋ open the watch app (a change to this record's
-  ＋), or restoring the complication's three entitlement keys and accepting the
-  collision.
+- **If a drink logged from the card's ＋ lingers on the watch**, not exported
+  promptly by any of the three triggers in ADR-0055's Verification, ADR-0055's
+  How to reopen has the choices, each its own decision: a watch-app background
+  refresh, a cue on the card that a drink has not synced, making the card's ＋
+  open the watch app (a change to this record's ＋), or restoring the
+  complication's three entitlement keys and accepting the collision.

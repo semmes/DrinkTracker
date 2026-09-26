@@ -172,20 +172,22 @@ way the phone app and the home-screen widget share the on-phone one. Same
 identifier string, different physical container, because an App Group container
 is per-device.
 
-**Changed 2026-09-24 (ADR-0055, proposed until the owner accepts its cost and its
-PR merges):** they share it the same way in sync too. On each device the app is
-the one process that mirrors the store; the home-screen widget and the watch
-complication hold the App Group alone and read and write the store without
-mirroring, so "mirrored to the user's private CloudKit database" in the diagram is
-the store, through its app. Before ADR-0055 the complication held the iCloud container
-and mirrored beside the watch app, the collision TN3164 warns against and the third
-of the latencies ADR-0041's 2026-09-15 amendment left open. The cost: a drink the
-complication's card writes reaches CloudKit only through the watch app's own
-mirroring. TN3163 names a context save, or a remote-change notification the
-running app observes, as what schedules an export; when the watch app exports a
-drink the complication wrote is not documented and has not been observed on a
-device, and ADR-0055's device check on a TestFlight build is the gate before 1.4
-ships.
+**Changed 2026-09-24 (ADR-0055, accepted by the owner the same day):** they share it
+the same way in sync too. On each device the app is the one process that mirrors the
+store; the home-screen widget and the watch complication hold the App Group alone and
+read and write the store without mirroring, so "mirrored to the user's private
+CloudKit database" in the diagram is the store, through its app. Before ADR-0055 the
+complication held the iCloud container and mirrored beside the watch app, the
+collision TN3164 warns against and the third of the latencies ADR-0041's 2026-09-15
+amendment left open. The cost: a drink the complication's card writes reaches CloudKit
+only through the watch app's own mirroring. TN3163 names a context save, or a
+remote-change notification the running app observes, as what schedules an export; when
+the watch app exports a drink the complication wrote is not documented. On the owner's
+devices, on an Xcode build of ADR-0055 (CloudKit Development), it did so only once it
+was opened, one drink after 21 minutes 46 seconds; on the build before, the one idle
+card drink also waited until the app was opened (ADR-0055's section "Measured on the
+owner's devices"). ADR-0055's device check on a TestFlight build is the gate before
+1.4 ships.
 
 **Nothing about this is new code.** `SharedModelContainer.make()`,
 `DrinkRepository`, `LogOneDrinkIntent` and `AppSettings.storedRegion()` all
@@ -631,9 +633,9 @@ entitlement there is not a degradation, it is an app that never sees a drink.
 Add `remote-notification` to the watch app's `UIBackgroundModes` as well, the
 same as the phone app has, or mirroring will only pull when the app is open.
 
-**Changed 2026-09-24 (ADR-0055, proposed until the owner accepts its cost and its
-PR merges): the entitlements are per target.** Phase 0 gave both targets the four
-keys above, as written here. Now:
+**Changed 2026-09-24 (ADR-0055, accepted by the owner the same day): the
+entitlements are per target.** Phase 0 gave both targets the four keys above, as
+written here. Now:
 
 | Target | Entitlements | Why |
 |---|---|---|
@@ -642,10 +644,13 @@ keys above, as written here. Now:
 
 The paragraph above is true of the watch app. The complication reads and writes the
 watch's store without mirroring, and a drink its card's ＋ logs reaches CloudKit only
-through the watch app's mirroring, at a time nothing documents and no device has yet
-shown (ADR-0055's device check, before 1.4 ships). `scripts/verify-watch-setup.py`
-checks each target's set and runs in CI as its own job, so re-adding the capability
-to the complication in Xcode fails the build.
+through the watch app's mirroring, at a time nothing documents; on the owner's
+devices, on an Xcode build of ADR-0055 (CloudKit Development), that was only once
+the app was opened, one drink after 21 minutes 46 seconds (ADR-0055's section
+"Measured on the owner's devices"; its device check on a TestFlight build comes
+before 1.4 ships). `scripts/verify-watch-setup.py` checks each target's set and runs
+in CI as its own job, so re-adding the capability to the complication in Xcode fails
+the build.
 
 Also add, in the same commit: `Shared/`'s six files
 (`AppGroup.swift`, `AppSettings.swift`, `DrinkEntry.swift`,
@@ -1546,22 +1551,24 @@ seeded with `sqlite3`, and a raise and terminate of the app reloads the face;
 and a context that cannot be shown — any Smart Stack — can have its *content
 box* emulated on a face by a scratch build that pads the card down to it.
 
-**Changed 2026-09-24 (ADR-0055, proposed until the owner accepts its cost and its
-PR merges; ADR-0046's amendment of that date is the record for this phase): the
-complication no longer mirrors.** It holds the App Group alone, so a timeline build
-opens the store without CloudKit and only reads. On a throwaway Series 12 simulator
-on 2026-09-23 its process started no mirroring delegate, where before each build had
-set one up and torn it down; and the card's ＋ still logged from the Smart Stack,
-redrawing from 2 to 3 with the row in the store and its history transaction naming
-the complication's bundle. Two things above read differently now. The one-minute
-floor the second review round put on the reload observer was for a loop through the
-complication's own CloudKit bookkeeping; that writer is gone, and the floor is kept
-until a remaining one is measured. And a drink the card's ＋ logs reaches CloudKit,
-and so the phone, only through the watch app's own mirroring: TN3163 names a context
-save, or a remote-change notification the running app observes, as what schedules an
+**Changed 2026-09-24 (ADR-0055, accepted by the owner the same day; ADR-0046's
+amendment of that date is the record for this phase): the complication no longer
+mirrors.** It holds the App Group alone, so a timeline build opens the store without
+CloudKit and only reads. On a throwaway Series 12 simulator on 2026-09-23 its
+process started no mirroring delegate, where before each build had set one up and
+torn it down; and the card's ＋ still logged from the Smart Stack, redrawing from 2
+to 3 with the row in the store and its history transaction naming the complication's
+bundle. Two things above read differently now. The one-minute floor the second
+review round put on the reload observer was for a loop through the complication's
+own CloudKit bookkeeping; that writer is gone, and the floor is kept until a
+remaining one is measured. And a drink the card's ＋ logs reaches CloudKit, and so
+the phone, only through the watch app's own mirroring: TN3163 names a context save,
+or a remote-change notification the running app observes, as what schedules an
 export, and when the watch app exports a drink the complication wrote is not
-documented and has not been observed on a device. ADR-0055's device check, on a
-TestFlight build, is the gate before 1.4 ships.
+documented; on the owner's devices, on an Xcode build of ADR-0055 (CloudKit
+Development), it did so only once it was opened, one drink after 21 minutes 46
+seconds (ADR-0055's section "Measured on the owner's devices"). ADR-0055's device
+check, on a TestFlight build, is the gate before 1.4 ships.
 
 **Families.** `.accessoryCircular` (the corner-of-the-face one, and the one
 most people will place), `.accessoryRectangular` (the Smart Stack card),
@@ -1657,7 +1664,7 @@ comes back when it is on.
 > `CLAUDE.md`, not here — none of them is a session bridge.
 >
 > *(2026-09-24: the second was answered by ADR-0047 on 2026-09-16. The third is
-> addressed by ADR-0055, proposed until the owner accepts its cost: the
+> addressed by ADR-0055, accepted by the owner the same day: the
 > complication holds the App Group alone and no longer mirrors, which removes the
 > one in-app hypothesis for the cellular evening without its ever having been
 > shown to be the cause. The first stays open, its stated cause gone with the
@@ -1947,10 +1954,12 @@ that is wrong out loud.
   that both targets open the store identically, and the watch's entitlement
   work is when you will be looking at all four of these files anyway.
   *(2026-09-24: the complication now has the widget's entitlements, the App
-  Group alone — ADR-0055, proposed. Two corrections to this bullet from the
+  Group alone — ADR-0055. Two corrections to this bullet from the
   records since: the widget opens on the first rung, `.automatic`, without
   mirroring, not on the no-CloudKit rung (ADR-0004's 2026-09-16 amendment); and
   "the app exports them when it next opens the store" is more than is
   documented. TN3163 names a context save, or a remote-change notification the
-  running app observes, as what schedules an export, and the timing after an
-  extension's write has not been observed on a device.)*
+  running app observes, as what schedules an export. On the owner's watch, on
+  an Xcode build of ADR-0055, the watch app sent the complication's writes only
+  once it was opened (ADR-0055's section "Measured on the owner's devices"); on
+  the phone, the widget's case, it has not been observed.)*

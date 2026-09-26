@@ -385,9 +385,12 @@ enum SharedModelContainer {
   /// `com.shawnsemmes.DrinkTracker.Widget`, and the app displayed them. The app's
   /// own mirroring is expected to export such rows from persistent history:
   /// TN3163 names a context save, or a remote-change notification the running
-  /// app observes, as what schedules an export. Whether the app's next launch
-  /// exports them, and how soon after an extension's write, is not documented
-  /// and has not been observed on a device. An earlier comment here (6f759f6) said writes from such a
+  /// app observes, as what schedules an export. When the app exports them after
+  /// an extension's write is not documented. On the owner's watch, on an Xcode
+  /// build (CloudKit Development), the watch app sent the complication's writes
+  /// only once it was opened, one after 21 minutes 46 seconds (ADR-0055,
+  /// "Measured on the owner's devices"); on the phone it has not been observed.
+  /// An earlier comment here (6f759f6) said writes from such a
   /// process "fail silently". That was never observed: it was written while the
   /// widget's one-tap log was failing for a different reason, which 17853f3
   /// found four days later — a non-optional `@Parameter` with no default, which
@@ -411,9 +414,11 @@ enum SharedModelContainer {
   /// mirrored reopens cleanly without CloudKit. Both processes now run the same
   /// ladder, so they agree at any given moment, but two processes opening the
   /// store while iCloud availability is changing could still land on different
-  /// rungs. Confirming that needs a device. So does the other half of ADR-0055:
-  /// that a write by an extension that does not mirror, into a store its app is
-  /// actively mirroring, reaches CloudKit through the app, and when.
+  /// rungs. Confirming that needs a device. So does the rest of ADR-0055's
+  /// check, on a TestFlight build before 1.4 ships: when a write by an extension
+  /// that does not mirror, into a store its app is actively mirroring, reaches
+  /// CloudKit through the app. Seen once on the watch, after 21 minutes 46
+  /// seconds, with no bound documented; not yet on the phone.
   static func make() throws -> ModelContainer {
     try open().container
   }
