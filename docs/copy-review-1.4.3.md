@@ -2347,3 +2347,29 @@ a stretch of days at once" (`docs/app-store-listing.md`).
 
 A plain description: no celebration, no judgment, no exclamation mark and no em
 dash. Pass.
+
+## 2026-09-26 — Trends names the days its total covers
+
+The total's card under the Trends chart (`TrendsView.sumLabel`) now names the
+window it counts in the chart title's own words, lowercased to read under the
+figure:
+
+| Range | Was | Now |
+|---|---|---|
+| Week | "this week" | "last 7 days" |
+| Month | "this month" | "last 30 days" |
+| Quarter | "last 13 weeks" | unchanged |
+| Year | "last 12 months" | unchanged |
+
+Week and Month are the trailing 7 and 30 days, not the calendar's week or month,
+so the old labels named different days from the ones the figure counts. The
+2026-09-26 screenshot audit found "18 this month" under a chart titled "Last 30
+days", while the calendar's card for September, the 1st to the 23rd, held 13; the
+other five were in the last week of August. The new labels are the Quarter and
+Year form the review above passed in
+the 2026-08 addendum, whose row described them as "matching 'this week' / 'this
+month'". That pairing is gone, and all four labels now match the title over the
+chart instead.
+
+A value and a noun, as before: no verdict, no comparison between windows, no
+exclamation mark and no em dash. Pass.

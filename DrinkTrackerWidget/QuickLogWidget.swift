@@ -174,6 +174,47 @@ struct QuickLogWidgetView: View {
       .minimumScaleFactor(QuickLogWidgetRow.minimumScale)
   }
 
+  private var numeralFont: Font {
+    .system(size: numeralSize, weight: .semibold, design: .rounded)
+  }
+
+  /// The day's count, on one line. Where it is wider than its column — from
+  /// 20 on an iPhone SE, from 100 on every small widget — it shrinks, to 0.6
+  /// at the least, the floor Today's hero, the watch counter and the
+  /// complication use (ADR-0057's amendment). It used to break over two lines
+  /// where the widget had the height and be cut short where it did not: "…"
+  /// for every count from 20 on an SE, "1…" for 100 on the other phones.
+  ///
+  /// A count that fits is drawn exactly as it always was. One that does not
+  /// keeps its full-size line: it is drawn over a hidden "0" as wide as the
+  /// column, on its baseline, so it sits on the line the full-size count sat
+  /// on and the words under it do not move. An overlay, because it proposes
+  /// the count exactly the column's width; a baseline-aligned `ZStack` or
+  /// `HStack` holding the same "0" shrank counts that fit, "16" among them,
+  /// and the overlay alone moved a fitting count up a pixel on a 3x phone —
+  /// both found only by rendering.
+  private var countFigure: some View {
+    ViewThatFits(in: .horizontal) {
+      countText
+      Text(verbatim: "0")
+        .font(numeralFont)
+        .hidden()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: Alignment(horizontal: .leading, vertical: .lastTextBaseline)) {
+          countText
+            .lineLimit(QuickLogWidgetRow.countLineLimit)
+            .minimumScaleFactor(QuickLogWidgetRow.countMinimumScale)
+        }
+    }
+  }
+
+  private var countText: some View {
+    Text("\(entry.drinkCount)")
+      .font(numeralFont)
+      .foregroundStyle(.primary)
+      .contentTransition(.numericText(value: Double(entry.drinkCount)))
+  }
+
   var body: some View {
     HStack(alignment: .center, spacing: QuickLogWidgetRow.gap) {
       VStack(alignment: .leading, spacing: 2) {
@@ -187,10 +228,7 @@ struct QuickLogWidgetView: View {
             .frame(height: numeralSize, alignment: .center)
           unitWords("drinks today")
         } else {
-          Text("\(entry.drinkCount)")
-            .font(.system(size: numeralSize, weight: .semibold, design: .rounded))
-            .foregroundStyle(.primary)
-            .contentTransition(.numericText(value: Double(entry.drinkCount)))
+          countFigure
           unitWords(countLabel)
           if entry.total > 0 && family != .systemSmall {
             Text(verbatim: standardDrinksCaption)
