@@ -57,7 +57,7 @@ grades.
 — A counter you can turn up or down, not a form to fill in
 — Calendar of your days, shaded by amount — including days with none, which
   count as a fact of their own
-— Press and drag across the calendar to fill a stretch of days at once
+— Press and drag across the calendar to fill several days at once
 — Weekly, monthly, quarterly, and yearly totals with your own average — never
   a target
 — Export your whole log as a CSV any time; it's your record
@@ -117,7 +117,7 @@ grades.
 — A counter you can turn up or down, not a form to fill in
 — Calendar of your days, shaded by amount — including days with none, which
   count as a fact of their own
-— Press and drag across the calendar to fill a stretch of days at once
+— Press and drag across the calendar to fill several days at once
 — Weekly, monthly, quarterly, and yearly totals with your own average — never
   a target
 — Export your whole log as a CSV any time; it's your record

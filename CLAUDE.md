@@ -309,7 +309,29 @@ before (both waited until the app was opened), and the owner chose to merge it, 
 my recommendation not to.
 The owner's hardware check reported on 2026-09-24 ran on an Xcode build from before the
 release work and ADR-0055's draft, so it is neither that ADR's device check nor the
-TestFlight pass (the bullet "The owner's watch-to-phone check…").
+TestFlight pass (the bullet "The owner's watch-to-phone check…"). **On 2026-09-26 the
+small Home Screen widget stopped cutting its words short** — "drinks tod…" in the owner's
+marketing screenshot, and cut or shrunk on every iPhone iOS 26 supports — by giving them
+the whole column beside the ＋ and a second line (the bullet "The small widget's words
+wrap…", ADR-0057); it passed on the owner's phone the same day.
+**On 2026-09-26 the Trends chart's y-axis labels were found drawing the previous
+appearance's ink after a live light/dark switch on iOS 27, 1.36:1 in dark; both axes now
+take an ink resolved for the current appearance (the bullet "The chart's axis labels
+follow a live appearance change…", ADR-0028's third amendment). The owner decided the
+same day that it ships in 1.4, merged before the archive, and the two dark Trends
+screenshot candidates were retaken from a build that carries it.**
+**The same day the Trends and calendar tips moved from tertiary to secondary ink**,
+from 1.72:1 on white and 2.23:1 on black to 3.44:1 and 6.36:1 (the bullet "The two tips
+take secondary ink…", design-system §2), and the owner reworded the calendar's to "Tip:
+Press and drag across the calendar to fill several days at once.", with "fill a stretch"
+replaced in the App Store description too. Xcode Cloud archives every commit on main, so
+1.4 carries both only if the build the owner submits comes from their merge or later.
+**That evening the watch's hint and the medium widget's "≈" line took secondary ink as
+well**, on the owner's call once both were measured: 2.23:1 to 6.36:1 on the wrist, 1.70:1
+to 3.27:1 and 2.44:1 to 5.37:1 on the widget (the bullet "The watch's hint and the
+widget's ≈ line take secondary ink…", design-system §2 and §9). **The owner then said it
+goes out with 1.4**, so the build submitted for 1.4 comes from its merge, 15a4f9f (#150),
+or later, and a build that late carries the two tips too.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -3934,7 +3956,9 @@ Open items for v1.2:
   - At 1.4: the App Store Connect URLs, and `platform_state: 2`.
   - Optional: switch Pages to Actions and set `DEPLOY_FROM_ACTIONS`, so a deploy waits
     on the checks. The branch build serves the same files.
-  - The small widget's truncated label has its own task.
+  - The small widget's truncated label has its own task. *(Fixed on 2026-09-26 — the
+    bullet "The small widget's words wrap…", ADR-0057. The site's widget picture was
+    taken from the old build, so it still shows "drinks tod…" until it is retaken.)*
 - **The watch complication stops mirroring the store (2026-09-24; ADR-0055, accepted by
   the owner after a test on their devices).** The owner chose to have the complication's
   CloudKit-mirroring container investigated and fixed on the night of 2026-09-23. The
@@ -4008,3 +4032,463 @@ Open items for v1.2:
   records were final. So was the test's device build. **Tooling:** a simulator's signed
   entitlements are in the build's `*.app.xcent` / `*.appex.xcent`; the complication's
   process logs as `DrinkTrackerWatchWidget` in `simctl spawn … log stream`.
+- **The small widget's words wrap before they shrink (2026-09-26; ADR-0057).** The
+  owner's marketing screenshot showed the small Home Screen widget on a 17 Pro reading "2"
+  over "drinks tod…". **It was every iPhone, not that one.** The small family's real
+  sizes are on disk, as the watch's were: `data/Library/chronod/chrono.sql`, table
+  `HostConfigs`, host `…::SpringBoard-Homescreen`, a keyed archive whose
+  `_metricsSpecification.metricsByFamily` gives each family's `size` and
+  `margins.contentMargins` (`"1"` small, `"2"` medium; the `Ambient-Infograph` host is
+  StandBy). Read on an iOS 26.5 simulator of each of the 31 iPhones iOS 26 supports —
+  create, boot, read with `?immutable=1`, delete, four at a time — they are eleven sizes,
+  146pt (SE) to 176.67 (16 and 17 Pro Max), with margins 9/82 of the side, so 113.95 to
+  137.89pt of content; iOS 27.0 gives the same eleven, and Apple's published table (148,
+  158…) predates iOS 26. The row left the words the content less the 52pt ＋ and **two**
+  12pt gaps — a Spacer keeps one on each side, the watch card's lesson — 38 to 62pt, where
+  "drinks today" is 64.5 on one line. **The Plus and Pro Max phones draw a widget's text
+  1.158 times larger** (74.7) with the environment still saying the default size; the
+  iPhone 11 and the Air do not. Rendered on all eleven sizes by a logging copy of the old
+  build, the plural was cut short on nine ("drinks…" on the SE) and shrunk on the other two, the
+  singular cut on the SE and the 159pt phones (11 Pro, 12 and 13 mini). And the text
+  follows Dynamic Type only so far: "drinks today" stopped growing at 93.5pt on one line,
+  at AX1 on the SE and xxLarge on the 17 Pro Max. **What shipped:** the words take the
+  whole column beside the ＋ (the Spacer gone, the column framed to the leading edge) and
+  may take **two lines**, wrapping before they shrink, floor 0.8; the count (44/40pt) and
+  the ＋ (52/60pt) unchanged; one row for both families, and no width read, because where
+  the old row already held the count and the words whole at full size the new one draws
+  the same pixels. `QuickLogWidgetRow` in the core
+  package holds the constants the widget reads; eight tier-1 tests pin them against the
+  eleven widths (every column holds "drinks" at full size and at the largest text; the
+  plural stays on one line only on the iPhone 11 and the Air, the singular everywhere but
+  the SE; two lines fit every height; the medium never wraps). No copy, catalog, schema,
+  CloudKit or project-file change; the widget catalog synced from the new build is
+  byte-identical (35 keys). **The widget has no no-alcohol sentence** — its provider reads
+  drinks only — so a marked day draws "0 drinks today". **Verified:** 378 domain tests
+  under both SwiftPM build systems; the simulator build with the same five warnings as
+  main's; and before against after with the real builds from a seeded store, in two
+  passes — scratch SE, 17 Pro and 17 Pro Max simulators at 0/1/2/12 drinks, then the
+  owner's own phone, an **iPhone 15 Pro** (the 162.67pt row; the screenshot was a 17
+  Pro-size simulator), on iOS 27 beside a 17 Pro at 1/2/16/20/80/111, both in light and
+  dark — the words whole on every frame, every changed pixel left of the ＋, the count
+  rising 7.0pt (9.3 on the Pro Max) because the block stays centred while the words gain
+  a line and come back from the 0.8 floor, and **the medium widget identical** (no pixel
+  off by more than one unit in one channel over 48 pairs, 31 with none; two states of one
+  build differ by 7,859). A logging build (never committed; it wrote each view's frame to
+  a JSON file in the App Group container) measured the words on all eleven sizes and at
+  every text size from xLarge to AX5 on the SE and the 17 Pro Max, whole everywhere.
+  **The count changed too, though it was to be kept as it is** — it shares the words'
+  column, and an adversarial review before merging found what the first renders' counts
+  could not show. On the SE the old row drew any two-digit count as "…"; on the 159 to
+  166.5pt phones (eighteen iPhones, the owner's among them) it broke a wide pair over two
+  lines, 20 as "2" over "0" (rendered on the 15 Pro and the 17 Pro). The new column holds
+  every two-digit count on one line on every phone but the SE, and 111 from the 162.67pt
+  phones up. **Left for its own task:** the SE's wider pairs (20 is 54.7pt in 49.95) and
+  100 (77.7), which no small widget holds — "10" over "0" on the old 17 Pro, "1…" on the
+  new, because the words' second line took the height it had wrapped into. *(Done the
+  same day — the bullet "The small widget's count shrinks on one line…".)* The same
+  review confirmed six more record errors and no code defect, all fixed in the ADR and
+  here. **How the renders ran without a tap:** place widgets
+  by writing `Library/SpringBoard/IconState.plist` with the device shut down — an entry
+  `{elementType: widget, gridSize: small|medium, iconType: custom, bundleIdentifier:
+  com.shawnsemmes.DrinkTracker.Widget, containerBundleIdentifier:
+  com.shawnsemmes.DrinkTracker, widgetIdentifier: QuickLogWidget, uniqueIdentifier,
+  displayIdentifier}` at the head of `iconLists[0]` (the kept 17 Pro's own layout was the
+  specimen, read only); move the app's and Settings' icons into `buttonBar`, because
+  closing an app zooms back to its icon's page; seed `ZDRINKENTRY` with `sqlite3`; and
+  redraw with the app's own leave-foreground reload (ADR-0047) — `simctl launch` the app,
+  launch Settings over it, terminate both. **Two traps:** seeding drinks seconds before
+  now across midnight counts some as yesterday (a "12" drew as 4); and **a Mac restart
+  empties `/tmp`, the session scratchpad with it** — this session lost its builds,
+  scripts and frames mid-render and redid the renders, so record numbers in the
+  transcript or the records as they arrive. **Tier 4 for the owner:** remove the widget
+  and add it again on a phone (a widget change needs that), then read the small widget at
+  1, 2 and 20 drinks; an iPad, StandBy, Bold Text and VoiceOver were not rendered. The
+  marketing site's widget picture still shows the old build. **Passed on the owner's
+  phone the same day, after PR #140 merged,** in their words: "Working as expected on the
+  widget." (The report does not say which counts or which appearance were read.)
+- **Trends names the days its total covers, and Month's last date stays on the card
+  (2026-09-26; a copy review entry and two design-system rows, no ADR).** The
+  2026-09-26 screenshot audit (the untracked `Claude outputs/1.4-screenshots/
+  app-store-upload/README.md`, "App issues") found three things on Trends, and this
+  change is two of them. **(1) The total's label.** The stat card under the chart read
+  "this week" / "this month", but Week and Month are the trailing 7 and 30 days
+  (`TrendRange.startDate`): the audit's Month frame had "18 this month" under "Last 30
+  days" while the calendar's September, the 1st to the 23rd, held 13. `sumLabel` now
+  reads "last 7 days" / "last 30 days", the chart title's words lowercased, like
+  Quarter's and Year's. App catalog two out, two in, still 378, synced from a fresh
+  generic full build's x86_64 `.stringsdata` into a scratch copy and diffed.
+  **(2) Month's last x-axis date.** It crowded the card's edge every day, not only on
+  the audit's date: `.stride(by: .day, count: 7)` counts forward from the range's
+  first day, so its fifth label is always yesterday's, two bars from the end. In the
+  renders Swift Charts drew a label whose middle fell inside the plot and left out one
+  whose middle fell past it (every label drawn or missing in these renders, at Month
+  and Quarter and at two text sizes, fits that rule). So on a 440pt screen "Sep 25" ran half its width past the plot, to 420.7pt
+  against the card's border at 420, and on the 375pt SE it was left out, leaving the
+  last eight days unlabelled. `monthAxisDates` is now four dates a week apart counted
+  back from today (today − 27 to − 6), and the last label ends at 363.0pt on the 440pt
+  screen and 313.0 on the SE. Quarter and Year keep their strides: a month's name is
+  14 to 19pt wide, so the most one can run past the plot is about 10pt, inside the
+  card's 16pt padding; the worst case rendered, Quarter on 1 Nov 2026 (a Sunday),
+  ended "Nov" at 400.0pt inside the 403.6 plot. **(3) Found with it:** at
+  accessibility-extra-large Month's dates had already grown into one run ("Aug 28Sep
+  4Sep 11Sep 18" before, the same with the new dates). Every x-axis label now takes
+  `collisionResolution: .greedy`, which keeps every other Month date there. At the
+  default size frames match the build without it to within 2 of 255 on all four
+  ranges, and at accessibility-extra-large Week, Quarter and Year keep all their
+  labels. **Not in this change:** the audit's third issue, the y-axis labels' ink on
+  dark (about 1.4:1 on iOS 27). A worktree on `claude/trends-axis-ink` was created the
+  same afternoon for it, and the x-axis labels take the same default ink, so that fix
+  should cover both axes. **Verified:** tier 3 on two throwaway iOS 27 simulators, an
+  iPhone 18 Pro Max (440pt) and an iPhone SE 3rd generation (375pt), both deleted
+  afterwards. Each held a copy of the Phase 4 scratch store, and the before and after
+  builds came from scratch copies instrumented to open on Trends at a given range and
+  date. Frames covered Month in light and dark, Week, Quarter and Year, Month and
+  Quarter on faked dates (1 Aug, 6 Jun, 1 and 3 Oct, 1 Nov 2026), xxxLarge and
+  accessibility-extra-large. Pixel diffs between the builds are confined to the stat
+  label, Month's axis row and the home indicator. Also run: the integration suite (120
+  tests) in CI's form on the SE, and the generic simulator build with no new warning
+  (TrendsView's four are the existing `Text +` lines). **No test tier reaches the
+  view** (app target, no `TEST_HOST`). Domain tests were not re-run, since no package
+  code changed. **Not verified:** the axis at accessibility sizes on the SE or at AX5,
+  because the chart sits behind the tab bar there and a zero-tap render cannot scroll;
+  VoiceOver, which is unchanged (the chart is one adjustable element); hardware.
+  **For 1.4:** it is merged on main, so an archive from main carries it; whether 1.4 is
+  archived from a commit that includes it is the owner's call. No recommended
+  screenshot changes: the audit's upload set leaves out the Month frame, and the
+  Quarter frame's label and axis are unchanged. No schema, CloudKit, setting,
+  privacy-policy or project-file change. **Tooling:** (a) for zero-tap renders, a
+  scratch copy of the tree (`git archive` or `rsync`, never the worktree) can read
+  `-scratchTab trends -scratchRange month -scratchToday <ISO 8601>` launch arguments
+  in its `@State` initialisers and in place of `Date()`; (b) `simctl get_app_container
+  <udid> <bundle> groups` prints the group id, a tab and the path, and passing the
+  group id as the container argument fails; (c) a render that starts while a build is
+  running can capture a blank frame, so wait longer before retaking it rather than
+  debugging it.
+- **The small widget's count shrinks on one line (2026-09-26; ADR-0057 amended).** The
+  count ADR-0057 left: it shares the words' column at a fixed 44pt, so on an SE every
+  count from 20 drew as a bare "…" (rendered: 20, 80, 100, 199 and 999), and 100 was cut
+  short on every small widget. **The owner's two answers:** it shrinks on one line to a
+  **0.6** floor, the rule of every other count numeral in the app (Today's hero, the watch
+  counter, the complication); running it into the ＋'s 12pt gap and leaving it were
+  declined. And the digits stay **proportional**, although the other three counts are
+  tabular. **What shipped:** `countLineLimit` and `countMinimumScale` in
+  `QuickLogWidgetRow`, plus `countScale(forWidth:inColumn:)` as the rule. Seven tier-1
+  tests read the ten digits' measured advances, whose sum bounds a count's width because
+  pairs kern only tighter. In the widget a **`ViewThatFits`** draws a count that fits
+  with the old `Text`, untouched. A count that does not fit becomes an **overlay on a
+  hidden "0" as wide as the column, baseline to baseline**, so it keeps the full-size
+  line and the words don't move. No copy, catalog (35 keys, synced and byte-identical),
+  schema, CloudKit or project-file change. **Three things only rendering found.** (a) The
+  first build held the line with a baseline-aligned `ZStack`, and the renders showed it
+  shrinking counts that fit ("16" on the medium widget). A zero-width `HStack`
+  placeholder did the same. The overlay proposes the count the column's exact width. (b)
+  The overlay alone moved every fitting count up one pixel on the 3x Pro Max, which the
+  harness could not reproduce. That is why `ViewThatFits` keeps it off counts that fit.
+  (c) SwiftUI does not scale continuously. It sets a shrunk count on a quarter-point grid,
+  with about 0.1pt to spare, and never under 26.5pt. So in the SE's column 80 draws at
+  38.75, 100 at 28.0 and 199 at 28.25, and **200 is cut short** (it needs 26.43). The SE
+  holds every count to 199, not the 299 the arithmetic alone gave, and the tests claim a
+  count whole only 0.02 above the floor. **Found with a macOS SwiftUI harness:**
+  `ImageRenderer` over a copy of the row, sized like the SE's widget, with each shrunk
+  count's size found by matching its pixels against fixed sizes. That takes seconds
+  against a minute per state on a simulator, and it reproduced the `ZStack` defect
+  exactly. **Verified:** 385 domain tests under both SwiftPM build systems, no slow
+  expressions in the new tests; the simulator build with no warning in the widget; and
+  before against after on throwaway SE and 17 Pro Max simulators (iOS 26.5), deleted
+  afterwards. Light mode at thirteen counts from 1 to 999, dark at 2, 20 and 100, 32
+  pairs:
+  - every count that fits is pixel-identical (1 to 19 and 21 on the SE, to 111 on the
+    Pro Max);
+  - the SE's "…" and the Pro Max's "1…" became whole shrunk counts, on one baseline;
+  - 200, 299 and 999 on the SE are cut short, as predicted;
+  - every changed pixel is left of the ＋;
+  - the medium widget is identical in all 32.
+
+  The integration tests and the watch build were not re-run locally, because nothing they
+  compile changed; CI runs both.
+  **Cost, recorded:** on the SE the count's size changes between neighbours (19 and 21 at
+  44pt, 20 at 40, 22 at 41.5), because each pair of proportional digits is its own width.
+  Tabular digits are the reopen. **Tier 4 for the owner:** remove the widget and add it
+  again. On their iPhone 15 Pro (the 162.67pt row) every count below 100 draws as
+  ADR-0057's build drew it, so the change shows only at 100 or more; on an SE it shows
+  from 20.
+- **The chart's axis labels follow a live appearance change (2026-09-26; ADR-0028's third
+  amendment).** A screenshot audit of the 1.4 candidates (`Claude
+  outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-dark.png` and
+  `iphone-03b-trends-quarter-dark.png`, untracked in the main checkout) measured the
+  Trends chart's y-axis labels at 1.36:1 on black, and it was reported as PR #121's class
+  of defect, iOS 27 vibrancy on glass. **It is not, and the flat ink alone does not fix
+  it.** The ink was #242428, which is light mode's secondary label (#3C3C43 at 60%) over
+  black. On a scratch iPhone 18 Pro Max (iOS 27) over a seeded log, `main` draws both axes
+  correctly at launch, which is why no earlier render caught it. After every *live*
+  appearance switch the y axis draws the previous appearance's secondary label: #F3F3F9 on
+  white (1.11:1) after a switch to light, #242428 on black (1.36:1) after a switch to
+  dark. The x axis and the card title re-resolve each time. iOS 26.5 does not lag with the
+  same build, and a live Dynamic Type change reaches the labels, so only the colour is
+  stale. `AxisValueLabel().foregroundStyle(.secondaryInk)` was built first and rendered
+  identically to `main`. **What shipped:** `Color.chartAxisInk(_:contrast:)` in
+  `GlassTokens.swift`, the system's `secondaryLabel` resolved for the view's own
+  `colorScheme` and `colorSchemeContrast`. That is no literal, so invariant 10 and
+  design-system §2 hold as written. All five `AxisValueLabel`s in `TrendsView` take it
+  (the x axis for consistency; it never lagged), and `TrendsView` reads
+  `colorSchemeContrast`. `InkTests` gains a scanner that requires every `AxisValueLabel`
+  in the app target to be followed by `.foregroundStyle(axisInk)`. It matches nested
+  parentheses and trailing closures, and a self-check shows it catching a bare label, a
+  `.secondaryInk` one and a hierarchical one. Against `main`'s sources it named all five
+  labels and the missing token. design-system §2 carries the rule. **Measured after, iOS
+  27:** at launch, after three live switches, and after a switch made while Trends was a
+  hidden tab, 3.44:1 in light and 6.36:1 in dark at Month and Quarter, identical to the x
+  axis and card title; Increase Contrast turned on live, 5.97:1 and 8.57:1. On iOS 26.5
+  the numbers do not change (6.37:1 and 3.44:1). No string, key, schema, CloudKit, setting
+  or project-file change. **Gates, locally (Xcode 27.0):** the CI-form generic build, with
+  only the four existing `Text +` deprecation warnings in `TrendsView.swift`; 122
+  integration tests (two new) on the scratch simulator, with
+  `-warn-long-expression-type-checking=25` and no warning. Domain tests were not re-run,
+  since the package did not change. **For 1.4:** the owner decided on 2026-09-26 that it
+  ships in 1.4, so it merged before the archive and joins the 1.4 spec's "Also on this
+  train". What's New already covers it ("On iOS 27, text on cards is easier to read"), and
+  so do the reviewer notes ("iOS 27 readability and control fixes"), so neither changed.
+  **The two dark Trends candidates were retaken the same day**, from a Release build of
+  the tree `main` has after #142 merged (57440d1, which carries PR #144's two Trends
+  changes), on a throwaway iPhone 18 Pro Max (iOS 27) by taps, and are in place in both
+  `Claude outputs/1.4-screenshots/iphone-6.9/` and `app-store-upload/` (the upload copies
+  are 8-bit RGB with an sRGB chunk and no alpha, checked pixel-identical with Pillow and
+  ImageIO). The originals and their upload copies are in
+  `iphone-6.9/superseded-2026-09-26/`. The seeder was lost with `/tmp`, so the log was
+  rebuilt from the frames, and light frames from it matched the light originals pixel for
+  pixel except: Month's dates run Aug 30 to Sep 20 (the log moved three days to keep the
+  same 30-day window, and #144 counts the dates back from today) and its total reads "last
+  30 days"; Quarter reads 53 of 91 days with no drinks where the original has 50 of 88,
+  because the window now ends on a Saturday. Both READMEs there record the retake and mark
+  the audit's three Trends issues fixed. A hook blocks the Edit tool on main-checkout
+  files from a worktree session, so they were written by a script at the owner's request.
+  1.3 on iOS 27 most likely shows the lag until 1.4 replaces it (inferred from the source,
+  not seen on a store build). **Found, not fixed:** the Trends card's "Tip: drag across
+  the bars…" line in `.tertiaryInk` measures 1.72:1 on white and 2.23:1 on black. That is
+  the tertiary label's own value, not a lag, so no ink token lifts it. *(It moved to
+  secondary ink the same day, with the calendar's tip: the bullet "The two tips take
+  secondary ink…".)* **Not verified:**
+  hardware; Week and Year after a live switch (one code path); the app's own Appearance
+  setting as the trigger. **How it was measured, for next time:** `simctl ui <udid>
+  appearance light|dark` and `increase_contrast enabled` switch live without a tap. A
+  no-tap route to a screen is a scratch copy of the tree (`rsync`, never the worktree)
+  whose `@State` initial values read `SIMCTL_CHILD_*` launch environment variables. That
+  is how iOS 26.5 was checked when the simulator tool's access request for the new device
+  went unanswered. For contrast, the ground is the region's most common pixel and the ink
+  is the pixel farthest from it in luminance; the hex of a stale colour can say which
+  appearance it came from. **Retake traps:** a 12 oz beer at 5% computes to
+  1.0000000000000002 standard drinks, so a two-beer day draws the chart's y axis to 3
+  where exactly 2.0 draws it to 2.0 (wine and the untyped drink are exact; cosmetic, not
+  fixed); and a native segmented control draws its selected label semibold only after a
+  real tap, so a launch hook that sets the range cannot reproduce a tapped frame.
+- **The two tips take secondary ink (2026-09-26; design-system §2).** A screenshot audit
+  of the 1.4 candidates (`Claude outputs/1.4-screenshots/iphone-6.9/iphone-03-trends-month-*.png`,
+  untracked in the main checkout) found Trends' "Tip: drag across the bars to see what
+  each one holds" at 1.72:1 on the card's white and 2.23:1 on its black. **Reproduced on a
+  scratch iPhone 18 Pro Max (iOS 27) over a seeded log:** #C5C5C7 on #FFFFFF and #464649
+  on #000000, which is `.tertiaryInk`'s own value, so no flat token lifts it (Increase
+  Contrast takes it to 4.45:1 and 5.42:1). **Every `.tertiaryInk` site in the app target
+  measured the same**, and there are five. **Decided, and the owner's to overrule:** the
+  two tips take `.secondaryInk`, Trends' and the calendar's (then "Tip: press and hold,
+  then drag across days to fill a stretch at once"), because each is the only visible
+  explanation of a gesture with no visible affordance. **The owner then reworded the
+  calendar's tip, from the screenshot:** "Tip: Press and drag across the calendar to
+  fill several days at once.", the website's home-page sentence word for word, and
+  "fill a stretch" goes everywhere else too: the App Store description (the base text
+  and 1.4's version A) now says "fill several days at once" (copy review, 2026-09-26).
+  "Stretch" is now in none of the app's strings, the description, the support page or
+  the live site. The press still has to rest a quarter of a second before the drag or
+  the calendar scrolls, which the old "hold" said; the support page's answer still
+  says "Touch and hold a day". The capital P and the full stop are the owner's; Trends'
+  tip has neither. One app key out and one in (378); the new key has no translator
+  comment, since sync added it. Removing the Trends line would
+  hide the scrub from anyone who has not found it, and the line was reworded in
+  ADR-0028's amendments and kept. Leaving it as incidental text is not open either: WCAG
+  exempts decoration, inactive controls and logotypes, not instructions. The calendar's
+  tip is included because it is the same kind of line with the same numbers, and Trends'
+  comment names it as its precedent; putting it back is one token. **Kept in tertiary,
+  with reasons:** Today's and the day sheet's row chevron, which is the colour the
+  system gives its own chevrons (the Settings app measured the same #C5C5C7 on white,
+  and #5A5A5E on its #1C1C1E cells, 2.48:1), though on the day sheet it is the only
+  visible cue that a described drink opens; the Health offer's "– –" placeholder, hidden
+  from VoiceOver; and onboarding's decorative "(that's five)", also hidden.
+  `TertiaryInkTests` (tier 2, a file of its own beside `InkTests`, which #142 rewrote
+  while this was in review) names those three and fails on any other use. Its negative
+  control, a scratch copy with Trends' tip back in tertiary, failed naming
+  `TrendsView.swift`.
+  `tertiaryInk`'s doc comment says the same. **Measured after:** both tips 3.44:1 on
+  white and 6.36:1 on black, the caption beside each; 5.97:1 and 8.48:1 with Increase
+  Contrast; unchanged after three live appearance switches. Before and after screenshots
+  of both screens on the same log differ only inside the two lines, in both appearances.
+  Secondary's 3.44:1 in light is still under 4.5:1 for 11pt text, but it is the ink of
+  the app's other small captions, so that floor is an app-wide question. The bar-selection
+  design bundle drew the tip `.tertiary`, a departure recorded in §2. No ADR, following
+  the precedent of the drink sheet's detent folds: a code comment, design-system and
+  this bullet. The ink change touched no string; the rewording is the one key above. No
+  schema, CloudKit, setting or project-file change, and invariant 10 holds, since the
+  ink is the system's semantic colour. **Gates, locally
+  (Xcode 27.0):** the CI-form generic build, with only the four existing `Text +`
+  deprecation warnings in `TrendsView.swift`; 121 integration tests on the scratch
+  simulator with `-warn-long-expression-type-checking=25` (the two slow expressions it
+  reports are in `FailedReadTests` and `FailedWriteTests`, and are older), and 123 after
+  main (#142, #144, #145) was merged in. Domain tests were not run, since the package did
+  not change here. **Which release:** 1.3 is live (the lookup API, 2026-09-26) and 1.4 has
+  not been submitted; #142 merged the same afternoon "before the archive", at the owner's
+  call. Xcode Cloud's "Default" workflow archives every commit on main (its "Archive -
+  iOS" check ran on 3714668, 146d92d and cd0ead7), so this merge becomes a 1.4 build, and
+  1.4 ships the change only if the build the owner submits comes from it or later. One
+  from an earlier commit ships without it, and then it reaches 1.5. **The screenshot
+  candidates show both tips as they were.** The calendar pair (`iphone-02-calendar-*`)
+  has the old words in the old ink, so if 1.4 carries this they no longer match the app
+  and are the pair worth retaking. The Trends ones (`iphone-03*`, the two dark ones
+  retaken from 57440d1 for #142 before this merged) have the old ink only, faint enough
+  that a retake is optional. **Open, the owner's:** the watch's hint (design-system §9,
+  open item 1), the same kind of line, which the watch's `.secondary` would put at
+  6.36:1; the medium widget's
+  "≈ N standard drinks" caption in `.tertiary`, not measured; and whether the day
+  sheet's chevron should clear 3:1. *(The first two were measured and decided the same
+  evening: the bullet "The watch's hint and the widget's ≈ line take secondary ink…".)*
+  **Not verified:** hardware; VoiceOver (no label
+  changed); accessibility sizes (ink only). **Tooling:** the bottom of Trends, where the
+  Health offer lives, is reachable with no tap through a scratch copy whose ScrollView
+  takes `.defaultScrollAnchor(.bottom)` from a `SIMCTL_CHILD_` variable; `simctl ui <udid>
+  increase_contrast enabled` works live; and the Settings app's own chevrons are the
+  system's reference colour. The scratch simulator was deleted afterwards.
+- **The website's first screen says there is more (2026-09-26; `semmes/Tallyist#6`, merged
+  the same day as 9629148 on the owner's review).** The owner saw visitors stop at tallyist.co's first screen.
+  Measured on the live site, in the browser pane and then with headless Chrome: the home
+  page's hero is about 950px tall at every width above 1,200px whatever the window's
+  height (a 654px phone, 88px above it, 136px below), so on the common laptop and desktop
+  windows the first screen ended inside the hero's own bottom padding with the next
+  section's edge just out of view (1512×850: the whole phone, then 32px of empty ground;
+  1920×950: the whole hero, the edge 4px below the fold; 1366×650: the App Store badge
+  itself 14px below it); the tint between sections is 1.12:1 in light and 1.23:1 in dark,
+  a surface, not an edge; and on a phone (390×664) the first screen ended on the three
+  platform lines, which read like a footer, with Safari's Smart App Banner pushing the
+  phone's edge off it. The design handoff never addressed the fold, and its header is
+  "not sticky" by its own spec. **Six changes, on the owner's go-ahead, all in
+  `css/site.css` but for the hero's markup and its `sizes`:** the hero ends near its
+  content (bottom padding 32 to 56px, the section after it 40 to 64px, the hero phone
+  never under 560px and full size only from about 1,000px of window height; under 800px
+  of height the hero's top is 40px, the headline 72px on a 16px margin, the lead's margin
+  24px, and the row top-aligned so the text keeps its place while the phone runs past the
+  fold); "See how it works", a link under the badge to the next section's heading, with an
+  arrow drawn like the feature icons and smooth in-page scrolling that is plain under
+  reduced motion (the copy review has its row); on a phone the hero phone is 70vw wide and
+  the hero's platform list is gone, the closing section keeping its own; card sections
+  carry a hairline at both edges in the footer's separator colour; `--section-y` is
+  `clamp(56px, 7vw, 96px)`, was `clamp(72px, 10vw, 136px)`, the compact and statement
+  sections scaled with it; and the short-window rule keeps the badge on the first screen
+  at 1366×650. **Where the first screen ends now:** 1366×650 on the badge and the link
+  with the phone 26px past the fold; 1440×770 on the link, then the next section's edge
+  with 38px of it showing; 1512×850 the link, then the edge with 23px; 1920×950 the edge
+  and 27px of the next heading; 820×1080 the heading and the start of its paragraph;
+  390×664 the badge, the link and 107px of the phone. The page is about 11% shorter at
+  desktop widths; the Apple Watch and Press pages take the section rules too.
+  **Deviations from the design, accepted by the owner with the merge:** the 72px headline on
+  short windows, the 560px hero phone on laptops, the removed platform list, the
+  hairlines, the new link. **Verified:** a stand-in render of the built page (the live
+  page's HTML with the branch's edits and stylesheet, root-relative URLs made relative
+  for `file://`) whose numbers matched the live site exactly before the change, captured
+  with headless Chrome at the six viewports, light and dark; **the CI build of the branch
+  matches the stand-in byte for byte** (home page, watch page, stylesheet); the site's
+  contrast check, 9 pairs passing, no colour changed; CI green on the PR. **Not
+  verified:** real Safari with the Smart App Banner (about 80px, computed from the
+  measured positions, not rendered); a 375pt phone; the pages under Windows' fonts, since
+  the captures used macOS Chrome with the system font. The before-and-after composites,
+  the measurement JSON and the four scripts are in the untracked
+  `Claude outputs/site-fold/`, and the composites went to the owner in the session.
+  **Tooling worth keeping:** exact-viewport captures with files on disk are headless
+  Chrome over the DevTools pipe (`--remote-debugging-pipe`, fds 3 and 4,
+  `Emulation.setDeviceMetricsOverride`), which needs no local port, since the sandbox
+  blocks binding one; Chrome itself must run with the sandbox off (it exits 21, "Failed
+  to create socket directory", on its singleton socket in the real Darwin temp dir,
+  whatever `TMPDIR` says); a wait on `document.images` must skip lazy images below the
+  fold, or it never resolves; and a rule inserted inside a `@media` block *before* the
+  base rule it overrides loses on equal specificity, silently, which cost one render
+  here. **Merged and live the same day:** the owner compared the CI build, served locally
+  by `Claude outputs/site-fold/serve.py` (the `site-preview` entry in `.claude/launch.json`,
+  untracked), with the live site and said to merge; Pages carried the merge within a
+  minute, and the live page measures identically to the stand-in at all six viewports.
+  What is left is the test that matters, a five-second one with a few people ("what does
+  this page offer?"), which no measurement replaces.
+- **The watch's hint and the widget's ≈ line take secondary ink (2026-09-26; design-system
+  §2 and §9).** The two lines the bullet "The two tips take secondary ink…" left open,
+  measured and then decided by the owner. **Measured first, on main's Release build** on
+  four scratch simulators created for this and deleted afterwards (an iPhone 18 Pro on iOS
+  27, an iPhone 17 Pro on iOS 26.5, a Series 12 46mm on watchOS 27 and a Series 11 46mm on
+  watchOS 26.5), each store seeded by `sqlite3` with two 5 oz wines at 12%, exactly two US
+  standard drinks, and the medium widget placed through `IconState.plist`. The rule: the
+  ground is the line's modal pixel and the ink the pixel farthest from it in luminance;
+  over glass (the Clear and Tinted Home Screen styles) the wallpaper is a gradient, so the
+  same rule ran in 22px windows along the line. **The hint** "Hold ＋ to say what it was"
+  measured #464649 on black, **2.23:1**, on both runtimes (a 338-pixel plateau), with the
+  secondary lines above it at #8D8D93, 6.36:1. **The widget's "≈ 2 standard drinks"**, never
+  measured before, is **1.70:1** on iOS 27 in light (#BABABD on #F0F0F1) and **2.44:1** in
+  dark (#65656A on #2B2B2E; the Dark style draws the same pixels), 1.68:1 and 2.48:1 on
+  iOS 26.5, whose dark ground is #1C1C1F. In the Clear style the medians were 1.48:1 light and
+  2.70:1 dark, in Tinted 1.72:1 and 1.78:1, and with Increase Contrast 4.01:1 and 4.32:1.
+  In full colour the widget draws both hierarchical styles as the flat label colours over
+  its own ground, with no vibrancy; in Clear and Tinted the system sets each level's ink
+  itself, and those figures depend on the wallpaper (the simulator's default here).
+  **Decided:** the owner looked at a before/after sheet from a scratch build (an `rsync` copy,
+  never committed) and chose secondary for both, which was the recommendation: the hint
+  is the only mention of the hold on ＋, the tips' reason, and the ≈ line is the figure
+  Today and the watch already print in secondary. **What shipped:** the two
+  `.foregroundStyle(.tertiary)` became `.secondary` (`CounterView.swift`'s `hint`,
+  `QuickLogWidget.swift`'s ≈ line), each with a comment; `TertiaryInkTests` gains a
+  second test that reads `DrinkTrackerWatch/`, `DrinkTrackerWatchWidget/` and
+  `DrinkTrackerWidget/`, the folders `InkTests` never reads, and fails on the tertiary half
+  of `InkTests`' text-style patterns there, allowing only the watch's DEBUG line, which a
+  Release build does not compile. Its negative control, a scratch copy with both lines put
+  back, failed naming both files. No string, key, catalog, schema, CloudKit, setting or
+  project-file change, and invariant 10 holds, since both inks are the system's semantic
+  colours. **Measured after, from this branch's Release build:** the hint #8D8D93,
+  **6.36:1**, on the scratch watch paired with the scratch iPhone (`simctl pair`, "active,
+  connected"); the ≈ line **3.27:1** light and **5.37:1** dark, 5.17:1 and 5.94:1 with
+  Increase Contrast, 3.24:1 and 6.01:1 on iOS 26.5, and Clear 2.00:1 / 6.82:1 and Tinted
+  2.71:1 / 3.42:1 (medians, from the scratch build, whose frames are pixel-identical to
+  the branch's in the modes both rendered). In every before/after pair only the changed
+  line moved; elsewhere no pixel differs by more than one unit in one channel.
+  **Costs:** the widget's "drinks today" and ≈ line are now the same size and ink
+  (caption2 secondary), where Today and the watch keep them one text size apart; 3.27:1
+  in light is under 4.5:1, the app-wide secondary floor §2 already names; and the watch
+  design README drew the hint `.tertiary` (§9, open item 5). **Gates, locally (Xcode
+  27.0):** the CI-form iOS generic build (only the existing `Text +` and `SettingsView`
+  warnings, none in the changed files); the watch generic build, no warnings; 124
+  integration tests on the scratch iOS 27 phone with
+  `-warn-long-expression-type-checking=25`, whose only reports are the older ones in
+  `FailedReadTests` and `FailedWriteTests`; the verifier with `--ci`, 0 failing and 0
+  pending; the policy-date check; the glyph generator clean. The domain tests were not
+  run, since the package did not change. **Which release:** 1.3 is live (the lookup API,
+  2026-09-26) and 1.4 has not been submitted. Xcode Cloud archives every commit on main,
+  so 1.4 carries this only if the build the owner submits comes from this merge or later;
+  a build from an earlier commit ships without it, and then it reaches 1.5. The watch app
+  and the widget ship in the one iOS archive, so they travel together. *(Merged as
+  15a4f9f, #150, with all ten checks green; the owner then said it goes out with 1.4, so
+  the 1.4 build comes from that commit or later, which carries #147's tips too. The 1.4
+  spec's "Also on this train" says so.)* **The watch counter screenshot candidate shows
+  the old ink:** `watch-46mm/watch-01-counter.png` and its upload copy measure the hint
+  at 2.23:1, so, with 1.4 carrying this, it is the frame to retake; the session
+  candidate shows the dot row in the hint's place, and no iPhone candidate shows the
+  widget. *(Retaken the same evening at the owner's request, from a Release build of
+  main at 9891976 on a throwaway Series 12 46mm on watchOS 27, with no taps. Diffed
+  against the original, only the hint (now 6.36:1) and the clock differ: 5:37 where the
+  original reads 11:24, since the watchOS simulator refuses `simctl status_bar`
+  overrides. The upload copy is RGB with an sRGB chunk only, and it matches the capture
+  pixel for pixel under Pillow and ImageIO. The originals are in
+  `watch-46mm/superseded-2026-09-26/`, and both screenshot READMEs record the retake,
+  written by script at the owner's choice since a hook blocks editing the main
+  checkout.)* **Not verified:** hardware; Always-On (the simulator offers
+  none); the hint with Increase Contrast, which the watchOS simulator refuses ("Runtime does
+  not support increased contrast"); VoiceOver (no label changed); other wallpapers under
+  Clear and Tinted; StandBy; iPad. **Tooling:** the Home Screen's style is a file, settable
+  with the device shut down —
+  `data/Library/Application Support/PRBPosterExtensionDataStore/*/Extensions/*/configurations/*/versions/*/supplements/*/com.apple.posterkit.provider.supplementURL.homescreenConfiguration.plist`,
+  a keyed archive whose `PRPosterHomeScreenCustomizationConfiguration` holds
+  `_iconUserInterfaceStyleType` (`color` is Default; `dark`, `clear`, `accent` is Tinted)
+  and `_iconUserInterfaceStyleVariant` (`light` or `dark`). Append two fresh strings to
+  `$objects` and point those UIDs at them, since the variant's string is shared with a
+  per-type map; boot and the style is live, Tinted taking its colour from `_iconTintSource`
+  (`wallpaperSuggestion` gave teal on the default wallpaper). And a render straight after
+  a boot can fail `simctl launch` with exit 3; running it again works.

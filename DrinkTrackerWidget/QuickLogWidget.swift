@@ -157,8 +157,66 @@ struct QuickLogWidgetView: View {
 
   private var numeralSize: CGFloat { family == .systemSmall ? 44 : 40 }
 
+  private var plusSide: CGFloat {
+    QuickLogWidgetRow.plusSide(isSmall: family == .systemSmall)
+  }
+
+  /// The words under the count. On a small widget they may take a second line
+  /// and wrap before they shrink (ADR-0057): iOS 26 gives the small family
+  /// 114 to 138pt of content, and "drinks today" on one line needed more than
+  /// the row left it on every iPhone — "drinks tod…" on a 17 Pro. The medium
+  /// family never needs the second line.
+  private func unitWords(_ words: LocalizedStringKey) -> some View {
+    Text(words)
+      .font(.caption2)
+      .foregroundStyle(.secondary)
+      .lineLimit(QuickLogWidgetRow.wordsLineLimit)
+      .minimumScaleFactor(QuickLogWidgetRow.minimumScale)
+  }
+
+  private var numeralFont: Font {
+    .system(size: numeralSize, weight: .semibold, design: .rounded)
+  }
+
+  /// The day's count, on one line. Where it is wider than its column — from
+  /// 20 on an iPhone SE, from 100 on every small widget — it shrinks, to 0.6
+  /// at the least, the floor Today's hero, the watch counter and the
+  /// complication use (ADR-0057's amendment). It used to break over two lines
+  /// where the widget had the height and be cut short where it did not: "…"
+  /// for every count from 20 on an SE, "1…" for 100 on the other phones.
+  ///
+  /// A count that fits is drawn exactly as it always was. One that does not
+  /// keeps its full-size line: it is drawn over a hidden "0" as wide as the
+  /// column, on its baseline, so it sits on the line the full-size count sat
+  /// on and the words under it do not move. An overlay, because it proposes
+  /// the count exactly the column's width; a baseline-aligned `ZStack` or
+  /// `HStack` holding the same "0" shrank counts that fit, "16" among them,
+  /// and the overlay alone moved a fitting count up a pixel on a 3x phone —
+  /// both found only by rendering.
+  private var countFigure: some View {
+    ViewThatFits(in: .horizontal) {
+      countText
+      Text(verbatim: "0")
+        .font(numeralFont)
+        .hidden()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: Alignment(horizontal: .leading, vertical: .lastTextBaseline)) {
+          countText
+            .lineLimit(QuickLogWidgetRow.countLineLimit)
+            .minimumScaleFactor(QuickLogWidgetRow.countMinimumScale)
+        }
+    }
+  }
+
+  private var countText: some View {
+    Text("\(entry.drinkCount)")
+      .font(numeralFont)
+      .foregroundStyle(.primary)
+      .contentTransition(.numericText(value: Double(entry.drinkCount)))
+  }
+
   var body: some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: QuickLogWidgetRow.gap) {
       VStack(alignment: .leading, spacing: 2) {
         if entry.isUnavailable {
           // No figure at all rather than a zero: a zero here is a claim that
@@ -168,25 +226,19 @@ struct QuickLogWidgetView: View {
             .font(.system(size: numeralSize * 0.75, weight: .semibold))
             .foregroundStyle(.primary)
             .frame(height: numeralSize, alignment: .center)
-          Text("drinks today")
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
+          unitWords("drinks today")
         } else {
-          Text("\(entry.drinkCount)")
-            .font(.system(size: numeralSize, weight: .semibold, design: .rounded))
-            .foregroundStyle(.primary)
-            .contentTransition(.numericText(value: Double(entry.drinkCount)))
-          Text(countLabel)
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
+          countFigure
+          unitWords(countLabel)
           if entry.total > 0 && family != .systemSmall {
+            // Secondary, the ink Today and the watch give this line. Tertiary
+            // measured 1.70:1 on the widget's light ground and 2.44:1 on its
+            // dark one (iOS 27), and 1.48:1 to 2.70:1 in the Clear and Tinted
+            // styles; secondary is 3.27:1 and 5.37:1 (the owner's call,
+            // 2026-09-26; design-system §2).
             Text(verbatim: standardDrinksCaption)
               .font(.caption2)
-              .foregroundStyle(.tertiary)
+              .foregroundStyle(.secondary)
               .lineLimit(1)
               .minimumScaleFactor(0.8)
           }
@@ -194,8 +246,11 @@ struct QuickLogWidgetView: View {
       }
       .accessibilityElement(children: .combine)
       .accessibilityLabel(entry.isUnavailable ? "drinks today" : accessibilityCountLabel)
-
-      Spacer(minLength: 0)
+      // The column takes everything the ＋ leaves, and the ＋ still sits at
+      // the trailing edge. A Spacer between them used to do the pushing, and
+      // a Spacer keeps a gap on each side of itself — 12pt the words could
+      // never use (`QuickLogWidgetRow`, tier-1 tested against every iPhone).
+      .frame(maxWidth: .infinity, alignment: .leading)
 
       // Not offered while the store cannot be read: a ＋ beside no figure
       // logs blind, and a tap whose effect cannot be seen invites the second
@@ -213,10 +268,7 @@ struct QuickLogWidgetView: View {
     Button(intent: LogOneDrinkIntent()) {
       Image(systemName: "plus")
         .font(.system(size: family == .systemSmall ? 22 : 24, weight: .semibold))
-        .frame(
-          width: family == .systemSmall ? 52 : 60,
-          height: family == .systemSmall ? 52 : 60
-        )
+        .frame(width: plusSide, height: plusSide)
         .background(.quaternary, in: .circle)
         .contentShape(.circle)
     }

@@ -2347,3 +2347,89 @@ a stretch of days at once" (`docs/app-store-listing.md`).
 
 A plain description: no celebration, no judgment, no exclamation mark and no em
 dash. Pass.
+
+## 2026-09-26 — Trends names the days its total covers
+
+The total's card under the Trends chart (`TrendsView.sumLabel`) now names the
+window it counts in the chart title's own words, lowercased to read under the
+figure:
+
+| Range | Was | Now |
+|---|---|---|
+| Week | "this week" | "last 7 days" |
+| Month | "this month" | "last 30 days" |
+| Quarter | "last 13 weeks" | unchanged |
+| Year | "last 12 months" | unchanged |
+
+Week and Month are the trailing 7 and 30 days, not the calendar's week or month,
+so the old labels named different days from the ones the figure counts. The
+2026-09-26 screenshot audit found "18 this month" under a chart titled "Last 30
+days", while the calendar's card for September, the 1st to the 23rd, held 13; the
+other five were in the last week of August. The new labels are the Quarter and
+Year form the review above passed in
+the 2026-08 addendum, whose row described them as "matching 'this week' / 'this
+month'". That pairing is gone, and all four labels now match the title over the
+chart instead.
+
+A value and a noun, as before: no verdict, no comparison between windows, no
+exclamation mark and no em dash. Pass.
+
+## 2026-09-26 — "several days" in the app and the App Store description
+
+The owner's wording, after seeing the calendar's tip in its new secondary ink
+(design-system §2): "fill a stretch" gives way to "several days" wherever it was
+left.
+
+- **The calendar's tip** (`CalendarView.selectionHint`) reads "Tip: Press and drag
+  across the calendar to fill several days at once." in place of "Tip: press and
+  hold, then drag across days to fill a stretch at once". After "Tip: " it is the
+  sentence the website's home page already carries under "Fill multiple days".
+- **The App Store description** (`docs/app-store-listing.md`, the description and
+  its 1.4 version A) says "Press and drag across the calendar to fill several days
+  at once" in place of "fill a stretch of days at once". Version B never had the
+  line.
+
+Nothing new is claimed: the gesture and what it does are ADR-0011's. One detail
+the new tip leaves to the reader is that a press has to rest for a quarter of a
+second before the drag (`dragSelectGesture`, `LongPressGesture(minimumDuration:
+0.25)`), or the finger scrolls the calendar instead; the old tip's "hold" said
+so. The support page and the description already call the gesture "press and
+drag", and the support page's answer begins "Touch and hold a day", so the tip
+now matches what is already published. It also differs from Trends' tip in
+form, "Tip: Press" with a capital and a full stop where Trends has "Tip: drag"
+and none; the owner's wording ships as written.
+
+With these, the two items the website's entries above left as "Still not
+changed" are changed. "Stretch" no longer appears in the app's strings, the
+description, the support page or the live site (its five pages read on
+2026-09-26).
+
+A plain instruction, like the one it replaces: no celebration, no judgment, no
+exclamation mark and no em dash. Pass.
+
+## 2026-09-26 — "See how it works" on the website
+
+New copy for `tallyist.co`, in `semmes/Tallyist#6`, merged and live on 2026-09-26.
+Nothing ships in the app.
+
+- **Home page, the hero:** a link under the App Store badge reads "See how it
+  works", followed by a down arrow drawn like the feature icons (decorative, hidden
+  from assistive technology), and points at the heading of the section below,
+  "From what's on tap, to one tap." It takes the place of the hero's three-line
+  platform list (iPhone · Available now, Apple Watch · Coming soon, Android ·
+  Coming soon), which the closing section keeps.
+
+It reports what the link does, in the reader's terms: the sections below show the
+app working. It sets no goal, praises nothing and asks nothing about the reader's
+drinking. "See" is an imperative only in the grammatical sense, like "Read the
+privacy policy" on the same page, which the review of the website's own pages
+passed: it names where a link goes, not what the reader should do about their log.
+No exclamation mark, no em dash. Pass.
+
+**Why it exists:** visitors were stopping at the first screen, which on common
+laptop and desktop windows ended inside the hero's own bottom padding with nothing
+below it in view. The link is the one cue on the first screen that says so in words;
+the rest of that change is layout, in the stylesheet.
+
+**Not changed:** the closing section's "Available on the App Store" and its
+platform list, and the Apple Watch section's "About Tallyist on Apple Watch".

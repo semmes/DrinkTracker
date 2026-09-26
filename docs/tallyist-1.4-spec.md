@@ -91,7 +91,13 @@ an import lands and draws no figure it did not read (ADR-0047); a failed read
 or save is shown as one, never as an empty day (ADR-0004's amendments); the
 Settings iCloud row says "Syncing" only once something has moved; the owner's
 iOS 27 device pass (flat ink on glass, a native range picker, segmented pickers
-on plain glass); Trends' three comparisons as one card (ADR-0038 amended); the
+on plain glass); the Trends chart's axis labels resolved for the current
+appearance, since on iOS 27 the y axis kept the previous one's ink after a live
+light/dark switch (ADR-0028's third amendment, by the owner's decision of
+2026-09-26 to ship it in 1.4); the phone's two tips (#147), then the watch's
+hint and the medium widget's "≈" line (#150), in secondary ink rather than
+tertiary (design-system §2; the owner's decision of 2026-09-26 to ship #150 in
+1.4 brings #147, which merged before it); Trends' three comparisons as one card (ADR-0038 amended); the
 Settings copy pass; and, with the release, the four privacy manifests' defaults
 reason corrected to Apple's App Group reason (1C8F.1).
 
