@@ -173,4 +173,128 @@ struct QuickLogWidgetRowTests {
     #expect(close(column, expected))
     #expect(column >= pluralAtLargest)
   }
+
+  // MARK: - The count (ADR-0057's amendment of 2026-09-26)
+
+  // The count shares the words' column, at a fixed 44pt (40 on the medium),
+  // SF Rounded semibold with proportional digits — the owner kept them — and
+  // the same on every phone: the Plus and Pro Max phones' larger text is the
+  // text styles', not a fixed size's.
+
+  /// Each digit's advance at 44pt, measured with CoreText (2026-09-26) — it
+  /// agrees with the simulator's frames to the hundredth ("0" 28.42, "16"
+  /// 48.84, "100" 77.74) — and rounded up. Some pairs kern tighter, by up to
+  /// 3.4pt, and none looser, so a count is never wider than its digits'
+  /// sum: what fits by the sum fits on screen.
+  private let digitAdvance: [Double] = [
+    28.43, 20.90, 26.31, 27.47, 28.17, 27.23, 27.95, 25.14, 28.22, 28.00,
+  ]
+
+  private func countWidthAtMost(_ count: Int, numeralSize: Double = 44) -> Double {
+    let atFortyFour = String(count).reduce(0.0) { width, digit in
+      width + digitAdvance[digit.wholeNumberValue ?? 0]
+    }
+    return atFortyFour * numeralSize / 44
+  }
+
+  // Where a claim is that a count does *not* fit, its own measured width,
+  // rounded down, rather than the sum.
+  private let twentyAtLeast = 54.65
+  private let oneHundredAtLeast = 77.74
+
+  /// What a count must clear the floor by to be claimed whole. SwiftUI sizes
+  /// a shrunk count on a quarter-point grid with about 0.1pt to spare and
+  /// never under 26.5pt (measured 2026-09-26: 80 at 38.75 in the SE's
+  /// column, 199 at 28.25, 250 at 26.5, and 200, which needs 26.43, cut
+  /// short), so the rule's floor alone would over-claim near the edge.
+  private let wholeAtLeast = 0.62
+
+  private func countScale(_ width: Double, _ phones: Phones) -> Double? {
+    QuickLogWidgetRow.countScale(forWidth: width, inColumn: newColumn(phones))
+  }
+
+  @Test("The count takes one line and may shrink to 0.6, the floor of every count numeral in the app")
+  func countConstants() {
+    let floor: Double = 0.6
+    #expect(QuickLogWidgetRow.countLineLimit == 1)
+    #expect(QuickLogWidgetRow.countMinimumScale == floor)
+  }
+
+  @Test("Full size where it fits, smaller where it must be, cut short only past the floor")
+  func countScaleRule() {
+    let full: Double = 1
+    let threeQuarters: Double = 0.75
+    let floor: Double = 0.6
+    #expect(QuickLogWidgetRow.countScale(forWidth: 40, inColumn: 50) == full)
+    #expect(QuickLogWidgetRow.countScale(forWidth: 50, inColumn: 50) == full)
+    #expect(QuickLogWidgetRow.countScale(forWidth: 80, inColumn: 60) == threeQuarters)
+    #expect(QuickLogWidgetRow.countScale(forWidth: 100, inColumn: 60) == floor)
+    #expect(QuickLogWidgetRow.countScale(forWidth: 100, inColumn: 59) == nil)
+  }
+
+  @Test("Every two-digit count is full size on every phone but the SE, where 20 is the first to shrink")
+  func twoDigitsAtFullSize() {
+    let full: Double = 1
+    for phones in small.dropFirst() {
+      for count in 10...99 {
+        #expect(countScale(countWidthAtMost(count), phones) == full, "\(count) on \(phones.names)")
+      }
+    }
+    let se = small[0]
+    for count in 10...19 {
+      #expect(countScale(countWidthAtMost(count), se) == full, "\(count) on the SE")
+    }
+    #expect(twentyAtLeast > newColumn(se))
+  }
+
+  @Test("On the SE a two-digit count shrinks no further than 0.88")
+  func seTwoDigits() {
+    let least: Double = 0.88
+    let se = small[0]
+    for count in 20...99 {
+      let scale = countScale(countWidthAtMost(count), se) ?? 0
+      #expect(scale >= least, "\(count) draws at \(scale)")
+    }
+  }
+
+  @Test("Every count to 199 is whole on the SE, and every count to 999 on every other phone")
+  func nothingCutShort() {
+    let se = small[0]
+    for count in 0...199 {
+      let scale = countScale(countWidthAtMost(count), se) ?? 0
+      #expect(scale >= wholeAtLeast, "\(count) on the SE draws at \(scale)")
+    }
+    for phones in small.dropFirst() {
+      for count in 0...999 {
+        let scale = countScale(countWidthAtMost(count), phones) ?? 0
+        #expect(scale >= wholeAtLeast, "\(count) on \(phones.names) draws at \(scale)")
+      }
+    }
+  }
+
+  @Test("100 shrinks on every small widget: to about 0.64 on the SE and 0.95 on the largest")
+  func oneHundred() {
+    let seAbout: Double = 0.64
+    let largestAbout: Double = 0.95
+    let tolerance: Double = 0.01
+    for phones in small {
+      let scale = countScale(oneHundredAtLeast, phones) ?? 0
+      #expect(scale >= wholeAtLeast, "\(phones.names)")
+      #expect(scale < 1, "\(phones.names)")
+    }
+    #expect(abs((countScale(oneHundredAtLeast, small[0]) ?? 0) - seAbout) < tolerance)
+    #expect(abs((countScale(oneHundredAtLeast, small[10]) ?? 0) - largestAbout) < tolerance)
+  }
+
+  @Test("The medium family never shrinks the count, to four digits")
+  func mediumCountAtFullSize() {
+    let full: Double = 1
+    let column = QuickLogWidgetRow.wordsColumn(forContentWidth: narrowestMedium, isSmall: false)
+    // 8000 is the widest four-digit count by the sum: 8 is the widest
+    // leading digit, 0 the widest digit.
+    for count in [9999, 8888, 8000, 999, 800, 80] {
+      let width = countWidthAtMost(count, numeralSize: 40)
+      #expect(QuickLogWidgetRow.countScale(forWidth: width, inColumn: column) == full, "\(count)")
+    }
+  }
 }
