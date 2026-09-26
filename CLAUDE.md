@@ -321,6 +321,11 @@ take secondary ink…", design-system §2), and the owner reworded the calendar'
 Press and drag across the calendar to fill several days at once.", with "fill a stretch"
 replaced in the App Store description too. Xcode Cloud archives every commit on main, so
 1.4 carries both only if the build the owner submits comes from their merge or later.
+**That evening the watch's hint and the medium widget's "≈" line took secondary ink as
+well**, on the owner's call once both were measured: 2.23:1 to 6.36:1 on the wrist, 1.70:1
+to 3.27:1 and 2.44:1 to 5.37:1 on the widget (the bullet "The watch's hint and the
+widget's ≈ line take secondary ink…", design-system §2 and §9). The same rule about which
+build 1.4 comes from applies.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4331,9 +4336,80 @@ Open items for v1.2:
   open item 1), the same kind of line, which the watch's `.secondary` would put at
   6.36:1; the medium widget's
   "≈ N standard drinks" caption in `.tertiary`, not measured; and whether the day
-  sheet's chevron should clear 3:1. **Not verified:** hardware; VoiceOver (no label
+  sheet's chevron should clear 3:1. *(The first two were measured and decided the same
+  evening: the bullet "The watch's hint and the widget's ≈ line take secondary ink…".)*
+  **Not verified:** hardware; VoiceOver (no label
   changed); accessibility sizes (ink only). **Tooling:** the bottom of Trends, where the
   Health offer lives, is reachable with no tap through a scratch copy whose ScrollView
   takes `.defaultScrollAnchor(.bottom)` from a `SIMCTL_CHILD_` variable; `simctl ui <udid>
   increase_contrast enabled` works live; and the Settings app's own chevrons are the
   system's reference colour. The scratch simulator was deleted afterwards.
+- **The watch's hint and the widget's ≈ line take secondary ink (2026-09-26; design-system
+  §2 and §9).** The two lines the bullet "The two tips take secondary ink…" left open,
+  measured and then decided by the owner. **Measured first, on main's Release build** on
+  four scratch simulators created for this and deleted afterwards (an iPhone 18 Pro on iOS
+  27, an iPhone 17 Pro on iOS 26.5, a Series 12 46mm on watchOS 27 and a Series 11 46mm on
+  watchOS 26.5), each store seeded by `sqlite3` with two 5 oz wines at 12%, exactly two US
+  standard drinks, and the medium widget placed through `IconState.plist`. The rule: the
+  ground is the line's modal pixel and the ink the pixel farthest from it in luminance;
+  over glass (the Clear and Tinted Home Screen styles) the wallpaper is a gradient, so the
+  same rule ran in 22px windows along the line. **The hint** "Hold ＋ to say what it was"
+  measured #464649 on black, **2.23:1**, on both runtimes (a 338-pixel plateau), with the
+  secondary lines above it at #8D8D93, 6.36:1. **The widget's "≈ 2 standard drinks"**, never
+  measured before, is **1.70:1** on iOS 27 in light (#BABABD on #F0F0F1) and **2.44:1** in
+  dark (#65656A on #2B2B2E; the Dark style draws the same pixels), 1.68:1 and 2.48:1 on
+  iOS 26.5, whose dark ground is #1C1C1F. In the Clear style the medians were 1.48:1 light and
+  2.70:1 dark, in Tinted 1.72:1 and 1.78:1, and with Increase Contrast 4.01:1 and 4.32:1.
+  In full colour the widget draws both hierarchical styles as the flat label colours over
+  its own ground, with no vibrancy; in Clear and Tinted the system sets each level's ink
+  itself, and those figures depend on the wallpaper (the simulator's default here).
+  **Decided:** the owner looked at a before/after sheet from a scratch build (an `rsync` copy,
+  never committed) and chose secondary for both, which was the recommendation: the hint
+  is the only mention of the hold on ＋, the tips' reason, and the ≈ line is the figure
+  Today and the watch already print in secondary. **What shipped:** the two
+  `.foregroundStyle(.tertiary)` became `.secondary` (`CounterView.swift`'s `hint`,
+  `QuickLogWidget.swift`'s ≈ line), each with a comment; `TertiaryInkTests` gains a
+  second test that reads `DrinkTrackerWatch/`, `DrinkTrackerWatchWidget/` and
+  `DrinkTrackerWidget/`, the folders `InkTests` never reads, and fails on the tertiary half
+  of `InkTests`' text-style patterns there, allowing only the watch's DEBUG line, which a
+  Release build does not compile. Its negative control, a scratch copy with both lines put
+  back, failed naming both files. No string, key, catalog, schema, CloudKit, setting or
+  project-file change, and invariant 10 holds, since both inks are the system's semantic
+  colours. **Measured after, from this branch's Release build:** the hint #8D8D93,
+  **6.36:1**, on the scratch watch paired with the scratch iPhone (`simctl pair`, "active,
+  connected"); the ≈ line **3.27:1** light and **5.37:1** dark, 5.17:1 and 5.94:1 with
+  Increase Contrast, 3.24:1 and 6.01:1 on iOS 26.5, and Clear 2.00:1 / 6.82:1 and Tinted
+  2.71:1 / 3.42:1 (medians, from the scratch build, whose frames are pixel-identical to
+  the branch's in the modes both rendered). In every before/after pair only the changed
+  line moved; elsewhere no pixel differs by more than one unit in one channel.
+  **Costs:** the widget's "drinks today" and ≈ line are now the same size and ink
+  (caption2 secondary), where Today and the watch keep them one text size apart; 3.27:1
+  in light is under 4.5:1, the app-wide secondary floor §2 already names; and the watch
+  design README drew the hint `.tertiary` (§9, open item 5). **Gates, locally (Xcode
+  27.0):** the CI-form iOS generic build (only the existing `Text +` and `SettingsView`
+  warnings, none in the changed files); the watch generic build, no warnings; 124
+  integration tests on the scratch iOS 27 phone with
+  `-warn-long-expression-type-checking=25`, whose only reports are the older ones in
+  `FailedReadTests` and `FailedWriteTests`; the verifier with `--ci`, 0 failing and 0
+  pending; the policy-date check; the glyph generator clean. The domain tests were not
+  run, since the package did not change. **Which release:** 1.3 is live (the lookup API,
+  2026-09-26) and 1.4 has not been submitted. Xcode Cloud archives every commit on main,
+  so 1.4 carries this only if the build the owner submits comes from this merge or later;
+  a build from an earlier commit ships without it, and then it reaches 1.5. The watch app
+  and the widget ship in the one iOS archive, so they travel together. **The watch
+  counter screenshot candidate shows the old ink:** `watch-46mm/watch-01-counter.png` and
+  its upload copy measure the hint at 2.23:1, so it is the frame to retake if 1.4 carries
+  this; the session candidate shows the dot row in the hint's place, and no iPhone
+  candidate shows the widget. **Not verified:** hardware; Always-On (the simulator offers
+  none); the hint with Increase Contrast, which the watchOS simulator refuses ("Runtime does
+  not support increased contrast"); VoiceOver (no label changed); other wallpapers under
+  Clear and Tinted; StandBy; iPad. **Tooling:** the Home Screen's style is a file, settable
+  with the device shut down —
+  `data/Library/Application Support/PRBPosterExtensionDataStore/*/Extensions/*/configurations/*/versions/*/supplements/*/com.apple.posterkit.provider.supplementURL.homescreenConfiguration.plist`,
+  a keyed archive whose `PRPosterHomeScreenCustomizationConfiguration` holds
+  `_iconUserInterfaceStyleType` (`color` is Default; `dark`, `clear`, `accent` is Tinted)
+  and `_iconUserInterfaceStyleVariant` (`light` or `dark`). Append two fresh strings to
+  `$objects` and point those UIDs at them, since the variant's string is shared with a
+  per-type map; boot and the style is live, Tinted taking its colour from `_iconTintSource`
+  (`wallpaperSuggestion` gave teal on the default wallpaper). And a render straight after
+  a boot can fail `simctl launch` with exit 3; running it again works.
