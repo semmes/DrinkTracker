@@ -157,8 +157,25 @@ struct QuickLogWidgetView: View {
 
   private var numeralSize: CGFloat { family == .systemSmall ? 44 : 40 }
 
+  private var plusSide: CGFloat {
+    QuickLogWidgetRow.plusSide(isSmall: family == .systemSmall)
+  }
+
+  /// The words under the count. On a small widget they may take a second line
+  /// and wrap before they shrink (ADR-0057): iOS 26 gives the small family
+  /// 114 to 138pt of content, and "drinks today" on one line needed more than
+  /// the row left it on every iPhone — "drinks tod…" on a 17 Pro. The medium
+  /// family never needs the second line.
+  private func unitWords(_ words: LocalizedStringKey) -> some View {
+    Text(words)
+      .font(.caption2)
+      .foregroundStyle(.secondary)
+      .lineLimit(QuickLogWidgetRow.wordsLineLimit)
+      .minimumScaleFactor(QuickLogWidgetRow.minimumScale)
+  }
+
   var body: some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: QuickLogWidgetRow.gap) {
       VStack(alignment: .leading, spacing: 2) {
         if entry.isUnavailable {
           // No figure at all rather than a zero: a zero here is a claim that
@@ -168,21 +185,13 @@ struct QuickLogWidgetView: View {
             .font(.system(size: numeralSize * 0.75, weight: .semibold))
             .foregroundStyle(.primary)
             .frame(height: numeralSize, alignment: .center)
-          Text("drinks today")
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
+          unitWords("drinks today")
         } else {
           Text("\(entry.drinkCount)")
             .font(.system(size: numeralSize, weight: .semibold, design: .rounded))
             .foregroundStyle(.primary)
             .contentTransition(.numericText(value: Double(entry.drinkCount)))
-          Text(countLabel)
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
+          unitWords(countLabel)
           if entry.total > 0 && family != .systemSmall {
             Text(verbatim: standardDrinksCaption)
               .font(.caption2)
@@ -194,8 +203,11 @@ struct QuickLogWidgetView: View {
       }
       .accessibilityElement(children: .combine)
       .accessibilityLabel(entry.isUnavailable ? "drinks today" : accessibilityCountLabel)
-
-      Spacer(minLength: 0)
+      // The column takes everything the ＋ leaves, and the ＋ still sits at
+      // the trailing edge. A Spacer between them used to do the pushing, and
+      // a Spacer keeps a gap on each side of itself — 12pt the words could
+      // never use (`QuickLogWidgetRow`, tier-1 tested against every iPhone).
+      .frame(maxWidth: .infinity, alignment: .leading)
 
       // Not offered while the store cannot be read: a ＋ beside no figure
       // logs blind, and a tap whose effect cannot be seen invites the second
@@ -213,10 +225,7 @@ struct QuickLogWidgetView: View {
     Button(intent: LogOneDrinkIntent()) {
       Image(systemName: "plus")
         .font(.system(size: family == .systemSmall ? 22 : 24, weight: .semibold))
-        .frame(
-          width: family == .systemSmall ? 52 : 60,
-          height: family == .systemSmall ? 52 : 60
-        )
+        .frame(width: plusSide, height: plusSide)
         .background(.quaternary, in: .circle)
         .contentShape(.circle)
     }
