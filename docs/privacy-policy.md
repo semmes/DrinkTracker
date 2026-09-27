@@ -1,6 +1,6 @@
 # Tallyist Privacy Policy
 
-**Last updated: September 24, 2026**
+**Last updated: September 26, 2026**
 
 Tallyist does not collect your data. Nothing you log leaves your control.
 
@@ -85,7 +85,8 @@ In App Store terms: **Data Not Collected**.
 Tallyist has an optional tip jar (Settings → Buy me a drink). Payments are
 processed entirely by Apple through your App Store account, exactly like any
 App Store purchase: Tallyist never sees your payment details, and Apple tells
-the app only that a purchase completed. Tips unlock nothing, and nothing about
+the app only that a purchase completed and, for a recurring tip, when it renews
+or ends, which stays on your device. Tips unlock nothing, and nothing about
 tipping — or not — appears in or affects your drink log. Recurring tips can be
 cancelled any time in your App Store subscription settings, and the app offers
 a local reminder a week before each renewal so you can cancel before being

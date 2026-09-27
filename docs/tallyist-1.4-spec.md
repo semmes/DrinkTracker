@@ -109,6 +109,19 @@ documented upper bound. The TestFlight device check in ADR-0055 is the gate
 before 1.4 is submitted; if card drinks linger, its "How to reopen" applies,
 and putting the three entitlement keys back is one file.
 
+**The recurring tips go on sale (ADR-0012 amended, 2026-09-26).** The monthly
+and yearly tips have been in the app since 1.0 but never on sale; the owner
+decided they go on sale with 1.4, so they are submitted with it. Before that,
+the tip jar's renewal reminder was fixed to keep its promise: it is re-derived
+at launch and on every foreground rather than only on the tip jar screen, a
+year of renewals is scheduled ahead in words that hold if the tip is cancelled
+meanwhile, a cancelled tip reads "Ends" and has its reminders removed, and the
+screen says when notifications are off. The privacy policy's tips sentence now
+says what Apple tells the app about a recurring tip (dated September 26,
+2026). The App Store Connect steps, the review notes and the
+contingency if App Review rejects the tips under guideline 3.1.2(a) are in
+`docs/app-store-listing.md`.
+
 ## App Review consistency
 
 Re-verified on 2026-09-23 against main, with the watch and the pairing built,
@@ -129,14 +142,14 @@ jar's opt-in local renewal reminder has shipped since 1.0.
 | Other claims the notes, listing and policy make | 1.4 |
 |---|---|
 | "No networking code of its own" (policy, notes) | Holds. No `URLSession`, `Network`, web view or image loader in the app's code; the only URLs are system-opened links. Unchanged nuance: ComponentsKit carries `URLSession` in an Avatar component the app never uses, linked into the iOS app only. |
-| The only network traffic is Apple's iCloud sync and App Store purchases (policy) | **Changed in the policy.** The phone now sends its paired watch two settings over WatchConnectivity (`WatchContext`: region, counter seed, a version, a timestamp), never a row. The policy now names the settings and the time they were sent, and says "nothing else about you". The App Store half also names the tip jar's product fetch: opening Buy me a drink loads products and entitlements from the App Store whether or not a tip is left. |
+| The only network traffic is Apple's iCloud sync and App Store purchases (policy) | **Changed in the policy.** The phone now sends its paired watch two settings over WatchConnectivity (`WatchContext`: region, counter seed, a version, a timestamp), never a row. The policy now names the settings and the time they were sent, and says "nothing else about you". The App Store half also names the tip jar's product fetch: opening Buy me a drink loads the products from the App Store whether or not a tip is left. Since the tip jar fix (ADR-0012 amended 2026-09-26) the app also reads its entitlements through StoreKit at every launch and foreground, and the renewal info only while a recurring tip is active, which the policy's "or leave a tip" covers; on a simulator with no Apple Account that launch work made no App Store request, and a signed-in device is unmeasured. |
 | "Tallyist reads no other Health data" (policy) | **False on main from the pairing's Phase 3; true again.** The sentence now follows a list of what is read: the alcohol category, and the four pairing types plus the temperature unit, only if switched on. |
 | The purpose string explains the reads | **Rewritten.** It described alcohol only, while the pairing's sheet listed heart, sleep and wrist types (seen on a scratch simulator before the change). It now names all four, in Debug and Release. |
 | "No new permissions" (the 1.2 and 1.3 notes' closing line) | **Not repeated.** 1.4 adds a HealthKit read request for four types, a watch app, and the remote-notification background mode on both apps. The 1.4 notes' closing line says so. |
 | Health writes: only the drinks you log, as alcoholic beverages | Holds. The one share set is the beverage type; the pairing asks `toShare: []`; nothing on the watch imports HealthKit. |
 | The watch writes no Health data | Holds. No HealthKit entitlement or import in either watch target. |
 | Counts on the watch are privacy-sensitive (notes) | Holds as worded: "marked privacy-sensitive, so watchOS redacts them on a locked watch". Every complication family's figure is `.privacySensitive()` (`CounterComplication.swift`), and the owner's device pass saw the card redact with the watch off the wrist. Always-On is not claimed for complications: there it depends on the wearer's Hide Sensitive Complications setting. The watch app's own count is concealed under `.privacy` redaction (`CounterTile.swift`, ADR-0045); design-system §9 records two things Always-On still shows beside it. |
-| No notifications from the app | Holds with the nuance the contract records: the tip jar's local renewal reminder, opt-in, unchanged since 1.0. The watch, the complication and the pairing post nothing; `aps-environment` serves CloudKit's silent pushes only. |
+| No notifications from the app | Holds with the nuance the contract records: the tip jar's local renewal reminder, opt-in, since 1.0; since 1.4 it is re-derived at launch and on every foreground and scheduled a year of renewals ahead (ADR-0012 amended). The watch, the complication and the pairing post nothing; `aps-environment` serves CloudKit's silent pushes only. |
 | Data Not Collected; no new privacy label categories | Holds. See "App Privacy" below. |
 | No new third-party code | Holds (above). |
 | Privacy manifests declare every required-reason API | **Corrected.** All four declared UserDefaults reason CA92.1, the app-only reason, while every target uses the App Group suite, whose reason is 1C8F.1 (Apple's `NSPrivacyAccessedAPITypeReasons`, read 2026-09-23). The app now declares both (its appearance setting is in the standard suite); the widget, watch app and complication declare 1C8F.1. The pairing's `ContinuousClock` timing is not on Apple's required-reason list. |

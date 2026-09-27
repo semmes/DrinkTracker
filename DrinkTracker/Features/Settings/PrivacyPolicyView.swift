@@ -117,11 +117,12 @@ struct PrivacyPolicyView: View {
           The optional tip jar is processed entirely by Apple through your App \
           Store account, exactly like any App Store purchase: Tallyist never sees \
           your payment details, and Apple tells the app only that a purchase \
-          completed. Tips unlock nothing, and nothing about tipping — or not — \
-          appears in or affects your drink log. Recurring tips can be cancelled \
-          any time in your App Store subscription settings, and the app offers a \
-          local reminder a week before each renewal so you can cancel before \
-          being charged.
+          completed and, for a recurring tip, when it renews or ends, which \
+          stays on your device. Tips unlock nothing, and nothing about tipping \
+          — or not — appears in or affects your drink log. Recurring tips can \
+          be cancelled any time in your App Store subscription settings, and \
+          the app offers a local reminder a week before each renewal so you \
+          can cancel before being charged.
           """
         )
 
@@ -155,7 +156,7 @@ struct PrivacyPolicyView: View {
         VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
           Link("Read this policy online", destination: Self.hostedURL)
             .font(.body)
-          Text("Last updated September 24, 2026.")
+          Text("Last updated September 26, 2026.")
             .font(.caption)
             .foregroundStyle(.secondaryInk)
         }

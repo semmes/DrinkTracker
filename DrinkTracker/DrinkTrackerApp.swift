@@ -6,6 +6,7 @@ import SwiftUI
 struct DrinkTrackerApp: App {
   @State private var settings: AppSettings
   @State private var health = HealthKitService()
+  @State private var tipJar: TipJar
   @Environment(\.scenePhase) private var scenePhase
 
   /// Standard defaults on purpose — the widget is excluded (see
@@ -44,6 +45,16 @@ struct DrinkTrackerApp: App {
     // here, not on a view, because the import this exists for is the one that
     // arrives while no view is on screen.
     WidgetReloads.start()
+
+    // The tip jar's renewal reminder is re-derived here, at launch and on every
+    // foreground, rather than only while its screen is open, so the next
+    // reminder after a renewal does not wait for someone to open that screen
+    // (ADR-0012's amendment of 2026-09-26). The listener also finishes a
+    // transaction that arrives with no screen open. Local StoreKit work: the
+    // products themselves are fetched only on the tip jar screen.
+    let tipJar = TipJar()
+    _tipJar = State(initialValue: tipJar)
+    Task { await tipJar.observeTransactions() }
 
     #if DEBUG
     // A missing App Group doesn't fail the build — the app and widget just end up
@@ -96,6 +107,7 @@ struct DrinkTrackerApp: App {
       RootView()
         .environment(settings)
         .environment(health)
+        .environment(tipJar)
         .preferredColorScheme(
           AppearancePreference(rawValue: appearanceRaw)?.colorScheme
         )
@@ -109,6 +121,9 @@ struct DrinkTrackerApp: App {
         // foreground costs nothing and covers a watch paired since last time.
         WatchContextPublisher.shared.publishCurrent()
         WidgetReloads.appBecameActive()
+        // A renewal, a cancellation made in Settings, or a change to
+        // notification permission all happen outside the app.
+        Task { await tipJar.refreshSupportStatus() }
       case .inactive where previous == .active, .background where previous == .active:
         // Once per leave, at its first step. Going home is `.active` →
         // `.inactive` → `.background`, and the request made at `.inactive` is
