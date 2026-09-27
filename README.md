@@ -767,7 +767,9 @@ Agreements), then create the three products with exactly the IDs in ADR-0012's
 table. The code reads prices from StoreKit, so price changes in App Store
 Connect need no code change.
 
-Because the subscriptions auto-renew, guideline 3.1.2(a) applies: the app links
+Because the subscriptions auto-renew, guideline 3.1.2(c) (which points to
+Schedule 2 of the Apple Developer Program License Agreement) and Apple's
+subscriptions page apply: the app links
 Apple's standard EULA ("Terms of Use") and the privacy policy beside the
 subscription controls and in Settings → About, and the App Store description
 must state each subscription's title, duration, and price alongside the same

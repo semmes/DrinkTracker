@@ -96,8 +96,12 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **530 keys across six catalogs** — 378 app, 35 widget, 28 core, 4
-shortcuts, 50 watch app, 35 complication (re-counted 2026-09-26 after the
+Current: **538 keys across six catalogs** — 386 app, 35 widget, 28 core, 4
+shortcuts, 50 watch app, 35 complication (re-counted 2026-09-26 after the tip
+jar's renewal fix, ADR-0012 amended: ten app keys in, two out, none changed,
+synced from a fresh full build and diffed; the two new privacy-policy keys are
+marked not to translate like the two they replace. The count before that was
+530, 378 app, re-counted 2026-09-26 after the
 calendar's tip was reworded: one app key out, "Tip: press and hold, then drag
 across days to fill a stretch at once", and one in, "Tip: Press and drag across
 the calendar to fill several days at once.", none changed, synced the same way

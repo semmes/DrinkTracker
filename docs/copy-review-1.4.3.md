@@ -2433,3 +2433,64 @@ the rest of that change is layout, in the stylesheet.
 
 **Not changed:** the closing section's "Available on the App Store" and its
 platform list, and the Apple Watch section's "About Tallyist on Apple Watch".
+
+## 2026-09-26 — The recurring tips go on sale (ADR-0012 amended)
+
+The owner decided the monthly and yearly tips go on sale with 1.4, and the tip jar's
+renewal reminder was fixed so it keeps its promise. New copy, in the app and the listing:
+
+- **Tip jar, a cancelled recurring tip:** "Ends <date> and won't renew." It replaces
+  "Renews <date>. Tallyist will remind you a week before…", which was untrue once a tip
+  had been cancelled.
+- **Tip jar, inside the last week before a renewal:** "Renews <date>." The reminder
+  sentence is dropped there because its time has passed.
+- **Tip jar, notifications off:** "Renews <date>. Notifications are off for Tallyist, so
+  it can't remind you a week before. You can turn them on in the Settings app." It keeps
+  the Decision's line that "the screen says the promise then can't be kept". "The
+  Settings app", because the tip jar sits under the app's own Settings tab and "in
+  Settings" there names the wrong place.
+- **Tip jar, before subscribing, notifications off:** "A week before any renewal,
+  Tallyist sends a reminder so you can cancel before being charged. Notifications are off
+  for Tallyist, so it can't send one. You can turn them on in the Settings app." The
+  existing caption otherwise says permission is "asked for when you subscribe", which is
+  not true once it has been denied.
+- **Tip jar, a purchase the device could not verify (either kind of tip):** "The App
+  Store couldn't confirm that purchase. If you were charged, it shows in your App Store
+  purchase history." It replaces "That didn't go through. Nothing was charged." for
+  this one case, where nothing-was-charged may be false.
+- **Tip jar, moving between the monthly and yearly tip:** "Switches to <name> on <date>.
+  Nothing is charged until then." The two share a level, so the change takes effect at
+  the next renewal, and "Received — thank you" would thank someone for a charge that has
+  not happened.
+- **The renewal reminder (a local notification):** title "Recurring tip reminder", body
+  "Unless it's been cancelled, your recurring tip renews in about a week. You can cancel
+  any time in the App Store, and the app stays the same either way." It replaces 1.0's
+  "Tallyist support renews in a week" and "Your recurring tip renews on <date>. Cancel any
+  time in the App Store — the app stays the same either way." The reminders are now
+  scheduled a year ahead, so the text has to hold if the tip was cancelled after they
+  were scheduled, and a date counted ahead may differ from the App Store's by a day.
+- **Privacy policy, Tips:** "Apple tells the app only that a purchase completed" becomes
+  "…only that a purchase completed and, for a recurring tip, when it renews or ends,
+  which stays on your device." A fact about what the app learns, stated plainly.
+- **Tip jar, a recurring purchase:** reuses the one-time tip's reviewed "Received —
+  thank you. That keeps Tallyist free.", "Purchase pending approval — nothing charged
+  yet." and "That didn't go through. Nothing was charged." No new string.
+- **What's New (1.4), last paragraph:** "The tip jar in Settings now offers a recurring
+  tip too, monthly or yearly. Tips unlock nothing."
+- **App Store Connect, the subscription group's display name (suggested):** "Recurring
+  tip". People see it when they manage subscriptions.
+- **App Store Connect, each subscription's Review Notes (a draft, for App Review
+  only):** "A voluntary recurring tip to the developer of a free app. It unlocks
+  nothing; every feature is free for everyone. Guideline 3.1.1 allows tips to the
+  developer. If the subscriber allows notifications, the app reminds them a week before
+  each renewal, and Manage or cancel is on the same screen. Where: Settings > About > Buy
+  me a drink."
+- **Reviewer notes (1.4), item 5:** "Settings > About > Buy me a drink: a monthly and a
+  yearly auto-renewable tip beside the one-time one. They unlock nothing. After
+  subscribing, the app asks for notification permission, for a reminder a week before
+  each renewal." The closing line also gains "and two recurring tips".
+
+Each states a fact about money, a date or a setting in the reader's terms. None praises,
+urges or judges, and none mentions the reader's drinking; the tips stay as unrelated to
+the log as ADR-0012 made them. No exclamation mark. The new strings have no em dash; the
+reused purchase messages keep theirs, since they were reviewed and ship unchanged. Pass.

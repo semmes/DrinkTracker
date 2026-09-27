@@ -172,9 +172,10 @@ purchases work in the simulator with no App Store Connect setup).
 ## App Store material
 
 `docs/app-store-listing.md` is the paste-ready ASC metadata (description with
-the guideline-3.1.2(a) subscription block — keep prices in sync with ASC, and
-drop the block if the recurring tips are not on sale; on 2026-09-26 the store
-listed only the one-time tip), plus support URL (`docs/support.md`) and privacy
+the subscription block that guideline 3.1.2(c) and Apple's subscriptions page ask
+for — keep its names and prices in sync with ASC; the recurring tips go on sale
+with 1.4 by the owner's decision of 2026-09-26, and until then the store listed
+only the one-time tip), plus support URL (`docs/support.md`) and privacy
 URL. Age rating: the store shows 18+, with "Frequent" alcohol references
 (product page, 2026-09-26); the lookup API's 17+ is the same answer on Apple's
 scale for devices before OS 26. App Privacy is **Data Not Collected** —
@@ -332,6 +333,10 @@ to 3.27:1 and 2.44:1 to 5.37:1 on the widget (the bullet "The watch's hint and t
 widget's ≈ line take secondary ink…", design-system §2 and §9). **The owner then said it
 goes out with 1.4**, so the build submitted for 1.4 comes from its merge, 15a4f9f (#150),
 or later, and a build that late carries the two tips too.
+**On 2026-09-26 the owner decided the monthly and yearly tips go on sale with
+1.4, and an audit found the tip jar's renewal reminder did not keep its promise;
+it was fixed first (the bullet "The recurring tips go on sale…", ADR-0012
+amended), so the 1.4 build comes from that merge or later.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4502,3 +4507,67 @@ Open items for v1.2:
   per-type map; boot and the style is live, Tinted taking its colour from `_iconTintSource`
   (`wallpaperSuggestion` gave teal on the default wallpaper). And a render straight after
   a boot can fail `simctl launch` with exit 3; running it again works.
+- **The recurring tips go on sale with 1.4, and the reminder keeps its promise
+  (2026-09-26; ADR-0012 amended).** The owner decided the monthly and yearly tips
+  (`…support.monthly` / `…support.yearly`, $4.99, in since 1.0 but never on sale) go
+  on sale with 1.4. An audit (a workflow, each finding put to a skeptic) found that
+  the reminder the app, the privacy policy, the support page and the descriptions all
+  promise, "a week before each renewal", held for the first renewal only: `TipJar`
+  lived on its screen and its listener ran only from that screen's `.task`. A
+  cancelled tip still read "Renews" and got a "renews in a week" reminder, and the
+  screen promised the reminder with notifications off. A first fix went through the
+  same review before merging, which found 28 more things, and a second pass over
+  the fixes found 15 more, among them later reminders counted in the device's own
+  calendar (weeks off in a Hebrew or Islamic one). **What shipped:**
+  - one `TipJar` for the process, created in `DrinkTrackerApp.init` and put in the
+    environment; its `Transaction.updates` listener starts first at launch, with a
+    refresh beside it, again on every foreground, and when "Manage or cancel" closes;
+    refreshes run in sequence;
+  - `SupportRenewal` in the core package (sixteen tier-1 tests): renews or ends from
+    `willAutoRenew`, unknown read as renewing, and reminders a week before each of
+    the next twelve monthly (or two yearly) renewals, counted in the Gregorian
+    calendar and on the period of the tip that renews next, so a subscriber who
+    stops opening the app is still warned for a year of renewals. The notification
+    reads "Unless it's been cancelled, your recurring tip renews in about a
+    week…", so it stays true;
+  - captions "Ends <date> and won't renew.", "Renews <date>." inside the last week,
+    and "…Notifications are off for Tallyist… You can turn them on in the Settings
+    app." for an active tip and before subscribing; permission asked when a
+    subscriber opens the tip jar on a never-asked device;
+  - no empty Recurring section; recurring purchases report pending and failure; an
+    unverifiable purchase no longer says "Nothing was charged"; a switch between
+    monthly and yearly says when it takes effect;
+  - a "Recurring tip" line in Diagnostics (reminders pending and the first to
+    fire);
+  - the privacy policy's "Apple tells the app only that a purchase completed" now
+    adds "and, for a recurring tip, when it renews or ends, which stays on your
+    device" (both in-repo copies, dated September 26, 2026);
+  - app catalog 378 → 386 (ten in, two out).
+
+  **The listing:** the App Store Connect checklist for selling the tips (group
+  display name, each subscription's metadata, App Review Screenshot and Review Notes,
+  Add for Review with the group in the same draft submission), an exact contingency if
+  App Review rejects them under 3.1.2(a) ("you must provide ongoing value to the
+  customer"; the tips unlock nothing, and ADR-0012 had said that kept them outside that
+  scrutiny, which was backwards), the reviewer notes' item 5 and closing line (the
+  whole block now 3,958 bytes, all ASCII; the field's limit is 4,000 *bytes*), a What's New sentence, the disclosure rules cited to 3.1.2(c)
+  and the subscriptions page, and the Apple Watch caveat resolved. **Found in passing:**
+  on 2026-09-26 the App Store's sandbox returned only the one-time tip to a simulator
+  build, so the two subscriptions are not yet in a state it serves in App Store Connect.
+  **Verified:** 401 domain tests under both build systems; the integration tests, the
+  iOS and watch builds; and tier 3 on a throwaway iPhone 18 Pro Max (iOS 27) through a
+  scratch copy that injected the renewal state (a plain `simctl` launch does not load the
+  scheme's StoreKit configuration): every caption for an active tip in light, dark
+  and at accessibility-extra-large, the real sandbox reply with no Recurring section, the real
+  permission request, the caption after "Don't Allow", and after "Allow" twelve reminders
+  pending with the system, none for a tip that ends. **One simulator trap:** after an
+  erase and "Allow", the simulator refused the reminders with "Source is not authorized"
+  while the app read notifications as allowed; a reboot fixed it. **Not verified, the
+  owner's:** the real StoreKit paths (in Xcode with the StoreKit configuration, Debug →
+  StoreKit → Manage Transactions, and on TestFlight), the two pre-subscription
+  captions (drawn only when the subscription products load), a reminder firing
+  before a production renewal, VoiceOver, and App Review's reading of 3.1.2(a).
+  **The owner's copy call:** the descriptions, support page and README promise the
+  reminder "a week before each renewal" unconditionally; the app keeps it for a year
+  of renewals past its last run, where notifications are allowed (the listing's
+  recurring tips reminder).

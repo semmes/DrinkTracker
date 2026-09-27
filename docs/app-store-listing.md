@@ -28,8 +28,8 @@ the record: it says "Log a drink in two taps", where the app and this file say o
 it says "Everything lives in Apple Health on your device", where the privacy policy
 says the log lives in the app's own database and Health is optional; and it has no
 subscription paragraph, which the note under "Description" says must stay while
-recurring tips exist (guideline 3.1.2(a): each recurring tip's title, period and
-price, and the Terms of Use and privacy links).
+recurring tips exist (guideline 3.1.2(c) and Apple's subscriptions page: each
+recurring tip's title, period and price, and the Terms of Use and privacy links).
 
 ## App Information
 
@@ -84,8 +84,12 @@ Privacy Policy: https://semmes.github.io/Tallyist/privacy/
 ```
 
 Notes on the description, so edits keep it compliant:
-- **Guideline 3.1.2(a)** is why the tip paragraph names each subscription's
-  title, duration, and price per period, and why both links appear verbatim.
+- **Guideline 3.1.2(c) and Apple's subscriptions page**
+  (developer.apple.com/app-store/subscriptions/) are why the tip paragraph
+  names each subscription's title, duration, and price per period, and why
+  both links appear verbatim: "your app and App Store metadata must include
+  links to your Terms of Use and Privacy Policy". (This line credited
+  3.1.2(a) until 2026-09-26; that section is about permissible uses.)
   Keep all of that if you rewrite the rest. If ASC prices ever change, change
   them here in the same breath.
 - **Guideline 1.4.3** is why there are no health claims, no "drink less"
@@ -95,8 +99,9 @@ Notes on the description, so edits keep it compliant:
 
 **Paste one of these before 1.4 is submitted.** The live description (the
 owner's own, read 2026-09-23 and described in the status block above) has no
-subscription paragraph, which guideline 3.1.2(a) requires while recurring tips
-exist, and it says nothing about the two things 1.4 adds. Guideline 2.5.1 asks
+subscription paragraph, which guideline 3.1.2(c) and Apple's subscriptions
+page require while recurring tips are sold, and it says nothing about the two
+things 1.4 adds. Guideline 2.5.1 asks
 that an app's HealthKit use be indicated in its description, and 1.4 is the
 first version that reads anything from Health beyond alcohol. Either text below
 fixes both. They differ only in voice.
@@ -462,7 +467,10 @@ Notes on what's new in 1.3:
 Reviewed under 1.4.3 (`docs/copy-review-1.4.3.md`, "1.4 release"). The store
 shows the first lines and hides the rest behind "more", so the watch and the
 Health figures come first. No sync timing is promised: the watch's sync has
-not yet run on a TestFlight build (the reviewer notes say the same).
+not yet run on a TestFlight build (the reviewer notes say the same). It is
+wrapped here for reading, and the store keeps line breaks (1.2's shipped notes
+break mid-sentence), so join each paragraph onto one line before pasting and
+keep the blank lines between paragraphs.
 
 ```
 Tallyist is now on Apple Watch. Tap plus to log a drink, hold it to say what
@@ -479,7 +487,16 @@ Trends' three comparisons now share one card, and the drinking days and
 weekend figures, yours and the published ones, are drawn as bars. On iOS 27,
 text on cards is easier to read and the range and settings pickers switch on
 a single tap.
+
+The tip jar in Settings now offers a recurring tip too, monthly or yearly.
+Tips unlock nothing.
 ```
+
+The last paragraph was added on 2026-09-26, when the owner decided the
+recurring tips go on sale with 1.4 (guideline 2.3.12 asks What's New to
+describe product changes, and 1.4 is the first version that sells them). It
+went through the same review. If App Review rejects the subscriptions and they
+are removed from the submission, remove this paragraph too.
 
 ## Reviewer notes (1.4) — paste into App Review notes
 
@@ -499,9 +516,12 @@ purpose (`docs/health-pairing-phase-0-findings.md`, ADR-0053).
 the copy without an alpha channel) in App Review Information, because a review device usually has no Health data
 for these types and the section is designed to show nothing then.
 
-**Length:** App Store Connect's Notes field holds 4,000 characters. The block
-below is 3,783. A first draft ran to 5,236 and was cut; any addition has to fit
-the same limit, so count before pasting (`wc -c`).
+**Length:** App Store Connect's Notes field holds 4,000 bytes ("The Notes
+field can contain up to 4000 bytes", Platform version information), and a
+character outside ASCII counts as more than one. The block below is 3,958
+bytes, all ASCII, with the recurring tips' item added on 2026-09-26. A first
+draft ran to 5,236 and was cut; any addition has to fit the same limit, so
+count before pasting (`wc -c`).
 
 ```
 What's new in 1.4. The four claims of our 1.0 response hold: no goals,
@@ -518,8 +538,7 @@ no accounts; no external services.
   sends the watch two settings over WatchConnectivity (region and what plus
   logs); no drink travels that way.
 - No HealthKit entitlement. The iPhone app saves a watch drink to Health,
-  with the user's permission, the next time it is opened after the drink
-  syncs.
+  with the user's permission, the next time it opens after the drink syncs.
 - Complications show today's count; the rectangular one has a plus. Counts
   are marked privacy-sensitive, so watchOS redacts them on a locked watch.
   No notifications, streaks or scores.
@@ -527,14 +546,14 @@ no accounts; no external services.
 2. Background mode: remote-notification (iPhone and watch)
 - Lets the silent notifications CloudKit sends for the user's private
   database update the store while the app is closed. No visible
-  notification, no push server of ours. The iPhone project has set this
-  since 1.0, but it first reaches the built Info.plist in 1.4.
+  notification, no push server of ours. Set in the iPhone project since
+  1.0, it first reaches the built Info.plist in 1.4.
 
 3. Apple Health on Trends (new, optional read permission)
 - If turned on, Trends shows resting heart rate, sleep, heart rate
   variability and sleeping wrist temperature, each as the user's average on
   nights with drinks logged and on nights recorded as no alcohol, side by
-  side with night counts. That is the whole feature.
+  side with night counts.
 - Off by default: one switch per metric in Settings, or a one-time card on
   Trends. Permission is requested only then, separately from the alcohol
   permission; never at onboarding, and never again after "Not now".
@@ -549,26 +568,32 @@ no accounts; no external services.
   nothing is shown.
 - To see it: when, among the five days from six days ago through two days
   ago, the log has drinks on two days and two other days recorded as no
-  alcohol (both can be entered from the calendar), Trends at Week shows the
+  alcohol (the calendar can enter both), Trends at Week shows the
   card with dashes, and accepting it shows the permission sheet. Figures
   need Health readings for those nights, normally from an Apple Watch; sleep
   can be added by hand (Health, Browse, Sleep, Add Data). The attached
-  screenshot is from a simulator with sample Health data. It shows three
-  rows, because an app cannot write wrist temperature to Health.
+  simulator screenshot uses sample Health data and shows three rows, as no
+  app can write wrist temperature to Health.
 - Review builds show a Diagnostics section in Settings. Its "Last Health
-  read" rows hold a metric name, a day count, the read's duration, and which
-  part of the app read it and when; never a value.
+  read" rows hold a metric, a day count, a duration, the process that read
+  it and a time; never a value.
 
 4. Other changes
-- Trends' three comparisons share one card, two of them drawn as bars. Same
-  sources, same figures.
+- Trends' three comparisons share one card, two of them drawn as bars.
 - iOS 27 readability and control fixes, shorter Settings wording, and
   clearer errors: an unreadable log now says so instead of showing an empty
   day.
 
+5. Recurring tips (new in-app purchases)
+- Settings > About > Buy me a drink: a monthly and a yearly auto-renewable
+  tip beside the one-time one. They unlock nothing. After subscribing, the
+  app asks for notification permission, for a reminder a week before each
+  renewal.
+
 New in 1.4: the watch app, a HealthKit read for four types behind switches
-that start off, and the remote-notification background mode. No new privacy
-label categories, no new third-party code, no accounts, no servers.
+that start off, the remote-notification background mode, and two recurring
+tips. No new privacy label categories, no new third-party code, no accounts,
+no servers.
 ```
 
 ## Reminders for the version page
@@ -604,10 +629,13 @@ label categories, no new third-party code, no accounts, no servers.
 **For 1.4 specifically** (added 2026-09-24):
 
 - **Description:** paste (A) or (B) from "Description for 1.4". The live one
-  lacks the 3.1.2(a) subscription paragraph and says nothing about the Health
-  reads, and 1.4 is the version a reviewer will read it beside. Read the
-  in-app purchases bullet below first: if the recurring tips will not be sold
-  with 1.4, drop the subscription paragraph before pasting.
+  lacks the 3.1.2(c) subscription paragraph and says nothing about the Health
+  reads, and 1.4 is the version a reviewer will read it beside. The recurring
+  tips go on sale with 1.4, so keep the subscription paragraph, and make its
+  names and prices match what App Store Connect holds for the two
+  subscriptions (the next bullet). (A) is wrapped for reading here and the
+  store keeps line breaks, so join each paragraph of (A) onto one line before
+  pasting; (B) is already unwrapped.
 - **App Privacy stays Data Not Collected**, and no answer changes. The
   reasoning, checked against the build rather than assumed, is in
   `docs/tallyist-1.4-spec.md` ("App Privacy"). The regulated medical device
@@ -618,21 +646,83 @@ label categories, no new third-party code, no accounts, no servers.
   (`docs/health-pairing-phase-0-findings.md`). The product page shows 18+ with
   "Frequent" alcohol references (2026-09-26), not the 17+ this file used to
   give.
-- **In-app purchases, before pasting a description.** The live product page
-  lists one in-app purchase, "Buy the creator a drink" at $4.99 (2026-09-26).
-  Neither recurring tip appears. Descriptions (A) and (B) both carry the
-  guideline 3.1.2(a) paragraph naming the monthly and yearly tips, so check
-  both subscriptions' status in App Store Connect (Monetization →
-  Subscriptions) before submitting.
-  - **To sell them with 1.4:** Apple's help says the first auto-renewable
-    subscription "must be submitted with a new app version", "together with
-    its subscription group", and everything reviewed together goes in "the
-    same draft submission". The same page also says in-app purchases "aren't
-    supported on Apple Watch" and should be removed from an Apple Watch app
-    version's submission. 1.4 is an iOS version that carries a watch app, and
-    whether that sentence applies to it was not verified.
-  - **If they will not be sold:** remove the subscription paragraph from the
-    description before pasting it.
+- **The recurring tips go on sale with 1.4** (the owner, 2026-09-26). The
+  live product page lists one in-app purchase, "Buy the creator a drink" at
+  $4.99, and neither subscription. On 2026-09-26 the App Store's sandbox also
+  returned only that product to a simulator build of 1.4, so the two
+  subscriptions are not yet in a state it serves; missing metadata is the
+  usual reason. Apple's help says a first auto-renewable subscription "must be
+  submitted with a new app version", "together with its subscription group",
+  in "the same draft submission". In App Store Connect (Account Holder, Admin
+  or App Manager), Monetization → Subscriptions:
+  1. **The group** ("Support" in the StoreKit file). Add an English (U.S.)
+     display name, which people "will see … when they manage subscriptions on
+     their devices". Suggested: "Recurring tip" (copy review, 2026-09-26). Set
+     App Name Display Options.
+  2. **Each subscription**, both at the same level, as the StoreKit file has
+     them:
+     - Product ID exactly `com.shawnsemmes.DrinkTracker.support.monthly` or
+       `…support.yearly`, as `TipJar.swift` has them. "The product ID isn't
+       editable after you save the In-App Purchase."
+     - Duration 1 month or 1 year ("can't be changed after you submit for
+       review"), price $4.99 (ADR-0012), the app's storefronts, Family
+       Sharing off as in the StoreKit file.
+     - Localization: a Display Name (2 to 30 characters) and a Description
+       (45 at most). The StoreKit file has "A drink every month" and "A drink
+       every month. Cancel any time." and the yearly equivalents; the
+       descriptions (A) and (B) say A Drink Every Month and A Drink Every Year.
+       Whatever goes in here, use the same names in the description.
+     - App Review Screenshot (required): Settings → About → Buy me a drink
+       with both rows showing. The rows appear only once the metadata is
+       saved, and "It may take up to 1 hour for changes you make to product
+       metadata to appear in the sandbox environment", so take it from a
+       TestFlight build after that.
+     - Review Notes ("should not exceed 4000 characters"). A draft, the
+       owner's to change: "A
+       voluntary recurring tip to the developer of a free app. It unlocks
+       nothing; every feature is free for everyone. Guideline 3.1.1 allows
+       tips to the developer. If the subscriber allows notifications, the app
+       reminds them a week before each renewal, and Manage or cancel is on the
+       same screen. Where: Settings > About > Buy me a drink."
+  3. **Add for Review:** each subscription in Prepare for Submission with no
+     missing metadata, platform iOS and version 1.4, with the group added too
+     ("If you're submitting a subscription and the subscription group hasn't
+     been approved yet, add the subscription group to the submission as
+     well"), all in the same draft submission as the 1.4 version.
+  - **If App Review rejects the tips.** Guideline 3.1.2(a) says "If you offer
+    an auto-renewable subscription, you must provide ongoing value to the
+    customer", and these unlock nothing, so a rejection is a real possibility
+    (ADR-0012's amendment of 2026-09-26). The version waits on them: "All
+    items submitted together must be Accepted to complete the submission."
+    Remove them from the submission, click Resubmit, and edit three texts
+    first. In the description, (A) or (B), cut the tip paragraph to the
+    one-time tip: end its tip-jar sentence at "a one-time $4.99 tip." and
+    delete the whole "Recurring tips renew automatically…" sentence. Paste
+    What's New without its last paragraph. In the reviewer notes, delete item
+    5 and change the closing line's list back to "…a HealthKit read for four
+    types behind switches that start off, and the remote-notification
+    background mode." The 1.4 build handles that case: with no subscription on
+    sale the tip jar shows no Recurring section, which was checked on a
+    simulator against the sandbox's real reply.
+  - **The reminder promise, the owner's call.** The descriptions, the support
+    page and the README say Tallyist reminds you "a week before each renewal"
+    with no condition. Since the fix the app keeps that for a year of renewals
+    past its last launch or foreground, where notifications are allowed (a
+    device that has never been asked schedules none until the tip jar is opened
+    there). The privacy policy's "the app offers a local reminder" already
+    fits. Qualifying the others, for example "Tallyist can remind you a week
+    before each renewal, if you allow notifications", is a copy decision; any
+    new wording goes through the 1.4.3 review (ADR-0012's amendment, Costs).
+  - **Apple Watch.** The same help page says "In-App Purchases and
+    subscriptions aren't supported on Apple Watch. To submit an Apple Watch
+    app version, remove all in-app purchases and subscriptions from the
+    submission." Tallyist has no Apple Watch app version in that sense:
+    "Watch-only apps are considered part of the iOS platform in App Store
+    Connect", and "To offer your app on iPhone and Apple Watch, create an iOS
+    app in Xcode that includes a watchOS counterpart." 1.4 is an iOS version
+    and the watch targets import no StoreKit, so the sentence does not
+    describe it. If the Add for Review dialog does not offer iOS 1.4, record
+    its message and use the contingency above.
 - **Screenshots:** the watch needs its own set (Apple Watch, one size is
   enough; 416 × 496 from a 46mm simulator is an accepted size), and every
   in-app iPhone and iPad shot is still stale since the tab bar. Candidate sets
@@ -657,7 +747,7 @@ label categories, no new third-party code, no accounts, no servers.
     description includes the app's functionality on Apple Watch." Descriptions
     (A) and (B) each name the watch in one clause. A line saying what the watch
     does would need the 1.4.3 review before it is pasted.
-- **App Review Information:** paste "Reviewer notes (1.4)" (3,783 characters,
+- **App Review Information:** paste "Reviewer notes (1.4)" (3,958 bytes,
   under the field's 4,000) and attach the Health card screenshot it names.
   Their closing line said "no third-party code" until 2026-09-26, which was
   false: the app has linked ComponentsKit and AutoLayout through Swift Package
@@ -676,10 +766,12 @@ label categories, no new third-party code, no accounts, no servers.
   2026-09-24 (CLAUDE.md, the bullet "The website's own pages are built…"), and
   `http://tallyist.co/` answers 301 to https.
 - **The TestFlight build** (added 2026-09-26):
-  - **Which build.** The last code change on the 1.4 train is PR #150 (the
-    watch's hint and the widget's ≈ line), merged as 15a4f9f. Submit a build
-    from that commit or later; anything earlier lacks some of 2026-09-26's
-    fixes. A manual archive has to come from a checkout pulled to it.
+  - **Which build.** The last code change on the 1.4 train is the tip jar's
+    renewal fix (ADR-0012's amendment of 2026-09-26), which the recurring
+    tips need now that they go on sale. Submit a build from its merge or
+    later; one from earlier (the previous last change was PR #150, merged as
+    15a4f9f) lacks it. A manual archive has to come from a checkout pulled to
+    it.
   - **Xcode Cloud already archives main.** Its "Archive - iOS" action
     succeeded on 146d92d, 15a4f9f, 9891976 and b8eb04b (2026-09-26: 0 errors,
     32 deprecation warnings), so the private `contract/` submodule does not
@@ -693,6 +785,25 @@ label categories, no new third-party code, no accounts, no servers.
   - **Testing.** Internal testing is enough for the pass.
     `ITSAppUsesNonExemptEncryption` is `NO` on the iOS app. Whether that also
     covers the embedded watch app will show at the first upload.
+  - **The recurring tips.** TestFlight buys through the sandbox, so once the
+    subscriptions' metadata is saved in App Store Connect, Settings → About →
+    Buy me a drink shows both rows with their names and prices; subscribe to
+    one to see "Renews" and "Manage or cancel", and take the App Review
+    Screenshot there. Settings → Diagnostics (test builds) has a "Recurring
+    tip" line: which tip, whether it renews or ends, how many reminders the
+    system holds and when the next is due, and whether notifications are on.
+    TestFlight renews on an accelerated schedule, so there the first reminder
+    is already past and the rest are counted a month apart from an expiration
+    much nearer than a month; the line shows what the system holds, not what a
+    production subscriber would get. The reminder itself can be seen from Xcode instead: Run the
+    DrinkTracker scheme on a simulator (the scheme's StoreKit configuration
+    applies), subscribe to the monthly tip, and the line shows a reminder a
+    week before the renewal at the configuration's default time rate; cancel
+    it in Debug → StoreKit → Manage Transactions, then leave the tip jar and
+    open it again (a cancellation there makes no transaction, and the app
+    re-reads it when the tip jar opens or the app returns to the foreground),
+    and it reads "Ends …" with no reminders pending. Cancelling through the tip
+    jar's own "Manage or cancel" sheet is re-read when the sheet closes.
   - **Which drinks to judge.** The phone and the watch run Xcode builds, which
     sync to CloudKit Development. The TestFlight build syncs to Production,
     which is a separate database. Judge the pass only on drinks logged after
