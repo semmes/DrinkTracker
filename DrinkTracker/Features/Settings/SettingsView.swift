@@ -13,6 +13,7 @@ import SwiftUI
 struct SettingsView: View {
   @Environment(AppSettings.self) private var settings
   @Environment(HealthKitService.self) private var health
+  @Environment(TipJar.self) private var tipJar
   @Environment(\.modelContext) private var modelContext
 
   @AppStorage(AppearancePreference.storageKey)
@@ -536,6 +537,14 @@ struct SettingsView: View {
             diagnosticRow("Last Health read (\(read.metric))", value: read.line)
           }
         }
+        // The tip jar's renewal reminder (ADR-0012's amendment of 2026-09-26):
+        // whether the recurring tip renews or ends, when the reminder is due,
+        // and whether this device will show it. TestFlight renews on an
+        // accelerated schedule, so there this renewal's reminder is already due
+        // and the rest are counted a period apart from that near expiration:
+        // the line shows what the system holds, not what a production
+        // subscriber gets.
+        diagnosticRow("Recurring tip", value: tipJar.diagnosticLine)
         diagnosticRow(
           "Intent last built by",
           value: Diagnostics.lastIntentBuild ?? "never built"
@@ -603,8 +612,9 @@ struct SettingsView: View {
         aboutLink("Buy me a drink", symbol: "gift") { SupportView() }
 
         // Apple's standard EULA. Required to be reachable in-app once the app
-        // sells auto-renewing subscriptions (guideline 3.1.2(a)); it also
-        // appears beside the subscription controls themselves.
+        // sells auto-renewing subscriptions (guideline 3.1.2(c) and Apple's
+        // subscriptions page); it also appears beside the subscription
+        // controls themselves.
         Link(destination: SupportView.termsOfUseURL) {
           HStack {
             Label("Terms of Use", systemImage: "doc.text")
