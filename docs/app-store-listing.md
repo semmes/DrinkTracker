@@ -3,9 +3,9 @@
 **Status:** 1.0 (2026-08-25), 1.1 (2026-09-01), 1.2 (2026-09-05) and 1.3
 (2026-09-20) live — the dates are the store's own (its version history, and
 for 1.0 the app's release date), read on 2026-09-23, when the owner reported
-1.3's approval; 1.4 in preparation, carrying the Apple Watch app and Apple
-Health on Trends together (ADR-0054), with its description, What's New and
-reviewer notes below ·
+1.3's approval; 1.4 submitted for review on 2026-09-26 (the owner; build
+1.4 (1)), carrying the Apple Watch app and Apple Health on Trends together
+(ADR-0054), with its description, What's New and reviewer notes below ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -834,4 +834,6 @@ no servers.
   that build is also its device check: force-quit the watch app and confirm it
   is not running, tap the card's plus, leave that drink alone for twenty
   minutes, then follow the rest of ADR-0055's "Verification" and note when the
-  drink reaches the phone.
+  drink reaches the phone. *(1.4 was submitted on 2026-09-26, and whether this
+  pass ran first was not reported. The build in review, 1.4 (1), is the one
+  TestFlight has, so the pass can still run on it.)*

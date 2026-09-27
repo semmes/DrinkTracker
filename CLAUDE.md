@@ -340,6 +340,8 @@ amended), so the 1.4 build comes from that merge or later.**
 **The same night the owner set the yearly tip to $99.99 in App Store Connect; the
 build does not change, because the app reads names and prices from StoreKit (the
 bullet "The yearly tip is $99.99…", ADR-0012 amended again).**
+**Later that night the owner submitted 1.4 for review, build 1.4 (1) (the bullet "1.4
+is submitted for review…", which lists what to do when it is approved).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4600,3 +4602,22 @@ Open items for v1.2:
   the editor's own strings), and the owner found no price field there; the file is
   JSON, and its `displayPrice` edits directly. The owner ran the scheme after the edit
   and reported "Great it worked".
+- **1.4 is submitted for review (2026-09-26).** The owner, that night: "1.4 has been
+  submitted for review in the app store. I'll let you know when it's approved." The
+  build is 1.4 (1): the draft submission showed it, and the only 1.4 archive on this
+  Mac is 1.4 (1), made at 21:34 from 98e494b (#155, the renewal fix) with Xcode 27.0
+  (27A266a) against the iOS 27.0 SDK, read from the archived app's `DTXcodeBuild` and
+  `DTSDKName`. Everything merged after 98e494b is docs, records and the StoreKit
+  file's test price, none of it in the app. **Not reported:** whether both
+  subscriptions went into the submission (App Store Connect refuses the new group
+  without one of its subscriptions, so if the group went, at least one did); whether
+  the description went in with $99.99/year; and whether the TestFlight pass across
+  phone and watch ran first. That pass was listed before submitting and is also
+  ADR-0055's device check; build 1.4 (1) is in TestFlight, so it can still run while
+  the version is in review. **When 1.4 is approved:** record the release date from the
+  iTunes lookup API (the bullet "1.3 is approved and live…" has the recipe); read the
+  live product page for the two recurring tips at $4.99 a month and $99.99 a year, or
+  for their absence if App Review took them out (the listing's contingency); check the
+  page's Privacy Policy, Support and Marketing URLs are the `tallyist.co` ones; and set
+  `platform_state: 2` in `semmes/Tallyist`'s `_config.yml` (the listing's "When 1.4 is
+  live"). The repository-visibility decision is still the owner's.
