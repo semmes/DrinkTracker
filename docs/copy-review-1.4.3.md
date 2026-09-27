@@ -2494,3 +2494,29 @@ Each states a fact about money, a date or a setting in the reader's terms. None 
 urges or judges, and none mentions the reader's drinking; the tips stay as unrelated to
 the log as ADR-0012 made them. No exclamation mark. The new strings have no em dash; the
 reused purchase messages keep theirs, since they were reviewed and ship unchanged. Pass.
+
+## 2026-09-26 — The reminder promise says it needs notifications
+
+The owner chose to qualify the recurring tips' reminder wherever it was promised without
+a condition, since the tip jar fix (ADR-0012 amended) sends it only where notifications
+are allowed:
+
+- **App Store descriptions, the base text and 1.4's (A):** "…at least 24 hours before
+  the period ends; Tallyist itself reminds you a week before each renewal so you can
+  cancel first if you want." becomes "…at least 24 hours before the period ends. If you
+  allow notifications, Tallyist reminds you a week before each renewal so you can
+  cancel first if you want."
+- **1.4's (B):** "…before the period ends, and Tallyist reminds you a week before each
+  renewal." becomes "…before the period ends. If you allow notifications, Tallyist
+  reminds you a week before each renewal."
+- **Support page (tallyist.co/support/, mirrored from `docs/support.md`):** "Tallyist
+  reminds you a week before each renewal so you can cancel before being charged."
+  becomes "If you allow notifications, Tallyist reminds you a week before each renewal
+  so you can cancel before being charged."
+- **README:** the same condition, in the README's own sentence.
+
+The condition is a fact about the reader's own setting, stated first so the promise
+that follows is true as written. Nothing praises, urges or judges, and no exclamation
+mark or em dash is added. The in-app captions already say what happens with
+notifications off, and the privacy policy's "the app offers a local reminder" already
+fits, so neither changes. Pass.

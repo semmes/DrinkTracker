@@ -125,7 +125,7 @@ watch model and watchOS version.
 
 <details>
 <summary>How do I cancel a recurring tip?</summary>
-<p>Any time, in Tallyist under Settings → Buy me a drink → Manage or cancel, or in the iOS Settings app under your Apple Account → Subscriptions. Tallyist reminds you a week before each renewal so you can cancel before being charged.</p>
+<p>Any time, in Tallyist under Settings → Buy me a drink → Manage or cancel, or in the iOS Settings app under your Apple Account → Subscriptions. If you allow notifications, Tallyist reminds you a week before each renewal so you can cancel before being charged.</p>
 </details>
 
 <details>

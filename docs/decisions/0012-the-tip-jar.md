@@ -209,8 +209,10 @@ Decision below is the fix after that review.
 - The reminders reach a year of renewals past the app's last launch or
   foreground, and only where notifications are allowed; a device that has
   never been asked schedules none until the tip jar is opened there. The
-  published promise ("a week before each renewal") is unconditional, and
-  qualifying it is the owner's copy call (the listing records it).
+  published promise was unconditional; on 2026-09-26 the owner chose to
+  qualify it, so the descriptions, the support page and the README now say
+  "If you allow notifications, Tallyist reminds you a week before each
+  renewal". It still says nothing about the year's horizon.
 - The later renewals' dates are a Gregorian count from the expiration, not the
   App Store's own dates, which are not known in advance; that is why the text
   says "in about a week".
@@ -257,7 +259,9 @@ recorded as the simulator's, not the app's.
   `willAutoRenew` and `autoRenewPreference`, a switch between tips and the
   message it shows, and a real renewal and cancellation.
   The owner can check these in Xcode with the StoreKit configuration (Debug →
-  StoreKit → Manage Transactions) and on TestFlight.
+  StoreKit → Manage Transactions) and on TestFlight. On 2026-09-26 the owner
+  reported: "Checked xcode and the storekit configuration. It's configured
+  correctly." Which flows that check ran is not recorded.
 - A reminder firing on a device a week before a real renewal. TestFlight renews
   on an accelerated schedule, so only production shows it.
 - Both pre-subscription captions (notifications on and off), which are drawn

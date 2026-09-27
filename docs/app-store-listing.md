@@ -75,9 +75,9 @@ home screen, there's an optional tip jar ("Buy me a drink") — a one-time
 $4.99 tip, or recurring support at A Drink Every Month ($4.99/month,
 auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly).
 Tips unlock nothing. Recurring tips renew automatically until cancelled in
-your App Store account settings, at least 24 hours before the period ends;
-Tallyist itself reminds you a week before each renewal so you can cancel
-first if you want.
+your App Store account settings, at least 24 hours before the period ends.
+If you allow notifications, Tallyist reminds you a week before each renewal
+so you can cancel first if you want.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy: https://semmes.github.io/Tallyist/privacy/
@@ -144,9 +144,9 @@ home screen, there's an optional tip jar ("Buy me a drink") — a one-time
 $4.99 tip, or recurring support at A Drink Every Month ($4.99/month,
 auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly).
 Tips unlock nothing. Recurring tips renew automatically until cancelled in
-your App Store account settings, at least 24 hours before the period ends;
-Tallyist itself reminds you a week before each renewal so you can cancel
-first if you want.
+your App Store account settings, at least 24 hours before the period ends.
+If you allow notifications, Tallyist reminds you a week before each renewal
+so you can cancel first if you want.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy: https://tallyist.co/privacy/
@@ -167,7 +167,7 @@ Tallyist gives you an honest picture, without the lecture. Log a drink in one ta
 See your day, your week, your month. Just the numbers, no streaks, no scores, no judgment either direction. If you turn it on, Trends can also show your resting heart rate, sleep, heart rate variability and wrist temperature from Apple Health beside your log, as your own averages. They are read on your device and never stored.
 Your log lives on your device and syncs through your own private iCloud. Saving to Apple Health is optional. No account to create, no signup, nothing sold or shared.
 
-Tallyist is free, and everything in it is free. There's an optional tip jar: a one-time $4.99 tip, or recurring support at A Drink Every Month ($4.99/month, auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly). Tips unlock nothing. Recurring tips renew automatically until cancelled in your App Store account settings, at least 24 hours before the period ends, and Tallyist reminds you a week before each renewal.
+Tallyist is free, and everything in it is free. There's an optional tip jar: a one-time $4.99 tip, or recurring support at A Drink Every Month ($4.99/month, auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly). Tips unlock nothing. Recurring tips renew automatically until cancelled in your App Store account settings, at least 24 hours before the period ends. If you allow notifications, Tallyist reminds you a week before each renewal.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy: https://tallyist.co/privacy/
@@ -704,15 +704,14 @@ no servers.
     background mode." The 1.4 build handles that case: with no subscription on
     sale the tip jar shows no Recurring section, which was checked on a
     simulator against the sandbox's real reply.
-  - **The reminder promise, the owner's call.** The descriptions, the support
-    page and the README say Tallyist reminds you "a week before each renewal"
-    with no condition. Since the fix the app keeps that for a year of renewals
-    past its last launch or foreground, where notifications are allowed (a
-    device that has never been asked schedules none until the tip jar is opened
-    there). The privacy policy's "the app offers a local reminder" already
-    fits. Qualifying the others, for example "Tallyist can remind you a week
-    before each renewal, if you allow notifications", is a copy decision; any
-    new wording goes through the 1.4.3 review (ADR-0012's amendment, Costs).
+  - **The reminder promise (decided 2026-09-26).** The descriptions (A) and
+    (B), the base description, the support page and the README now say "If
+    you allow notifications, Tallyist reminds you a week before each renewal",
+    the owner's choice once the fix made the reminder depend on it (a device
+    that has never been asked schedules none until the tip jar is opened
+    there). The app keeps it for a year of renewals past its last launch or
+    foreground (ADR-0012's amendment, Costs). The privacy policy's "the app
+    offers a local reminder" already fitted and is unchanged.
   - **Apple Watch.** The same help page says "In-App Purchases and
     subscriptions aren't supported on Apple Watch. To submit an Apple Watch
     app version, remove all in-app purchases and subscriptions from the

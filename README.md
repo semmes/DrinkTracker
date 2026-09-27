@@ -754,8 +754,9 @@ Settings → **Buy me a drink**: a $4.99 consumable at quantity 1–10 (Apple's
 per-transaction cap, stated in the UI) and two auto-renewing subscriptions
 (monthly / yearly), all through In-App Purchase — guideline 3.1.1 rules out
 Apple Pay for digital tips, and the StoreKit sheet is the same one-confirm
-experience anyway. Tips unlock nothing; a local notification reminds the user a
-week before each renewal so cancelling first is always realistic. Design
+experience anyway. Tips unlock nothing; if the user allows notifications, a local
+notification reminds them a week before each renewal so cancelling first is
+always realistic. Design
 reasoning and the 1.4.3 review of the metaphor: [ADR-0012](docs/decisions/0012-the-tip-jar.md),
 [copy review](docs/copy-review-1.4.3.md).
 
