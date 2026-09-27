@@ -4567,7 +4567,8 @@ Open items for v1.2:
   StoreKit → Manage Transactions, and on TestFlight), the two pre-subscription
   captions (drawn only when the subscription products load), a reminder firing
   before a production renewal, VoiceOver, and App Review's reading of 3.1.2(a).
-  **The owner's copy call:** the descriptions, support page and README promise the
-  reminder "a week before each renewal" unconditionally; the app keeps it for a year
-  of renewals past its last run, where notifications are allowed (the listing's
-  recurring tips reminder).
+  **Decided the same night:** the owner checked the StoreKit configuration in Xcode
+  ("It's configured correctly") and chose to qualify the promise, so the
+  descriptions, the support page and the README now say "If you allow notifications,
+  Tallyist reminds you a week before each renewal" (copy review, 2026-09-26); the app
+  keeps it for a year of renewals past its last run.
