@@ -342,6 +342,9 @@ build does not change, because the app reads names and prices from StoreKit (the
 bullet "The yearly tip is $99.99…", ADR-0012 amended again).**
 **Later that night the owner submitted 1.4 for review, build 1.4 (1) (the bullet "1.4
 is submitted for review…", which lists what to do when it is approved).**
+**On 2026-09-27 the home page got its film, under the hero, started on scroll by the
+site's one script, and the hero phone a soft backlight (the bullet "The home page's
+film…", `semmes/Tallyist#7`).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4621,3 +4624,46 @@ Open items for v1.2:
   page's Privacy Policy, Support and Marketing URLs are the `tallyist.co` ones; and set
   `platform_state: 2` in `semmes/Tallyist`'s `_config.yml` (the listing's "When 1.4 is
   live"). The repository-visibility decision is still the owner's.
+- **The home page's film and the hero's backlight went live (2026-09-27;
+  `semmes/Tallyist#7`, merged as 0458a45 on the owner's review of a local preview).**
+  A 30-second film, rendered by code from the app's own screens and colours by a Swift
+  program kept untracked in `Claude outputs/motion-reel/` (the memory "Motion reel
+  renderer"), plays in its own band under the hero, straight on the page. **The page
+  cut** is the renderer's `--seamless` option, which leaves the original reel
+  untouched: every frame's edges are blended to exactly the page's colour (`#F2F2F7`,
+  or black in dark), the light opening starts on the page instead of inside the app's
+  white screen, and the loop wraps with a fade; measured as Chrome draws it, the
+  film's edge is 0 to 2 levels from the page. `video/` holds 13 files, 62 MB: light
+  and dark, 1080p and 720p (up to 900px wide), HEVC before H.264, a poster and a still
+  per appearance, and a transparent 72-byte poster that stops Chrome painting a grey
+  box before the first frame. Reduced motion gets the still and a player that waits.
+  **The site's one script** starts the film from its first frame once half of it is
+  on screen and pauses it when it leaves. Without it, a browser starts a muted film
+  as soon as one pixel shows, which under the hero is at load on most laptops. The
+  privacy page's "This website" note now says "The home page has one short script of
+  its own, which starts the film when it scrolls into view and sends nothing
+  anywhere." in place of "There are no scripts on any page.", and
+  `scripts/check-links.py` allows exactly that script by the SHA-256 of its text, so
+  an edit to it, a script file or a second script fails the build until reviewed.
+  **The backlight** is a blurred disc of light behind the hero phone, centred 60% of
+  the way down it. The device casts no shadow and nothing is drawn over it (ADR-0056:
+  "adding shadows or reflections" counts as modifying a product image), which is why
+  the owner's request for "more shadow" became the disc's own light and shade. Its
+  reach is capped by the space available (24px to the text, 12px to the window, its
+  own rule below 820px where the text stacks); no sideways scroll at 201 widths, and
+  at 603 sizes it stays inside the hero, so the hero's spacing is unchanged. Tried and
+  set aside on the owner's review: the film inside the hero, a white band with the
+  film framed, a tile the phone rose out of, the app's own counter tile (drawn with
+  the true continuous corner as an SVG mask), and a crisp disc. **Verified:** CI's
+  own Jekyll build of the branch matched the preview (hero and film band identical,
+  stylesheet byte-identical); live, the pages and films answer (206 for ranges, which
+  Safari needs), and the scroll test run against tallyist.co behaved as on the
+  preview. **Costs:** the film downloads with the page, about 5 MB on a phone and 7.5
+  to 12 MB on a desktop, and the repository grew by 62 MB; in dark, the backlight's
+  faintest glow crosses the film's blank top strip by up to about 25px on phones.
+  **Not verified:** Safari itself (every check ran in Chrome), and iPhone Low Power
+  Mode, where the film should show its poster with a play button. **Tooling,** in
+  `Claude outputs/site-hero/`: `render.py` builds a stand-in from the live pages plus
+  the branch's changes, `capture.py`, `scrolltest.py`, `sweep.py` and `glowcheck.py`
+  measure it over the DevTools pipe (the memory "Website captures with headless
+  Chrome"), and `serve.py` is the `hero-preview` entry in `.claude/launch.json`.

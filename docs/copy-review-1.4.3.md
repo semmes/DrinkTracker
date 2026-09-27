@@ -2533,3 +2533,36 @@ guideline 3.1.2(c) asks for it. No other word changes. Pass.
 tip, so "A Drink Every Year" at $99.99 names an amount its price contradicts, and a
 reader could take it for a mistake. That is a question of accuracy, not tone; nothing
 in it praises, urges or judges. A new name comes back here before it ships.
+
+
+## 2026-09-27 — The home page's film, and "This website" names its script
+
+New copy for `tallyist.co`, in `semmes/Tallyist#7`, merged and live on 2026-09-27
+(0458a45). Nothing ships in the app.
+
+- **Home page, the film's band, for assistive technology only:** a heading that is
+  read but not shown, "Tallyist in 30 seconds"; the film's label, "Tallyist, a
+  30-second film. It plays muted; the controls pause it and turn the sound on."; the
+  reduced-motion player's, "Tallyist, a 30-second film with sound. It plays when you
+  press play."; and a description of what the film shows, which ends with its words
+  on screen.
+- **The film's own words, on screen:** "Tap once.", "Count what you drink.", "One tap
+  per drink, from the app or the widget.", "A calendar you can read at a glance.",
+  "See your own pattern.", "Yours, and only yours.", "No account required", "No
+  servers", "No analytics", then the end card: "Tallyist", "Count what you drink. See
+  your own pattern.", "Free on iPhone. Available on the App Store." and Apple's
+  trademark line.
+- **"This website" (privacy page):** "There are no scripts on any page." becomes
+  "The home page has one short script of its own, which starts the film when it
+  scrolls into view and sends nothing anywhere."
+
+Every line on screen is one the site or the listing already carries, or says what
+the film shows. "Count what you drink." and "See your own pattern." are the hero's
+own headline, which the review of the website's own pages passed, and "Tap once."
+captions the tap the film shows, an imperative only in the grammatical sense, as
+"See how it works" is. "No servers" is the home page's own claim and the listing's
+"no server", and the privacy policy says it precisely: "no server other than
+Apple's is involved". The labels say what the film is and what its controls do.
+The note says what the script does and what it does not; the build allows exactly
+that script, by the hash of its text. Nothing praises, urges or judges, and no
+exclamation mark or em dash is added. Pass.
