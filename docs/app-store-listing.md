@@ -3,9 +3,9 @@
 **Status:** 1.0 (2026-08-25), 1.1 (2026-09-01), 1.2 (2026-09-05) and 1.3
 (2026-09-20) live — the dates are the store's own (its version history, and
 for 1.0 the app's release date), read on 2026-09-23, when the owner reported
-1.3's approval; 1.4 in preparation, carrying the Apple Watch app and Apple
-Health on Trends together (ADR-0054), with its description, What's New and
-reviewer notes below ·
+1.3's approval; 1.4 submitted for review on 2026-09-26 (the owner; build
+1.4 (1)), carrying the Apple Watch app and Apple Health on Trends together
+(ADR-0054), with its description, What's New and reviewer notes below ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -73,7 +73,7 @@ cannot read any of it.
 Tallyist is free, and everything in it is free. If it earns a place on your
 home screen, there's an optional tip jar ("Buy me a drink") — a one-time
 $4.99 tip, or recurring support at A Drink Every Month ($4.99/month,
-auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly).
+auto-renews monthly) or A Drink Every Year ($99.99/year, auto-renews yearly).
 Tips unlock nothing. Recurring tips renew automatically until cancelled in
 your App Store account settings, at least 24 hours before the period ends.
 If you allow notifications, Tallyist reminds you a week before each renewal
@@ -142,7 +142,7 @@ cannot read any of it.
 Tallyist is free, and everything in it is free. If it earns a place on your
 home screen, there's an optional tip jar ("Buy me a drink") — a one-time
 $4.99 tip, or recurring support at A Drink Every Month ($4.99/month,
-auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly).
+auto-renews monthly) or A Drink Every Year ($99.99/year, auto-renews yearly).
 Tips unlock nothing. Recurring tips renew automatically until cancelled in
 your App Store account settings, at least 24 hours before the period ends.
 If you allow notifications, Tallyist reminds you a week before each renewal
@@ -167,7 +167,7 @@ Tallyist gives you an honest picture, without the lecture. Log a drink in one ta
 See your day, your week, your month. Just the numbers, no streaks, no scores, no judgment either direction. If you turn it on, Trends can also show your resting heart rate, sleep, heart rate variability and wrist temperature from Apple Health beside your log, as your own averages. They are read on your device and never stored.
 Your log lives on your device and syncs through your own private iCloud. Saving to Apple Health is optional. No account to create, no signup, nothing sold or shared.
 
-Tallyist is free, and everything in it is free. There's an optional tip jar: a one-time $4.99 tip, or recurring support at A Drink Every Month ($4.99/month, auto-renews monthly) or A Drink Every Year ($4.99/year, auto-renews yearly). Tips unlock nothing. Recurring tips renew automatically until cancelled in your App Store account settings, at least 24 hours before the period ends. If you allow notifications, Tallyist reminds you a week before each renewal.
+Tallyist is free, and everything in it is free. There's an optional tip jar: a one-time $4.99 tip, or recurring support at A Drink Every Month ($4.99/month, auto-renews monthly) or A Drink Every Year ($99.99/year, auto-renews yearly). Tips unlock nothing. Recurring tips renew automatically until cancelled in your App Store account settings, at least 24 hours before the period ends. If you allow notifications, Tallyist reminds you a week before each renewal.
 
 Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Privacy Policy: https://tallyist.co/privacy/
@@ -665,7 +665,8 @@ no servers.
        `…support.yearly`, as `TipJar.swift` has them. "The product ID isn't
        editable after you save the In-App Purchase."
      - Duration 1 month or 1 year ("can't be changed after you submit for
-       review"), price $4.99 (ADR-0012), the app's storefronts, Family
+       review"), price $4.99 for the monthly tip and $99.99 for the yearly
+       one (ADR-0012, amended 2026-09-26), the app's storefronts, Family
        Sharing off as in the StoreKit file.
      - Localization: a Display Name (2 to 30 characters) and a Description
        (45 at most). The StoreKit file has "A drink every month" and "A drink
@@ -673,10 +674,13 @@ no servers.
        descriptions (A) and (B) say A Drink Every Month and A Drink Every Year.
        Whatever goes in here, use the same names in the description.
      - App Review Screenshot (required): Settings → About → Buy me a drink
-       with both rows showing. The rows appear only once the metadata is
-       saved, and "It may take up to 1 hour for changes you make to product
-       metadata to appear in the sandbox environment", so take it from a
-       TestFlight build after that.
+       with both rows showing. Take it from an Xcode Run of the DrinkTracker
+       scheme on a simulator, where the scheme's StoreKit configuration
+       supplies the rows. A TestFlight build shows them only once the sandbox
+       serves the subscriptions, which it may not do while their metadata,
+       this screenshot included, is incomplete. Keep the StoreKit file's
+       names and prices the same as App Store Connect's, so the screenshot
+       matches what the reviewer's build shows.
      - Review Notes ("should not exceed 4000 characters"). A draft, the
        owner's to change: "A
        voluntary recurring tip to the developer of a free app. It unlocks
@@ -688,7 +692,12 @@ no servers.
      missing metadata, platform iOS and version 1.4, with the group added too
      ("If you're submitting a subscription and the subscription group hasn't
      been approved yet, add the subscription group to the submission as
-     well"), all in the same draft submission as the 1.4 version.
+     well"), all in the same draft submission as the 1.4 version. The group
+     alone is not enough: a draft holding the version and the group but
+     neither subscription showed "Unable to Submit for Review. New
+     subscription groups must be submitted with an auto-renewable
+     subscription from within that group." (2026-09-26). Each subscription is
+     added from its own page, with its own Add for Review.
   - **If App Review rejects the tips.** Guideline 3.1.2(a) says "If you offer
     an auto-renewable subscription, you must provide ongoing value to the
     customer", and these unlock nothing, so a rejection is a real possibility
@@ -785,10 +794,11 @@ no servers.
     `ITSAppUsesNonExemptEncryption` is `NO` on the iOS app. Whether that also
     covers the embedded watch app will show at the first upload.
   - **The recurring tips.** TestFlight buys through the sandbox, so once the
-    subscriptions' metadata is saved in App Store Connect, Settings → About →
-    Buy me a drink shows both rows with their names and prices; subscribe to
-    one to see "Renews" and "Manage or cancel", and take the App Review
-    Screenshot there. Settings → Diagnostics (test builds) has a "Recurring
+    sandbox serves the subscriptions (their metadata complete in App Store
+    Connect), Settings → About → Buy me a drink shows both rows with their
+    names and prices; subscribe to one to see "Renews" and "Manage or
+    cancel". The App Review Screenshot comes from an Xcode Run instead (the
+    checklist above). Settings → Diagnostics (test builds) has a "Recurring
     tip" line: which tip, whether it renews or ends, how many reminders the
     system holds and when the next is due, and whether notifications are on.
     TestFlight renews on an accelerated schedule, so there the first reminder
@@ -824,4 +834,6 @@ no servers.
   that build is also its device check: force-quit the watch app and confirm it
   is not running, tap the card's plus, leave that drink alone for twenty
   minutes, then follow the rest of ADR-0055's "Verification" and note when the
-  drink reaches the phone.
+  drink reaches the phone. *(1.4 was submitted on 2026-09-26, and whether this
+  pass ran first was not reported. The build in review, 1.4 (1), is the one
+  TestFlight has, so the pass can still run on it.)*

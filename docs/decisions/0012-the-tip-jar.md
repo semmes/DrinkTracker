@@ -1,8 +1,9 @@
 # 0012 — The tip jar: IAP, capped quantity, and a reminder to cancel
 
 **Status:** accepted · **Date:** 2026-08 · amended 2026-09-26 (the recurring
-tips go on sale, and the reminder keeps its promise) · **Relates to:** ADR-0001,
-PRD §1 (non-goals), guideline 3.1.1 and 1.4.3
+tips go on sale, and the reminder keeps its promise) and again the same day
+(the yearly tip is $99.99) · **Relates to:** ADR-0001, PRD §1 (non-goals),
+guideline 3.1.1 and 1.4.3
 
 ## Context
 
@@ -29,10 +30,11 @@ the cap stated in the UI, and repeat purchases always possible. Products:
 |---|---|---|
 | `com.shawnsemmes.DrinkTracker.tip.onedrink` | Consumable | $4.99 |
 | `com.shawnsemmes.DrinkTracker.support.monthly` | Auto-renewing, group "Support" | $4.99 / month |
-| `com.shawnsemmes.DrinkTracker.support.yearly` | Auto-renewing, group "Support" | $4.99 / year |
+| `com.shawnsemmes.DrinkTracker.support.yearly` | Auto-renewing, group "Support" | $99.99 / year |
 
 Prices are read from StoreKit at runtime — changing them in App Store Connect
-requires no code change.
+requires no code change. *(The yearly tip was $4.99 / year until the second
+amendment of 2026-09-26.)*
 
 **Tips unlock nothing.** Everything ships to everyone. This is the ethical line
 that keeps the jar a gift rather than a paywall and keeps the App Privacy answer
@@ -269,6 +271,53 @@ recorded as the simulator's, not the app's.
   subscription.
 - VoiceOver.
 - App Review's reading of 3.1.2(a).
+
+## Amendment (2026-09-26, later): the yearly tip is $99.99
+
+**Context.** On the evening of 2026-09-26, with 1.4 and the subscription group
+in a draft submission, the owner changed the yearly tip's price in App Store
+Connect from $4.99 to $99.99. No subscription had been approved or sold, so no
+subscriber's price changes. The monthly tip stays $4.99 a month, and the
+one-time tip $4.99.
+
+**Decision.**
+- **The price is App Store Connect's, so the build does not change.** The
+  Decision above already says prices are read from StoreKit at runtime. The tip
+  jar shows each product's `displayName` and `displayPrice` ("$99.99 per year ·
+  cancel any time"), no Swift code names a price, and `DrinkTracker.storekit`
+  is not in the app bundle (the 1.4 (1) archive holds no `.storekit` file). The
+  build in the draft submission, 1.4 (1), stands.
+- **The local StoreKit configuration matches.** Its yearly `displayPrice` is
+  99.99, so an Xcode Run shows what App Store Connect sells. That Run is also
+  where the App Review Screenshot now comes from (`docs/app-store-listing.md`,
+  the recurring tips reminder), because the sandbox may not serve a
+  subscription while its metadata, that screenshot included, is incomplete.
+- **The descriptions say it.** The base description and 1.4's (A) and (B) read
+  "A Drink Every Year ($99.99/year, auto-renews yearly)", since guideline
+  3.1.2(c) and Apple's subscriptions page ask for each recurring tip's price.
+
+**Costs.**
+- The yearly tip costs more than twelve monthly ones ($59.88), where a yearly
+  subscription usually costs less. The two share a level, so a move from
+  monthly to yearly is a larger tip from the next renewal, and the tip jar's
+  "Switches to <name> on <date>. Nothing is charged until then." still holds.
+- The name was written for $4.99. In this app "a drink" is the $4.99 tip, so
+  "A drink every year" (the StoreKit file; "A Drink Every Year" in the
+  descriptions) no longer says what the yearly tip costs. Whether it is renamed
+  is the owner's call, open when this was written; a new name goes into App
+  Store Connect, the StoreKit file and the three descriptions together, through
+  the 1.4.3 review.
+- App Review. The guidelines' Business section says Apple rejects items sold at
+  "irrationally high prices". A $99.99 tip that unlocks nothing adds to the
+  3.1.2(a) risk the amendment above records, and the listing's contingency for a
+  rejection is unchanged.
+
+**Verified.** The StoreKit file parses, and only the yearly price changed. The
+owner ran the DrinkTracker scheme on a simulator after the change and reported
+"Great it worked" for the yearly row. The tallyist.co pages name no price.
+
+**Not verified.** The price as the sandbox serves it on TestFlight, which
+served neither subscription on 2026-09-26, and App Review's reading of it.
 
 ## How to reopen
 
