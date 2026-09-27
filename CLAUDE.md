@@ -332,6 +332,9 @@ to 3.27:1 and 2.44:1 to 5.37:1 on the widget (the bullet "The watch's hint and t
 widget's ≈ line take secondary ink…", design-system §2 and §9). **The owner then said it
 goes out with 1.4**, so the build submitted for 1.4 comes from its merge, 15a4f9f (#150),
 or later, and a build that late carries the two tips too.
+**The same evening a 13-inch iPad set was taken from main at 778cb1f** (the bullet "The
+1.4 iPad screenshots are taken…"), so the listing's four iPad shots from 1.0 can be
+replaced.
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4502,3 +4505,50 @@ Open items for v1.2:
   per-type map; boot and the style is live, Tinted taking its colour from `_iconTintSource`
   (`wallpaperSuggestion` gave teal on the default wallpaper). And a render straight after
   a boot can fail `simctl launch` with exit 3; running it again works.
+- **The 1.4 iPad screenshots are taken (2026-09-26; records only).** The owner asked for
+  screenshots at 2064 × 2752, App Store Connect's portrait size for the 13" iPad slot,
+  which is "Required if app runs on iPad" (Apple's screenshot specification, read the same
+  day). The listing's four iPad shots date from 1.0 and show the app before the tab bar.
+  **What was made:** Today, Calendar, Trends at Quarter, the bottom of Trends at Quarter
+  (on the iPad's taller screen the Comparisons card and the Apple Health card fit one
+  frame, so it stands in for iPhone's 04 and 06b) and History, each in light and dark,
+  plus the Health offer in light. The candidates are in the main checkout's untracked
+  `Claude outputs/1.4-screenshots/ipad-13/`, the upload copies in
+  `app-store-upload/ipad-13-2064x2752/` (8-bit RGB, sRGB chunk only, pixels identical to
+  the captures under Pillow and ImageIO; no corner speck to paint out), and both READMEs
+  say what each shows and give a recommended order. **How:** a Release build of main at
+  778cb1f (installed binary checked byte for byte against it) on a throwaway iPad Pro
+  13-inch (M5) on iOS 27, deleted afterwards; the screens reached by taps, each
+  appearance from a fresh launch. **The data**, and the scripts behind it, are in
+  `Claude outputs/1.4-screenshots/ipad-seed/`, so a retake need not rebuild them from the
+  frames: the iPhone Trends retake's drinks on their original dates, which reproduces
+  Quarter's thirteen weekly bars exactly, with the originals' two Wednesday Sep 23 drinks
+  moved to Saturday Sep 26 (today there) and the recent days typed as iPhone's History
+  shows them; no day or week holds two beers (a 12 oz beer at 5% is 1.0000000000000002
+  standard drinks; the bullet "The chart's axis labels follow a live appearance
+  change…"). The Health card's resting heart rate, sleep and HRV were written
+  by a scratch copy of the app, one value per bucket, so it reads iPhone's 06b exactly
+  (60 and 58 bpm, 6h 51m and 7h 14m, 43 and 47 ms, 37 and 33 nights). The calendar card
+  and the Comparisons figures differ a little from the iPhone frames; the README lists
+  how. **Three iPad-only traps.** (a) A new iPadOS 27 simulator started in *Windowed Apps*
+  multitasking, which draws a resize handle in the bottom-right corner and puts the app's
+  name in the status bar; Settings → Multitasking & Gestures → Full Screen Apps removes
+  both. The iPad's status bar also prints the date; `simctl status_bar override --time
+  9:41` leaves it at the real date ("Sat Sep 26", the log's today, which is what these
+  frames should show), and its help says an ISO date string there sets the date as well.
+  `--batteryState discharging --batteryLevel 100` gives a plain full battery where
+  `charged` draws the iPhone set's bolt. (b) On iPad, HealthKit's share
+  sheet is followed by an "iCloud Health Data Sync is Off" notice; answering it "Not Now"
+  the first time left the write grant *not determined* (the save threw HealthKit error
+  5), and the sheet came back on the next request, when "Allow" took. (c) In the system
+  sheets and in Settings, the simulator tool's screenshot right after a tap showed the
+  state before it, so a toggle looked unchanged and a second tap undid the first; wait two
+  seconds and screenshot again before a second tap. **What the frames show about the
+  app, not the shots:** the iPad layout is the iPhone one at full width, so Today's lower
+  half is empty and its rows run edge to edge (on an empty day, so does "Record no
+  alcohol today"). That is the PRD's open
+  question, "Does iPad get a distinct layout, or does it stay a scaled iPhone app?",
+  whose trigger was "iPad screenshots force the answer" (§8, noted there). Uploading
+  this set answers it as "a scaled iPhone app" for 1.4; the answer is the owner's.
+  **Left to the owner:** that answer, then choosing and uploading the set and deleting
+  the four 1.0 shots in the slot.

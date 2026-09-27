@@ -652,7 +652,11 @@ label categories, no new third-party code, no accounts, no servers.
     than 6.9" goes on showing 1.3's screens. The 1320 × 2868 files cannot be
     scaled to 1284 × 2778 without cropping, because the aspect ratios differ.
   - **The iPad set.** The 13" set is "Required if app runs on iPad". The four
-    live iPad shots carry over and meet it, though they are out of date.
+    live iPad shots carry over and meet it, but they date from 1.0 and show
+    the app before the tab bar. A 1.4 set at 2064 × 2752, an accepted portrait
+    size, was taken on 2026-09-26: upload `app-store-upload/ipad-13-2064x2752/`
+    (its README gives the order) and delete the four old ones, or those left
+    in the slot go on showing 1.0's screens.
   - **The description.** Apple's help for watchOS apps says "Ensure your
     description includes the app's functionality on Apple Watch." Descriptions
     (A) and (B) each name the watch in one clause. A line saying what the watch
