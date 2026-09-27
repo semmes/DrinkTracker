@@ -337,6 +337,9 @@ or later, and a build that late carries the two tips too.
 1.4, and an audit found the tip jar's renewal reminder did not keep its promise;
 it was fixed first (the bullet "The recurring tips go on sale…", ADR-0012
 amended), so the 1.4 build comes from that merge or later.**
+**The same night the owner set the yearly tip to $99.99 in App Store Connect; the
+build does not change, because the app reads names and prices from StoreKit (the
+bullet "The yearly tip is $99.99…", ADR-0012 amended again).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4572,3 +4575,28 @@ Open items for v1.2:
   descriptions, the support page and the README now say "If you allow notifications,
   Tallyist reminds you a week before each renewal" (copy review, 2026-09-26); the app
   keeps it for a year of renewals past its last run.
+- **The yearly tip is $99.99 (2026-09-26; ADR-0012 amended again).** With 1.4 and the
+  subscription group in a draft submission, the owner changed the yearly tip's price in
+  App Store Connect from $4.99 to $99.99; the monthly and one-time tips stay $4.99.
+  **No new build:** the tip jar shows StoreKit's `displayName` and `displayPrice`, no
+  Swift code names a price, and `DrinkTracker.storekit` is not in the app bundle
+  (checked in the 1.4 (1) archive, made at 21:34 from 98e494b, which carries the
+  renewal fix; #156 after it changed only docs). **What changed:** the StoreKit file's
+  yearly price (99.99); the three descriptions in `docs/app-store-listing.md` ("A Drink
+  Every Year ($99.99/year, …)"); and the listing's checklist, which now takes the App
+  Review Screenshot from an Xcode Run with the StoreKit configuration instead of
+  TestFlight, since the sandbox may not serve a subscription while its metadata, that
+  screenshot included, is incomplete. **Seen the same evening:** App Store Connect
+  would not submit the draft while it held the version and the group but neither
+  subscription ("New subscription groups must be submitted with an auto-renewable
+  subscription from within that group."); each subscription is added from its own page
+  with Add for Review. **Open, the owner's:** the name "A drink every year" was written
+  for $4.99, and in this app "a drink" is the $4.99 tip; a rename goes into App Store
+  Connect, the StoreKit file and the three descriptions together, through the 1.4.3
+  review. The yearly tip now costs more than twelve monthly ones ($59.88), and a $99.99
+  tip that unlocks nothing adds to the 3.1.2(a) risk already recorded. **Tooling:**
+  Xcode 27's StoreKit editor appears to show a one-year subscription's price among its
+  new billing plans ("1 Year Upfront", "Monthly with a 12-month commitment", read from
+  the editor's own strings), and the owner found no price field there; the file is
+  JSON, and its `displayPrice` edits directly. The owner ran the scheme after the edit
+  and reported "Great it worked".

@@ -2520,3 +2520,16 @@ that follows is true as written. Nothing praises, urges or judges, and no exclam
 mark or em dash is added. The in-app captions already say what happens with
 notifications off, and the privacy policy's "the app offers a local reminder" already
 fits, so neither changes. Pass.
+
+## 2026-09-26 — The yearly tip's price
+
+The owner set the yearly tip to $99.99 in App Store Connect (ADR-0012, amended again
+the same day). The three App Store descriptions (the base text and 1.4's (A) and (B))
+change one figure: "A Drink Every Year ($4.99/year, auto-renews yearly)" becomes "A
+Drink Every Year ($99.99/year, auto-renews yearly)". A price stated as a price, where
+guideline 3.1.2(c) asks for it. No other word changes. Pass.
+
+**Flagged, the owner's:** the name. Everywhere else in the app "a drink" is the $4.99
+tip, so "A Drink Every Year" at $99.99 names an amount its price contradicts, and a
+reader could take it for a mistake. That is a question of accuracy, not tone; nothing
+in it praises, urges or judges. A new name comes back here before it ships.
