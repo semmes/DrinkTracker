@@ -2584,7 +2584,7 @@ New copy for `tallyist.co`, in `semmes/Tallyist#8`, merged and live on 2026-09-2
   soon" and "iPhone is a trademark of Apple Inc., registered in the U.S. and other
   countries."
 
-Every line on screen is one the site or the listing already carries, set in
+The four headlines are lines the site or the listing already carries, set in
 capitals: the App Store description's "Log a drink in one tap" and the support
 page's "one tap, one drink"; the home page's "A calendar you can read at a glance.";
 its "No account required", with the support page's "No account is required on either

@@ -4677,10 +4677,11 @@ Open items for v1.2:
   **The 4K master is a GitHub release, not a file in the site.** It is 175.6 MB, and
   GitHub refuses any file over 100 MB in a repository. Of three routes put to the
   owner, they chose the release over a re-encode at half the bitrate that would fit,
-  and over switching Pages to deploy from Actions so the file could be served from
-  tallyist.co while 1.4 is in review. So it is attached untouched to the release
-  `press-film-2026-09-27` on `semmes/Tallyist`; the asset's SHA-256 matches the
-  master's, and GitHub serves it as an attachment. The page links to it as "MP4, 4K,
+  and over switching Pages to deploy from Actions, which would serve the file from
+  tallyist.co but change how every page deploys while 1.4 is in review. So it is
+  attached untouched to the release `press-film-2026-09-27` on `semmes/Tallyist`;
+  the asset's SHA-256 matches the master's, and GitHub serves it as an
+  attachment. The page links to it as "MP4, 4K,
   176 MB" and says the file downloads from GitHub. The link check allows links to
   other sites and the outbound job fetches this one, so the site still loads nothing
   from another origin and the privacy page's "This website" note is unchanged.
