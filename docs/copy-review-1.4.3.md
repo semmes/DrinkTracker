@@ -2566,3 +2566,42 @@ Apple's is involved". The labels say what the film is and what its controls do.
 The note says what the script does and what it does not; the build allows exactly
 that script, by the hash of its text. Nothing praises, urges or judges, and no
 exclamation mark or em dash is added. Pass.
+
+## 2026-09-28 — The product film on the press page
+
+New copy for `tallyist.co`, in `semmes/Tallyist#8`, merged and live on 2026-09-28
+(ca1e823). Nothing ships in the app.
+
+- **Press page, the Film section:** the heading "Film"; under the player, "30
+  seconds, with sound. It plays here at 1080p; the 4K file downloads from GitHub.";
+  and the download link, "MP4, 4K, 176 MB", which goes to the film's GitHub release.
+- **For assistive technology only:** the player's label, "Tallyist, a 30-second film
+  with sound.", and a caption that describes what the film shows and ends with its
+  words on screen.
+- **The film's own words, on screen** (the product film, not the home page's):
+  "ONE TAP.", "AT A GLANCE.", "NO ACCOUNT REQUIRED.", then the end card: "Tallyist",
+  "COUNT WHAT YOU DRINK.", "tallyist.co", "Available now on iPhone · Android coming
+  soon" and "iPhone is a trademark of Apple Inc., registered in the U.S. and other
+  countries."
+
+Every line on screen is one the site or the listing already carries, set in
+capitals: the App Store description's "Log a drink in one tap" and the support
+page's "one tap, one drink"; the home page's "A calendar you can read at a glance.";
+its "No account required", with the support page's "No account is required on either
+platform."; and "Count what you drink.", the hero's headline, which the review of the
+website's own pages passed. The availability line is the site's platform list in one
+line, and like the site's `platform_state` it has to change when Android ships; the
+end card is in `Claude outputs/sizzle-reel/source/Edits.swift`, and changing it means
+a re-render and a new release. The press page's lines say what the film is, how long
+it runs, that it has sound, where each copy plays or downloads from, and the file's
+format and size. Nothing praises, urges or judges, and no exclamation mark or em dash
+is added. Pass.
+
+**Found, not fixed:** the end card's trademark line ends "and other countries."
+Apple's credit notice for international distribution, in its guidelines for using
+its trademarks, ends "registered in the U.S. and other countries and regions.", as
+the website's footer does (ADR-0056). The film's script called the line verbatim
+from the website, and it is not. It names only iPhone, the one mark the film shows,
+which is right; the ending is what differs. Correcting it is one line in `Edits.swift`,
+a re-render of each cut that carries the end card, and a new release for the press
+page.

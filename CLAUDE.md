@@ -345,6 +345,9 @@ is submitted for review…", which lists what to do when it is approved).**
 **On 2026-09-27 the home page got its film, under the hero, started on scroll by the
 site's one script, and the hero phone a soft backlight (the bullet "The home page's
 film…", `semmes/Tallyist#7`).**
+**On 2026-09-28 the press page got the 30-second product film, its 4K master a GitHub
+release because GitHub keeps no file over 100 MB in a repository (the bullet "The
+press page's film…", `semmes/Tallyist#8`).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4667,3 +4670,39 @@ Open items for v1.2:
   the branch's changes, `capture.py`, `scrolltest.py`, `sweep.py` and `glowcheck.py`
   measure it over the DevTools pipe (the memory "Website captures with headless
   Chrome"), and `serve.py` is the `hero-preview` entry in `.claude/launch.json`.
+- **The press page's film went live (2026-09-28; `semmes/Tallyist#8`, merged as
+  ca1e823 on the owner's go-ahead).** The 30-second product film (the sizzle reel,
+  kept untracked in `Claude outputs/sizzle-reel/`, the memory "Sizzle reel renderer")
+  is on tallyist.co/press/ in a Film section between the icon and the screenshots.
+  **The 4K master is a GitHub release, not a file in the site.** It is 175.6 MB, and
+  GitHub refuses any file over 100 MB in a repository. Of three routes put to the
+  owner, they chose the release over a re-encode at half the bitrate that would fit,
+  and over switching Pages to deploy from Actions so the file could be served from
+  tallyist.co while 1.4 is in review. So it is attached untouched to the release
+  `press-film-2026-09-27` on `semmes/Tallyist`; the asset's SHA-256 matches the
+  master's, and GitHub serves it as an attachment. The page links to it as "MP4, 4K,
+  176 MB" and says the file downloads from GitHub. The link check allows links to
+  other sites and the outbound job fetches this one, so the site still loads nothing
+  from another origin and the privacy page's "This website" note is unchanged.
+  **The player** plays `video/press-film.mp4`, a 1080p copy: H.264 at 8 Mbps, 28.3
+  MB, with the master's AAC copied through and its colour tags (BT.709 with the sRGB
+  transfer). It has `preload="none"`, so the page loads only its 136 KB poster, the
+  frame at 12.8 s, until someone presses play, and the player's own download item is
+  hidden, so the one download offered is the 4K file. 6, 8 and 10 Mbps were within
+  1 dB of each other against the box-scaled master. `web/transcode.swift` in the
+  sizzle folder makes the copy; like `sizzle grab`, it needs the sandbox off
+  (VideoToolbox). **Verified:** CI's build of the branch matched the stand-in line
+  for line; live, the page matches CI's build, the film answers 206 to a range
+  request, and it plays at 1920×1080 in Chromium. The first CI run's outbound job
+  failed on `apps.apple.com` answering 429 to the runner, and a re-run passed.
+  **Not verified:** Safari and a real phone. **Costs:** the site's repository grew
+  by 28.5 MB, and a new master means a new release, with a new tag, and the page's
+  link changed to match. **Found, not fixed:** the end card's trademark line ends
+  "and other countries." where Apple's credit notice and the site's footer end "and
+  other countries and regions." (the copy review's 2026-09-28 entry). **Still the
+  owner's, from the sizzle README's "Before publishing":** the type is SF Pro
+  Expanded, the system font, and a font licensed for advertising would be a one-line
+  swap and a re-render; and the end card's "Android coming soon" changes when
+  Android ships. **Tooling,** in `Claude outputs/site-press-film/`: `render.py`
+  builds a stand-in of the press page, `preview/` is CI's build of the branch, and
+  `serve.py` is the `press-preview` entry in `.claude/launch.json`.
