@@ -8,10 +8,15 @@ drew them; the survey brackets and the week-pattern numbers were computed with a
 script that reimplements the bracket rule and the range rules, and they are labelled as
 computed.
 
-**Status:** not started. Four decisions below are the owner's. Phase 1 can start once
-they are answered. **Revised the same day** after the owner asked for options that keep
-the data on screen: decisions 1 and 2 now recommend figures over sentences, and the
-first draft's recommendations are kept beside them as the alternatives.
+**Status:** decided, not built. **Revised on 2026-10-01** after the owner asked for
+options that keep the data on screen: decisions 1 and 2 now recommend figures over
+sentences, and the first draft's recommendations are kept beside them as the
+alternatives. **Decided the same evening**, on mockups of all four ranges and the
+alternatives (HTML stand-ins of the screen over a sample log, every figure computed by
+these rules; the owner's words: "Go with your recommendations on the second"): the
+revised recommendations on decisions 1 to 4, and on the fifth, which the mockups raised,
+the second way out, so a young log clips the chart's figures too. The build is a local
+session's, with the Swift toolchain; its prompt is the last section of this document.
 
 **The ask (owner, 2026-10-01):** "I want to standardize the data with the timeframe
 measurements. You'll see comparisons only show 28 days not aligned to the quarter. Then
@@ -225,10 +230,33 @@ it. *Alternatives:* "Last 3 months" is not true of 13 weekly bars. Calendar quar
 day, under the floor for its first month, and the 2026-09-26 change moved the labels
 toward naming the exact days, not away from it.
 
+**5. A young log, on the chart card and the cards under it.** Raised by the mockups:
+with decision 2 alone, a log 51 days old at Quarter read "Your weekly average · 6.4" on
+the chart (the range's 88 days, 37 of them before the first record) over a comparison
+reading "11 standard drinks a week, since Aug 11". Two weekly averages on one screen, the
+thing decision 3 removes, for as long as the log is younger than the range. *Decided
+(the owner, 2026-10-01):* the clip applies to every figure whose denominator is a count
+of days, not only the comparisons'. While the log is younger than the range:
+- the dashed line, the per-day card, the "Days with no drinks logged" card and the By
+  weekday rows read the days since the first record (the line at Year over the complete
+  months inside that window, the line's own rule unchanged);
+- the total card's label reads "since Aug 11" in place of the range's words, and every
+  "of N" is the window's N, so the clip is visible wherever a denominator is printed;
+- the chart's bars keep the range: the picker's promise is the span of the x axis, and
+  the weeks before the first record draw as they do today, with nothing in them;
+- the header's total and "days with drinks" are counts, so they do not change; the
+  longest run counts recorded days only, so it does not change; the Health rows count
+  nights with a record, so they do not change.
+Once the log reaches back to the range's first day nothing is clipped and no label
+changes, which is every reader whose log is older than a year. Alternatives, not taken:
+accept the two numbers under the "Since" label; or decision 2's own alternative, the
+sentence, which shows no second number by showing nothing.
+
 **And the train.** 1.4 (1) is in App Review (the lookup API reads 1.3 live today), and
 this is a product change, so it belongs on 1.5: its first PR bumps `MARKETING_VERSION`,
-as 1.3 and 1.4 were opened, unless you would rather hold the bump until 1.4 is approved so
-that a rejection can still be answered from `main` as 1.4.
+as 1.3 and 1.4 were opened. Xcode Cloud archives every commit on `main`, so the PR stays
+a draft until 1.4 is approved, unless the owner says otherwise: a rejection of 1.4 is
+answered from `main` as 1.4 only while `main` is still 1.4.
 
 ---
 
@@ -257,7 +285,9 @@ same commit, never deleted quietly.
     midnight-DST range start;
   - the clip: a log younger than the range covers the first record's day through today
     at every range, Quarter and Year agreeing while the log is under 13 weeks, and a log
-    old enough covers the range exactly;
+    old enough covers the range exactly; and under decision 5 the per-day average, the
+    zero-day count, the weekday day counts and the line over a young log all divide by
+    the window's days, while the bars still number the range's buckets;
   - agreement over a seeded log at every range: the weekly figure × days ÷ 7 is the
     header total, drinking days are the header's days with drinks, which are the weekday
     rows' sum and the weekend split's sum, and every denominator is the window's day count;
@@ -269,10 +299,12 @@ same commit, never deleted quietly.
 
 - `TrendsView`'s snapshot gains the first record. Its entry query is `.reverse`, so the
   first entry is `allEntries.last`; the first marker is `alcoholFreeDays.first`. It
-  derives the comparison window once, folds it with the same `summary(of:)` and
-  `weekdayTotals` the header uses (over the clipped keys when the log is young, which is
-  the range's own fold otherwise), and passes that fold, the weekday rows, the range and
-  the window to `ComparisonsSection`.
+  derives the window once (`TrendWindow`: the range, the first record, and the day keys
+  that result; the range's own keys for a log old enough) and folds it with the same
+  `summary(of:)` and `weekdayTotals` the header uses. Under decision 5 the per-day
+  average, `daysWithoutDrinks`, the weekday rows and the line read the window's keys
+  while `dailyTotals` and the bars keep the range's; the comparisons take that same fold,
+  the weekday rows, the range and the window from `ComparisonsSection`'s caller.
 - `ComparisonsSection` drops its two `@Query`s and its `Date()`. That also removes a
   second projection of the whole log on every body pass. It draws nothing while the
   window is nil, as it does with every switch off; the heading still cannot outlive its
@@ -289,7 +321,7 @@ New keys, drafts for the 1.4.3 review (no em dashes, no imperative):
 | Where | Draft |
 |---|---|
 | The weekly-average segment's spoken and folded sentence at Week, where "Your average is about…" is untrue of one week; one key per region and number | "You logged 13.2 standard drinks in the last 7 days." |
-| The clipped span (decision 2) | "Since Aug 12" ("Since %@", the date as text) |
+| The clipped span (decisions 2 and 5): the comparisons' span label, and the total card's label in place of "last 13 weeks" | "Since Aug 12" / "since Aug 12" ("Since %@" and "since %@", the date as text) |
 | No drinks in the window | "No drinks in the last 7 days." / "…30 days." / "…13 weeks." ("…12 months." exists); while clipped, "No drinks since Aug 12." |
 | Weekly average note | "This figure covers your last 7 days. The survey asked about a year." / "Your average covers your last 30 days. The survey asked about a year." / the same for 13 weeks ("…your last 12 months, the span the survey asked about." exists); while clipped, "Your average covers the days since Aug 12." |
 
@@ -337,8 +369,10 @@ reverses, went out as a minor, so the number is yours.
   - Trends at all four ranges over a seeded log of more than a year, light and dark, at
     the default size and at `accessibility-extra-large`;
   - a log of 40 days: the segments at Week and Month over the range, and at Quarter and
-    Year over "Since <date>" with the same figures on both;
-  - a log of 20 days: no section at any range;
+    Year over "Since <date>" with the same figures on both, the line, the per-day card,
+    the zero-day card and the weekday rows all over the same 40 days, the total card
+    labelled "since <date>", and the bars still spanning 13 weeks and 12 months;
+  - a log of 20 days: no Comparisons section at any range, the clipped cards still;
   - Week's three segments over a quiet week and a heavy one;
   - the Quarter legend and the comparison printing one number.
 - **Tier 4**, the owner: your own log at each range against the screenshots above.
@@ -365,3 +399,72 @@ simulation of `TrendRange.startDate` with a Sunday-first week, which is what the
 screenshot's 88 days and 37 weekend days imply for the owner's phone.
 The copy is a draft until the 1.4.3 review. The work is one PR here (core, Trends, copy
 and records) and one draft PR in the contract; the renders want a local session.
+
+**The mockups (2026-10-01).** HTML stand-ins of the Trends screen, laid out to the
+design system's sizes with Inter for SF, rendered in a headless browser from a sample log
+(a weekend drinker from August 2025, with heavy and quiet weeks) whose every figure a
+script computed by these rules, reading the three bundled JSON files: the four ranges,
+Week with the fixed figure and with no comparisons, Quarter and Year on a log 51 days old
+clipped and as a sentence, and Quarter with the full-weeks line kept. They went to the
+owner in the session and are not in the repository; they are previews, not renders of the
+app, and their Health rows were placeholders. The local session's tier 3 replaces them.
+
+---
+
+## The build session's prompt
+
+Paste-ready for a fresh local Claude Code session (the owner's Mac, Xcode 27.0, the
+simulators). The plan above is the authority; this is the handoff.
+
+> Build the Trends alignment on branch `claude/trends-timeframe-alignment-dopejc`, which
+> is draft PR semmes/DrinkTracker#160. Fetch first: the branch holds the plan,
+> `docs/tallyist-trends-alignment-plan.md`, and a `CLAUDE.md` bullet, and nothing else.
+> Work in a git worktree off it, never in the main checkout (`CLAUDE.md`, the process
+> lessons); re-merge `origin/main` before pushing, and check `origin/main`'s
+> `docs/decisions/` before numbering the ADR.
+>
+> Read first: `CLAUDE.md` (the process rules, and the bullet "Trends on one window is
+> planned…"); the plan, all of it; `docs/PRD.md` §2 to §4; ADR-0018, 0028, 0030, 0031,
+> 0032 and 0038 with their amendments; `docs/copy-review-1.4.3.md`'s rules;
+> `docs/design-system.md`'s Comparisons section row.
+>
+> The owner decided all five of the plan's decisions on 2026-10-01, each as recommended:
+> (1) Week shows all three comparisons over its 7 days behind the 28-day record floor;
+> (2) a log younger than the range is clipped to the days since the first record and
+> labelled "Since <date>"; (3) the Quarter line is the range's weekly figure; (4) the
+> label stays "Last 13 weeks"; (5) a young log clips every day-count denominator on the
+> screen, the line, the per-day card, the zero-day card and the weekday rows included,
+> while the bars keep the range. Build exactly that; do not reopen them. If something in
+> the plan is ambiguous or contradicts the code, say so and stop rather than choosing.
+>
+> Build in the plan's order. Phase 1, the core package with its tier-1 tests, including
+> the retired API's tests rewritten rather than deleted. Phase 2, Trends. Phase 3, the
+> copy: new keys through the 1.4.3 review, the catalog synced with `xcstringstool` from a
+> fresh full generic build into a scratch copy and diffed before it is copied in. Phase 4,
+> the records: the ADR (the next free number), amendments to the ADRs the plan names,
+> `docs/design-system.md`, `docs/copy-review-1.4.3.md`, the README's "The population
+> reference" and its line sentence, the 1.5 What's New and reviewer notes in
+> `docs/app-store-listing.md`, and the `CLAUDE.md` bullet, which should say what was
+> rendered and what was not. Phase 5, a draft PR in `semmes/tallyist-product` with the
+> contract changes the plan lists; never merge there.
+>
+> `MARKETING_VERSION` goes to 1.5 in its own commit, the 1.3 and 1.4 way, with the Edit
+> tool on one anchor at a time. The PR stays a draft until the owner says 1.4 is
+> approved, because Xcode Cloud archives every commit on `main`; ask before merging.
+>
+> Gates, all of them, locally: `cd DrinkTrackerCore && swift test` under both build
+> systems (the catalog test reads the source tree); the iOS and watchOS schemes built in
+> CI's form; the integration suite on a second simulator; `scripts/verify-watch-setup.py
+> --ci`; the policy-date check; the glyph generator. Then tier 3 on a scratch simulator,
+> never the working pair, over a seeded log of more than a year (the `sqlite3` route in
+> `CLAUDE.md`), through the plan's Verification list: all four ranges in light and dark at
+> the default size and `accessibility-extra-large`; a log of 40 days and one of 20; Week
+> over a quiet week and a heavy one; the Quarter legend and the comparison printing one
+> number. Say in the commit message and the PR what was rendered and what was reasoned.
+> No test tier reaches the Trends views, so CI proves compilation there.
+>
+> Before pushing, review the diff adversarially against the plan's rules and the
+> invariants (no delta, no rank, nothing chosen by what the figures say, one set of days,
+> the floor on the record), fix what you find, and record what the review found in the
+> ADR. Push to the same branch; PR #160's body is the plan's summary and should be
+> updated to say what was built.

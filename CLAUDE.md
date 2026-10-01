@@ -4740,7 +4740,16 @@ Open items for v1.2:
   record and labelled "Since Aug 12", which keeps the reviewed sentences true because
   those days are the last N days; the Quarter line takes the range's weekly figure; and
   the label stays "Last 13 weeks". The first draft's sentences are kept in the plan as
-  the alternatives. It targets 1.5: 1.4 (1) is in App Review and 1.3 is live (the lookup API,
-  2026-10-01). The contract (`semmes/tallyist-product`) needs a draft PR with the build,
-  which also corrects its stale "instant-based" description of the population windows.
-  No code, schema, CloudKit, catalog, privacy-policy or project-file change.
+  the alternatives. **Decided the same evening**, on mockups of all four ranges and the
+  alternatives (HTML stand-ins of the screen over a sample log, every figure computed by
+  the plan's rules; previews, not the app, kept out of the repository): all four as
+  recommended, and a fifth the mockups raised, that a log younger than the range clips
+  every day-count denominator on the screen (the line, the per-day card, the zero-day
+  card, the weekday rows) and not only the comparisons', while the bars keep the range,
+  because the clip alone put a second weekly average on the chart's legend. **The build
+  is a local session's**, with the Swift toolchain; the plan's last section is its
+  paste-ready prompt, and the PR stays a draft until 1.4 is approved. It targets 1.5: 1.4
+  (1) is in App Review and 1.3 is live (the lookup API, 2026-10-01). The contract
+  (`semmes/tallyist-product`) needs a draft PR with the build, which also corrects its
+  stale "instant-based" description of the population windows. No code, schema, CloudKit,
+  catalog, privacy-policy or project-file change.
