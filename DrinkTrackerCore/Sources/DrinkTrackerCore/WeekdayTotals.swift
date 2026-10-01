@@ -30,8 +30,8 @@ extension TrendSummary {
   /// The range's days folded by weekday, ordered from the calendar's first
   /// weekday, one entry per weekday always — a weekday with no days in a
   /// short range reports zero of zero. Built from the range's own day walk
-  /// (`days(in:)`) and the per-day table, so the seven totals sum to the
-  /// range's total and the seven day counts to its length.
+  /// (`rangeDays`), so the seven totals sum to the range's total and the seven
+  /// day counts to its length.
   public static func weekdayTotals(
     range: TrendRange,
     endingOn endDate: Date,
@@ -39,22 +39,28 @@ extension TrendSummary {
     region: Region,
     calendar: Calendar = .current
   ) -> [WeekdayTotal] {
-    let keys = days(in: range, endingOn: endDate, calendar: calendar)
-    let inRange = Set(keys)
-    var totals: [Date: Double] = [:]
-    for drink in drinks {
-      let day = calendar.startOfDay(for: drink.loggedAt)
-      guard inRange.contains(day) else { continue }
-      totals[day, default: 0] += drink.standardDrinks(in: region)
-    }
+    weekdayTotals(
+      of: rangeDays(
+        range: range, endingOn: endDate, drinks: drinks,
+        alcoholFreeDays: [], region: region, calendar: calendar
+      ),
+      calendar: calendar
+    )
+  }
 
+  /// Any run of classified days folded by weekday, in the same order and with
+  /// the same zero-of-zero rows — the form Trends reads since ADR-0058, over
+  /// its window's days, so the rows divide by the days since the first record
+  /// while the log is younger than the range. A day with drinks is a day with
+  /// an entry, a 0% one included: `summary(of:)`'s definition.
+  public static func weekdayTotals(of days: [CalendarDay], calendar: Calendar = .current) -> [WeekdayTotal] {
     var sums: [Int: (drinks: Double, withDrinks: Int, days: Int)] = [:]
-    for key in keys {
-      let weekday = calendar.component(.weekday, from: key)
+    for day in days {
+      let weekday = calendar.component(.weekday, from: day.date)
       var entry = sums[weekday, default: (0, 0, 0)]
       entry.days += 1
-      if let total = totals[key] {
-        entry.drinks += total
+      if day.hasEntries {
+        entry.drinks += day.standardDrinks
         entry.withDrinks += 1
       }
       sums[weekday] = entry

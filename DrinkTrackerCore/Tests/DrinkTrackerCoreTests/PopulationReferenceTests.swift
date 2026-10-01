@@ -112,9 +112,13 @@ struct PopulationReferenceTests {
     #expect(try reference.comparison(gramsPerWeek: 1e21) == .moreThan(percent: 95))
   }
 
-  @Test("The history gate is four weeks")
+  /// Was `PopulationReference.minimumHistory`, an interval of four weeks: the
+  /// floor is ADR-0018's four weeks still, counted in day keys of record since
+  /// ADR-0058 and shared by all three comparisons (`TrendWindowTests` pins
+  /// both sides of it).
+  @Test("The history gate is 28 days of record")
   func minimumHistory() {
-    #expect(PopulationReference.minimumHistory == 28 * 24 * 3600)
+    #expect(TrendWindow.comparisonFloor == 28)
   }
 
   // MARK: - The survey's columns (ADR-0039)
