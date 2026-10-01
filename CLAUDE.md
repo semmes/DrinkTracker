@@ -4948,3 +4948,9 @@ Open items for v1.2:
   stay unconfirmed on hardware. Opening Xcode from a session fails in the sandbox
   ("procNotFound", -600); hand the owner the `open -a Xcode <worktree>/DrinkTracker.xcodeproj`
   command instead, and remind them to close the main checkout's window of the same name.
+  **The contract followed the same day:** semmes/tallyist-product#11 merged at the
+  owner's word as d5ed6e5, version 2.0.0, its vector check re-run on the merged head;
+  and the app's `contract/` submodule moved from f8c0fd1 to d5ed6e5, also at their word.
+  The contract's still-open draft #7 (the survey's men's and women's columns) overlaps
+  #11's files and carries 1.8.0, below 2.0.0, so it needs the contract's `main` merged in
+  and a new number before it can merge.
