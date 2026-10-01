@@ -215,6 +215,11 @@ inside it.
 - **Not rendered:** VoiceOver over the button and the stepped bars, a UK region, a
   midnight-DST zone on screen, a Monday-first calendar on screen, the haptic and a
   scrub's frame rate on hardware.
+- **Tier 4, the owner, the same day:** an Xcode build of the PR's head (c0de45e) on
+  their phone, *"Tested it on my phone and it's working"*, and the PR merged at their
+  word as 525f208 with all ten checks green. The report names no single item, so
+  VoiceOver over the button, the haptic during a scrub and a scrub across Year by day
+  on their log stay as listed above, unconfirmed on hardware.
 
 ## How to reopen
 
