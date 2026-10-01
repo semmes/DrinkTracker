@@ -9,7 +9,9 @@ script that reimplements the bracket rule and the range rules, and they are labe
 computed.
 
 **Status:** not started. Four decisions below are the owner's. Phase 1 can start once
-they are answered.
+they are answered. **Revised the same day** after the owner asked for options that keep
+the data on screen: decisions 1 and 2 now recommend figures over sentences, and the
+first draft's recommendations are kept beside them as the alternatives.
 
 **The ask (owner, 2026-10-01):** "I want to standardize the data with the timeframe
 measurements. You'll see comparisons only show 28 days not aligned to the quarter. Then
@@ -77,8 +79,9 @@ picker:
 
 ## The approach: three rules
 
-**1. One set of days.** Every figure under the picker reads the range's own day walk.
-`TrendsView` already folds the range once for the chart header
+**1. One set of days.** Every figure under the picker reads the range's own day walk,
+the comparisons through the window rule 2 cuts from it, which is the whole range once
+the log is old enough. `TrendsView` already folds the range once for the chart header
 (`TrendSummary.rangeDays`, then `summary(of:)`), and the comparisons stop running their
 own queries and clock and read that fold:
 
@@ -93,13 +96,17 @@ So the comparisons' figures are the header's figures, not recomputed copies, and
 cannot drift from it. ADR-0030's rule that the volume line and the day count cover one
 set of days holds by construction.
 
-**2. One floor for the published figures.** The three comparisons appear when the range
-holds at least 28 days (Month, Quarter and Year) **and** the log covers the whole range:
-the first entry or no-alcohol record is on or before the range's first day. Otherwise the
-card holds one sentence saying why (decisions 1 and 2). This one gate replaces three:
-ADR-0018's four weeks of record, ADR-0030's year of record and ADR-0038's four weeks of
-range. It also closes finding 4. It is day-keyed, the reopen ADR-0030's 2026-09-07
-amendment named.
+**2. One floor for the published figures, and one clip.** The three comparisons appear
+once the log holds 28 days of record, ADR-0018's floor kept and day-keyed (the reopen
+ADR-0030's 2026-09-07 amendment named): the first entry or no-alcohol record is 27 or
+more days before today. That one gate replaces ADR-0030's year of record and ADR-0038's
+four weeks of range, at every range including Week (decision 1). While the log is
+younger than the range, the comparisons cover the days from the first record to today
+and say so (decision 2): the segment's span reads "Since Aug 12" instead of the range's
+title, every denominator is that window's day count, and the published figures scale to
+it. Once the log reaches back to the range's first day the clip is the range, and the
+span is the range's own title. That closes finding 4 without hiding anything: a day
+before the first record is never counted as a day without a drink.
 
 **3. One weekly average.** At Quarter the dashed line becomes the range's weekly figure
 (decision 3), so the legend, seven times the per-day card, and the comparison print one
@@ -108,81 +115,110 @@ number.
 ### What each range would show
 
 Day counts are the ranges' own (`TrendRange.startDate`); the Quarter column uses the
-screenshot's log.
+screenshot's log, and the Week column a week holding 3 drinking days and 13.2 drinks,
+since the screenshots do not show the week.
 
 | | Week | Month | Quarter | Year |
 |---|---|---|---|---|
 | Days in the range | 7 | 30 | 85 to 91 (88 on 30 Sep) | 335 to 366 |
-| Comparisons | one sentence | shown | shown | shown |
-| Weekly average | | total ÷ 30 × 7 | **12.6** (was 12.5 over 28 days) | total ÷ days × 7 |
-| Drinking days | | N of 30 · about 7 in 30 | **46 of 88 · about 21 in 88** (was 13 of 28 · about 7 in 28) | N of 335 · about 81 in 335, on 1 Oct |
-| Days with a drink | | as today | as today: 28 of 37 · 18 of 51 | as today |
-| Every segment's span label | | Last 30 days | Last 13 weeks | Last 12 months |
+| Comparisons, after 28 days of record | shown | shown | shown | shown |
+| Weekly average | the week's total: 13.2 | total ÷ 30 × 7 | **12.6** (was 12.5 over 28 days) | total ÷ days × 7 |
+| Drinking days | 3 of 7 · about 2 in 7 | N of 30 · about 7 in 30 | **46 of 88 · about 21 in 88** (was 13 of 28 · about 7 in 28) | N of 335 · about 81 in 335, on 1 Oct |
+| Days with a drink | 2 of 3 · 1 of 4, beside 31 and 24 of every 100 | as today | as today: 28 of 37 · 18 of 51 | as today |
+| Every segment's span label | Last 7 days | Last 30 days | Last 13 weeks | Last 12 months |
+| While the log is younger than the range | never: the floor is longer than the week | Since Aug 12, on days 28 and 29 of record only | Since Aug 12, until the log is 13 weeks old | Since Aug 12, until the log is 12 months old |
 | The dashed line | per day, as today | per day, as today | **12.6 a week** (was 13.2) | per completed month, as today |
 
 At Quarter the survey sentence stays "That's lower than roughly 15% of US men who
 drink.": 12.5 and 12.6 a week fall in the same row of the table (computed).
 
-### The limits the floor exists for
+### What the windows carry
 
 - **The survey's own span is twelve months.** ARG's column is drinks "per week on average
   in the previous 12 months" (ADR-0030). Year matches it. Quarter is a closer fit than
   today's 28 days, and Month about the same as today. A single week set beside a
-  distribution of twelve-month averages mostly says where that week fell, and it pushes a
-  reader toward either end of the table. That is why Week gets a sentence rather than a
-  percentile. The weekend rate is per 100 person-days; a week holds three weekend days.
+  distribution of twelve-month averages says where that week fell among other people's
+  averages, and a reader's weeks spread wider than their own average does, so Week's
+  sentence moves more than the others. The weekend rate is per 100 person-days; a week
+  holds three weekend days.
+- **A 7-day window holds exactly one of each weekday**, so for someone who drinks the same
+  every Friday and Saturday, 13.2 a week, the Week figure reads 13.2 on every day of the
+  year. It moves only when the drinking does. A week with 20 drinks reads "lower than
+  roughly 10% of US men who drink" and one with 2 reads "lower than roughly 50%"
+  (computed from the bundled table).
 - **Windows that are not whole weeks move with the week's pattern.** A 30-day window
-  holds four or five of each weekday. For someone who drinks the same every Friday and
-  Saturday, 13.2 a week, the Month weekly figure moves between 12.3 and 15.4 as the
-  window gains or loses a fifth Friday or Saturday. Today's 28-day window always holds
-  exactly four, so it never does this. Quarter moves between 12.5 and 13.2, and Year
-  between 13.0 and 13.4 (all computed over every day of 2026). The Month chart's own line
-  and per-day card already move this way, so this is not new to the screen, only to the
-  comparison. The survey's rows are wide enough that the sentence rarely changes (12.3 to
-  15.4 all read "15% of US men"), but a reader at a row's edge can see it flip between
-  two neighbouring percentages within a week. The alternative, whole-week windows inside
-  each range, puts "Last 28 days" back under "Last 30 days", which is the mismatch this
-  plan removes.
+  holds four or five of each weekday, so for the same log the Month weekly figure moves
+  between 12.3 and 15.4 as the window gains or loses a fifth Friday or Saturday. Today's
+  28-day window always holds exactly four, so it never does this. Quarter moves between
+  12.5 and 13.2, and Year between 13.0 and 13.4 (all computed over every day of 2026).
+  The Month chart's own line and per-day card already move this way, so this is not new
+  to the screen, only to the comparison. The survey's rows are wide enough that the
+  sentence rarely changes (12.3 to 15.4 all read "15% of US men"), but a reader at a
+  row's edge can see it flip between two neighbouring percentages within a week. The
+  alternative, whole-week windows inside each range, puts "Last 28 days" back under
+  "Last 30 days", which is the mismatch this plan removes.
 
 ---
 
 ## Decisions this plan needs
 
-**1. Week.** *Recommended:* no comparisons at Week. The card holds one sentence:
-"Comparisons appear at Month, Quarter and Year. A week is too short to compare with these
-surveys." (draft; 1.4.3 review). *Alternative:* compute all three over the 7 days.
-- Cost of the recommendation: Trends starts on Week each time the app launches, so the
-  comparisons are one tap away on every visit, where today the weekly average and drinking
-  days show at Week. You asked for the Health offer not to wait for Quarter for this
-  reason (2026-09-22). If it bothers you here, the fix is Trends' starting range, a
-  separate one-line decision, not a shorter comparison.
-- Cost of the alternative: it reverses ADR-0018's floor and ADR-0038's. The weekly-average
-  percentile would set one week against twelve-month averages, and three weekend days
-  would sit beside a rate per hundred.
+**1. Week.** *Recommended (revised):* all three comparisons over the 7 days, worded as
+the week's own facts, behind the same 28-day record floor as every other range. The
+weekly-average segment prints the week's total ("13.2 standard drinks, last 7 days"; the
+total of a week is the weekly figure, nothing is scaled) and the survey sentence as it
+stands; drinking days "3 of 7 · about 2 in 7"; the weekend split's three and four days
+beside the published rates. Trends opens on Week, so this is the comparison a reader
+meets first on every visit.
+- Cost: it reverses ADR-0038's four-week floor on the weekend comparison; ADR-0018's
+  floor, four weeks of record, stands. The sentence at Week moves with the
+  week: a quiet week reads "lower than roughly 50% of US men who drink" and a heavy one
+  "lower than roughly 10%", where Month's moves between neighbouring rows at most. The
+  span label says which week it is, and the sentence's words do not change.
+- *Alternative 1b, steadier:* at Week the weekly-average segment keeps the week's total
+  and swaps the moving percentile for a fixed published figure read off the same table:
+  "At least half of US men who drink average 3 or fewer a week" (2 for all adults and
+  for women; the first row of each column at or past 50%, computed from the bundled
+  file). A derived figure the app does not show today, so it costs an ADR-0018 amendment,
+  a copy review row and a contract vector of its own, and it gives Week a different shape
+  from the other three ranges.
+- *Alternative 1c, the first draft:* no comparisons at Week and one sentence saying they
+  start at Month. The least data, and the one a reader meets on every launch.
 
-**2. A log younger than the range.** *Recommended:* until the log covers the range, the
-card holds one sentence, for example "Comparisons appear here once your log covers the
-last 13 weeks." (draft). *Alternative:* compute over the part of the range the log
-covers, and label the span "Since 12 August".
-- Cost of the recommendation: a new reader sees comparisons at Month after 30 days of
-  record, at Quarter after about three months and at Year after about a year. Today they
-  see a 28-day figure under every range from day 28.
-- Cost of the alternative: a span label that is not the range's, the mismatch you asked
-  to remove. Quarter and Year would also read identically until the log is three months
-  old.
+**2. A log younger than the range.** *Recommended (revised):* compute over the days from
+the first record to today, and say so. The span label reads "Since Aug 12" (a new key,
+"Since %@", the date as text) in place of the range's title, every denominator is that
+window's day count, and the published figures scale to it: "You logged drinks on 46 of
+the last 51 days." and "US adults who drink average about 12 in 51." are the existing
+reviewed sentences, true as written, because the days from the first record to today
+are the last 51 days. The weekly average is the window's total over its weeks (51 ÷ 7).
+Once the log reaches back to the range's first day, nothing is clipped and the label is
+the range's. Appears from day 28 of record at every range, as today.
+- Cost: while the log is younger than 13 weeks, Quarter and Year show the same figures
+  under different chart titles, and the comparisons' day count differs from the chart
+  header's (51 against 88). The span label is what makes that a statement rather than a
+  mismatch, so it has to be read; at the accessibility sizes it sits under the title.
+- *Alternative 2b, the first draft:* one sentence until the log covers the range
+  ("Comparisons appear here once your log covers the last 13 weeks."). Nothing to
+  misread, and nothing to read: at Year, a year of waiting.
 
-**3. The line at Quarter.** *Recommended:* the range's weekly figure (12.6 on the
-screenshot), the same number as the comparison and seven times the per-day card.
-*Alternative:* keep the mean of the completed weeks (13.2), and Quarter shows two
-different weekly averages.
-- Cost of the recommendation: during a week the line dips a little for a weekend-heavy
-  log (12.5 to 13.2 for the steady 13.2 above), where the completed-week mean holds still.
-  The README's "never sags just because a new week started" becomes true of Year only.
-  The contract's line rule changes, so Android follows.
-- Year's line (per completed month) is left alone. No figure on the screen restates it,
-  and ADR-0029's year-in-review card is defined by it.
+**3. The line at Quarter.** *Recommended (confirmed):* the range's weekly figure (12.6
+on the screenshot), the same number as the comparison and seven times the per-day card.
+- Cost: during a week the line dips a little for a weekend-heavy log (12.5 to 13.2 for
+  the steady 13.2 above), where the completed-week mean holds still. The README's "never
+  sags just because a new week started" becomes true of Year only. The contract's line
+  rule changes, so Android follows.
+- *Alternative 3b:* keep the completed-weeks line (13.2) and name both numbers, the
+  legend as "Your average, full weeks · 13.2" and the comparison as the range's 12.6.
+  Two weekly averages on one screen, each labelled. It keeps the line still and changes
+  nothing on the chart or in the contract, and it leaves the question "which is my
+  average?" on the screen.
+- *Alternative 3c, rejected:* make the comparisons cover the completed weeks too. Then
+  the card's day counts are 84 where the header above says 88, which is the mismatch
+  this plan exists to remove.
+- Year's line (per completed month) is left alone under all three. No figure on the
+  screen restates it, and ADR-0029's year-in-review card is defined by it.
 
-**4. What Quarter is called.** *Recommended:* keep "Last 13 weeks". It is exactly what
+**4. What Quarter is called.** *Recommended (confirmed):* keep "Last 13 weeks". It is exactly what
 Quarter covers, 12 full calendar weeks and this one so far, and the chart has always said
 it. *Alternatives:* "Last 3 months" is not true of 13 weekly bars. Calendar quarters
 ("This quarter", July to September) start nearly empty: on 1 October a quarter is one
@@ -205,36 +241,45 @@ same commit, never deleted quietly.
 ### Phase 1: the core package (tier 1)
 
 - A new file in `DrinkTrackerCore` in place of `PopulationWindow.swift`: the shared floor
-  (28 days, the value `WeekendReference.minimumDays` and `minimumHistory` hold today) and
-  `comparisonAvailability(range:endingOn:firstRecord:calendar:)`, answering shown, range
-  too short, or log too short. The weekly figure over a fold moves to `TrendSummary`, so
-  the line and the comparisons call one function. `PopulationReference.weeklyAverage(of:)`
-  stays as the year view's name for it.
+  (28 days, the value `WeekendReference.minimumDays` and `minimumHistory` hold today,
+  now a count of day keys) and `comparisonWindow(range:endingOn:firstRecord:calendar:)`,
+  answering nil while the record is under the floor, else the day keys from the later of
+  the range's first day and the first record's day through today, with whether it was
+  clipped. The weekly figure over a fold moves to `TrendSummary`, so the line and the
+  comparisons call one function. `PopulationReference.weeklyAverage(of:)` stays as the
+  year view's name for it.
 - Retired with their tests rewritten: `PopulationReference.Window`,
   `window(firstRecord:now:)`, `weeklyAverage(_:window:endingAt:region:calendar:)`,
   `minimumHistory`, `FrequencyReference.drinkingDays(in:last:endingOn:calendar:)`,
   `WeekendSplit.isComparable` and `WeekendReference.minimumDays`.
 - New tests:
-  - the gate at each range on both sides of the log boundary, with no record, and in
-    Santiago on a midnight-DST range start;
+  - the floor on both sides of day 28 of record, with no record, and in Santiago on a
+    midnight-DST range start;
+  - the clip: a log younger than the range covers the first record's day through today
+    at every range, Quarter and Year agreeing while the log is under 13 weeks, and a log
+    old enough covers the range exactly;
   - agreement over a seeded log at every range: the weekly figure × days ÷ 7 is the
     header total, drinking days are the header's days with drinks, which are the weekday
-    rows' sum and the weekend split's sum, and every denominator is the range's day count;
+    rows' sum and the weekend split's sum, and every denominator is the window's day count;
   - at Quarter, the line equals the comparison's weekly figure;
-  - a drink at the range's far edge counts in every figure or in none.
+  - a drink at the window's far edge counts in every figure or in none, and a day before
+    the first record is in no denominator.
 
 ### Phase 2: Trends
 
 - `TrendsView`'s snapshot gains the first record. Its entry query is `.reverse`, so the
-  first entry is `allEntries.last`; the first marker is `alcoholFreeDays.first`. It passes
-  the range's fold, the weekday rows, the range and the availability to
-  `ComparisonsSection`.
+  first entry is `allEntries.last`; the first marker is `alcoholFreeDays.first`. It
+  derives the comparison window once, folds it with the same `summary(of:)` and
+  `weekdayTotals` the header uses (over the clipped keys when the log is young, which is
+  the range's own fold otherwise), and passes that fold, the weekday rows, the range and
+  the window to `ComparisonsSection`.
 - `ComparisonsSection` drops its two `@Query`s and its `Date()`. That also removes a
-  second projection of the whole log on every body pass. The section draws the segments,
-  or the one sentence when any switch is on and the gate is shut. With every switch off it
-  still draws nothing; the heading still cannot outlive its content.
-- `WeeklyAverageComparison` and `DrinkingDaysComparison` take the fold and the range.
-  Every segment's span is `rangeTitle(range)`.
+  second projection of the whole log on every body pass. It draws nothing while the
+  window is nil, as it does with every switch off; the heading still cannot outlive its
+  content.
+- `WeeklyAverageComparison` and `DrinkingDaysComparison` take the fold and the window.
+  Every segment's span is `rangeTitle(range)`, or "Since Aug 12" while the window is
+  clipped, from one function all three segments read.
 - `averageLineValue` at Quarter reads the shared weekly figure (decision 3).
 
 ### Phase 3: copy
@@ -243,20 +288,22 @@ New keys, drafts for the 1.4.3 review (no em dashes, no imperative):
 
 | Where | Draft |
 |---|---|
-| Week (decision 1) | "Comparisons appear at Month, Quarter and Year. A week is too short to compare with these surveys." |
-| Log too short (decision 2), one key per range | "Comparisons appear here once your log covers the last 30 days." / "…the last 13 weeks." / "…the last 12 months." |
-| No drinks in the range | "No drinks in the last 30 days." / "No drinks in the last 13 weeks." ("…12 months." exists) |
-| Weekly average note | "Your average covers your last 30 days. The survey asked about the last 12 months." / the same for 13 weeks ("…your last 12 months, the span the survey asked about." exists) |
+| The weekly-average segment's spoken and folded sentence at Week, where "Your average is about…" is untrue of one week; one key per region and number | "You logged 13.2 standard drinks in the last 7 days." |
+| The clipped span (decision 2) | "Since Aug 12" ("Since %@", the date as text) |
+| No drinks in the window | "No drinks in the last 7 days." / "…30 days." / "…13 weeks." ("…12 months." exists); while clipped, "No drinks since Aug 12." |
+| Weekly average note | "This figure covers your last 7 days. The survey asked about a year." / "Your average covers your last 30 days. The survey asked about a year." / the same for 13 weeks ("…your last 12 months, the span the survey asked about." exists); while clipped, "Your average covers the days since Aug 12." |
 
 Out: "No drinks in the last 4 weeks." and "Your average covers your last 4 weeks." The span
-labels and the drinking-days sentences are existing keys. A remote session cannot run
+labels, the drinking-days sentences (true of a clipped window, which is the last N days)
+and the weekend sentences are existing keys. A remote session cannot run
 `xcstringstool`, so keys changed here are changed by hand in the catalog's own byte shape
 and re-synced by the next local build (PR #88 removed one key that way).
 
 ### Phase 4: records
 
 - A new ADR, the next free number (0058 if nothing lands first): Trends compares the
-  range the reader chose. It amends ADR-0018 (the floor), ADR-0030 (whose own reopen
+  range the reader chose. It amends ADR-0018 (its floor kept, now the record's at every
+  range), ADR-0030 (whose own reopen
   clause names this route: a window "as a *choice*, one window shown at a time, on
   ADR-0026's model"), ADR-0031, ADR-0032 and ADR-0038 (the shared gate), and ADR-0028
   (the Quarter line).
@@ -289,8 +336,10 @@ reverses, went out as a minor, so the number is yours.
 - **Tier 3**, in a local session with a simulator:
   - Trends at all four ranges over a seeded log of more than a year, light and dark, at
     the default size and at `accessibility-extra-large`;
-  - a log younger than Quarter (the sentence at Quarter and Year, the segments at Month);
-  - Week's sentence;
+  - a log of 40 days: the segments at Week and Month over the range, and at Quarter and
+    Year over "Since <date>" with the same figures on both;
+  - a log of 20 days: no section at any range;
+  - Week's three segments over a quiet week and a heavy one;
   - the Quarter legend and the comparison printing one number.
 - **Tier 4**, the owner: your own log at each range against the screenshots above.
 

@@ -4732,10 +4732,15 @@ Open items for v1.2:
   three (the range holds 28 days or more, so Month up, and the log reaches back to the
   range's first day), with one sentence in the card otherwise; and at Quarter the line
   becomes the range's weekly figure, so one weekly average is printed. **Four decisions
-  are the owner's, each with a recommendation in the plan:** Week (a sentence, not a
-  one-week percentile); a log younger than the range (a sentence, not a "since" window);
-  the Quarter line (the range's weekly figure); and the Quarter label (keep "Last 13
-  weeks"). It targets 1.5: 1.4 (1) is in App Review and 1.3 is live (the lookup API,
+  are the owner's, each with a recommendation in the plan, revised the same day when the
+  owner asked for options that keep the data on screen:** Week shows all three
+  comparisons over its 7 days behind ADR-0018's 28-day record floor (a 7-day window holds
+  one of each weekday, so a steady log reads the same every day; the sentence moves when
+  the drinking does); a log younger than the range is clipped to the days since the first
+  record and labelled "Since Aug 12", which keeps the reviewed sentences true because
+  those days are the last N days; the Quarter line takes the range's weekly figure; and
+  the label stays "Last 13 weeks". The first draft's sentences are kept in the plan as
+  the alternatives. It targets 1.5: 1.4 (1) is in App Review and 1.3 is live (the lookup API,
   2026-10-01). The contract (`semmes/tallyist-product`) needs a draft PR with the build,
   which also corrects its stale "instant-based" description of the population windows.
   No code, schema, CloudKit, catalog, privacy-policy or project-file change.
