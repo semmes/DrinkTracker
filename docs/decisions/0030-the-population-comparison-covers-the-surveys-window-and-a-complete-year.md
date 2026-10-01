@@ -5,7 +5,9 @@ window) · **Relates to:** ADR-0006, ADR-0026 (the year's fold), ADR-0027 and
 ADR-0029 (never on a share card), spec constraints 3 and 5, the contract's
 `domain/aggregation.md` ("Measures a source may be compared against") · **Amended by:**
 ADR-0038 (the year comparison follows the weekly-average switch),
-ADR-0039 (and reads the same column)
+ADR-0039 (and reads the same column), ADR-0058 (Trends' comparison covers the
+range the picker chose, not this window; the year view is unchanged — see the
+amendment at the end)
 
 ## Context
 
@@ -166,3 +168,38 @@ calendar days rather than of seconds. It was left alone here because it
 changes when the card first appears, which the spec's acceptance criterion
 states in days of history and nobody has reported; it is one function and
 one test if a report arrives.
+
+---
+
+## Amendment (2026-10-01) — Trends compares the range the reader chose
+
+**Status:** accepted, by ADR-0058, which takes this record's own reopen route: a window
+"as a *choice*, one window shown at a time, on ADR-0026's model". The choice is the
+Trends range picker the reader already makes, and the comparison now covers it.
+
+**The window that followed the record is retired on Trends.** The weekly average no
+longer covers the trailing 28 days and then 364 whatever the picker says: it covers the
+range's own days, cut at the first record's day while the log is younger than the
+range, and divides by that window's weeks. The gate it hung on (`window(firstRecord:now:)`)
+becomes ADR-0018's floor alone, 28 days of record counted in day keys, at every range.
+`PopulationReference.Window`, its instant-based gate and its fixed-divisor average
+(day-keyed since the 2026-09-07 amendment above) are gone, their tests rewritten as
+tests of the window that replaced them. This record's argument
+against two averages one above the other stands and is why the Quarter line changed
+with it (ADR-0028's fourth amendment): one window, one weekly average, on one screen.
+
+**What this record got right that the range keeps:** Year is twelve calendar months,
+the survey's own span; the note still says so at Year ("…the span the survey asked
+about"), and at the shorter ranges it now says the survey asked about a year, in both
+cases while the window is the range's own; while the log is younger than the range the
+note names the days since the first record and nothing more. **What it
+cost to give up:** a long log's figure stops being steady on Week and Month, where a
+single heavy week now moves it (ADR-0058's consequences have the numbers).
+
+**The year view is unchanged.** A year that has ended is still compared from its own
+summary, by `PopulationReference.weeklyAverage(of:)`, which is now the year view's name
+for `TrendSummary.weeklyFigure(of:)`, the function the Trends line and comparison call.
+
+**The contract's instant-based description** of the windows, which the 2026-09-07
+amendment above raised and left, is corrected in the same draft contract PR that
+carries this change.

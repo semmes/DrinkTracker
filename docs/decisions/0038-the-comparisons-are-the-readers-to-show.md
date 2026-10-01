@@ -5,7 +5,10 @@ drinking-days lines gain a switch), ADR-0032 (the weekend comparison gains a
 switch and a floor) · **Relates to:** ADR-0018 and ADR-0030 (the volume
 comparison and the year view, which share the first switch), ADR-0026 (a
 choice, one at a time, persisted — the model this follows), ADR-0039 (the
-column the weekly average reads), spec constraints 3 and 5
+column the weekly average reads), spec constraints 3 and 5 · **Amended by:**
+its own amendments below, and ADR-0058 (one floor of 28 days of record for all
+three comparisons at every range, Week included, and every comparison over the
+range the picker chose — see the amendment at the end)
 
 ## Context
 
@@ -454,3 +457,29 @@ from least to most is a gauge, and a gauge is a score (ADR-0006). If
 rotation clause to engage: a reader's choice at the card is ADR-0026's model
 and allowed, but it hides two published facts behind a tap, and the switches
 already let a reader choose which are shown.
+
+---
+
+## Amendment (2026-10-01) — one floor, on the record, and one set of days
+
+**Status:** accepted, by ADR-0058. The decision is unchanged: the same three
+comparisons, the same switches, sources, order and refusals, still the reader's to show
+and never chosen by what the figures say. Two of its parts move.
+
+**The weekend comparison's floor of four weeks of range becomes the record's.** All
+three comparisons now appear once the log holds 28 days of record
+(`TrendWindow.comparisonFloor`), at every range, Week included, and none before. This
+record's "How to reopen" said that if the four-week floor read as the app withholding
+something on Week, the reopen was "a sentence in the card's place saying why, not a
+lower floor". The floor is not lowered; it is moved from the range to the record, where
+ADR-0018's already was, and Week shows all three as the week's own facts (ADR-0058's
+decision 1, the owner's, on mockups that showed the sentence as the alternative). The
+gate still reads how much has been recorded and nothing about what.
+
+**The segments cover one set of days.** The 2026-09-23 amendment's "the two segments
+do cover different days; the headers say so" is retired: every segment covers the range
+the picker chose, or the days since the first record while the log is younger, and
+every span reads the range's title or "Since Aug 12" from one function. The section
+reads the chart card's fold and no longer runs its own queries or clock; the fold
+arrives nil while the record is under the floor, so the heading still cannot outlive
+its content, now for that reason as well as the three switches.

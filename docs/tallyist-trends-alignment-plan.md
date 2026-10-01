@@ -8,7 +8,10 @@ drew them; the survey brackets and the week-pattern numbers were computed with a
 script that reimplements the bracket rule and the range rules, and they are labelled as
 computed.
 
-**Status:** decided, not built. **Revised on 2026-10-01** after the owner asked for
+**Status:** decided and built (2026-10-01, ADR-0058, on this branch; the contract's
+draft is semmes/tallyist-product#11). The build followed the decisions as written;
+where the plan was silent, the readings it took and the one case it puts back to the
+owner (Quarter's line on a log under a week old) are in ADR-0058. **Revised on 2026-10-01** after the owner asked for
 options that keep the data on screen: decisions 1 and 2 now recommend figures over
 sentences, and the first draft's recommendations are kept beside them as the
 alternatives. **Decided the same evening**, on mockups of all four ranges and the
@@ -383,7 +386,9 @@ reverses, went out as a minor, so the number is yours.
 - The share cards.
 - The Settings switches and "Compare with".
 - The From Apple Health section, which already follows the range with its own floors.
-- The By weekday rows.
+- The By weekday rows' layout, copy and refusals: seven rows, never charted or ranked.
+  Under decision 5 only their "of N" changes, to the window's days while the log is
+  younger than the range.
 - The schema, CloudKit, the privacy policy and the network: none of them are touched.
 - The rules: still no rank, no delta, and nothing chosen by what the figures say
   (ADR-0038). That is also the line on "insights": the copy review keeps the word off

@@ -2642,13 +2642,33 @@ number as the comparison below it. One weekly average on the screen, named as an
 average and never a limit, as the 2026-08 review passed it.
 
 **What's New (1.5) and reviewer notes (1.5)** (`docs/app-store-listing.md`). What's
-New: "Trends now compares the range you pick." and four short sentences about what
+New: "Trends now compares the range you pick." and three short sentences about what
 the comparisons cover, Week's three comparisons, and "If your log is newer than the
 range, the figures that count days start from your first record, and Trends shows
 that date." Function described, nothing promised, no imperative, no em dash, no
 exclamation mark. The reviewer notes restate the 1.0 claims, say plainly that the
 window 1.3's notes described is replaced by the range, name the three sources with
 their years, and close with "No new permissions…", true of 1.5. Pass.
+
+**Second pass — as it renders** (a throwaway iPhone 17 Pro on iOS 27, 1 October 2026;
+ADR-0058's verification has every figure):
+
+- *A steady weekend drinker, Quarter:* "Your weekly average · 5.1" over the chart and
+  "5.1 standard drinks a week" in the card, then "That's lower than roughly 30% of US
+  adults who drink." One weekly average, nothing set against it.
+- *Week, a quiet week and a heavy one:* "1 standard drink a week … lower than roughly
+  60%" and "20 standard drinks a week … lower than roughly 10%". The sentence moves; its
+  words do not, and nothing calls either week good or bad. At accessibility sizes the
+  first sentence reads "You logged 5 standard drinks in the last 7 days.", a record of
+  the week, not a verdict on it.
+- *A log of 40 days:* "since Aug 23" under the total and "Since Aug 23" on every segment,
+  15 of 40 beside "average about 10 in 40". The label reads as a date, not as a
+  milestone: it does not count the days for the reader or name a start.
+- *A log of 40 days with no drinks:* "No drinks since Aug 23." over empty tracks. Not
+  praised, not counted as a run.
+- *The opened notes:* at Week "This figure is compared on this device…" and "This figure
+  covers your last 7 days. The survey asked about a year."; clipped "Your average covers
+  the days since Aug 23."
 
 No exclamation marks, no em dashes and no imperatives in any new string. House voice
 intact. Pass.

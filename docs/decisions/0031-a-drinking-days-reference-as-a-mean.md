@@ -4,7 +4,9 @@
 population reference and its rules), ADR-0030 (the window it shares),
 ADR-0006, spec Feature C's "Shape 2", constraints 3 and 5 · **Amended by:**
 ADR-0038 (the two lines are the reader's to show), and its 2026-09-23
-amendment (the two counts drawn — see the note at the end)
+amendment (the two counts drawn — see the note at the end), ADR-0058 (the count
+is the chart header's own, over the range the picker chose — see the amendment at
+the end)
 
 ## Context
 
@@ -91,3 +93,24 @@ from the rounded mean the row prints (`FrequencyReference.displayedDrinkingDays`
 which the sentence now reads too). Still two counts, still no percentile, rank
 or "most people"; the two sentences are what VoiceOver reads and what the
 accessibility sizes show.
+
+---
+
+## Amendment (2026-10-01) — the count is the header's, over the range
+
+**Status:** accepted, by ADR-0058. Still two counts and never a percentile; still the
+calendar's definition of a day with drinks; still a mean scaled to the same days and
+rounded to whole days.
+
+The reader's count is now the Trends chart header's own "days with drinks", out of the
+range's days — "46 of 88" beside "average about 21 in 88" at Quarter, "3 of 7" beside
+"about 2 in 7" at Week — read from the same fold the header prints
+(`TrendWindowFold.summary.daysWithDrinks`), which folds the same classified days as the
+header's count (`rangeSummary`) and equals it, because no day before the first record
+holds an entry or a marker.
+`FrequencyReference.drinkingDays(in:last:endingOn:calendar:)`, the separate trailing
+count, is retired. While the log is younger than the range the denominator is the days
+since the first record, and the segment's span says "Since Aug 12"; the reviewed
+sentence "You logged drinks on 46 of the last 51 days." stays true as written, because
+those days are the last 51. The two lines still cover one set of days, now the same set
+as every other figure on the screen.

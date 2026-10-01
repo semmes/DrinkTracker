@@ -4,7 +4,10 @@
 summary, not a score), ADR-0001, ADR-0002, ADR-0007 / ADR-0010 (no second
 colour), ADR-0014 / ADR-0023 / ADR-0025 (the row shapes the breakdown
 names), ADR-0015 and ADR-0027 (not a share surface), ADR-0026 (the fold and
-the heading), PRD invariants 3, 8, 9, 10, spec constraints 3–4
+the heading), PRD invariants 3, 8, 9, 10, spec constraints 3–4 · **Amended by:**
+its own three amendments below, and ADR-0058 (the line at Quarter is the range's
+weekly figure, and every line divides by the days since the first record while
+the log is younger than the range — see the fourth amendment at the end)
 
 ## Context
 
@@ -481,3 +484,30 @@ appearance change (switch appearance with Trends open, and read the labels'
 pixels against the x axis), `Color.chartAxisInk` can give way to `.secondaryInk`,
 with `InkTests`' axis-label style changed to match. Until then, never style an
 axis label with a dynamic colour, flat or hierarchical.
+
+---
+
+## Fourth amendment (2026-10-01): the line at Quarter is the range's weekly figure
+
+**Status:** accepted, by ADR-0058. A bar still reports its own facts and never its
+distance from the line; the legend still carries the line's own value beside the
+range's; nothing here touches the readout, the selection or the axis.
+
+**At Quarter the dashed line is the window's total over its weeks**
+(`TrendWindowFold.averageLine`, which reads `weeklyFigure`), not the mean of the
+twelve completed weeks. So the legend ("Your weekly average · 12.6") and the
+weekly-average comparison print one number, seven times the per-day average before
+rounding, where on
+the owner's screenshot the legend said 13.2 and an aligned comparison would have said
+12.6: two weekly averages on one screen, a delta in all but name. The cost is that the
+line dips a little in a week that has not reached its weekend yet — 12.5 to 13.2 for a
+steady weekend drinker — which `bucketAverage` was built to prevent; the README's "never
+sags just because a new week started" is now true of Year only, whose line stays the
+mean of its complete months.
+
+**While the log is younger than the range, every line divides by the days since the
+first record**, as the per-day card and the days with no drinks logged do: per day at
+Week and Month, the weekly figure at Quarter, and at Year the mean of the complete
+months inside that window, a month the first record falls in partway left out like the
+one in progress. The bars keep the range and a bar's readout keeps its own days; a week
+before the first record still draws with nothing in it.

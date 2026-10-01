@@ -8,7 +8,9 @@ ADR-0031 (a drinking-days mean beside the volume comparison),
 ADR-0039 (the table's men's and women's columns are bundled and can be
 chosen as the reference, the Total staying the default), ADR-0038's
 2026-09-23 amendment (the reader's figure set large over the sentence — see
-the note at the end)
+the note at the end), ADR-0058 (the four-week floor kept, counted in days of
+record and applied to all three comparisons at every range; the average covers
+the range the picker chose — see the amendment at the end)
 
 ## Context
 
@@ -94,3 +96,28 @@ this comparison is ever drawn again it draws the share the sentence names,
 never a marker for the reader, because a marker on a line from least to most
 is a score. The two sentences remain what VoiceOver reads and what the
 accessibility sizes show.
+
+---
+
+## Amendment (2026-10-01) — the floor is days of record, and the average covers the range
+
+**Status:** accepted, by ADR-0058. The source, the renormalisation, the grams, the
+bracket rule, the phrasing and the refusals above are unchanged. Two things move.
+
+**The floor is kept and counted in days.** The comparison still waits for four weeks
+of recorded history, now counted in day keys rather than seconds: the first entry or
+no-alcohol record falls 27 or more days before today (`TrendWindow.comparisonFloor`,
+28). It is the one floor all three of Trends' comparisons share, at every range, Week
+included — the reopen ADR-0030's 2026-09-07 amendment named, taken now because the
+plan made the gate the only thing that still decides by age. A record's day counts
+whole: one made at 23:59 on 3 September clears the floor from 00:00 on 30 September,
+where the interval rule (28 × 24 hours) cleared it at 23:59 on 1 October.
+
+**The user's 4-week average becomes the range's.** The Decision's user average, and
+ADR-0030's twelve months after it, now cover the range the Trends picker chose: the
+window's total over its weeks, the days since the first record while the log is
+younger than the range (`TrendWindowFold.weeklyFigure`). At Week the figure is the
+week's own total and its sentence says so ("You logged 13.2 standard drinks in the
+last 7 days."), because seven days are not averaged; the comparison line is the
+survey sentence as it stands. ADR-0058 has the costs, the largest that Week's sentence
+moves with the week.

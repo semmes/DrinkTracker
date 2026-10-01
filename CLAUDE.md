@@ -350,7 +350,10 @@ release because GitHub keeps no file over 100 MB in a repository (the bullet "Th
 press page's film…", `semmes/Tallyist#8`).**
 **On 2026-10-01 a plan was written for every figure on Trends to follow the range
 picker; it waits on four decisions of the owner's (the bullet "Trends on one window is
-planned…", `docs/tallyist-trends-alignment-plan.md`).**
+planned…", `docs/tallyist-trends-alignment-plan.md`).** *(Decided the same day, and
+built that night on the draft semmes/DrinkTracker#160 with `MARKETING_VERSION` 1.5:
+the bullet "Trends compares the range the reader chose…", ADR-0058. It merges only
+once the owner says 1.4 is approved; one question in it is the owner's.)*
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4752,4 +4755,82 @@ Open items for v1.2:
   (1) is in App Review and 1.3 is live (the lookup API, 2026-10-01). The contract
   (`semmes/tallyist-product`) needs a draft PR with the build, which also corrects its
   stale "instant-based" description of the population windows. No code, schema, CloudKit,
-  catalog, privacy-policy or project-file change.
+  catalog, privacy-policy or project-file change. *(Built the same night — the next
+  bullet.)*
+- **Trends compares the range the reader chose (2026-10-01, ADR-0058; built on the draft
+  semmes/DrinkTracker#160, with `MARKETING_VERSION` 1.5 in its own commit).** The plan's
+  five decisions, as the owner made them, built in its order in a local session.
+  **What shipped:** `TrendWindow.swift` replaces `PopulationWindow.swift` in the core
+  package. A Trends range's *window* is its own day keys, cut at the first record's day
+  (the older of the first entry and the first no-alcohol marker) while the log is younger
+  than the range, and `TrendWindowFold` folds it once from the classified days
+  `TrendsView` already makes for its header. Under it: the dashed line (per day at Week
+  and Month; at Quarter the window's weekly figure, total ÷ (days ÷ 7), so the legend and
+  the weekly-average comparison print one number; at Year the mean of the complete months
+  inside the window), the per-day card, both counts of "Days with no drinks logged", the
+  By weekday rows, and all three comparisons. The bars, the header's total and days with
+  drinks, the longest run and the Health rows keep the range. While clipped the total card
+  says "since Aug 12" and every comparison's span "Since Aug 12" (`TrendWindow.sinceText`,
+  month and day). The comparisons share **one floor, 28 days of record counted in day
+  keys, at every range, Week included**, replacing ADR-0030's year of record and
+  ADR-0038's four weeks of range; `ComparisonsSection` lost its two queries and its
+  `Date()` and takes the fold, nil under the floor. At Week the weekly figure is the week's
+  own total: the figure line keeps "13.2 standard drinks a week" (no new key in the
+  plan's table), the folded and spoken sentence is "You logged 13.2 standard drinks in the
+  last 7 days.", and the note says "This figure…". Retired, every test rewritten rather
+  than deleted: `PopulationReference.Window`, `window(firstRecord:now:)` (the gate,
+  instant-based), the fixed-divisor `weeklyAverage`, `minimumHistory`,
+  `FrequencyReference.drinkingDays(in:last:endingOn:calendar:)`,
+  `WeekendSplit.isComparable`, `WeekendReference.minimumDays`.
+  `PopulationReference.weeklyAverage(of:)` stays as the year view's name for
+  `TrendSummary.weeklyFigure(of:)`, and the year view is unchanged. App catalog 386 →
+  **401** (seventeen in, two out), synced from a fresh full generic build into a scratch
+  copy and diffed; through the 1.4.3 review. Records: ADR-0058; amendments to ADR-0018,
+  0028, 0030, 0031, 0032 and 0038; design-system's Stat card, Comparisons section and
+  Weekday rows; the README's population reference and line sentence; the 1.5 What's New
+  and reviewer notes (1,478 bytes, all ASCII); `docs/localization-status.md`; the plan's
+  status. **The contract** is a draft, semmes/tallyist-product#11 (2.0.0 proposed, MAJOR
+  by its `VERSIONING.md`; the number is the owner's): the window, the gating, the two
+  measures, the weekday fold, the Quarter line, the copy deck and 37 insight vectors with
+  their reference implementation, and its stale instant-based windows corrected. It
+  overlaps the still-open draft #7, so whichever merges second needs the other merged in.
+  **Readings taken where the plan was silent** (ADR-0058 lists them): an empty log, or
+  one whose rows are all after today, clips nothing ("7 of 7" on a new install); a record
+  on the range's first day clips nothing; the drinking days need only their own bundled
+  file; a no-alcohol marker written east of the reader dates the window a day early (the
+  markers-as-instants limit, not repaired). **One question is the owner's:** decisions 3
+  and 5 read literally make Quarter's line on a log under a week old its days projected
+  to a week, so one day with 4 drinks draws "Your weekly average · 28" above a bar of 4,
+  where main drew no line. It is built as decided and pinned by `quarterLineUnderAWeek`;
+  the one-line alternative is no line while the window is under seven days.
+  **Reviewed before the push** by a six-lens adversarial workflow with two skeptics per
+  finding (60 agents): 27 findings, 21 surviving, no figure wrong. It added a day-one test
+  (a first record dated today: changing the clip's upper bound had passed all 412 tests),
+  the Week form of the note, and a dozen comment and record corrections, among them that
+  "seven times the per-day card" printing the legend's number is untrue whenever the
+  card's one-decimal rounding is multiplied (101.8 over 88 days prints 1.2 a day and 8.1
+  a week). **Gates, locally (Xcode 27.0):** 414 domain tests under both build systems;
+  both schemes in CI's form with only main's warnings; 124 integration tests on the
+  iPhone 17 Pro Max simulator; the verifier, the policy dates and the glyph generator
+  clean. **Rendered** (114 frames on a throwaway iPhone 17 Pro, iOS 27, deleted after;
+  every frame's text read back by OCR and checked against an independent computation of
+  the seeded log): all four ranges over a log older than a year in light and dark at the
+  default size and `accessibility-extra-large`, the Quarter legend and comparison both
+  5.1; a log of 40 days ("Since Aug 23" on Quarter and Year, 40-day denominators
+  everywhere, Week and Month over their ranges); a log of 20 days (no Comparisons
+  section, the clipped cards); Week over a quiet week (60%) and a heavy one (10%); a
+  one-day log (the line at 28); a 40-day log with no drinks ("No drinks since Aug 23.");
+  the opened notes at Week, Month and clipped, by the simulator tool's taps; and `main`'s
+  build on the same logs for the before frames. **Not rendered:** VoiceOver, a UK or
+  Australian region, the Men and Women columns at Week, a midnight-DST zone on screen,
+  Increase Contrast, a 375pt phone, a range change's crossfade, hardware. **Tier 4 for the
+  owner:** their own log at each range, and the one-day Quarter line before deciding the
+  question. **Tooling worth keeping:** a render that crosses midnight changes every
+  range, so seed a fixed day and render after 00:00; a Vision OCR tool (`swiftc` over
+  `VNRecognizeTextRequest`, sandbox off) reads every frame back as text in seconds, which
+  is what made 114 frames checkable; the seeder writes `ZDRINKENTRY` / `ZALCOHOLFREEDAY`
+  with `sqlite3` and computes the expected figures from the same list, so a frame is
+  compared with arithmetic it did not draw; `.defaultScrollAnchor` from a launch variable
+  reaches any scroll position with no tap; the simulator tool's taps were granted this
+  time and opened the notes. The scripts were in the session's scratchpad, which a Mac
+  restart empties.
