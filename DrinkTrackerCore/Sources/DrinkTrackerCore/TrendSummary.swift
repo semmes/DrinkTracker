@@ -200,7 +200,9 @@ public enum TrendSummary {
     }
   }
 
-  /// Mean total per *completed* bucket — the average line on bucketed charts.
+  /// Mean total per *completed* bucket — the average line at Year, over the
+  /// complete months of the Trends window (ADR-0058; it was the line at Quarter
+  /// too until then, when Quarter's became the window's weekly figure).
   ///
   /// The trailing bucket is usually partial ("this week" two days in), and a
   /// mean that included it would sag every time the period rolled over —

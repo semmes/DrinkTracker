@@ -25,120 +25,183 @@ struct InsightReferenceTests {
 
   // MARK: - The window
 
-  @Test("The window follows the age of the first recorded fact")
-  func windowGate() {
-    let now = date(2026, 9, 5)
-    #expect(PopulationReference.window(firstRecord: nil, now: now) == nil)
-    #expect(PopulationReference.window(firstRecord: now.addingTimeInterval(-27 * 86400), now: now) == nil)
-    #expect(PopulationReference.window(firstRecord: now.addingTimeInterval(-28 * 86400), now: now) == .fourWeeks)
-    #expect(PopulationReference.window(firstRecord: now.addingTimeInterval(-363 * 86400), now: now) == .fourWeeks)
-    #expect(PopulationReference.window(firstRecord: now.addingTimeInterval(-364 * 86400), now: now) == .twelveMonths)
-    #expect(PopulationReference.window(firstRecord: date(2020, 1, 1), now: now) == .twelveMonths)
+  // ADR-0030's window followed the age of the record — 28 days, then 364 —
+  // whatever the range picker said. ADR-0058 retired it: the comparisons fold
+  // the Trends range's own days, cut at the first record's day while the log is
+  // younger than the range, behind one floor of 28 days of record. Each test
+  // below is the one that pinned the old rule, rewritten to pin its successor;
+  // `TrendWindowTests` carries the new rule's own tests.
+
+  private func fold(
+    _ range: TrendRange,
+    _ drinks: [LoggedDrink],
+    endingOn now: Date,
+    firstRecord: Date? = nil,
+    region: Region = .unitedStates,
+    calendar cal: Calendar? = nil
+  ) -> TrendWindowFold {
+    let cal = cal ?? calendar
+    // A first record two years back by default, so the window is the range's
+    // own: the tests here are about which days the range holds, not about a
+    // young log.
+    let first = firstRecord ?? cal.date(byAdding: .year, value: -2, to: now)!
+    return TrendSummary.windowFold(
+      range: range, endingOn: now, drinks: drinks, alcoholFreeDays: [],
+      firstRecord: first, region: region, calendar: cal
+    )
   }
 
-  @Test("Four weeks is the shipped rule: the last 28 calendar days over a fixed 4")
-  func fourWeekAverage() {
+  /// Was "The window follows the age of the first recorded fact": the record's
+  /// age now gates, and only gates — the window is the range's.
+  @Test("The comparisons wait for 28 days of record, whatever the range")
+  func windowGate() {
+    let now = date(2026, 9, 5)
+    for range in TrendRange.allCases {
+      func clears(_ first: Date?) -> Bool {
+        TrendSummary.comparisonWindow(range: range, endingOn: now, firstRecord: first, calendar: calendar) != nil
+      }
+      #expect(!clears(nil))
+      #expect(!clears(date(2026, 8, 10, 0)))   // 27 days of record, counting today
+      #expect(clears(date(2026, 8, 9, 23)))    // 28: the 28th day back, at its last hour
+      #expect(clears(date(2020, 1, 1)))
+    }
+  }
+
+  /// Was "Four weeks is the shipped rule": Month's weekly figure is its 30
+  /// days' total over 30 ÷ 7, the range's first day inside and the day before
+  /// it outside.
+  @Test("Month's weekly figure is its 30 days' total over 30 ÷ 7")
+  func monthWeeklyFigure() {
     let now = date(2026, 9, 5)
     let drinks = [
       beer(date(2026, 9, 4)),
-      beer(date(2026, 8, 9, 23)),  // the 28th day back: inside
-      beer(date(2026, 8, 8, 23))   // the 29th: outside, though only 27 days and 13 hours before `now`
+      beer(date(2026, 8, 7, 0)),   // the 30th day back, at its first minute: inside
+      beer(date(2026, 8, 6, 23))   // the 31st: outside, though only 29 days and 13 hours before `now`
     ]
-    let average = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar)
-    #expect(abs(average - 2.0 / 4) < 1e-9)
+    let figure = fold(.month, drinks, endingOn: now).weeklyFigure
+    let expected: Double = 2.0 / (30.0 / 7.0)
+    #expect(abs(figure - expected) < 1e-9)
   }
 
-  @Test("Twelve months is 52 whole weeks of calendar days over a fixed 52")
-  func twelveMonthAverage() {
-    let now = date(2026, 9, 5)
+  /// Was "Twelve months is 52 whole weeks of calendar days over a fixed 52":
+  /// Year's weekly figure is its range's total over its own days ÷ 7, the
+  /// range being the twelve calendar months the chart draws.
+  @Test("Year's weekly figure is its twelve months' total over their days ÷ 7")
+  func yearWeeklyFigure() {
+    let now = date(2026, 9, 5)  // Year covers 1 Oct 2025 – 5 Sep 2026: 340 days
     var drinks: [LoggedDrink] = []
-    for week in 0..<52 {  // one beer a week, the last one 357 days back
+    for week in 0..<48 {  // one beer a week, the last one 330 days back
       drinks.append(beer(calendar.date(byAdding: .day, value: -(week * 7 + 1), to: now)!))
     }
-    drinks.append(beer(date(2025, 9, 7, 0)))   // the 364th day back, at its first minute: inside
-    drinks.append(beer(date(2025, 9, 6, 23)))  // the 365th: outside, though 363 days and 13 hours before `now`
-    let average = PopulationReference.weeklyAverage(drinks, window: .twelveMonths, endingAt: now, region: .unitedStates, calendar: calendar)
-    #expect(abs(average - 53.0 / 52) < 1e-9)
-    // The same year's drinks over four weeks are the last four only.
-    let recent = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar)
-    #expect(abs(recent - 1.0) < 1e-9)
+    drinks.append(beer(date(2025, 10, 1, 0)))    // the range's first day, at its first minute: inside
+    drinks.append(beer(date(2025, 9, 30, 23)))   // the day before: outside
+    let year = fold(.year, drinks, endingOn: now)
+    #expect(year.window.dayCount == 340)
+    let expected: Double = 49.0 / (340.0 / 7.0)
+    #expect(abs(year.weeklyFigure - expected) < 1e-9)
+    // The same drinks over Month are the last month's five only.
+    let month = fold(.month, drinks, endingOn: now)
+    let expectedMonth: Double = 5.0 / (30.0 / 7.0)
+    #expect(abs(month.weeklyFigure - expectedMonth) < 1e-9)
   }
 
-  @Test("The divisor never shrinks with a sparse window")
-  func fixedDivisor() {
+  /// Was "The divisor never shrinks with a sparse window": it still never
+  /// shrinks with how much of the window is logged. What sets it is the
+  /// window's days — the range's, or the days since the first record.
+  @Test("The divisor is the window's days, never the days logged")
+  func divisorIsTheWindow() {
     let now = date(2026, 9, 5)
     let drinks = [beer(date(2026, 9, 5, 11))]
-    #expect(abs(PopulationReference.weeklyAverage(drinks, window: .twelveMonths, endingAt: now, region: .unitedStates, calendar: calendar) - 1.0 / 52) < 1e-9)
-    #expect(abs(PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar) - 1.0 / 4) < 1e-9)
+    // An old record: one drink over a sparse range still divides by all of it.
+    let year = fold(.year, drinks, endingOn: now)
+    let yearExpected: Double = 1.0 / (340.0 / 7.0)
+    #expect(abs(year.weeklyFigure - yearExpected) < 1e-9)
+    let month = fold(.month, drinks, endingOn: now)
+    let monthExpected: Double = 1.0 / (30.0 / 7.0)
+    #expect(abs(month.weeklyFigure - monthExpected) < 1e-9)
+    // A log that began 14 days ago divides by those 14 days, at every range
+    // longer than they are.
+    let young = date(2026, 8, 23, 9)
+    for range in [TrendRange.month, .quarter, .year] {
+      let clipped = fold(range, drinks, endingOn: now, firstRecord: young)
+      #expect(clipped.window.dayCount == 14)
+      let expected: Double = 1.0 / (14.0 / 7.0)
+      #expect(abs(clipped.weeklyFigure - expected) < 1e-9)
+    }
   }
 
-  /// The probe from the 1.3 review: an evening drink 28 calendar days back,
-  /// read the next morning, is 27 days and 11 hours old — inside an instant
-  /// cutoff, outside the last 28 days — and printed an average above zero over
-  /// "0 of the last 28 days". Both edges of the window are calendar days now:
-  /// the far one, and the near one, where an entry later today counts and an
-  /// entry dated tomorrow does not.
+  /// The probe from the 1.3 review: an evening drink just outside the window,
+  /// read the next morning, sits inside an instant cutoff and outside the
+  /// window's days, and printed an average above zero over "0 of the last 28
+  /// days". Both edges of the window are still calendar days: the far one, the
+  /// range's first day, and the near one, where an entry later today counts
+  /// and an entry dated tomorrow does not.
   @Test("Both edges of the window are calendar days, not instants")
   func edgesAreCalendarDays() {
-    let morning = date(2026, 9, 5, 8)
-    func average(_ drinks: [LoggedDrink], _ window: PopulationReference.Window = .fourWeeks) -> Double {
-      PopulationReference.weeklyAverage(drinks, window: window, endingAt: morning, region: .unitedStates, calendar: calendar)
-    }
-    let probe = [beer(date(2026, 8, 8, 21))]
-    #expect(average(probe) == 0)
-    #expect(FrequencyReference.drinkingDays(in: probe, last: 28, endingOn: morning, calendar: calendar) == 0)
+    let morning = date(2026, 9, 5, 8)  // Month covers 7 August – 5 September
+    func month(_ drinks: [LoggedDrink]) -> TrendWindowFold { fold(.month, drinks, endingOn: morning) }
+    let oneDrinkWeekly: Double = 1.0 / (30.0 / 7.0)
 
-    let firstMinute = [beer(date(2026, 8, 9, 0))]
-    #expect(abs(average(firstMinute) - 1.0 / 4) < 1e-9)
-    #expect(FrequencyReference.drinkingDays(in: firstMinute, last: 28, endingOn: morning, calendar: calendar) == 1)
+    let probe = month([beer(date(2026, 8, 6, 21))])
+    #expect(probe.weeklyFigure == 0)
+    #expect(probe.summary.daysWithDrinks == 0)
 
-    let laterToday = [beer(date(2026, 9, 5, 23))]
-    #expect(abs(average(laterToday) - 1.0 / 4) < 1e-9)
-    #expect(FrequencyReference.drinkingDays(in: laterToday, last: 28, endingOn: morning, calendar: calendar) == 1)
-    let tomorrow = [beer(date(2026, 9, 6, 0))]
-    #expect(average(tomorrow) == 0)
-    #expect(FrequencyReference.drinkingDays(in: tomorrow, last: 28, endingOn: morning, calendar: calendar) == 0)
+    let firstMinute = month([beer(date(2026, 8, 7, 0))])
+    #expect(abs(firstMinute.weeklyFigure - oneDrinkWeekly) < 1e-9)
+    #expect(firstMinute.summary.daysWithDrinks == 1)
 
-    // The same at twelve months: the 364th day back is a whole day.
-    #expect(abs(average([beer(date(2025, 9, 7, 0))], .twelveMonths) - 1.0 / 52) < 1e-9)
-    #expect(average([beer(date(2025, 9, 6, 23))], .twelveMonths) == 0)
+    let laterToday = month([beer(date(2026, 9, 5, 23))])
+    #expect(abs(laterToday.weeklyFigure - oneDrinkWeekly) < 1e-9)
+    #expect(laterToday.summary.daysWithDrinks == 1)
+    let tomorrow = month([beer(date(2026, 9, 6, 0))])
+    #expect(tomorrow.weeklyFigure == 0)
+    #expect(tomorrow.summary.daysWithDrinks == 0)
+
+    // The same at Year, whose first day is the 1st of a month eleven back.
+    #expect(fold(.year, [beer(date(2025, 10, 1, 0))], endingOn: morning).weeklyFigure > 0)
+    #expect(fold(.year, [beer(date(2025, 9, 30, 23))], endingOn: morning).weeklyFigure == 0)
   }
 
-  /// One key set, two lines: whatever `drinkingDays` counts, the average sums,
-  /// and nothing else. Checked drink by drink, so a drink the count includes
-  /// and the average drops — or the reverse — names itself.
-  @Test("The average and the drinking-days count cover one set of days")
+  /// One set of days, two lines: whatever the drinking-days count counts, the
+  /// weekly figure sums, and nothing else. Checked drink by drink at every
+  /// range and three reading times, so a drink one line includes and the other
+  /// drops — or the reverse — names itself.
+  @Test("The weekly figure and the drinking-days count cover one set of days")
   func averageAndDayCountAgree() {
     let readings = [date(2026, 9, 5, 0), date(2026, 9, 5, 8), date(2026, 9, 5, 23)]
     let candidates = [
-      date(2026, 8, 7, 23), date(2026, 8, 8, 0), date(2026, 8, 8, 21), date(2026, 8, 8, 23),
-      date(2026, 8, 9, 0), date(2026, 8, 9, 7), date(2026, 8, 9, 23),
+      date(2026, 8, 5, 23), date(2026, 8, 6, 0), date(2026, 8, 6, 21), date(2026, 8, 6, 23),
+      date(2026, 8, 7, 0), date(2026, 8, 7, 7), date(2026, 8, 7, 23),
+      date(2026, 8, 29, 23), date(2026, 8, 30, 0),
       date(2026, 9, 5, 0), date(2026, 9, 5, 12), date(2026, 9, 5, 23),
       date(2026, 9, 6, 0), date(2026, 9, 6, 9),
-      date(2025, 9, 6, 23), date(2025, 9, 7, 0), date(2025, 9, 7, 12)
+      date(2026, 7, 4, 23), date(2026, 7, 5, 0), date(2026, 7, 5, 12),
+      date(2025, 9, 30, 23), date(2025, 10, 1, 0), date(2025, 10, 1, 12)
     ]
     for now in readings {
-      for window in [PopulationReference.Window.fourWeeks, .twelveMonths] {
+      for range in TrendRange.allCases {
         for at in candidates {
-          let drink = [beer(at)]
-          let counted = FrequencyReference.drinkingDays(in: drink, last: window.days, endingOn: now, calendar: calendar) == 1
-          let summed = PopulationReference.weeklyAverage(drink, window: window, endingAt: now, region: .unitedStates, calendar: calendar) > 0
-          #expect(counted == summed, "\(at) read at \(now) over \(window): counted \(counted), summed \(summed)")
+          let one = fold(range, [beer(at)], endingOn: now)
+          let counted = one.summary.daysWithDrinks == 1
+          let summed = one.weeklyFigure > 0
+          #expect(counted == summed, "\(at) read at \(now) over \(range): counted \(counted), summed \(summed)")
         }
       }
     }
-    // And all at once: six of the candidates fall on the last 28 days ending
-    // September 5 — three on August 9, three on the 5th — so two days, six drinks.
-    let all = candidates.map { beer($0) }
-    #expect(FrequencyReference.drinkingDays(in: all, last: 28, endingOn: readings[1], calendar: calendar) == 2)
-    #expect(abs(PopulationReference.weeklyAverage(all, window: .fourWeeks, endingAt: readings[1], region: .unitedStates, calendar: calendar) - 6.0 / 4) < 1e-9)
+    // And all at once: six of the candidates fall on Month's 30 days ending
+    // September 5 — three on August 7, three on the 5th — and two more on
+    // August 29 and 30, so four days and eight drinks.
+    let all = fold(.month, candidates.map { beer($0) }, endingOn: readings[1])
+    #expect(all.summary.daysWithDrinks == 4)
+    let expected: Double = 8.0 / (30.0 / 7.0)
+    #expect(abs(all.weeklyFigure - expected) < 1e-9)
   }
 
   /// Santiago moves its clocks at midnight on 2026-09-06: that day has no
   /// 00:00 and `startOfDay` is 01:00, the case the package's day walk exists
   /// for (ADR-0026). The window that ends on the transition day must hold the
-  /// day itself and the 27 before it, and the two lines must agree across it.
-  @Test("The average survives a midnight daylight-saving day, in step with the count")
+  /// day itself and the 29 before it, and the two lines must agree across it.
+  @Test("The weekly figure survives a midnight daylight-saving day, in step with the count")
   func averageOnTransitionDay() {
     var santiago = Calendar(identifier: .gregorian)
     santiago.timeZone = TimeZone(identifier: "America/Santiago")!
@@ -151,25 +214,28 @@ struct InsightReferenceTests {
       beer(at(9, 6, 1)),   // the transition day's first hour
       beer(at(9, 6, 11)),
       beer(at(9, 5, 23)),  // the last hour before the clocks moved
-      beer(at(8, 10, 0)),  // the 28th day back: inside
-      beer(at(8, 9, 23))   // the 29th: outside
+      beer(at(8, 8, 0)),   // the 30th day back: inside
+      beer(at(8, 7, 23))   // the 31st: outside
     ]
-    let average = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: santiago)
-    #expect(abs(average - 4.0 / 4) < 1e-9)
-    #expect(FrequencyReference.drinkingDays(in: drinks, last: 28, endingOn: now, calendar: santiago) == 3)
+    let month = fold(.month, drinks, endingOn: now, calendar: santiago)
+    #expect(month.window.dayCount == 30)
+    let expected: Double = 4.0 / (30.0 / 7.0)
+    #expect(abs(month.weeklyFigure - expected) < 1e-9)
+    #expect(month.summary.daysWithDrinks == 3)
     for drink in drinks {
-      let counted = FrequencyReference.drinkingDays(in: [drink], last: 28, endingOn: now, calendar: santiago) == 1
-      let summed = PopulationReference.weeklyAverage([drink], window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: santiago) > 0
+      let one = fold(.month, [drink], endingOn: now, calendar: santiago)
+      let counted = one.summary.daysWithDrinks == 1
+      let summed = one.weeklyFigure > 0
       #expect(counted == summed, "\(drink.loggedAt): counted \(counted), summed \(summed)")
     }
   }
 
-  @Test("The window's average re-expresses under the current region only")
+  @Test("The weekly figure re-expresses under the current region only")
   func windowFollowsTheLens() {
     let now = date(2026, 9, 5)
     let drinks = [beer(now.addingTimeInterval(-86400))]
-    let us = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedStates, calendar: calendar)
-    let uk = PopulationReference.weeklyAverage(drinks, window: .fourWeeks, endingAt: now, region: .unitedKingdom, calendar: calendar)
+    let us = fold(.month, drinks, endingOn: now, region: .unitedStates).weeklyFigure
+    let uk = fold(.month, drinks, endingOn: now, region: .unitedKingdom).weeklyFigure
     #expect(uk > us)
     // And the comparison agrees in grams whichever lens produced it.
     let ref = try! #require(PopulationReference.bundled)
@@ -189,6 +255,8 @@ struct InsightReferenceTests {
     #expect(abs(PopulationReference.weeklyAverage(of: leap) - 1.0) < 1e-6)
     let empty = RecentSummary(dayCount: 0, daysWithDrinks: 0, daysAlcoholFree: 0, daysUnlogged: 0, totalStandardDrinks: 0, averageOnDrinkingDays: 0)
     #expect(PopulationReference.weeklyAverage(of: empty) == 0)
+    // One function behind the year view and Trends (ADR-0058).
+    #expect(PopulationReference.weeklyAverage(of: summary) == TrendSummary.weeklyFigure(of: summary))
   }
 
   @Test("A complete year compares by the same bracket rule as the card")
@@ -215,19 +283,26 @@ struct InsightReferenceTests {
     #expect(abs(ref.drinkingDays(per: 365) - 87.9) < 1e-9)
   }
 
+  /// Was a test of `FrequencyReference.drinkingDays(in:last:endingOn:calendar:)`,
+  /// retired by ADR-0058: the reader's count is the window fold's days with
+  /// drinks, the header's own figure, so the two cannot be counted twice.
   @Test("Drinking days are distinct calendar days with an entry, inside the window")
   func drinkingDays() {
     let end = date(2026, 9, 5)
     let drinks = [
       beer(date(2026, 9, 5, 20)), beer(date(2026, 9, 5, 21)),   // one day, two drinks
       beer(date(2026, 9, 1, 9)),
-      beer(date(2026, 8, 9, 23)),                                // the 28th day back: inside
-      beer(date(2026, 8, 8, 23)),                                // outside
+      beer(date(2026, 8, 7, 23)),                                // Month's first day: inside
+      beer(date(2026, 8, 6, 23)),                                // outside Month, inside Year
       LoggedDrink(loggedAt: date(2026, 8, 20), type: .beer, volumeOunces: 12, abvPercent: 0, region: .unitedStates)  // 0%: still an entry
     ]
-    #expect(FrequencyReference.drinkingDays(in: drinks, last: 28, endingOn: end, calendar: calendar) == 4)
-    #expect(FrequencyReference.drinkingDays(in: drinks, last: 364, endingOn: end, calendar: calendar) == 5)
-    #expect(FrequencyReference.drinkingDays(in: [], last: 28, endingOn: end, calendar: calendar) == 0)
+    #expect(fold(.month, drinks, endingOn: end).summary.daysWithDrinks == 4)
+    #expect(fold(.year, drinks, endingOn: end).summary.daysWithDrinks == 5)
+    #expect(fold(.month, [], endingOn: end).summary.daysWithDrinks == 0)
+    // The published mean beside it scales to the same window's days.
+    let ref = try! #require(FrequencyReference.bundled)
+    #expect(ref.displayedDrinkingDays(per: fold(.week, [], endingOn: end).window.dayCount) == 2)
+    #expect(ref.displayedDrinkingDays(per: fold(.month, [], endingOn: end).window.dayCount) == 7)
   }
 
   // MARK: - Weekdays
@@ -286,29 +361,28 @@ struct InsightReferenceTests {
     #expect(totals.allSatisfy { $0.daysWithDrinks == 0 && $0.standardDrinks == 0 })
   }
 
-  /// ADR-0038: the published rate waits for four weeks of range. A Week
-  /// range is three weekend days beside a rate per hundred; a Month range is
-  /// the first that qualifies. The rows and the split themselves never wait.
-  @Test("The weekend comparison waits for four weeks of range")
+  /// Was ADR-0038's "waits for four weeks of range": the published rate now
+  /// waits for the record instead, the floor all three comparisons share
+  /// (ADR-0058), so Week's three weekend days and four others sit beside it
+  /// once the log is four weeks old. The rows and the split never wait.
+  @Test("The weekend comparison waits for 28 days of record, not of range")
   func weekendComparisonGate() throws {
-    #expect(WeekendReference.minimumDays == 28)
-    let week = WeekendSplit(weekendDaysWithDrinks: 1, weekendDays: 3, otherDaysWithDrinks: 0, otherDays: 4)
-    #expect(week.dayCount == 7)
-    #expect(!week.isComparable)
-    let edge = WeekendSplit(weekendDaysWithDrinks: 0, weekendDays: 12, otherDaysWithDrinks: 0, otherDays: 16)
-    #expect(edge.isComparable)
-    let under = WeekendSplit(weekendDaysWithDrinks: 0, weekendDays: 12, otherDaysWithDrinks: 0, otherDays: 15)
-    #expect(!under.isComparable)
-
-    // From the real fold: never on Week, always on Month.
     let ref = try #require(WeekendReference.bundled)
     let end = date(2026, 9, 5)
-    let weekTotals = TrendSummary.weekdayTotals(range: .week, endingOn: end, drinks: [], region: .unitedStates, calendar: calendar)
-    #expect(!TrendSummary.weekendSplit(weekTotals, weekend: ref.weekendWeekdays).isComparable)
-    let monthTotals = TrendSummary.weekdayTotals(range: .month, endingOn: end, drinks: [], region: .unitedStates, calendar: calendar)
-    let month = TrendSummary.weekendSplit(monthTotals, weekend: ref.weekendWeekdays)
-    #expect(month.dayCount == 30)
-    #expect(month.isComparable)
+    for range in TrendRange.allCases {
+      let shown = TrendSummary.comparisonWindow(range: range, endingOn: end, firstRecord: date(2026, 8, 9), calendar: calendar)
+      #expect(shown != nil)
+      let hidden = TrendSummary.comparisonWindow(range: range, endingOn: end, firstRecord: date(2026, 8, 10), calendar: calendar)
+      #expect(hidden == nil)
+    }
+    // Week, with a record old enough: one of each weekday, three of them the
+    // paper's weekend, and the split covers the window's seven days.
+    let week = fold(.week, [beer(date(2026, 9, 4))], endingOn: end, firstRecord: date(2026, 8, 9))
+    let split = TrendSummary.weekendSplit(week.weekdays, weekend: ref.weekendWeekdays)
+    #expect(split.weekendDays == 3)
+    #expect(split.otherDays == 4)
+    #expect(split.dayCount == week.window.dayCount)
+    #expect(split.weekendDaysWithDrinks == 1)
   }
 
   @Test("A 0% drink makes a day with drinks; the weekday keeps the entry")

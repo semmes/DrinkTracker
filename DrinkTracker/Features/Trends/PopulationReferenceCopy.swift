@@ -2,8 +2,8 @@ import DrinkTrackerCore
 import SwiftUI
 
 /// The population comparison's sentences, in one place, so the Trends card
-/// (the trailing window) and the year view (a complete year) say the same
-/// things in the same words (ADR-0018, ADR-0030, ADR-0031).
+/// (the range the picker chose, ADR-0058) and the year view (a complete year)
+/// say the same things in the same words (ADR-0018, ADR-0030, ADR-0031).
 ///
 /// Copy rules from the 1.2 spec, kept literally: "lower than", never "better
 /// than"; no congratulation and no warning in either direction; the source
@@ -36,6 +36,41 @@ enum PopulationReferenceCopy {
     }
   }
 
+  /// The Week range's sentence, where "Your average is about…" would be untrue
+  /// of one week: seven days hold one of each weekday, so their total is the
+  /// weekly figure and nothing is averaged (ADR-0058, decision 1). "You logged
+  /// 13.2 standard drinks in the last 7 days." One key per region and number,
+  /// as `averageLine`'s are.
+  static func weekTotalLine(_ units: Double, region: Region) -> LocalizedStringKey {
+    let value = StandardDrink.formatted(units)
+    let isSingular = StandardDrink.readsAsOne(units)
+    switch region {
+    case .unitedStates, .australia:
+      return isSingular
+        ? "You logged \(value) standard drink in the last 7 days."
+        : "You logged \(value) standard drinks in the last 7 days."
+    case .unitedKingdom:
+      return isSingular
+        ? "You logged \(value) unit in the last 7 days."
+        : "You logged \(value) units in the last 7 days."
+    }
+  }
+
+  /// The weekly-average segment's sentence for a window: the Week range's own,
+  /// or "Your average is about…" over every longer one. The folded sizes show
+  /// it and VoiceOver reads it, so the two can never word the figure apart.
+  static func weeklyLine(_ units: Double, window: TrendWindow, region: Region) -> LocalizedStringKey {
+    isWeekTotal(window) ? weekTotalLine(units, region: region) : averageLine(units, region: region)
+  }
+
+  /// Whether the weekly figure is a week's own total — the Week range, whole —
+  /// and is worded as one wherever the segment names it (ADR-0058, decision 1:
+  /// "worded as the week's own facts"). A clipped week cannot reach the
+  /// comparisons, whose floor is 28 days of record.
+  static func isWeekTotal(_ window: TrendWindow) -> Bool {
+    window.range == .week && !window.isClipped
+  }
+
   /// The same sentence for a year that has ended: "In 2025, your average was
   /// about 4 standard drinks a week." The year goes in as text, never a
   /// grouped number.
@@ -60,7 +95,11 @@ enum PopulationReferenceCopy {
   /// system §3), the rest at the size of the text around it. The sentence
   /// above — "Your average is about 21 standard drinks a week." — is what
   /// VoiceOver reads and what the accessibility sizes show; this is its
-  /// figure and noun, not a rewording. One key per region and number, the
+  /// figure and noun, not a rewording. At Week the spoken and folded sentence
+  /// is the week's total instead ("You logged 13.2 standard drinks in the last
+  /// 7 days.", `weekTotalLine`), and this line keeps its key, because a week's
+  /// total is its weekly figure and "a week" is true of it (ADR-0058). One key
+  /// per region and number, the
   /// noun's form following the displayed digits, as `averageLine`'s do; the
   /// figure goes in as a `Text` so a translation can place it.
   static func averageFigure(_ units: Double, region: Region) -> Text {
@@ -80,17 +119,19 @@ enum PopulationReferenceCopy {
     }
   }
 
-  /// The span the population window covers, as the segment's header names it
-  /// — the same keys the Trends chart and the calendar card already print.
-  static func windowTitle(_ window: PopulationReference.Window) -> Text {
-    switch window {
-    case .fourWeeks: Text("Last \(window.days) days")
-    case .twelveMonths: Text("Last 12 months")
+  /// The span every segment's header names (ADR-0058): the range the picker
+  /// chose, in the chart card's own words, or "Since Aug 12" while the log is
+  /// younger than the range and the window starts at its first record. One
+  /// function, read by all three segments, so no two of them can name
+  /// different days.
+  static func spanTitle(_ window: TrendWindow) -> Text {
+    if let since = window.sinceText {
+      return Text("Since \(since)")
     }
+    return Text(rangeTitle(window.range))
   }
 
-  /// The span a Trends range covers — the chart card's own titles, so the
-  /// weekend segment names the same days the range picker chose.
+  /// The span a Trends range covers — the chart card's own titles.
   static func rangeTitle(_ range: TrendRange) -> LocalizedStringKey {
     switch range {
     case .week: "Last 7 days"
@@ -100,10 +141,16 @@ enum PopulationReferenceCopy {
     }
   }
 
-  static func noDrinks(in window: PopulationReference.Window) -> LocalizedStringKey {
-    switch window {
-    case .fourWeeks: "No drinks in the last 4 weeks."
-    case .twelveMonths: "No drinks in the last 12 months."
+  /// The weekly-average segment's absence, stated over its own span.
+  static func noDrinks(in window: TrendWindow) -> LocalizedStringKey {
+    if let since = window.sinceText {
+      return "No drinks since \(since)."
+    }
+    switch window.range {
+    case .week: return "No drinks in the last 7 days."
+    case .month: return "No drinks in the last 30 days."
+    case .quarter: return "No drinks in the last 13 weeks."
+    case .year: return "No drinks in the last 12 months."
     }
   }
 
@@ -128,13 +175,14 @@ enum PopulationReferenceCopy {
     }
   }
 
-  /// "You logged drinks on 9 of the last 28 days." — the calendar's own
-  /// count over the card's window.
+  /// "You logged drinks on 46 of the last 88 days." — the Trends header's own
+  /// count over the window. True of a clipped window too, whose days are the
+  /// last N days by construction: the first record's day through today.
   static func drinkingDaysLine(_ days: Int, of windowDays: Int) -> LocalizedStringKey {
     "You logged drinks on \(days) of the last \(windowDays) days."
   }
 
-  /// "US adults who drink average about 7 in 28." — a published mean, scaled
+  /// "US adults who drink average about 21 in 88." — a published mean, scaled
   /// to the same window and rounded to whole days: a mean over a population
   /// is not a figure a tenth of a day can be checked against.
   static func drinkingDaysReferenceLine(_ reference: FrequencyReference, windowDays: Int) -> LocalizedStringKey {
@@ -175,8 +223,26 @@ enum PopulationReferenceCopy {
   /// replaced "nothing about your log leaves this device", which reads alone
   /// as untrue of a log that syncs to iCloud. The derivation sentence is
   /// unchanged; ADR-0018 quotes it.
-  static func explainer(in column: PopulationReference.Column, drinkersPercent: Double) -> LocalizedStringKey {
+  static func explainer(
+    in column: PopulationReference.Column,
+    drinkersPercent: Double,
+    isWeekTotal: Bool = false
+  ) -> LocalizedStringKey {
     let percent = Int(drinkersPercent.rounded())
+    // At Week the figure is the week's own total, so the note's subject is
+    // "this figure", as the sentence and the window note say (ADR-0058,
+    // decision 1). The derivation sentence is the same in both forms, the one
+    // ADR-0018 quotes.
+    if isWeekTotal {
+      switch column {
+      case .allAdults:
+        return "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      case .men:
+        return "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      case .women:
+        return "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      }
+    }
     switch column {
     case .allAdults:
       return "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
@@ -187,13 +253,24 @@ enum PopulationReferenceCopy {
     }
   }
 
-  /// Which span the average covers, stated plainly. The twelve-month window
-  /// is offered once the record supports it; a single heavy week moves a
-  /// four-week average by a quarter and a year hardly at all.
-  static func windowNote(_ window: PopulationReference.Window) -> LocalizedStringKey {
-    switch window {
-    case .fourWeeks: "Your average covers your last 4 weeks."
-    case .twelveMonths: "Your average covers your last 12 months, the span the survey asked about."
+  /// Which span the figure covers, stated plainly. At Week, Month and Quarter
+  /// it adds that the survey asked about a year: its column is drinks a week
+  /// averaged over the previous twelve months (ADR-0030), so a shorter span is
+  /// placed on a distribution of yearly averages, and the note says so rather
+  /// than letting the sentence imply otherwise (ADR-0058). At Week the subject
+  /// is "this figure", because seven days' total is not an average. While the
+  /// window is clipped the note names the days and nothing more, the plan's
+  /// copy as drafted and reviewed; the clipped window is always shorter than a
+  /// year, and the span label above says from when.
+  static func windowNote(_ window: TrendWindow) -> LocalizedStringKey {
+    if let since = window.sinceText {
+      return "Your average covers the days since \(since)."
+    }
+    switch window.range {
+    case .week: return "This figure covers your last 7 days. The survey asked about a year."
+    case .month: return "Your average covers your last 30 days. The survey asked about a year."
+    case .quarter: return "Your average covers your last 13 weeks. The survey asked about a year."
+    case .year: return "Your average covers your last 12 months, the span the survey asked about."
     }
   }
 
@@ -228,6 +305,18 @@ enum PopulationReferenceCopy {
 
   static let weekendNote: LocalizedStringKey =
     "A published rate from a national dietary survey of US adults, 2005 to 2010, drinkers and non-drinkers together: days with a drink of 10 grams of alcohol or more, per 100 person-days, with the weekend as the study defined it. Not data from other Tallyist users."
+}
+
+extension TrendWindow {
+  /// A clipped window's first day as every "Since" label prints it — "Aug 12",
+  /// the month abbreviated and the day — or nil while the window is the
+  /// range's own (ADR-0058). One format, read by the comparisons' spans and
+  /// notes and by the total card's label, so the screen names one date. The
+  /// day is inside the last twelve months, so no year is needed to read it.
+  var sinceText: String? {
+    guard isClipped, let firstDay else { return nil }
+    return firstDay.formatted(.dateTime.month(.abbreviated).day())
+  }
 }
 
 /// The tappable source line with the note it opens — a Button, not

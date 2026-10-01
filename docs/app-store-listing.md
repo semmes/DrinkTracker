@@ -5,7 +5,9 @@
 for 1.0 the app's release date), read on 2026-09-23, when the owner reported
 1.3's approval; 1.4 submitted for review on 2026-09-26 (the owner; build
 1.4 (1)), carrying the Apple Watch app and Apple Health on Trends together
-(ADR-0054), with its description, What's New and reviewer notes below ·
+(ADR-0054), with its description, What's New and reviewer notes below; 1.5's
+What's New and reviewer notes drafted on 2026-10-01 with Trends on one window
+(ADR-0058), for when 1.4 is approved ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -594,6 +596,59 @@ New in 1.4: the watch app, a HealthKit read for four types behind switches
 that start off, the remote-notification background mode, and two recurring
 tips. No new privacy label categories, no new third-party code, no accounts,
 no servers.
+```
+
+## What's New (1.5)
+
+Drafted 2026-10-01 with the build (ADR-0058), reviewed under 1.4.3
+(`docs/copy-review-1.4.3.md`, 2026-10-01). Not yet submitted: 1.5 opened on `main` on
+2026-10-01 at the owner's word, while 1.4 (1) was still in App Review. Wrapped here for reading; join
+each paragraph onto one line before pasting.
+
+```
+Trends now compares the range you pick. At Week, Month, Quarter and Year,
+the weekly average, the drinking days and the weekend days cover the same
+days as the chart above them, and the Quarter line is the same weekly
+average the comparison shows. Week now shows all three comparisons.
+
+If your log is newer than the range, the figures that count days start
+from your first record, and Trends shows that date.
+```
+
+## Reviewer notes (1.5) — paste into App Review notes
+
+1.3's notes told App Review the population window "now follows the length of the
+user's record"; 1.5 changes that to the range the reader picks, and says so. The
+claims of the 1.0 Resolution Center response, kept through 1.4, are restated in the
+first line. 1,478 bytes, all ASCII (the field holds 4,000 bytes; count with
+`wc -c` after any change).
+
+```
+What's new in 1.5. The four claims of our 1.0 response hold: no goals,
+streaks, scores or advice; no user-generated content shared between users;
+no accounts; no external services.
+
+- Trends' comparisons now cover the range the user picks (Week, Month,
+  Quarter or Year), the same days as the chart above them. Since 1.3 the
+  weekly average and the drinking days covered the last four weeks, or the
+  last twelve months once the record was a year old, whatever range was
+  picked. While a log is newer than the range, every figure that divides by
+  a number of days counts only the days since its first record, and the
+  screen says "Since" that date.
+- The comparisons are unchanged in kind: bundled, published, dated
+  statistics (Alcohol Research Group, 2020 National Alcohol Survey; NIAAA,
+  NESARC-III, 2012-13; Liang and Chikritzhs, 2015, on NHANES 2005-10),
+  computed on the device with no network request, each named with its
+  source. None is a guideline, a limit, a risk figure or a category. They
+  appear once the log holds four weeks of record, at every range, and each
+  can be turned off in Settings > Comparisons.
+- On Quarter the dashed "Your weekly average" line is now the range's
+  weekly figure, the same number the comparison shows. The line and the
+  comparison are not set against each other: no difference between them
+  is shown, and nothing is ranked or scored.
+
+No new permissions, privacy label categories, third-party code, accounts or
+servers.
 ```
 
 ## Reminders for the version page

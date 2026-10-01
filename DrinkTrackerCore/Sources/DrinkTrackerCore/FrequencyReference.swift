@@ -43,28 +43,11 @@ public struct FrequencyReference: Sendable {
     self.drinkingDaysPerYear = file.drinking_days_per_year
   }
 
-  /// The mean scaled to a window of `days`: 87.9 a year is about 6.7 in 28
-  /// days and 87.7 in 364. Callers round for display.
+  /// The mean scaled to a window of `days`: 87.9 a year is about 1.7 in 7
+  /// days, 7.2 in 30 and 21.2 in 88. Callers round for display. The reader's
+  /// own figure beside it is the Trends header's days with drinks over the same
+  /// window (`TrendWindowFold.summary`, ADR-0058).
   public func drinkingDays(per days: Int) -> Double {
     drinkingDaysPerYear * Double(days) / 365
-  }
-
-  /// The user's own figure: distinct calendar days in the `days` ending on
-  /// `endDate` with at least one entry — the calendar's own definition of a
-  /// day with drinks (an entry at 0.0 counts; a marker alone does not),
-  /// walked with the package's DST-safe day keys.
-  public static func drinkingDays(
-    in drinks: [LoggedDrink],
-    last days: Int,
-    endingOn endDate: Date,
-    calendar: Calendar = .current
-  ) -> Int {
-    let keys = Set(TrendSummary.trailingDays(count: days, endingOn: endDate, calendar: calendar))
-    var seen: Set<Date> = []
-    for drink in drinks {
-      let day = calendar.startOfDay(for: drink.loggedAt)
-      if keys.contains(day) { seen.insert(day) }
-    }
-    return seen.count
   }
 }

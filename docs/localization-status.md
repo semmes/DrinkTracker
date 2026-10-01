@@ -96,8 +96,12 @@ catalog, a one-line fix for a later pass). Diagnostics text on the watch is
 `Text(verbatim:)` on purpose so no debug line reaches a catalog; the
 complication's own strings arrive with Phase 6. Six catalogs, 475 keys.
 
-Current: **538 keys across six catalogs** — 386 app, 35 widget, 28 core, 4
-shortcuts, 50 watch app, 35 complication (re-counted 2026-09-26 after the tip
+Current: **553 keys across six catalogs** — 401 app, 35 widget, 28 core, 4
+shortcuts, 50 watch app, 35 complication (re-counted 2026-10-01 after Trends
+moved onto one window, ADR-0058: seventeen app keys in, two out, none changed,
+synced from a fresh full generic build into a scratch copy of the catalog and
+diffed; the new keys carry no translator comment, since sync added them. The
+count before that was 538, 386 app, re-counted 2026-09-26 after the tip
 jar's renewal fix, ADR-0012 amended: ten app keys in, two out, none changed,
 synced from a fresh full build and diffed; the two new privacy-policy keys are
 marked not to translate like the two they replace. The count before that was

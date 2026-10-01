@@ -123,20 +123,21 @@ struct TrendsView: View {
             chartCard(snapshot)
             summaryCards(snapshot)
             // The reader's own log by weekday — outside the Comparisons section
-            // below it, and gated by nothing (ADR-0038's 2026-09-10 amendment).
+            // below it, and gated by nothing (ADR-0038's 2026-09-10 amendment)
+            // — over the window, so each row's "of N" counts no day before the
+            // first record (ADR-0058).
             WeekdayCard(
-              totals: snapshot.weekdays,
+              totals: snapshot.fold.weekdays,
               region: settings.effectiveRegion,
               calendar: calendar
             )
-            // The three published comparisons under one heading that names them.
-            // The section owns all three gates, so it renders nothing at all when
-            // the reader has turned every comparison off.
+            // The three published comparisons under one heading that names them,
+            // over the same fold as the cards above. The section owns all three
+            // gates, so it renders nothing at all when the reader has turned
+            // every comparison off or the record is under the floor.
             ComparisonsSection(
-              weekdayTotals: snapshot.weekdays,
-              range: range,
-              region: settings.effectiveRegion,
-              calendar: calendar
+              fold: snapshot.comparisons,
+              region: settings.effectiveRegion
             )
             // Apple Health beside the log, last on the screen (ADR-0050). The
             // section owns the row's gate and the offer's, and renders nothing
@@ -210,20 +211,24 @@ struct TrendsView: View {
 
   /// One render's worth of figures, computed from the store once.
   private struct Snapshot {
+    /// The bars on daily charts — the range's days, whatever the window: the
+    /// picker's promise is the span of the x axis (ADR-0058).
     let totals: [DayTotal]
     /// Chart bars for the bucketed ranges — weekly for quarter, monthly for year.
     let buckets: [PeriodTotal]
-    /// The average line's value on bucketed charts: mean per completed
-    /// bucket, nil while no bucket is complete (no line beats a misleading one).
-    let bucketAverage: Double?
     /// The selected bar's facts, or nil when nothing is selected or the
     /// selected date no longer falls on a bar (a rolling window has moved on).
     let selection: PeriodDetail?
-    /// The range by weekday (ADR-0032), seven rows in the calendar's order.
-    let weekdays: [WeekdayTotal]
+    /// Every figure whose denominator is a count of days, over the window:
+    /// the range's days, or the days since the first record while the log is
+    /// younger than the range (ADR-0058) — the dashed line, the per-day card,
+    /// the days with no drinks logged, the weekday rows and the comparisons.
+    let fold: TrendWindowFold
     /// ADR-0006's figures over the whole range — the header's idle line. Read
     /// only for `daysWithDrinks`: the printed total stays `sum`, the fold the
-    /// StatCard below already prints, so one number has one source.
+    /// StatCard below already prints, so one number has one source. Both are
+    /// counts, and no day before the first record holds anything, so neither
+    /// moves with the window.
     let rangeSummary: RecentSummary
     /// The longest run of days recorded as no alcohol across the whole range
     /// (ADR-0033) — folded from the same classified days as `rangeSummary`.
@@ -234,9 +239,16 @@ struct TrendsView: View {
     /// the switch off never pays for deriving it.
     let pairing: HealthPairingRequest?
 
-    var average: Double { TrendSummary.dailyAverage(totals) }
+    /// The dashed line's value — per day at Week and Month, the window's weekly
+    /// figure at Quarter, the mean of its complete months at Year — or nil when
+    /// there is none to draw (ADR-0028, ADR-0058).
+    let averageLine: Double?
+
     var sum: Double { TrendSummary.sum(totals) }
-    var restDays: Int { TrendSummary.daysWithoutDrinks(totals) }
+
+    /// The fold the published comparisons may read, or nil while the record
+    /// is under their floor (`TrendWindow.comparisonFloor`, ADR-0058).
+    var comparisons: TrendWindowFold? { fold.window.clearsComparisonFloor ? fold : nil }
   }
 
   private func snapshot() -> Snapshot {
@@ -246,12 +258,20 @@ struct TrendsView: View {
       range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
     )
     let buckets = TrendSummary.bucketed(totals, by: range.bucket, calendar: calendar)
-    // One classification of the range's days, folded twice, so the header's
-    // count and the longest run cannot disagree about what a day is.
+    // One classification of the range's days, folded for the header, the
+    // longest run and the window, so none of them can disagree about what a
+    // day is.
     let rangeDays = TrendSummary.rangeDays(
       range: range, endingOn: today, drinks: drinks,
       alcoholFreeDays: markedDays, region: region, calendar: calendar
     )
+    // The window those figures divide by (ADR-0058): the range, or the days
+    // since the first record while the log is younger than it. The entry query
+    // runs newest first, so the first entry is the last row; the marker query
+    // runs oldest first.
+    let firstRecord = [allEntries.last?.loggedAt, alcoholFreeDays.first?.day].compactMap { $0 }.min()
+    let window = TrendSummary.trendWindow(range: range, endingOn: today, firstRecord: firstRecord, calendar: calendar)
+    let fold = TrendSummary.windowFold(of: rangeDays, in: window, calendar: calendar)
     // Derived, never stored: a drink logged from Today, a marker arriving
     // over CloudKit, an undo, or a region change all re-express it on the
     // next render.
@@ -270,14 +290,12 @@ struct TrendsView: View {
     return Snapshot(
       totals: totals,
       buckets: buckets,
-      bucketAverage: TrendSummary.bucketAverage(buckets, unit: range.bucket, calendar: calendar),
       selection: selection,
-      weekdays: TrendSummary.weekdayTotals(
-        range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
-      ),
+      fold: fold,
       rangeSummary: TrendSummary.summary(of: rangeDays),
       longestAlcoholFreeRun: TrendSummary.longestAlcoholFreeRun(of: rangeDays),
-      pairing: pairingRequest(drinks: drinks)
+      pairing: pairingRequest(drinks: drinks),
+      averageLine: fold.averageLine(calendar: calendar)
     )
   }
 
@@ -617,11 +635,19 @@ struct TrendsView: View {
 
   /// One expression behind both the `RuleMark` and the header legend, so the
   /// legend can never describe a line that is not drawn. The gate is `> 0`,
-  /// never `!= nil`: `bucketAverage` returns `Optional(0.0)` for an empty log
-  /// on both bucketed ranges, so nil is practically unreachable.
+  /// never `!= nil`: an empty log folds to `Optional(0.0)` at every range but
+  /// Year's no-complete-month case, so nil alone would draw a line at zero.
+  ///
+  /// At Quarter the value is the window's weekly figure (ADR-0058, decision 3)
+  /// where it was the mean of the completed weeks: the same number the
+  /// weekly-average comparison prints, and seven times the per-day average
+  /// before either is rounded, so the screen prints one weekly average. It dips
+  /// a little in a week that has not reached its weekend yet, and on a log
+  /// under a week old it projects that log's days to a week and stands above
+  /// every bar (ADR-0058's consequences); Year's per-completed-month line does
+  /// neither.
   private func averageLineValue(_ snapshot: Snapshot) -> Double? {
-    let value: Double? = isBucketed ? snapshot.bucketAverage : snapshot.average
-    guard let value, value > 0 else { return nil }
+    guard let value = snapshot.averageLine, value > 0 else { return nil }
     return value
   }
 
@@ -662,9 +688,10 @@ struct TrendsView: View {
         }
       }
 
-      // The line matches the bars' scale: per day on daily charts, per
-      // completed week/month on bucketed ones — a daily line under weekly
-      // bars would hug the floor and read as meaningless. Never dimmed, never
+      // The line matches the bars' scale: per day on daily charts, the
+      // window's weekly figure at Quarter, the mean of the completed months at
+      // Year — a daily line under weekly bars would hug the floor and read as
+      // meaningless (ADR-0028, ADR-0058). Never dimmed, never
       // annotated relative to the selection — and no longer annotated at all:
       // its label is the header legend, where it reads at a glance instead of
       // colliding with the bars.
@@ -936,10 +963,12 @@ struct TrendsView: View {
       HStack(spacing: GlassTokens.Spacing.regular) {
         StatCard(
           value: StandardDrink.formatted(snapshot.sum),
-          label: sumLabel
+          label: sumLabel(snapshot.fold.window)
         )
+        // Over the window: a day before the first record is not a day
+        // without a drink (ADR-0058).
         StatCard(
-          value: StandardDrink.formatted(snapshot.average),
+          value: StandardDrink.formatted(snapshot.fold.dailyAverage),
           label: "per day on average"
         )
       }
@@ -963,7 +992,9 @@ struct TrendsView: View {
             .font(GlassTokens.Typography.cardLabel)
             .foregroundStyle(.secondaryInk)
 
-          Text("\(snapshot.restDays) of \(snapshot.totals.count)")
+          // Both counts over the window (ADR-0058): while the log is younger
+          // than the range, the days before its first record are in neither.
+          Text("\(snapshot.fold.daysWithoutDrinks) of \(snapshot.fold.window.dayCount)")
             .font(GlassTokens.Typography.cardValue)
             .foregroundStyle(.primary)
         }
@@ -1012,12 +1043,20 @@ struct TrendsView: View {
   /// once said "this week" and "this month", and at Month that put a total
   /// reaching back into the previous month beside the calendar's card for the
   /// month, which counts from the 1st.
-  private var sumLabel: LocalizedStringKey {
-    switch range {
-    case .week: "last 7 days"
-    case .month: "last 30 days"
-    case .quarter: "last 13 weeks"
-    case .year: "last 12 months"
+  ///
+  /// While the log is younger than the range it reads "since Aug 12", the
+  /// comparisons' own date (ADR-0058): the figure is the same either way, but
+  /// the cards around it divide by those days, and this is the one label on the
+  /// range's cards that says so.
+  private func sumLabel(_ window: TrendWindow) -> LocalizedStringKey {
+    if let since = window.sinceText {
+      return "since \(since)"
+    }
+    switch window.range {
+    case .week: return "last 7 days"
+    case .month: return "last 30 days"
+    case .quarter: return "last 13 weeks"
+    case .year: return "last 12 months"
     }
   }
 

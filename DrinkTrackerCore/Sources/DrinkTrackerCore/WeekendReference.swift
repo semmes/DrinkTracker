@@ -54,8 +54,9 @@ public struct WeekendReference: Sendable {
   }
 }
 
-/// The user's own split on the paper's definition: how many of the range's
-/// weekend days had a drink, and how many of the others.
+/// The user's own split on the paper's definition: how many of the window's
+/// weekend days had a drink, and how many of the others — the Trends window,
+/// folded from its weekday rows (ADR-0058).
 public struct WeekendSplit: Hashable, Sendable {
   public let weekendDaysWithDrinks: Int
   public let weekendDays: Int
@@ -85,26 +86,9 @@ extension TrendSummary {
   }
 }
 
-// MARK: - The four-week floor (ADR-0038)
-
-extension WeekendReference {
-  /// The fewest calendar days a range must hold before the published rate is
-  /// placed beside the user's split. A Week range puts three weekend days
-  /// beside a rate per hundred person-days, which is the noise the population
-  /// card's own four-week gate exists to keep off the screen; the same floor,
-  /// applied to the range rather than to the record, because the split is a
-  /// fact about the range shown.
-  public static let minimumDays = 28
-}
-
 extension WeekendSplit {
-  /// Every day the split covers, weekend and other together — the range's
-  /// own length.
+  /// Every day the split covers, weekend and other together — the window's
+  /// own length, which is the range's once the log reaches back to its first
+  /// day (ADR-0058).
   public var dayCount: Int { weekendDays + otherDays }
-
-  /// Whether the published rate may be shown beside this split: the range
-  /// holds `WeekendReference.minimumDays` or more. The seven weekday rows
-  /// and the split itself are facts about the log and are never gated; only
-  /// the comparison waits.
-  public var isComparable: Bool { dayCount >= WeekendReference.minimumDays }
 }

@@ -10,8 +10,9 @@ import SwiftUI
 /// there are the reader's own log, which no switch gates, and the Comparisons
 /// heading must not span them. What that costs is adjacency — the split does
 /// not sit directly beneath the rows it is folded from — and the segment's
-/// header now names the span it covers, the range the picker chose, so the
-/// reader can see that it is the same range as the rows above.
+/// header now names the span it covers, the range the picker chose (or "Since
+/// Aug 12" while the log is younger than it, ADR-0058), so the reader can see
+/// that it is the same days as the rows above.
 ///
 /// Nothing is recomputed, subtracted or ranked. The table's two published
 /// denominators stay printed — "7 of 12" beside "31 of every 100" — so the two
@@ -24,8 +25,9 @@ import SwiftUI
 struct WeekendComparison: View {
   let split: WeekendSplit
   let reference: WeekendReference
-  /// The range the split covers — the Trends picker's — named in the header.
-  let range: TrendRange
+  /// The days the split covers — the Trends window, folded from the same
+  /// weekday rows as the card above (ADR-0058) — named in the header.
+  let window: TrendWindow
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -38,7 +40,7 @@ struct WeekendComparison: View {
       // Titled by its measure, not by its switch (owner's review, 2026-09-10):
       // the Settings switch keeps "Weekend and weekdays", and ADR-0038's
       // amendment records the exception.
-      ComparisonSegmentHeader(title: "Days with a drink", span: Text(PopulationReferenceCopy.rangeTitle(range)))
+      ComparisonSegmentHeader(title: "Days with a drink", span: PopulationReferenceCopy.spanTitle(window))
 
       if ComparisonTable.folds(dynamicTypeSize) {
         stackedComparison

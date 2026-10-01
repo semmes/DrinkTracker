@@ -485,7 +485,7 @@ backdated entry can't resurrect one.
 ## The population reference
 
 Trends carries one comparison line once four weeks of history exist: the
-user's average against the Alcohol Research Group's **2020 National
+user's weekly average against the Alcohol Research Group's **2020 National
 Alcohol Survey** distribution of weekly drinks — "That's lower than roughly
 30% of US adults who drink." A bundled JSON in the core package, no network
 call ever; the comparison runs in grams so the regional unit setting can't
@@ -494,15 +494,26 @@ UI note, and pinned row-by-row in tier-1 tests. Source and year are always
 visible. No thresholds, no guidelines, no other users — see
 [ADR-0018](docs/decisions/0018-population-reference-is-a-bundled-statistic.md).
 
-**The window follows the record**
-([ADR-0030](docs/decisions/0030-the-population-comparison-covers-the-surveys-window-and-a-complete-year.md)):
-the survey's column is drinks per week averaged over the previous twelve
-months, so once the first recorded fact is a year old the card's average
-covers the trailing twelve months, and the note says which span it covers;
-before that it is the trailing four weeks as shipped. A year that has
-ended, with a record, gets the same comparison on the year view under its
-summary card, from the same summary and the same function — never on a
-share card. Beside the volume comparison sit two more published, dated
+**The comparisons cover the range the reader chose**
+([ADR-0058](docs/decisions/0058-trends-compares-the-range-the-reader-chose.md)):
+every figure under the range picker reads one set of days, the chart card's
+own, so the weekly average is the range's total over its weeks — the number
+the Quarter line's legend prints, seven times the per-day average — and the drinking
+days are the header's own days with drinks out of the range's days. At Week
+the figure is the week's own total, and its sentence says "You logged 13.2
+standard drinks in the last 7 days." rather than calling one week an average;
+the note says which days the figure covers and, at Week, Month and Quarter,
+that the survey asked about a year (its column is drinks per week averaged over
+the previous twelve months); while the log is younger than the range the note
+names the days since the first record and nothing more. While the log is younger than the range the
+comparisons cover the days since the first record and say "Since Aug 12".
+Until 1.5 the two population comparisons covered their own window instead,
+four weeks and then twelve months once the record was a year old, whatever the
+picker said
+([ADR-0030](docs/decisions/0030-the-population-comparison-covers-the-surveys-window-and-a-complete-year.md),
+retired on Trends). A year that has ended, with a record, gets the same
+comparison on the year view under its summary card, from the same summary and
+the same function — never on a share card. Beside the volume comparison sit two more published, dated
 statistics, each a descriptive figure and never a threshold: how many days
 the user logged drinks on against a mean for US adults who drink
 (NESARC-III, 2012–13; a mean, so two counts and never a percentile —
@@ -523,16 +534,18 @@ guidelines, definitions and risk figures, live in the product contract
 ([ADR-0038](docs/decisions/0038-the-comparisons-are-the-readers-to-show.md)):
 Settings → Comparisons carries three switches, on by default — the weekly
 average (Trends and the year view together), the drinking days, and the
-weekend rate — each naming its source, and the weekend comparison waits for
-four weeks of range, so the Week range shows the seven rows alone. **And they are named where they
+weekend rate — each naming its source, and all three wait for 28 days of
+record, at every range, Week included (ADR-0058; the weekend comparison used to
+wait for four weeks of range instead, and so never showed at Week). **And they are named where they
 are shown** (the same record's 2026-09-10 amendment): the bottom of Trends
-carries a `COMPARISONS` heading with one card per switch under it, in the
-switches' order and carrying their exact titles — Weekly average, Drinking
-days, Weekend and weekdays — so a reader can see which control governs what.
-The section resolves all three gates itself and the heading is the literal
-disjunction of them, so it never heads an empty space; each card names the one
-source behind it, replacing a joined source line whose wording used to depend
-on which switches were on. The seven By weekday rows stay outside the heading:
+carries a `COMPARISONS` heading over one card with a segment per switch, in
+the switches' order and carrying their titles — Weekly average, Drinking
+days, and "Days with a drink" for the weekend switch — so a reader can see
+which control governs what, and each segment names the days it covers. The
+section resolves all three gates itself and the heading is the literal
+disjunction of them, so it never heads an empty space; each segment names the
+one source behind it, replacing a joined source line whose wording used to
+depend on which switches were on. The seven By weekday rows stay outside the heading:
 they are the reader's own log, gated by nothing, and the word *comparison* over
 them would draw the rank the card exists to refuse. The app never chooses a
 comparison by what the figures say, and never rotates them — the record says
@@ -552,8 +565,12 @@ Trends spans four ranges: rolling 7- and 30-day windows with daily bars, and
 calendar-bucketed **Quarter** (last 13 weeks, weekly bars) and **Year** (last
 12 months, monthly bars) — the trailing week/month is partial, "so far", like
 the current month in the year calendar. The dashed average line matches the
-bars' scale (per day, per week, per month) and, on bucketed charts, averages
-*completed* periods only, so it never sags just because a new week started.
+bars' scale: per day at Week and Month; at Quarter the range's weekly figure,
+its total over its weeks, seven times the per-day average and the number the
+weekly-average comparison prints, so the screen shows one weekly average
+and the line can dip a little in a week that has not reached its weekend yet
+(ADR-0058); at Year the mean of the *completed* months only, so it never sags
+just because a new month started.
 Totals are always expressed in the current region, a year of history included
 (invariant 3). The same figures everywhere; still no deltas, no targets.
 Drag across the bars and the chart card's header reads one bar at a time —
@@ -571,7 +588,12 @@ none**, counted only from days recorded as alcohol-free, so a day with
 nothing logged ends it, and the card reads "None recorded" at zero, never 0
 ([ADR-0033](docs/decisions/0033-a-run-of-no-alcohol-days-is-counted-from-the-record.md))
 — then the **By weekday** card and the population reference's lines
-described above.
+described above. While the log is younger than the range, every one of those
+figures that divides by a count of days — the line, the per-day card, days with
+no drinks logged, the weekday rows and the comparisons — counts only the days
+since the first record, and the total card says "since Aug 12": a day before
+anything was recorded is not a day without a drink. The bars keep the range
+([ADR-0058](docs/decisions/0058-trends-compares-the-range-the-reader-chose.md)).
 
 - **Month view** — every day shaded by how much was logged. Tap any past day to
   record it. Future days are dimmed and inert; a calendar you can scroll forward

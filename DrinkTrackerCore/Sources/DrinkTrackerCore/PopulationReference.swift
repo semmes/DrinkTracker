@@ -107,10 +107,6 @@ public struct PopulationReference: Sendable {
     100 - abstainersPercent(in: column)
   }
 
-  /// Hidden until at least this much history exists — below it the average
-  /// is noise (spec acceptance criterion).
-  public static let minimumHistory: TimeInterval = 28 * 24 * 60 * 60
-
   // MARK: - Loading
 
   /// The bundled file, decoded once. nil only if the bundle is broken, in

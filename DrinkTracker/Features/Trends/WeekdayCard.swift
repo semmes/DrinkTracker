@@ -2,8 +2,10 @@ import ComponentsKit
 import DrinkTrackerCore
 import SwiftUI
 
-/// The range by weekday (ADR-0032): for each day of the week, what was
-/// logged on those days and how many of them had a drink. Facts about the
+/// The Trends window by weekday (ADR-0032): for each day of the week, what was
+/// logged on those days and how many of them had a drink — over the range, or
+/// the days since the first record while the log is younger than it, so a
+/// row's "of N" never counts a day before anything was recorded (ADR-0058). Facts about the
 /// user's own log, seven rows in the calendar's order, with no rank, no
 /// "most", and no external figure — ADR-0028's rule applied to weekdays.
 ///

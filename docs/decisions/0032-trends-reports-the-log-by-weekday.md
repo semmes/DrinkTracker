@@ -7,7 +7,10 @@ ADR-0038 (the comparison is the reader's to show, and waits for four
 weeks of range — see the amendment below), ADR-0038's own 2026-09-10
 amendment (the comparison leaves this card for the Comparisons section — see
 the 2026-09-10 amendments below), and its 2026-09-23 amendment (the
-comparison turned and drawn — see the note at the end)
+comparison turned and drawn — see the note at the end), ADR-0058 (the rows and
+the comparison cover the days since the first record while the log is younger
+than the range, and the comparison waits for the record instead of four weeks of
+range — see the amendment at the end)
 
 ## Context
 
@@ -481,3 +484,27 @@ is subtracted, ranked or worded against the other, and the numeral rule is
 untouched. The seven weekday rows are not in the card, are not drawn, and are
 still never charted — the reason is unchanged. The segment's header now names
 its span, the range the picker chose.
+
+---
+
+## Amendment (2026-10-01) — the rows and the split cover the window, and the comparison waits for the record
+
+**Status:** accepted, by ADR-0058. The figures, the source, the weekend definition and
+the refusals are unchanged; the seven rows are still never charted, ranked or related to
+one another.
+
+**The rows divide by the window.** While the log is younger than the range, each
+weekday row counts the days since the first record — "1 of 2 days" where the range
+would have said "1 of 5" with three of those five days before anything was recorded —
+and so does the split folded from them (`TrendSummary.weekdayTotals(of:)` over the
+window's classified days). A log under a week old shows "0 of 0 days" for a weekday it
+has not reached, the fold's existing zero-of-zero row.
+
+**The floor moves from the range to the record.** The 2026-09-08 amendment above put
+the comparison behind four weeks of range; it now appears once the log holds 28 days of
+record, the floor all three comparisons share, at every range. So Week shows the split's
+three Friday-to-Sunday days and four others beside the published rates again, and Month
+no longer sets an empty log's zeros beside them. A rate per hundred person-days beside
+three days is the noise that amendment named, accepted by the owner on the plan's
+mockups (ADR-0058's consequences). `WeekendSplit.isComparable` and
+`WeekendReference.minimumDays` are retired, their test rewritten as the record's floor.
