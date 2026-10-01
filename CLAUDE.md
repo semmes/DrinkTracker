@@ -359,7 +359,8 @@ review, so `main` is the 1.5 train from that merge: a fix 1.4 still needs is cut
 old, the owner settled the same day by keeping it.)* **The same day Quarter and Year
 became readable by day, week or month, from a filter button beside the chart's legend
 that opens a menu, and Week's and Month's legend became "Your daily average" (the
-bullet "Quarter and Year can be read by day, week or month…", ADR-0059).**
+bullet "Quarter and Year can be read by day, week or month…", ADR-0059); the owner
+tested it on their phone and it merged as 525f208 the same day.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4940,4 +4941,10 @@ Open items for v1.2:
   Mac) is how "nothing else moved" was shown; the simulator tool's own screenshot lags a
   tap, so read the screen with `simctl io` after one. A shell heredoc left unquoted ran
   the backticks in a Markdown edit as commands; quote it (`<<'EOF'`) whenever the text
-  holds backticks.
+  holds backticks. **Tier 4, the owner, the same day:** an Xcode build of the PR's head
+  (c0de45e) on their phone, *"Tested it on my phone and it's working"*; merged at their
+  word as 525f208 (semmes/DrinkTracker#161), all ten checks green. The report names no
+  single item, so VoiceOver over the button, the haptic and a scrub across Year by day
+  stay unconfirmed on hardware. Opening Xcode from a session fails in the sandbox
+  ("procNotFound", -600); hand the owner the `open -a Xcode <worktree>/DrinkTracker.xcodeproj`
+  command instead, and remind them to close the main checkout's window of the same name.
