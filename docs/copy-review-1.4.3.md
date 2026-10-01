@@ -2605,3 +2605,50 @@ from the website, and it is not. It names only iPhone, the one mark the film sho
 which is right; the ending is what differs. Correcting it is one line in `Edits.swift`,
 a re-render of each cut that carries the end card, and a new release for the press
 page.
+
+## 1.5 — Trends compares the range the reader chose (ADR-0058, 2026-10-01)
+
+Every comparison on Trends now covers the days the chart covers, the range the picker
+chose, or the days since the first record while the log is younger than the range; the
+three comparisons appear from 28 days of record at every range, Week included; and at
+Quarter the dashed line is the range's weekly figure. Seventeen new app-catalog
+strings, two retired, and existing strings read over new spans.
+
+| String | Where | Review |
+|---|---|---|
+| "You logged %@ standard drinks in the last 7 days." · "You logged %@ standard drink in the last 7 days." · "You logged %@ units in the last 7 days." · "You logged %@ unit in the last 7 days." | The weekly-average segment at Week: the sentence the folded sizes show and VoiceOver reads | Seven days are not averaged, so "Your average is about…" would be untrue of them; this is the week's total, stated as what was logged, in the shape of the reviewed "You logged drinks on 9 of the last 28 days." "Logged" describes the record, not the reader. The noun follows the displayed digits per region, as the average sentence's keys do. No "only", no "just", no "this week you…". |
+| "Since %@" | Every comparison segment's span, while the log is younger than the range ("Since Aug 12") | Names the first day the figures count, the way "Last 30 days" names the range's. The date is the first record's day; the label does not say "since you started", which would be about the reader. |
+| "since %@" | The total card's label under the chart, in the same case | The lowercased form "last 13 weeks" takes, for the same reason: it reads under a figure. |
+| "No drinks in the last 7 days." · "No drinks in the last 30 days." · "No drinks in the last 13 weeks." · "No drinks since %@." | The weekly-average segment when its window holds no drinks | The reviewed "No drinks in the last 4 weeks." over each range's own span. An absence stated, not praised: no "great", no "keep it up", no streak. |
+| "This figure covers your last 7 days. The survey asked about a year." | The weekly-average note at Week | Says which days the figure counts and that the survey's column is a twelve-month average, so a week set beside it is not read as like for like. "This figure", because seven days' total is not an average. No judgment of either span. |
+| "Your average covers your last 30 days. The survey asked about a year." · "Your average covers your last 13 weeks. The survey asked about a year." | The note at Month and Quarter | The same, over each range. Year keeps the reviewed "…your last 12 months, the span the survey asked about." |
+| "Your average covers the days since %@." | The note while the window is clipped | Which days, and nothing more. |
+| "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from …" (US adults, US men, US women) | The weekly-average note's first paragraph at Week | The reviewed note with its subject changed from "Your average" to "This figure", because at Week the figure is a week's total, as the Week sentence and the window note already say; the derivation sentence ADR-0018 quotes is word for word. Added after the build's code review found the opened note still calling the week's total an average; decision 1's "worded as the week's own facts" covers it. |
+
+Retired: "No drinks in the last 4 weeks." and "Your average covers your last 4 weeks."
+
+**Existing strings, read over new spans.** The drinking-days sentences ("You logged
+drinks on 3 of the last 7 days." / "US adults who drink average about 2 in 7.") and
+their row figures are the reviewed keys with new numbers. "The last 51 days" stays
+true while clipped, because the window is the first record's day through today. The
+survey sentence ("That's lower than roughly 50% of US men who drink.") is unchanged in
+words; at Week it places one week among other people's yearly averages, so it moves
+with the week, which the owner accepted on the plan's mockups (ADR-0058). It is still
+"lower than", never "better than", and nothing on the card names a direction to move
+in. The span labels "Last 7 days" through "Last 12 months" are the chart card's own.
+
+**The Quarter line.** "Your weekly average · 12.6" in the legend now prints the same
+number as the comparison below it. One weekly average on the screen, named as an
+average and never a limit, as the 2026-08 review passed it.
+
+**What's New (1.5) and reviewer notes (1.5)** (`docs/app-store-listing.md`). What's
+New: "Trends now compares the range you pick." and four short sentences about what
+the comparisons cover, Week's three comparisons, and "If your log is newer than the
+range, the figures that count days start from your first record, and Trends shows
+that date." Function described, nothing promised, no imperative, no em dash, no
+exclamation mark. The reviewer notes restate the 1.0 claims, say plainly that the
+window 1.3's notes described is replaced by the range, name the three sources with
+their years, and close with "No new permissions…", true of 1.5. Pass.
+
+No exclamation marks, no em dashes and no imperatives in any new string. House voice
+intact. Pass.
