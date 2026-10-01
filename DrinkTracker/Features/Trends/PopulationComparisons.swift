@@ -2,9 +2,12 @@ import DrinkTrackerCore
 import SwiftUI
 
 /// The two population comparisons on Trends, as segments of the one
-/// Comparisons card (1.2 spec Feature C and ADR-0018, over the window the
-/// record supports — ADR-0030 — with the drinking-days reference beside it —
-/// ADR-0031).
+/// Comparisons card (1.2 spec Feature C and ADR-0018, with the drinking-days
+/// reference beside it — ADR-0031), over the range the picker chose: the
+/// days the chart card's header folds, cut at the first record while the log
+/// is younger than the range (ADR-0058, which retired ADR-0030's window of 28
+/// days and then 364). Both read the fold `TrendsView` already made, so their
+/// figures are the header's figures.
 ///
 /// They were one card until ADR-0038's 2026-09-10 amendment split them — a
 /// source line whose wording depended on which switches were on was the sign
@@ -33,27 +36,27 @@ import SwiftUI
 /// The sentence and the note both name that column.
 struct WeeklyAverageComparison: View {
   let reference: PopulationReference
-  let window: PopulationReference.Window
-  let drinks: [LoggedDrink]
+  /// The window's figures — the chart card's own fold (ADR-0058).
+  let fold: TrendWindowFold
   let region: Region
   let column: PopulationReference.Column
-  let now: Date
-  let calendar: Calendar
   /// Whether another segment follows, below a rule an open note must not sit on.
   var isFollowed = false
 
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+  private var window: TrendWindow { fold.window }
+
   var body: some View {
-    // Compared in grams, so the region lens cannot skew the bracket.
-    let units = PopulationReference.weeklyAverage(
-      drinks, window: window, endingAt: now, region: region, calendar: calendar
-    )
+    // The window's total over its weeks — the number the Quarter line and
+    // seven times the per-day card print — compared in grams, so the region
+    // lens cannot skew the bracket. At Week it is the week's own total.
+    let units = fold.weeklyFigure
     let grams = units * region.gramsPureAlcoholPerStandardDrink
     let comparison = reference.comparison(gramsPerWeek: grams, in: column)
 
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-      ComparisonSegmentHeader(title: "Weekly average", span: PopulationReferenceCopy.windowTitle(window))
+      ComparisonSegmentHeader(title: "Weekly average", span: PopulationReferenceCopy.spanTitle(window))
 
       if units <= 0 {
         // Nothing to draw and nothing to compare: the absence, stated.
@@ -110,10 +113,11 @@ struct WeeklyAverageComparison: View {
   }
 
   /// The two sentences as they were reviewed, for the sizes above the
-  /// default, and for VoiceOver at every size.
+  /// default, and for VoiceOver at every size. At Week the first is the
+  /// week's total, because seven days are not averaged (ADR-0058).
   private func sentences(units: Double, comparison: PopulationReference.Comparison?) -> some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-      Text(PopulationReferenceCopy.averageLine(units, region: region))
+      Text(PopulationReferenceCopy.weeklyLine(units, window: window, region: region))
       if let comparison {
         Text(PopulationReferenceCopy.comparisonLine(comparison, in: column))
       }
@@ -129,13 +133,12 @@ struct WeeklyAverageComparison: View {
 /// How many of the window's days had a drink, beside a published mean. Two
 /// counts and no percentile — a mean is all the source publishes (ADR-0031) —
 /// drawn as two bars, each its count's share of the window's days over a
-/// track that is all of them (`ComparisonFigures` says why).
+/// track that is all of them (`ComparisonFigures` says why). The reader's
+/// count is the chart card header's own "days with drinks" (ADR-0058).
 struct DrinkingDaysComparison: View {
   let frequency: FrequencyReference
-  let window: PopulationReference.Window
-  let drinks: [LoggedDrink]
-  let now: Date
-  let calendar: Calendar
+  /// The window's figures — the chart card's own fold (ADR-0058).
+  let fold: TrendWindowFold
   /// Whether another segment follows, below a rule an open note must not sit on.
   var isFollowed = false
 
@@ -145,14 +148,15 @@ struct DrinkingDaysComparison: View {
   /// two segments' bars start on one edge.
   @ScaledMetric(relativeTo: .subheadline) private var labelWidth = ComparisonRowLabel.defaultWidth
 
+  /// Every count here is out of the window's days.
+  private var windowDays: Int { fold.window.dayCount }
+
   var body: some View {
-    let drinkingDays = FrequencyReference.drinkingDays(
-      in: drinks, last: window.days, endingOn: now, calendar: calendar
-    )
-    let referenceDays = frequency.displayedDrinkingDays(per: window.days)
+    let drinkingDays = fold.summary.daysWithDrinks
+    let referenceDays = frequency.displayedDrinkingDays(per: windowDays)
 
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
-      ComparisonSegmentHeader(title: "Drinking days", span: PopulationReferenceCopy.windowTitle(window))
+      ComparisonSegmentHeader(title: "Drinking days", span: PopulationReferenceCopy.spanTitle(fold.window))
 
       if ComparisonTable.folds(dynamicTypeSize) {
         sentences(drinkingDays: drinkingDays)
@@ -171,24 +175,24 @@ struct DrinkingDaysComparison: View {
   }
 
   /// Two rows, each whose figure it is, the figure, and its bar. The reader's
-  /// count is the calendar's own "17 of 28"; the published row reads as the
+  /// count is the header's own "46 of 88"; the published row reads as the
   /// reviewed sentence split at its verb — "US adults who drink" / "average
-  /// about 7 in 28".
+  /// about 21 in 88".
   private func bars(drinkingDays: Int, referenceDays: Int) -> some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
       HStack(alignment: .firstTextBaseline, spacing: GlassTokens.Spacing.regular) {
         ComparisonRowLabel("Your log", width: labelWidth)
-        ComparisonBarCell(length: ComparisonBars.share(drinkingDays, of: window.days), isReaders: true) {
-          ComparisonTable.ratioCell(drinkingDays, of: window.days)
+        ComparisonBarCell(length: ComparisonBars.share(drinkingDays, of: windowDays), isReaders: true) {
+          ComparisonTable.ratioCell(drinkingDays, of: windowDays)
         }
       }
 
       HStack(alignment: .firstTextBaseline, spacing: GlassTokens.Spacing.regular) {
         ComparisonRowLabel("US adults who drink", width: labelWidth)
-        ComparisonBarCell(length: ComparisonBars.share(referenceDays, of: window.days), isReaders: false) {
+        ComparisonBarCell(length: ComparisonBars.share(referenceDays, of: windowDays), isReaders: false) {
           // Default SF, deliberately: a published figure is not a numeral the
           // reader made, and the rounded face is reserved for the ones that are.
-          Text(PopulationReferenceCopy.drinkingDaysReferenceFigure(frequency, windowDays: window.days))
+          Text(PopulationReferenceCopy.drinkingDaysReferenceFigure(frequency, windowDays: windowDays))
             .font(.footnote)
             .foregroundStyle(.secondaryInk)
         }
@@ -205,8 +209,8 @@ struct DrinkingDaysComparison: View {
   /// fit, and for VoiceOver at every size.
   private func sentences(drinkingDays: Int) -> some View {
     VStack(alignment: .leading, spacing: GlassTokens.Spacing.tight) {
-      Text(PopulationReferenceCopy.drinkingDaysLine(drinkingDays, of: window.days))
-      Text(PopulationReferenceCopy.drinkingDaysReferenceLine(frequency, windowDays: window.days))
+      Text(PopulationReferenceCopy.drinkingDaysLine(drinkingDays, of: windowDays))
+      Text(PopulationReferenceCopy.drinkingDaysReferenceLine(frequency, windowDays: windowDays))
     }
     .font(.body)
     .foregroundStyle(.primary)

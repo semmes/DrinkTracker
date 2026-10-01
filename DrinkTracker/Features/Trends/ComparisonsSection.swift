@@ -1,11 +1,11 @@
 import ComponentsKit
 import DrinkTrackerCore
-import SwiftData
 import SwiftUI
 
 /// The published comparisons at the bottom of Trends, under one heading that
 /// names them (ADR-0038's 2026-09-10 amendment), in one card segmented by their
-/// titles (its 2026-09-23 amendment).
+/// titles (its 2026-09-23 amendment), over the range the picker chose
+/// (ADR-0058).
 ///
 /// Settings → Comparisons carries three switches — "Weekly average",
 /// "Drinking days", "Weekend and weekdays" — and until this section existed a
@@ -17,6 +17,18 @@ import SwiftUI
 /// the owner's request of 2026-09-23, and the reopen the 2026-09-10 amendment
 /// named for three source rows reading as chrome. Each segment keeps its own
 /// source line, so no source line's wording depends on which switches are on.
+///
+/// ## One set of days
+///
+/// All three segments read the fold `TrendsView` makes for the chart card —
+/// the range's own days, cut at the first record while the log is younger than
+/// the range — so their figures are the header's figures and cannot drift from
+/// them (ADR-0058). Until then the first two ran their own queries and their own
+/// clock over ADR-0030's window, 28 days and then 364, whatever the picker said;
+/// at Quarter the card read 12.5 a week over 28 days under a chart reading 158.9
+/// over 88. Nothing here reads the store or the clock now, so the section has no
+/// failure of its own to report: `TrendsView` draws its unreadable state before
+/// it draws this.
 ///
 /// ## Why the seven weekday rows are not in here
 ///
@@ -37,79 +49,49 @@ import SwiftUI
 /// section is impossible to write without deleting the `if` it lives in — the
 /// `asksType` lesson from ADR-0034's amendment, where a view read the answer to
 /// its own question. The dividers follow the same rule: each is drawn by the
-/// segment below it, and only when a segment above it is shown.
+/// segment below it, and only when a segment above it is shown. And the fold
+/// arrives nil while the record is under the floor, so no segment can be drawn
+/// without the days it covers.
 struct ComparisonsSection: View {
-  /// The range's seven weekday totals, already folded by `TrendsView` — the
-  /// same array the card above prints, so the two cannot disagree about the
-  /// range.
-  let weekdayTotals: [WeekdayTotal]
-  /// The range those totals cover, which the weekend segment's header names.
-  let range: TrendRange
+  /// The window's figures, or nil while the record holds fewer than
+  /// `TrendWindow.comparisonFloor` days (ADR-0058): one floor for all three
+  /// comparisons, at every range, Week included.
+  let fold: TrendWindowFold?
   let region: Region
-  let calendar: Calendar
 
   @Environment(AppSettings.self) private var settings
 
-  // Moved verbatim from `PopulationReferenceCard`, sort orders included.
-  // Deliberately *not* folded into `TrendsView.Snapshot`: that view's own
-  // entry query is `.reverse`, so the consolidation would have to read
-  // `allEntries.last` where these read `.first`, and the first recorded fact
-  // is what the whole four-week gate hangs on. No test tier reaches it.
-  @Query(sort: \DrinkEntry.loggedAt, order: .forward) private var entries: [DrinkEntry]
-  @Query(sort: \AlcoholFreeDay.day, order: .forward) private var freeDays: [AlcoholFreeDay]
-
   var body: some View {
-    // A fresh clock, as the combined card has read it since 1.2 — not
-    // `TrendsView.today`. It decides when the four-week record gate flips and
-    // where the two windows are cut, so moving it is a behaviour change, and
-    // this change renders nothing.
-    let now = Date()
-    let shown = resolve(now: now)
+    let shown = resolve()
 
-    // Nothing over a log these queries could not read: a comparison of a range
-    // of zeros is a claim about the reader nobody read. Trends draws its own
-    // unreadable state when *its* queries fail; these two fetch separately.
-    if !shown.isEmpty, !isLogUnreadable {
-      // Mapped once for both population segments: `loggedDrinks` walks the
-      // whole log, and reading it per segment would allocate a second copy of
-      // it on every body pass. Skipped entirely when neither is shown — the
-      // weekend comparison reads the weekday totals it was handed, never the
-      // log.
-      let drinks = shown.needsLog ? entries.loggedDrinks : []
-
+    if let fold, !shown.isEmpty {
       VStack(alignment: .leading, spacing: GlassTokens.Spacing.regular) {
         SectionLabel("Comparisons")
 
         SUCard(model: .glass) {
           VStack(alignment: .leading, spacing: 0) {
-            if let population = shown.average {
+            if let reference = shown.average {
               WeeklyAverageComparison(
-                reference: population.reference,
-                window: population.window,
-                drinks: drinks,
+                reference: reference,
+                fold: fold,
                 region: region,
                 column: settings.comparisonColumn,
-                now: now,
-                calendar: calendar,
                 isFollowed: shown.days != nil || shown.weekend != nil
               )
             }
 
-            if let days = shown.days {
+            if let frequency = shown.days {
               if shown.average != nil { SegmentDivider() }
               DrinkingDaysComparison(
-                frequency: days.reference,
-                window: days.window,
-                drinks: drinks,
-                now: now,
-                calendar: calendar,
+                frequency: frequency,
+                fold: fold,
                 isFollowed: shown.weekend != nil
               )
             }
 
             if let weekend = shown.weekend {
               if shown.average != nil || shown.days != nil { SegmentDivider() }
-              WeekendComparison(split: weekend.split, reference: weekend.reference, range: range)
+              WeekendComparison(split: weekend.split, reference: weekend.reference, window: fold.window)
             }
           }
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -128,60 +110,36 @@ struct ComparisonsSection: View {
   /// comparison is not shown, for any reason: the reader's switch, a missing
   /// bundled file, or too little record.
   private struct Shown {
-    var average: (reference: PopulationReference, window: PopulationReference.Window)?
-    var days: (reference: FrequencyReference, window: PopulationReference.Window)?
+    var average: PopulationReference?
+    var days: FrequencyReference?
     var weekend: (reference: WeekendReference, split: WeekendSplit)?
 
     var isEmpty: Bool { average == nil && days == nil && weekend == nil }
-
-    /// Whether anything shown needs the whole log projected. Only the two
-    /// population segments do.
-    var needsLog: Bool { average != nil || days != nil }
   }
 
-  /// Values first, then `fetchError` — the order `TodayView.isTodayUnreadable`
-  /// explains.
-  private var isLogUnreadable: Bool {
-    _ = entries
-    _ = freeDays
-    return _entries.fetchError != nil || _freeDays.fetchError != nil
-  }
-
-  private func resolve(now: Date) -> Shown {
+  /// One gate per comparison: the reader's switch, its own bundled file, and
+  /// the record's floor, which the fold being here at all already says. Never
+  /// a placeholder for a missing source: no file, no comparison. Each reads
+  /// only its own file now — the drinking days used to require the survey's
+  /// file too, a quirk of the population window they shared, and the window
+  /// they share is the range's.
+  private func resolve() -> Shown {
     var shown = Shown()
+    guard let fold else { return shown }
 
-    // The population window is one umbrella over both of the first two, and
-    // it is preserved exactly as the combined card had it: *both* blocks
-    // required the survey file and a non-nil window, even though the
-    // drinking-days lines only read `FrequencyReference`. That quirk is
-    // inherited, not a new rule — tidying it is a one-line change that wants
-    // a render of its own.
-    if let reference = PopulationReference.bundled,
-      let window = PopulationReference.window(firstRecord: firstRecord, now: now) {
-      if settings.showsWeeklyAverageComparison {
-        shown.average = (reference, window)
-      }
-      // Never a placeholder for a missing source: no file, no comparison.
-      if settings.showsDrinkingDaysComparison, let frequency = FrequencyReference.bundled {
-        shown.days = (frequency, window)
-      }
+    if settings.showsWeeklyAverageComparison, let reference = PopulationReference.bundled {
+      shown.average = reference
     }
-
-    // Four weeks of *range*, not of record (ADR-0038): the split is a fact
-    // about the range shown, and a Week range puts three Friday-to-Sunday days
-    // beside a rate per hundred person-days.
+    if settings.showsDrinkingDaysComparison, let frequency = FrequencyReference.bundled {
+      shown.days = frequency
+    }
+    // The record's floor, not four weeks of range (ADR-0058, reversing
+    // ADR-0038's floor): Week's three Friday-to-Sunday days and four others sit
+    // beside the published rate once the log is four weeks old.
     if settings.showsWeekendComparison, let reference = WeekendReference.bundled {
-      let split = TrendSummary.weekendSplit(weekdayTotals, weekend: reference.weekendWeekdays)
-      if split.isComparable {
-        shown.weekend = (reference, split)
-      }
+      shown.weekend = (reference, TrendSummary.weekendSplit(fold.weekdays, weekend: reference.weekendWeekdays))
     }
 
     return shown
-  }
-
-  /// The first recorded fact — an entry or an alcohol-free marker.
-  private var firstRecord: Date? {
-    [entries.first?.loggedAt, freeDays.first?.day].compactMap { $0 }.min()
   }
 }
