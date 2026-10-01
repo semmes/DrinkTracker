@@ -57,16 +57,11 @@ public enum TrendRange: String, CaseIterable, Identifiable, Sendable {
     }
   }
 
-  /// The calendar unit one chart bar aggregates. Daily bars stay readable to
-  /// ~30 days; beyond that a bar per day is noise, so quarter buckets by week
-  /// and year by month.
-  public var bucket: Calendar.Component {
-    switch self {
-    case .week, .month: .day
-    case .quarter: .weekOfYear
-    case .year: .month
-    }
-  }
+  /// The calendar unit one chart bar aggregates by default — the default
+  /// grain's (`defaultGrain`, ADR-0059). Daily bars stay readable to ~30 days,
+  /// so Quarter opens by week and Year by month; since ADR-0059 a reader may
+  /// choose a finer grain there, and the range's start stays this unit's.
+  public var bucket: Calendar.Component { defaultGrain.component }
 
   /// How many buckets the range spans.
   public var bucketCount: Int {

@@ -32,6 +32,12 @@ struct TrendsView: View {
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   @State private var range: TrendRange = .week
+  /// The chart's grain when the reader has chosen one at Quarter or Year
+  /// (ADR-0059); nil is the range's own (`TrendRange.defaultGrain`). View
+  /// state, never stored, and shorter-lived than the range: a range change
+  /// clears it, so every range opens on its own default, and so does leaving
+  /// Trends, so each visit opens on the range's own bars.
+  @State private var chosenGrain: TrendGrain?
   @Query(sort: \DrinkEntry.loggedAt, order: .reverse) private var allEntries: [DrinkEntry]
   // Read here for the first time: a zero bar has to say whether it is a day
   // recorded as no alcohol or a day with nothing logged, the distinction
@@ -43,6 +49,9 @@ struct TrendsView: View {
   /// than by the section because the section renders nothing at all when it
   /// has nothing to show, and a task needs a view to hang off.
   @State private var pairing = HealthPairingModel()
+  /// The chart's selection-independent parts, derived once per change of
+  /// their inputs (`TrendsChartCache`).
+  @State private var chartCache = TrendsChartCache()
   /// The pairing metrics this visit has asked HealthKit about — each once
   /// per visit (reset when the tab is left), so a sheet a reader sent away
   /// does not return on the next range change (ADR-0051). Per metric, not
@@ -93,6 +102,22 @@ struct TrendsView: View {
   /// the accessibility sizes the box grows rather than clipping, and there the
   /// two states may differ again.
   @ScaledMetric(relativeTo: .footnote) private var readoutHeight: CGFloat = 80
+
+  /// The grain menu's glyph, and the card title's first line it is centred
+  /// on: footnote's 18pt line at the default size, scaled with it (ADR-0059).
+  @ScaledMetric(relativeTo: .footnote) private var grainGlyphSize: CGFloat = 20
+  @ScaledMetric(relativeTo: .footnote) private var titleLineHeight: CGFloat = 18
+
+  /// The menu's touch target: 44pt, or the glyph itself once the largest text
+  /// sizes draw it bigger than that (51pt at AX4, 58 at AX5), so the whole
+  /// visible circle takes a tap.
+  private var grainTargetSide: CGFloat {
+    max(GlassTokens.Layout.minimumTouchTarget, grainGlyphSize)
+  }
+
+  /// The room the title row leaves the menu: the glyph and a gap of 6. None
+  /// at Week and Month, which have no menu.
+  private var grainMenuReserve: CGFloat { offersGrainMenu ? grainGlyphSize + 6 : 0 }
 
   /// The clock the chart is drawn against, refreshed on the day-change
   /// notification and on every foregrounding (the calendar's pattern,
@@ -183,7 +208,19 @@ struct TrendsView: View {
             pairing.clear()
           }
         }
-        .onDisappear { askedPairingMetrics = [] }
+        .onDisappear {
+          askedPairingMetrics = []
+          // A visit, as for the pairing's ask: the grain the reader chose
+          // lasts while they stay on Trends, and the next visit opens on the
+          // range's own bars (ADR-0059, the owner's "Reset each visit"). A
+          // selection made under the old grain goes with it, for
+          // `grainBinding`'s reason.
+          if chosenGrain != nil {
+            chosenGrain = nil
+            selectedDate = nil
+            selectionIsHeld = false
+          }
+        }
       }
     }
     .navigationTitle("Trends")
@@ -214,7 +251,8 @@ struct TrendsView: View {
     /// The bars on daily charts — the range's days, whatever the window: the
     /// picker's promise is the span of the x axis (ADR-0058).
     let totals: [DayTotal]
-    /// Chart bars for the bucketed ranges — weekly for quarter, monthly for year.
+    /// Chart bars when the grain is a week or a month — Quarter's and Year's
+    /// own, or the reader's choice at Year (ADR-0059).
     let buckets: [PeriodTotal]
     /// The selected bar's facts, or nil when nothing is selected or the
     /// selected date no longer falls on a bar (a rolling window has moved on).
@@ -239,9 +277,10 @@ struct TrendsView: View {
     /// the switch off never pays for deriving it.
     let pairing: HealthPairingRequest?
 
-    /// The dashed line's value — per day at Week and Month, the window's weekly
-    /// figure at Quarter, the mean of its complete months at Year — or nil when
-    /// there is none to draw (ADR-0028, ADR-0058).
+    /// The dashed line's value, on the bars' scale — per day over daily bars,
+    /// the window's weekly figure over weekly bars, the mean of its complete
+    /// months over monthly bars — or nil when there is none to draw (ADR-0028,
+    /// ADR-0058, ADR-0059).
     let averageLine: Double?
 
     var sum: Double { TrendSummary.sum(totals) }
@@ -254,24 +293,17 @@ struct TrendsView: View {
   private func snapshot() -> Snapshot {
     let drinks = allEntries.loggedDrinks
     let region = settings.effectiveRegion
-    let totals = TrendSummary.dailyTotals(
-      range: range, endingOn: today, drinks: drinks, region: region, calendar: calendar
-    )
-    let buckets = TrendSummary.bucketed(totals, by: range.bucket, calendar: calendar)
-    // One classification of the range's days, folded for the header, the
-    // longest run and the window, so none of them can disagree about what a
-    // day is.
-    let rangeDays = TrendSummary.rangeDays(
-      range: range, endingOn: today, drinks: drinks,
-      alcoholFreeDays: markedDays, region: region, calendar: calendar
-    )
-    // The window those figures divide by (ADR-0058): the range, or the days
-    // since the first record while the log is younger than it. The entry query
-    // runs newest first, so the first entry is the last row; the marker query
-    // runs oldest first.
+    let marked = markedDays
+    // The window the figures divide by (ADR-0058) starts at the first record:
+    // the entry query runs newest first, so the first entry is the last row;
+    // the marker query runs oldest first.
     let firstRecord = [allEntries.last?.loggedAt, alcoholFreeDays.first?.day].compactMap { $0 }.min()
-    let window = TrendSummary.trendWindow(range: range, endingOn: today, firstRecord: firstRecord, calendar: calendar)
-    let fold = TrendSummary.windowFold(of: rangeDays, in: window, calendar: calendar)
+    let parts = chartCache.parts(
+      for: TrendsChartCache.Inputs(
+        range: range, grain: grain, today: today, drinks: drinks,
+        markedDays: marked, firstRecord: firstRecord, region: region, calendar: calendar
+      )
+    )
     // Derived, never stored: a drink logged from Today, a marker arriving
     // over CloudKit, an undo, or a region change all re-express it on the
     // next render.
@@ -279,23 +311,24 @@ struct TrendsView: View {
       TrendSummary.periodDetail(
         containing: date,
         range: range,
+        grain: grain,
         endingOn: today,
         drinks: drinks,
-        alcoholFreeDays: markedDays,
+        alcoholFreeDays: marked,
         healthMarkedDays: healthMarkedDays,
         region: region,
         calendar: calendar
       )
     }
     return Snapshot(
-      totals: totals,
-      buckets: buckets,
+      totals: parts.totals,
+      buckets: parts.buckets,
       selection: selection,
-      fold: fold,
-      rangeSummary: TrendSummary.summary(of: rangeDays),
-      longestAlcoholFreeRun: TrendSummary.longestAlcoholFreeRun(of: rangeDays),
+      fold: parts.fold,
+      rangeSummary: parts.rangeSummary,
+      longestAlcoholFreeRun: parts.longestAlcoholFreeRun,
       pairing: pairingRequest(drinks: drinks),
-      averageLine: fold.averageLine(calendar: calendar)
+      averageLine: parts.averageLine
     )
   }
 
@@ -353,7 +386,14 @@ struct TrendsView: View {
     }
   }
 
-  private var isBucketed: Bool { range.bucket != .day }
+  /// The chart's grain: the reader's choice where the range offers one, the
+  /// range's own otherwise (ADR-0059).
+  private var grain: TrendGrain {
+    guard let chosenGrain, range.grains.contains(chosenGrain) else { return range.defaultGrain }
+    return chosenGrain
+  }
+
+  private var isBucketed: Bool { grain != .day }
 
   private var markedDays: Set<Date> {
     Set(alcoholFreeDays.map(\.day))
@@ -393,14 +433,30 @@ struct TrendsView: View {
   /// The range picker clears the selection in the same update it changes
   /// the range: a day selected on Week would otherwise be resolved as a whole
   /// week on Quarter for one render — the app choosing which bucket the user
-  /// meant.
+  /// meant. It clears the grain too, so a range always opens on its own
+  /// default (ADR-0059).
   private var rangeBinding: Binding<TrendRange> {
     Binding(
       get: { range },
       set: { newRange in
         selectedDate = nil
         selectionIsHeld = false
+        chosenGrain = nil
         range = newRange
+      }
+    )
+  }
+
+  /// The grain picker clears the selection for the range picker's reason: a
+  /// week selected under weekly bars would otherwise be resolved as one of
+  /// its days for a render.
+  private var grainBinding: Binding<TrendGrain> {
+    Binding(
+      get: { grain },
+      set: { newGrain in
+        selectedDate = nil
+        selectionIsHeld = false
+        chosenGrain = newGrain
       }
     )
   }
@@ -414,7 +470,8 @@ struct TrendsView: View {
   /// and for the owner's device report of 2026-09-22: the ComponentsKit
   /// control this replaced was a row of `Text`s with tap gestures, and on
   /// hardware it missed single taps. The Picker's title is its VoiceOver
-  /// label; the segmented style hides it.
+  /// label; the segmented style hides it. How finely the chart cuts the range
+  /// is not chosen here but in the chart card itself (`grainMenu`, ADR-0059).
   private var rangePicker: some View {
     Picker("Range", selection: rangeBinding) {
       ForEach(TrendRange.allCases) { range in
@@ -443,6 +500,52 @@ struct TrendsView: View {
     case .quarter: Text("Quarter")
     case .year: Text("Year")
     }
+  }
+
+  /// The grain's name as a catalog key, for `rangeTitle`'s reason.
+  private func grainTitle(_ grain: TrendGrain) -> Text {
+    switch grain {
+    case .day: Text("Daily")
+    case .week: Text("Weekly")
+    case .month: Text("Monthly")
+    }
+  }
+
+  /// Whether the chart card offers the grain menu: at Quarter and Year, the
+  /// two ranges with more than one way to cut their bars (ADR-0059).
+  private var offersGrainMenu: Bool { range.grains.count > 1 }
+
+  /// How finely the chart cuts the range, and so what its dashed line
+  /// averages (ADR-0059): the system's circular filter glyph at the trailing
+  /// end of the card's title row, beside the legend it changes, opening a menu
+  /// of the range's grains with a check on the current one. The owner's
+  /// choice of 2026-10-01 over a second segmented control under the range
+  /// picker, to keep the screen to one row of controls.
+  ///
+  /// The glyph is drawn at the title line's size and its target, 44pt or the
+  /// glyph if larger, is centred on it, so the menu changes nothing in the
+  /// readout's measured height (the 80pt floor). Accent ink because it is a control, the role
+  /// the accent has everywhere in the app; its state is the legend beside it,
+  /// never a fill or a colour (invariant 10).
+  private var grainMenu: some View {
+    Menu {
+      Picker("Average", selection: grainBinding) {
+        ForEach(range.grains) { grain in
+          grainTitle(grain).tag(grain)
+        }
+      }
+      .pickerStyle(.inline)
+    } label: {
+      Image(systemName: "line.3.horizontal.decrease.circle")
+        .font(.system(size: grainGlyphSize))
+        .foregroundStyle(Color.accentColor)
+        .frame(width: grainTargetSide, height: grainTargetSide)
+        .contentShape(Rectangle())
+    }
+    // The glyph says nothing to VoiceOver; the control says what it sets and
+    // where it is set to, as the segmented control it replaced did.
+    .accessibilityLabel(Text("Average"))
+    .accessibilityValue(grainTitle(grain))
   }
 
   // MARK: - Chart
@@ -517,6 +620,24 @@ struct TrendsView: View {
     // flickering on release.
     .allowsHitTesting(false)
     .frame(maxWidth: .infinity, minHeight: readoutHeight, alignment: .topLeading)
+    // The grain menu, over the box rather than in it: the box takes no touches
+    // and reads as one VoiceOver element, and the menu needs both. Its target
+    // is centred on the title's first line, so the glyph sits beside
+    // the legend while the target reaches into the card's padding; it fades
+    // with the idle half while a bar is read, where the period's day count
+    // takes that corner.
+    .overlay(alignment: .topTrailing) {
+      if offersGrainMenu {
+        grainMenu
+          .offset(
+            x: (grainTargetSide - grainGlyphSize) / 2,
+            y: (titleLineHeight - grainTargetSide) / 2
+          )
+          .opacity(live == nil ? 1 : 0)
+          .allowsHitTesting(live == nil)
+          .accessibilityHidden(live != nil)
+      }
+    }
     // Held one animation past the fade so the outgoing half has content for its
     // whole duration, then dropped: it must never outlive the crossfade and be
     // mistaken for a selection.
@@ -592,12 +713,14 @@ struct TrendsView: View {
         title
         if let line = averageLineValue(snapshot) { averageLegend(line) }
       }
+      .padding(.trailing, grainMenuReserve)
     } else {
       HStack(alignment: .firstTextBaseline) {
         title
         Spacer(minLength: GlassTokens.Spacing.tight)
         if let line = averageLineValue(snapshot) { averageLegend(line) }
       }
+      .padding(.trailing, grainMenuReserve)
     }
   }
 
@@ -638,14 +761,15 @@ struct TrendsView: View {
   /// never `!= nil`: an empty log folds to `Optional(0.0)` at every range but
   /// Year's no-complete-month case, so nil alone would draw a line at zero.
   ///
-  /// At Quarter the value is the window's weekly figure (ADR-0058, decision 3)
-  /// where it was the mean of the completed weeks: the same number the
-  /// weekly-average comparison prints, and seven times the per-day average
-  /// before either is rounded, so the screen prints one weekly average. It dips
-  /// a little in a week that has not reached its weekend yet, and on a log
-  /// under a week old it projects that log's days to a week and stands above
-  /// every bar (ADR-0058's consequences); Year's per-completed-month line does
-  /// neither.
+  /// Over weekly bars, Quarter's own or a weekly Year's, the value is the
+  /// window's weekly figure (ADR-0058, decision 3; ADR-0059) where Quarter's
+  /// was the mean of the completed weeks: the same number the weekly-average
+  /// comparison prints, and seven times the per-day average before either is
+  /// rounded, so the screen prints one weekly average. It dips a little in a
+  /// week that has not reached its weekend yet, and on a log under a week old
+  /// it projects that log's days to a week and stands above every bar
+  /// (ADR-0058's consequences); the per-completed-month line over monthly bars
+  /// does neither.
   private func averageLineValue(_ snapshot: Snapshot) -> Double? {
     guard let value = snapshot.averageLine, value > 0 else { return nil }
     return value
@@ -664,16 +788,16 @@ struct TrendsView: View {
 
     return Chart {
       if isBucketed {
-        // A bar per calendar week or month. Daily bars past ~30 days are
-        // noise; the trailing bucket is simply "so far", like the current
-        // month in the year calendar.
+        // A bar per calendar week or month — Quarter's and Year's own, or the
+        // reader's choice (ADR-0059); the trailing bucket is simply "so far",
+        // like the current month in the year calendar.
         ForEach(snapshot.buckets) { period in
           BarMark(
-            x: .value("Period", period.start, unit: range.bucket),
+            x: .value("Period", period.start, unit: grain.component),
             y: .value(unitNounPlural, period.standardDrinks)
           )
           .foregroundStyle(Color.accentColor.gradient)
-          .cornerRadius(6)
+          .cornerRadius(barCornerRadius)
           .opacity(isDimmed(period.start) ? 0.35 : 1)
         }
       } else {
@@ -683,15 +807,15 @@ struct TrendsView: View {
             y: .value(unitNounPlural, day.standardDrinks)
           )
           .foregroundStyle(Color.accentColor.gradient)
-          .cornerRadius(6)
+          .cornerRadius(barCornerRadius)
           .opacity(isDimmed(day.date) ? 0.35 : 1)
         }
       }
 
-      // The line matches the bars' scale: per day on daily charts, the
-      // window's weekly figure at Quarter, the mean of the completed months at
-      // Year — a daily line under weekly bars would hug the floor and read as
-      // meaningless (ADR-0028, ADR-0058). Never dimmed, never
+      // The line matches the bars' scale: per day over daily bars, the
+      // window's weekly figure over weekly ones, the mean of the completed
+      // months over monthly ones — a daily line under weekly bars would hug the
+      // floor and read as meaningless (ADR-0028, ADR-0058, ADR-0059). Never dimmed, never
       // annotated relative to the selection — and no longer annotated at all:
       // its label is the header legend, where it reads at a glance instead of
       // colliding with the bars.
@@ -738,7 +862,7 @@ struct TrendsView: View {
             )
           )
           .frame(width: slot.width, height: plot.height)
-          .position(x: plot.minX + slot.centre, y: plot.midY)
+          .position(x: plot.minX + slot.railCentre, y: plot.midY)
           .animation(reduceMotion ? nil : .smooth(duration: 0.16), value: selection.start)
         }
       }
@@ -804,7 +928,7 @@ struct TrendsView: View {
             .foregroundStyle(axisInk)
         }
       case .year:
-        AxisMarks(values: .stride(by: .month, count: 2)) { _ in
+        AxisMarks(values: yearAxisDates) { _ in
           AxisValueLabel(format: .dateTime.month(.abbreviated), collisionResolution: .greedy)
             .foregroundStyle(axisInk)
         }
@@ -812,7 +936,11 @@ struct TrendsView: View {
     }
     .frame(height: GlassTokens.Layout.chartHeight)
     // A tick as the selection crosses a bar, as the calendar drag does.
-    .sensoryFeedback(.selection, trigger: selectedStart)
+    // At the range's own grain, whatever the bars are cut into (ADR-0059): a
+    // tick for every one of Year's 365 daily bars would buzz at the frame
+    // rate, so a finer grain ticks where the range's own bars change, a week
+    // at Quarter and a month at Year, as the default chart does.
+    .sensoryFeedback(.selection, trigger: selectionTick(selectedStart))
     // One adjustable VoiceOver element — the CountStepper pattern, and the
     // year view's "twelve summaries, not 365 stops" applied to bars. Swipe
     // up and down step through the bars via the same selection sighted
@@ -837,13 +965,27 @@ struct TrendsView: View {
   /// its width past the plot: on a 440pt screen that fifth label ran to the
   /// card's border (the plot ends at 403.6pt, "Sep 25" at 420.7pt, the border
   /// at 420), and on a 375pt screen it was left out. Counted back from today,
-  /// the last label always has a week of bars after it. Quarter and Year keep
-  /// their strides: a month's name is half as wide, so the most it can run past
-  /// the plot is about 10pt, inside the card's padding.
+  /// the last label always has a week of bars after it. Quarter keeps its
+  /// monthly stride and Year names every other month (`yearAxisDates`): a
+  /// month's name is half as wide, so the most it can run past the plot is
+  /// about 10pt, inside the card's padding.
   private var monthAxisDates: [Date] {
     let lastDay = calendar.startOfDay(for: today)
     return [-27, -20, -13, -6].compactMap {
       calendar.date(byAdding: .day, value: $0, to: lastDay)
+    }
+  }
+
+  /// Year's six month labels, every other month from the range's first:
+  /// the dates a two-month stride gave under monthly bars, named outright
+  /// because under weekly bars the chart's domain begins with the week holding
+  /// that 1st, a few days earlier, and the stride then counted from the next
+  /// month and labelled Dec, Feb… where the monthly chart says Nov, Jan…
+  /// (ADR-0059). Every grain names the same months.
+  private var yearAxisDates: [Date] {
+    let first = TrendRange.year.startDate(endingOn: today, calendar: calendar)
+    return stride(from: 0, to: 12, by: 2).compactMap {
+      calendar.date(byAdding: .month, value: $0, to: first)
     }
   }
 
@@ -863,15 +1005,28 @@ struct TrendsView: View {
   /// the 24.7pt pitch — the rail fills the slot, which is what makes it read as
   /// a column behind the bar. Fixed at 26 it would be narrower than a Week
   /// bar and read as a stripe inside one instead.
-  private func selectedBarSlot(_ detail: PeriodDetail, proxy: ChartProxy) -> (centre: CGFloat, width: CGFloat)? {
-    let next = TrendSummary.adjacentBucketStart(
-      from: detail.start, direction: 1, range: range, endingOn: today, calendar: calendar
-    ) ?? calendar.date(byAdding: range.bucket, value: 1, to: detail.start)
-    guard let next,
+  ///
+  /// The bar's end is its calendar unit's end, the next bar's start wherever
+  /// there is one, and no walk of the range: at Year by day that walk was 365
+  /// days on every frame of a scrub (ADR-0059). The rail keeps a 12pt floor so
+  /// a bar about a point wide still shows where the finger is, clamped to the
+  /// plot so the first and last bars' rails stay inside it; the centre, which
+  /// the hairline reads, is the bar's own.
+  private func selectedBarSlot(_ detail: PeriodDetail, proxy: ChartProxy) -> (centre: CGFloat, width: CGFloat, railCentre: CGFloat)? {
+    guard let next = calendar.dateInterval(of: grain.component, for: detail.start)?.end,
       let leading = proxy.position(forX: detail.start),
       let trailing = proxy.position(forX: next)
     else { return nil }
-    return ((leading + trailing) / 2, max(12, abs(trailing - leading)))
+    let centre = (leading + trailing) / 2
+    let width = min(max(12, abs(trailing - leading)), proxy.plotSize.width)
+    let railCentre = min(max(centre, width / 2), proxy.plotSize.width - width / 2)
+    return (centre, width, railCentre)
+  }
+
+  /// The selection's tick key: the start of the range's own bar holding the
+  /// selected one, so a finer grain ticks as often as the default chart does.
+  private func selectionTick(_ start: Date?) -> Date? {
+    start.flatMap { calendar.dateInterval(of: range.defaultGrain.component, for: $0)?.start ?? $0 }
   }
 
   // MARK: - Selection accessibility
@@ -911,7 +1066,7 @@ struct TrendsView: View {
     let next: Date?
     if let current = snapshot.selection?.start {
       next = TrendSummary.adjacentBucketStart(
-        from: current, direction: forward ? 1 : -1, range: range, endingOn: today, calendar: calendar
+        from: current, direction: forward ? 1 : -1, range: range, grain: grain, endingOn: today, calendar: calendar
       )
     } else if isBucketed {
       next = forward ? snapshot.buckets.first?.start : snapshot.buckets.last?.start
@@ -938,21 +1093,36 @@ struct TrendsView: View {
     }
   }
 
+  /// The line named by its scale at every range, the bars' own: "Your daily
+  /// average" over daily bars, Week's and Month's included, where it said
+  /// "Your average" until the owner asked for one wording with Quarter and
+  /// Year (ADR-0059).
   private var averageLineLabel: LocalizedStringKey {
-    switch range {
-    case .week, .month: "Your average"
-    case .quarter: "Your weekly average"
-    case .year: "Your monthly average"
+    switch grain {
+    case .day: "Your daily average"
+    case .week: "Your weekly average"
+    case .month: "Your monthly average"
     }
   }
 
   /// Whole phrases with the unit interpolated, so a translation controls
   /// word order rather than inheriting English's.
   private var chartAccessibilityLabel: LocalizedStringKey {
-    switch range {
-    case .week, .month: "\(unitNounPlural) per day"
-    case .quarter: "\(unitNounPlural) per week"
-    case .year: "\(unitNounPlural) per month"
+    switch grain {
+    case .day: "\(unitNounPlural) per day"
+    case .week: "\(unitNounPlural) per week"
+    case .month: "\(unitNounPlural) per month"
+    }
+  }
+
+  /// The bars' corners: the drawn 6 while a bar is wide enough to carry it,
+  /// smaller as the grain packs more bars into the plot, so 88 or 365 daily
+  /// bars read as bars rather than as a row of rounded ends.
+  private var barCornerRadius: CGFloat {
+    switch (range, grain) {
+    case (.year, .day): return 1
+    case (.quarter, .day), (.year, .week): return 2
+    default: return 6
     }
   }
 
@@ -1084,5 +1254,67 @@ private struct StatCard: View {
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .accessibilityElement(children: .combine)
+  }
+}
+
+/// The parts of a Trends render that do not depend on the selection: the bars,
+/// the window's fold, the range's own figures and the line. Derived once per
+/// change of their inputs rather than on every body pass, because the body
+/// runs on every frame of a scrub and a scrub across Year's daily bars crosses
+/// 365 of them (ADR-0059); the inputs compare in far less time than the fold
+/// takes. `HealthPairingModel`'s request memo is the precedent. Not observed:
+/// refreshing it during a body pass changes nothing the view watches.
+@MainActor
+private final class TrendsChartCache {
+  struct Inputs: Equatable {
+    let range: TrendRange
+    let grain: TrendGrain
+    let today: Date
+    let drinks: [LoggedDrink]
+    let markedDays: Set<Date>
+    let firstRecord: Date?
+    let region: Region
+    let calendar: Calendar
+  }
+
+  struct Parts {
+    let totals: [DayTotal]
+    let buckets: [PeriodTotal]
+    let fold: TrendWindowFold
+    let rangeSummary: RecentSummary
+    let longestAlcoholFreeRun: Int
+    let averageLine: Double?
+  }
+
+  private var derived: (inputs: Inputs, parts: Parts)?
+
+  func parts(for inputs: Inputs) -> Parts {
+    if let derived, derived.inputs == inputs { return derived.parts }
+    let totals = TrendSummary.dailyTotals(
+      range: inputs.range, endingOn: inputs.today, drinks: inputs.drinks,
+      region: inputs.region, calendar: inputs.calendar
+    )
+    // One classification of the range's days, folded for the header, the
+    // longest run and the window, so none of them can disagree about what a
+    // day is.
+    let rangeDays = TrendSummary.rangeDays(
+      range: inputs.range, endingOn: inputs.today, drinks: inputs.drinks,
+      alcoholFreeDays: inputs.markedDays, region: inputs.region, calendar: inputs.calendar
+    )
+    let window = TrendSummary.trendWindow(
+      range: inputs.range, endingOn: inputs.today, firstRecord: inputs.firstRecord,
+      calendar: inputs.calendar
+    )
+    let fold = TrendSummary.windowFold(of: rangeDays, in: window, calendar: inputs.calendar)
+    let parts = Parts(
+      totals: totals,
+      buckets: TrendSummary.bucketed(totals, by: inputs.grain.component, calendar: inputs.calendar),
+      fold: fold,
+      rangeSummary: TrendSummary.summary(of: rangeDays),
+      longestAlcoholFreeRun: TrendSummary.longestAlcoholFreeRun(of: rangeDays),
+      averageLine: fold.averageLine(grain: inputs.grain, calendar: inputs.calendar)
+    )
+    derived = (inputs, parts)
+    return parts
   }
 }
