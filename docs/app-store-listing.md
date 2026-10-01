@@ -601,8 +601,8 @@ no servers.
 ## What's New (1.5)
 
 Drafted 2026-10-01 with the build (ADR-0058), reviewed under 1.4.3
-(`docs/copy-review-1.4.3.md`, 2026-10-01). Not yet submitted: 1.4 (1) is in App
-Review, and 1.5 opens only once it is approved. Wrapped here for reading; join
+(`docs/copy-review-1.4.3.md`, 2026-10-01). Not yet submitted: 1.5 opened on `main` on
+2026-10-01 at the owner's word, while 1.4 (1) was still in App Review. Wrapped here for reading; join
 each paragraph onto one line before pasting.
 
 ```

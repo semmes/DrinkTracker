@@ -250,8 +250,11 @@ rules:
   number is the owner's.
 - **No schema change, no CloudKit step, no setting, no network, no share card, no
   privacy-policy change.** `MARKETING_VERSION` is 1.5: 1.4 (1) is in App Review, so
-  this rides the next train, and the PR stays a draft until 1.4 is approved because
-  Xcode Cloud archives every commit on `main`.
+  this rides the next train. The PR was to stay a draft until 1.4 was approved, because
+  Xcode Cloud archives every commit on `main`; the owner tested the branch on their phone
+  and asked for it on `main` the same day, with 1.4 still in review. So `main` is the 1.5
+  train from this merge, and a fix 1.4 still needs is made on a branch from 98e494b, the
+  commit its archive was made from.
 
 ## The review before the PR
 
@@ -373,9 +376,9 @@ that build, which differs from the branch only in those two hooks.
 **Not rendered, stated:** VoiceOver (the spoken forms are the folded sentences, which
 were rendered); a UK or Australian region; the Men and Women columns at Week; a
 midnight-DST zone on screen (tier 1 pins it); Increase Contrast; a 375pt phone; a live
-range change's crossfade; hardware. **Tier 4 for the owner:** their own log at each
-range, against the plan's screenshots; and the one-day Quarter line, if they want to see
-it before deciding.
+range change's crossfade; hardware. **Tier 4, the owner, the same day:** a build of the
+branch on their phone, "working as expected". Their first read of the one-day Quarter
+line is that it looks correct; the question stays open until they decide it.
 
 ## How to reopen
 

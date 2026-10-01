@@ -352,8 +352,10 @@ press page's film…", `semmes/Tallyist#8`).**
 picker; it waits on four decisions of the owner's (the bullet "Trends on one window is
 planned…", `docs/tallyist-trends-alignment-plan.md`).** *(Decided the same day, and
 built that night on the draft semmes/DrinkTracker#160 with `MARKETING_VERSION` 1.5:
-the bullet "Trends compares the range the reader chose…", ADR-0058. It merges only
-once the owner says 1.4 is approved; one question in it is the owner's.)*
+the bullet "Trends compares the range the reader chose…", ADR-0058. The owner tested it
+on their phone and asked for it on `main` for 1.5 the same day, with 1.4 (1) still in
+review, so `main` is the 1.5 train from that merge: a fix 1.4 still needs is cut from
+98e494b, not from `main`. One question in it is the owner's.)*
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4823,9 +4825,14 @@ Open items for v1.2:
   the opened notes at Week, Month and clipped, by the simulator tool's taps; and `main`'s
   build on the same logs for the before frames. **Not rendered:** VoiceOver, a UK or
   Australian region, the Men and Women columns at Week, a midnight-DST zone on screen,
-  Increase Contrast, a 375pt phone, a range change's crossfade, hardware. **Tier 4 for the
-  owner:** their own log at each range, and the one-day Quarter line before deciding the
-  question. **Tooling worth keeping:** a render that crosses midnight changes every
+  Increase Contrast, a 375pt phone, a range change's crossfade, hardware. **Tier 4, the
+  owner, the same day:** a build of the branch on their phone, "working as expected";
+  their first read of the one-day Quarter line is that it looks correct, and they asked
+  for the case explained before deciding, so the question stays open. **Merged into
+  `main` at the owner's word on 2026-10-01** for the 1.5 build, while 1.4 (1) was still
+  in App Review (the lookup API still read 1.3): `main` is now the 1.5 train, Xcode Cloud
+  archives it as 1.5, and a fix 1.4 still needs is made on a branch from 98e494b (the
+  commit the 1.4 (1) archive was made from) and archived from it, not from `main`. **Tooling worth keeping:** a render that crosses midnight changes every
   range, so seed a fixed day and render after 00:00; a Vision OCR tool (`swiftc` over
   `VNRecognizeTextRequest`, sandbox off) reads every frame back as text in seconds, which
   is what made 114 frames checkable; the seeder writes `ZDRINKENTRY` / `ZALCOHOLFREEDAY`
