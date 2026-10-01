@@ -30,12 +30,12 @@ struct PeriodDetailTests {
   }
 
   private func detail(
-    _ touch: Date, range: TrendRange, endingOn end: Date, drinks: [LoggedDrink] = [],
-    free: Set<Date> = [], health: Set<Date> = [], region: Region = .unitedStates,
-    calendar: Calendar? = nil
+    _ touch: Date, range: TrendRange, grain: TrendGrain? = nil, endingOn end: Date,
+    drinks: [LoggedDrink] = [], free: Set<Date> = [], health: Set<Date> = [],
+    region: Region = .unitedStates, calendar: Calendar? = nil
   ) -> PeriodDetail? {
     TrendSummary.periodDetail(
-      containing: touch, range: range, endingOn: end, drinks: drinks,
+      containing: touch, range: range, grain: grain, endingOn: end, drinks: drinks,
       alcoholFreeDays: free, healthMarkedDays: health, region: region,
       calendar: calendar ?? self.calendar
     )
@@ -286,7 +286,7 @@ struct PeriodDetailTests {
     #expect(week?.lastDay == santiago.startOfDay(for: noon(9, 12)))
   }
 
-  @Test("bucketStart matches bucketed's placement for every bar")
+  @Test("bucketStart matches bucketed's placement for every bar, at every grain")
   func bucketStartMatchesEveryBar() {
     var santiago = Calendar(identifier: .gregorian)
     santiago.timeZone = TimeZone(identifier: "America/Santiago")!
@@ -294,17 +294,27 @@ struct PeriodDetailTests {
     let santiagoEnd = santiago.date(from: DateComponents(year: 2026, month: 10, day: 16, hour: 12))!
 
     let cases: [(TrendRange, Date, Calendar)] =
-      TrendRange.allCases.map { ($0, date(2026, 8, 26, 12), calendar) } + [(.quarter, santiagoEnd, santiago)]
+      TrendRange.allCases.map { ($0, date(2026, 8, 26, 12), calendar) }
+      + [(.quarter, santiagoEnd, santiago), (.year, santiagoEnd, santiago)]
     for (range, end, cal) in cases {
       let totals = TrendSummary.dailyTotals(range: range, endingOn: end, drinks: [], region: .unitedStates, calendar: cal)
-      let starts = range.bucket == .day
-        ? totals.map(\.date)
-        : TrendSummary.bucketed(totals, by: range.bucket, calendar: cal).map(\.start)
-      for start in starts {
-        let found = TrendSummary.bucketStart(containing: start.addingTimeInterval(3600), range: range, endingOn: end, calendar: cal)
-        #expect(found == start, "\(range) \(start)")
+      for grain in range.grains {
+        let starts = grain == .day
+          ? totals.map(\.date)
+          : TrendSummary.bucketed(totals, by: grain.component, calendar: cal).map(\.start)
+        for start in starts {
+          let found = TrendSummary.bucketStart(
+            containing: start.addingTimeInterval(3600), range: range, grain: grain, endingOn: end, calendar: cal
+          )
+          #expect(found == start, "\(range) \(grain) \(start)")
+        }
+        #expect(TrendSummary.bucketStarts(range: range, grain: grain, endingOn: end, calendar: cal) == starts)
       }
-      #expect(TrendSummary.bucketStarts(range: range, endingOn: end, calendar: cal) == starts)
+      // The range's own grain is the default, so callers that pass none are unchanged.
+      #expect(
+        TrendSummary.bucketStarts(range: range, endingOn: end, calendar: cal)
+          == TrendSummary.bucketStarts(range: range, grain: range.defaultGrain, endingOn: end, calendar: cal)
+      )
     }
   }
 
@@ -324,10 +334,12 @@ struct PeriodDetailTests {
     }
     for range in [TrendRange.quarter, .year] {
       let totals = TrendSummary.dailyTotals(range: range, endingOn: end, drinks: drinks, region: .unitedStates, calendar: calendar)
-      for bar in TrendSummary.bucketed(totals, by: range.bucket, calendar: calendar) {
-        let d = detail(bar.start, range: range, endingOn: end, drinks: drinks)
-        #expect(d.map { abs($0.standardDrinks - bar.standardDrinks) < 1e-9 } == true)
-        #expect(d?.summary.dayCount == bar.dayCount)
+      for grain in range.grains {
+        for bar in TrendSummary.bucketed(totals, by: grain.component, calendar: calendar) {
+          let d = detail(bar.start, range: range, grain: grain, endingOn: end, drinks: drinks)
+          #expect(d.map { abs($0.standardDrinks - bar.standardDrinks) < 1e-9 } == true, "\(range) \(grain) \(bar.start)")
+          #expect(d?.summary.dayCount == bar.dayCount)
+        }
       }
     }
     let month = TrendSummary.dailyTotals(range: .month, endingOn: end, drinks: drinks, region: .unitedStates, calendar: calendar)
@@ -359,6 +371,135 @@ struct PeriodDetailTests {
     #expect(TrendSummary.adjacentBucketStart(from: date(2026, 8, 1), direction: 1, range: .year, endingOn: end, calendar: calendar) == nil)
     #expect(TrendSummary.adjacentBucketStart(from: date(2026, 8, 1), direction: -1, range: .year, endingOn: end, calendar: calendar) == date(2026, 7, 1))
     #expect(TrendSummary.adjacentBucketStart(from: date(2026, 8, 2), direction: -1, range: .year, endingOn: end, calendar: calendar) == nil)
+  }
+
+  // MARK: - The chart's grain (ADR-0059)
+
+  @Test("Week and Month are daily only; Quarter offers days and weeks, Year days, weeks and months")
+  func grainChoices() {
+    #expect(TrendRange.week.grains == [.day])
+    #expect(TrendRange.month.grains == [.day])
+    #expect(TrendRange.quarter.grains == [.day, .week])
+    #expect(TrendRange.year.grains == [.day, .week, .month])
+    #expect(TrendRange.week.defaultGrain == .day)
+    #expect(TrendRange.month.defaultGrain == .day)
+    #expect(TrendRange.quarter.defaultGrain == .week)
+    #expect(TrendRange.year.defaultGrain == .month)
+    for range in TrendRange.allCases {
+      #expect(range.grains.contains(range.defaultGrain))
+      #expect(range.grains.last == range.defaultGrain, "the default is the coarsest choice")
+      #expect(range.bucket == range.defaultGrain.component)
+    }
+  }
+
+  @Test("Every grain's bars hold every day of the range once and sum to its total")
+  func barsCoverTheRange() {
+    let end = date(2026, 8, 26, 12)
+    var drinks: [LoggedDrink] = []
+    for i in 0..<400 {
+      drinks.append(beer(calendar.date(byAdding: .day, value: -i, to: date(2026, 8, 26, 20))!, abv: Double(3 + i % 7)))
+    }
+    for range in TrendRange.allCases {
+      let totals = TrendSummary.dailyTotals(range: range, endingOn: end, drinks: drinks, region: .unitedStates, calendar: calendar)
+      let total = TrendSummary.sum(totals)
+      for grain in range.grains {
+        let bars = TrendSummary.bucketed(totals, by: grain.component, calendar: calendar)
+        let barTotal = bars.reduce(0.0) { $0 + $1.standardDrinks }
+        let barDays = bars.reduce(0) { $0 + $1.dayCount }
+        #expect(abs(barTotal - total) < 1e-9, "\(range) \(grain)")
+        #expect(barDays == totals.count, "\(range) \(grain)")
+      }
+    }
+    let quarterDaily = TrendSummary.bucketStarts(range: .quarter, grain: .day, endingOn: end, calendar: calendar)
+    let yearDaily = TrendSummary.bucketStarts(range: .year, grain: .day, endingOn: end, calendar: calendar)
+    let yearWeekly = TrendSummary.bucketStarts(range: .year, grain: .week, endingOn: end, calendar: calendar)
+    #expect(quarterDaily.count == 88)
+    #expect(yearDaily.count == 360)
+    #expect(yearWeekly.count == 52)
+  }
+
+  /// Year starts on the 1st of the month eleven back, 1 September 2025, a
+  /// Monday, so its first weekly bar is the week of Sunday 31 August with six
+  /// of its days in the range — selectable, named by the days it counts, and
+  /// partial.
+  @Test("Year's first weekly bar begins before the range and is still a bar")
+  func yearLeadingWeek() {
+    let end = date(2026, 8, 26, 12)
+    let drinks = [beer(date(2025, 8, 31, 20)), beer(date(2025, 9, 1, 20)), beer(date(2025, 9, 6, 20))]
+    let touch = date(2025, 8, 31, 12)
+    #expect(TrendSummary.bucketStart(containing: touch, range: .year, grain: .week, endingOn: end, calendar: calendar) == date(2025, 8, 31))
+    #expect(TrendSummary.bucketStart(containing: date(2025, 8, 30, 12), range: .year, grain: .week, endingOn: end, calendar: calendar) == nil)
+    #expect(TrendSummary.bucketStart(containing: touch, range: .year, grain: .day, endingOn: end, calendar: calendar) == nil)
+    #expect(TrendSummary.bucketStart(containing: touch, range: .year, endingOn: end, calendar: calendar) == nil)
+
+    let first = detail(touch, range: .year, grain: .week, endingOn: end, drinks: drinks)
+    #expect(first?.unit == .weekOfYear)
+    #expect(first?.start == date(2025, 8, 31))
+    #expect(first?.firstDay == date(2025, 9, 1))
+    #expect(first?.lastDay == date(2025, 9, 6))
+    #expect(first?.periodLength == 7)
+    #expect(first?.summary.dayCount == 6)
+    #expect(first?.isPartial == true)
+    // The 31 August beer is before the range: the bar holds the two after it.
+    let two: Double = 2
+    #expect(first.map { abs($0.standardDrinks - two) < 1e-9 } == true)
+
+    // The trailing week is drawn past today and clipped to it, as at Quarter.
+    let last = detail(date(2026, 8, 29, 12), range: .year, grain: .week, endingOn: end, drinks: drinks)
+    #expect(last?.start == date(2026, 8, 23))
+    #expect(last?.firstDay == date(2026, 8, 23))
+    #expect(last?.summary.dayCount == 4)
+    #expect(TrendSummary.bucketStart(containing: date(2026, 8, 30, 1), range: .year, grain: .week, endingOn: end, calendar: calendar) == nil)
+  }
+
+  /// A range that ends on a bar's own first day — a Sunday under weekly bars,
+  /// the 1st under monthly ones — still has that bar: "starts on or before the
+  /// range's last day" includes the last day itself.
+  @Test("A bar that starts on the range's last day is still a bar")
+  func barStartingOnTheLastDay() {
+    let sunday = date(2026, 8, 23, 12)
+    for (range, grain) in [(TrendRange.quarter, TrendGrain.week), (.year, .week)] {
+      let found = TrendSummary.bucketStart(containing: sunday, range: range, grain: grain, endingOn: sunday, calendar: calendar)
+      #expect(found == date(2026, 8, 23), "\(range) \(grain)")
+      #expect(detail(sunday, range: range, grain: grain, endingOn: sunday)?.summary.dayCount == 1, "\(range) \(grain)")
+    }
+    let first = date(2026, 9, 1, 12)
+    let found = TrendSummary.bucketStart(containing: first, range: .year, grain: .month, endingOn: first, calendar: calendar)
+    #expect(found == date(2026, 9, 1))
+    #expect(detail(first, range: .year, endingOn: first)?.summary.dayCount == 1)
+  }
+
+  @Test("A daily chart at Quarter or Year selects one day, and nothing outside the range")
+  func dailyAtLongRanges() {
+    let end = date(2026, 8, 26, 12)
+    let drinks = [beer(date(2026, 5, 31, 20)), wine(date(2026, 5, 31, 21)), beer(date(2025, 9, 1, 20))]
+    let quarterDay = detail(date(2026, 5, 31, 9), range: .quarter, grain: .day, endingOn: end, drinks: drinks)
+    #expect(quarterDay?.unit == .day)
+    #expect(quarterDay?.start == date(2026, 5, 31))
+    #expect(quarterDay?.dayRecord == .drinks)
+    #expect(quarterDay?.shares.count == 2)
+    #expect(detail(date(2026, 5, 30, 9), range: .quarter, grain: .day, endingOn: end) == nil)
+    #expect(detail(date(2026, 8, 27, 9), range: .quarter, grain: .day, endingOn: end) == nil)
+    // The same day's facts at any range and grain that has a day bar for it.
+    #expect(quarterDay == detail(date(2026, 5, 31, 9), range: .year, grain: .day, endingOn: end, drinks: drinks))
+    #expect(detail(date(2025, 9, 1, 9), range: .year, grain: .day, endingOn: end, drinks: drinks)?.dayRecord == .drinks)
+    #expect(detail(date(2025, 8, 31, 9), range: .year, grain: .day, endingOn: end, drinks: drinks) == nil)
+  }
+
+  @Test("Stepping at a chosen grain moves one of its bars and stops at the ends")
+  func steppingAtAGrain() {
+    let end = date(2026, 8, 26, 12)
+    func step(_ from: Date, _ direction: Int, _ range: TrendRange, _ grain: TrendGrain) -> Date? {
+      TrendSummary.adjacentBucketStart(from: from, direction: direction, range: range, grain: grain, endingOn: end, calendar: calendar)
+    }
+    #expect(step(date(2025, 9, 7), -1, .year, .week) == date(2025, 8, 31))
+    #expect(step(date(2025, 8, 31), -1, .year, .week) == nil)
+    #expect(step(date(2026, 8, 23), 1, .year, .week) == nil)
+    #expect(step(date(2025, 9, 1), -1, .year, .day) == nil)
+    #expect(step(date(2025, 9, 1), 1, .year, .day) == date(2025, 9, 2))
+    #expect(step(date(2026, 8, 26), 1, .quarter, .day) == nil)
+    #expect(step(date(2026, 5, 31), -1, .quarter, .day) == nil)
+    #expect(step(date(2026, 6, 30), 1, .quarter, .day) == date(2026, 7, 1))
   }
 
   @Test("A detail for a date after the range's end is nothing, and a new drink shows up in place")

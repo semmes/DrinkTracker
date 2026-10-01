@@ -42,9 +42,9 @@ public enum DayRecord: Hashable, Sendable {
   case unlogged
 }
 
-/// The facts behind one bar on the Trends chart: a calendar day (Week and
-/// Month ranges), or a calendar week (Quarter) or month (Year) clipped to the
-/// range (ADR-0028).
+/// The facts behind one bar on the Trends chart: a calendar day, week or month
+/// — the chart's grain (ADR-0059; by default a day on Week and Month, a week on
+/// Quarter, a month on Year) — clipped to the range (ADR-0028).
 ///
 /// Every field is an independent, checkable figure in ADR-0006's sense.
 /// Nothing here is expressed against the range's average, ranked against
@@ -52,11 +52,16 @@ public enum DayRecord: Hashable, Sendable {
 /// this reports the bar. There is deliberately no field for a delta, and a
 /// test pins that a day's detail is identical whichever range contains it.
 public struct PeriodDetail: Hashable, Sendable {
-  /// `.day`, `.weekOfYear`, or `.month` — `TrendRange.bucket`.
+  /// `.day`, `.weekOfYear`, or `.month` — the grain's `component`.
   public let unit: Calendar.Component
   /// The bar's key — equal to the `DayTotal.date` or `PeriodTotal.start` it
   /// describes, so a view matches it against the bars it drew by equality.
   public let start: Date
+  /// Start of the bucket's first day inside the range. Equals `start` but for
+  /// a leading bucket that begins before the range — Year's first weekly bar
+  /// (ADR-0059) — where `start` is the week's own first day and stays the
+  /// bar's key, and this is the day the bar's figures begin on.
+  public let firstDay: Date
   /// Start of the bucket's last day inside the range. Equals `start` for a
   /// day bar.
   public let lastDay: Date
@@ -77,7 +82,9 @@ public struct PeriodDetail: Hashable, Sendable {
   /// clipped to the bar's own days.
   public let longestAlcoholFreeRun: Int
 
-  /// True while the period runs past the range — the trailing bucket.
+  /// True while the period runs past the range: the trailing bucket, or the
+  /// first one when the grain's buckets do not start where the range does
+  /// (weekly bars at Year, whose range starts on the 1st of a month).
   public var isPartial: Bool { summary.dayCount < periodLength }
 
   /// The bar's height by another name; equal to the bar and to the sum of
@@ -87,6 +94,7 @@ public struct PeriodDetail: Hashable, Sendable {
   public init(
     unit: Calendar.Component,
     start: Date,
+    firstDay: Date? = nil,
     lastDay: Date,
     periodLength: Int,
     summary: RecentSummary,
@@ -96,6 +104,7 @@ public struct PeriodDetail: Hashable, Sendable {
   ) {
     self.unit = unit
     self.start = start
+    self.firstDay = firstDay ?? start
     self.lastDay = lastDay
     self.periodLength = periodLength
     self.summary = summary
@@ -157,15 +166,22 @@ extension TrendSummary {
     return calendarDays(keys, totalsByDay: totals, alcoholFreeDays: alcoholFreeDays)
   }
 
-  /// The distinct bar keys of a range, oldest first: the day keys themselves
-  /// on daily charts, the calendar-period starts `bucketed` keys on otherwise.
-  static func bucketStarts(range: TrendRange, endingOn endDate: Date, calendar: Calendar) -> [Date] {
+  /// The distinct bar keys of a range at a grain, oldest first: the day keys
+  /// themselves on daily charts, the calendar-period starts `bucketed` keys on
+  /// otherwise. `grain` defaults to the range's own (`defaultGrain`).
+  static func bucketStarts(
+    range: TrendRange,
+    grain: TrendGrain? = nil,
+    endingOn endDate: Date,
+    calendar: Calendar
+  ) -> [Date] {
+    let unit = (grain ?? range.defaultGrain).component
     let keys = days(in: range, endingOn: endDate, calendar: calendar)
-    guard range.bucket != .day else { return keys }
+    guard unit != .day else { return keys }
     var order: [Date] = []
     var seen: Set<Date> = []
     for key in keys {
-      guard let start = calendar.dateInterval(of: range.bucket, for: key)?.start else { continue }
+      guard let start = calendar.dateInterval(of: unit, for: key)?.start else { continue }
       if seen.insert(start).inserted { order.append(start) }
     }
     return order
@@ -184,24 +200,34 @@ extension TrendSummary {
   /// `periodDetail` then clips the bucket's days to the range. Day keys are
   /// re-normalised through `startOfDay`; week and month starts come from
   /// `dateInterval(of:for:)`, which is what `bucketed` keys on, so on a
-  /// midnight-DST day both agree on 01:00. `firstDay` is itself the first
-  /// bucket's start on Quarter and Year (`TrendRange.startDate`).
+  /// midnight-DST day both agree on 01:00.
+  ///
+  /// A bucket is a bar when it holds at least one of the range's days: it
+  /// starts on or before the range's last day and ends after its first. At the
+  /// range's own grain the first bucket starts on the range's first day
+  /// (`TrendRange.startDate`), so this is the old "starts inside the range";
+  /// at a finer grain the first bucket can start before it — Year's weekly bars
+  /// begin with the week holding the 1st of the month eleven back — and a touch
+  /// on its drawn days before the range resolves to it, as one on the trailing
+  /// bar's days after today does (ADR-0059).
   public static func bucketStart(
     containing date: Date,
     range: TrendRange,
+    grain: TrendGrain? = nil,
     endingOn endDate: Date,
     calendar: Calendar = .current
   ) -> Date? {
+    let unit = (grain ?? range.defaultGrain).component
     let day = calendar.startOfDay(for: date)
     let firstDay = calendar.startOfDay(for: range.startDate(endingOn: endDate, calendar: calendar))
     let lastDay = calendar.startOfDay(for: endDate)
-    guard range.bucket != .day else {
+    guard unit != .day else {
       return day >= firstDay && day <= lastDay ? day : nil
     }
-    guard let start = calendar.dateInterval(of: range.bucket, for: day)?.start,
-      start >= firstDay, start <= lastDay
+    guard let interval = calendar.dateInterval(of: unit, for: day),
+      interval.start <= lastDay, interval.end > firstDay
     else { return nil }
-    return start
+    return interval.start
   }
 
   /// The bar after (`direction > 0`) or before (`direction < 0`) the bar at
@@ -211,10 +237,11 @@ extension TrendSummary {
     from start: Date,
     direction: Int,
     range: TrendRange,
+    grain: TrendGrain? = nil,
     endingOn endDate: Date,
     calendar: Calendar = .current
   ) -> Date? {
-    let starts = bucketStarts(range: range, endingOn: endDate, calendar: calendar)
+    let starts = bucketStarts(range: range, grain: grain, endingOn: endDate, calendar: calendar)
     guard let index = starts.firstIndex(of: start) else { return nil }
     let next = index + (direction > 0 ? 1 : -1)
     return starts.indices.contains(next) ? starts[next] : nil
@@ -233,6 +260,7 @@ extension TrendSummary {
   public static func periodDetail(
     containing date: Date,
     range: TrendRange,
+    grain: TrendGrain? = nil,
     endingOn endDate: Date,
     drinks: [LoggedDrink],
     alcoholFreeDays: Set<Date>,
@@ -240,14 +268,14 @@ extension TrendSummary {
     region: Region,
     calendar: Calendar = .current
   ) -> PeriodDetail? {
-    guard let start = bucketStart(containing: date, range: range, endingOn: endDate, calendar: calendar)
+    guard let start = bucketStart(containing: date, range: range, grain: grain, endingOn: endDate, calendar: calendar)
     else { return nil }
-    let unit = range.bucket
+    let unit = (grain ?? range.defaultGrain).component
 
     let bucketDays = days(in: range, endingOn: endDate, calendar: calendar).filter { key in
       unit == .day ? key == start : calendar.dateInterval(of: unit, for: key)?.start == start
     }
-    guard let lastDay = bucketDays.last else { return nil }
+    guard let firstDay = bucketDays.first, let lastDay = bucketDays.last else { return nil }
 
     let periodLength = unit == .day
       ? 1
@@ -275,6 +303,7 @@ extension TrendSummary {
     return PeriodDetail(
       unit: unit,
       start: start,
+      firstDay: firstDay,
       lastDay: lastDay,
       periodLength: periodLength,
       summary: summary,

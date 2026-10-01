@@ -8,7 +8,9 @@ range), ADR-0030 (its window retired for Trends; the year view unchanged), ADR-0
 (the weekend comparison waits for the record, not for four weeks of range),
 ADR-0028 (the dashed line at Quarter) · **Relates to:** ADR-0006 (a summary, not a
 score), ADR-0026 (one fold, the DST-safe day walk), ADR-0033 (counted from the
-record), ADR-0039 (the column), the contract's `domain/aggregation.md`
+record), ADR-0039 (the column), the contract's `domain/aggregation.md` · **Amended
+by:** ADR-0059 (the line follows a grain the reader chooses at Quarter and Year; the
+open question below is closed — the amendment at the end)
 
 ## Context
 
@@ -216,7 +218,8 @@ rules:
   days, since Trends opens on Week. **Put to the owner:** if a line above every bar on
   a first day reads wrong, the smallest change is no line while the window is under
   seven days, the rule Year keeps for a month — one condition
-  in `TrendWindowFold.averageLine` and the test's two expectations.
+  in `TrendWindowFold.averageLine` and the test's two expectations. *(Kept by the
+  owner on 2026-10-01: "That's acceptable and we can keep as is." The amendment below.)*
 - **While the log is younger than 13 weeks, Quarter and Year show the same figures
   under different chart titles**, and every printed "of N" reads the days since the
   first record (51, say) while the chart's title and its bars cover the range (88 days
@@ -392,3 +395,21 @@ labels the two; 3c is not open, since it re-creates the mismatch. If the Month f
 week-pattern swing is reported, whole-week windows are the route, and they re-open the
 labels. Moving Quarter to calendar quarters is a separate decision about what the range
 is, not about what it compares.
+
+## Amendment (2026-10-01): the sub-week Quarter line is kept, and the line follows a grain
+
+**The owner's answer to the question this record put to them**, after the case was
+explained (one day with 4 drinks reading "Your weekly average · 28" above a bar of 4,
+on a log's first days only): *"That's acceptable and we can keep as is."* The line
+stays the window's weekly figure however short the window, and
+`quarterLineUnderAWeek` stays as it is. The alternative recorded above, no line while
+the window is under seven days, is the reopen if the case is reported from the field.
+
+**The same day the owner asked for Quarter and Year to be read by day, week or month**
+(ADR-0059). The rule this record gave the line at Quarter is now the rule for weekly
+bars at either range: under Year's weekly bars the line is the window's weekly figure,
+the number the weekly-average comparison prints, and the sub-week case above reaches
+Year's weekly view on the same terms. Daily bars at Quarter and Year take the per-day
+average, the per-day card's own figure; monthly bars at Year keep the complete-months
+mean. Everything under the chart still reads the window, whatever the bars are cut
+into.

@@ -10,7 +10,7 @@ import SwiftUI
 /// period restated so they can be checked there, with the rows summing to the
 /// figure above them. A week or month bar carries the calendar card's four
 /// figures in the same component the calendar uses, so the copy cannot drift.
-/// Nothing here is phrased against the "Your average" line, ranked, or
+/// Nothing here is phrased against the average line, ranked, or
 /// characterised: `PeriodDetail` has no field for any of that, so the view
 /// has nothing to phrase.
 struct PeriodDetailView: View {
@@ -110,10 +110,12 @@ struct PeriodDetailView: View {
 
   /// The title as a String, for the chart's spoken value.
   ///
-  /// A week is the interval from its start to noon of its last day: noon is
-  /// inside the last day in every zone, where a chained day-after bound can
-  /// print an extra day when the day after is a 01:00 midnight-DST day, and
-  /// a "%@ – %@" key would be placeholders and punctuation only.
+  /// A week is the interval from its first day in the range to noon of its
+  /// last: noon is inside the last day in every zone, where a chained
+  /// day-after bound can print an extra day when the day after is a 01:00
+  /// midnight-DST day, and a "%@ – %@" key would be placeholders and
+  /// punctuation only. The first day in the range, not the week's own start,
+  /// so Year's first weekly bar names only the days it counts (ADR-0059).
   static func titleString(for detail: PeriodDetail, calendar: Calendar) -> String {
     switch detail.unit {
     case .day:
@@ -124,7 +126,7 @@ struct PeriodDetailView: View {
     default:
       let noon = calendar.date(bySettingHour: 12, minute: 0, second: 0, of: detail.lastDay)
         ?? detail.lastDay
-      return (detail.start..<noon).formatted(date: .abbreviated, time: .omitted)
+      return (detail.firstDay..<noon).formatted(date: .abbreviated, time: .omitted)
     }
   }
 

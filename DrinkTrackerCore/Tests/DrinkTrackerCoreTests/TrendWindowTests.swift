@@ -308,6 +308,36 @@ struct TrendWindowTests {
     #expect(old.averageLine(calendar: calendar) == all)
   }
 
+  @Test("The line follows the chart's grain: per day, the weekly figure, or the complete-months mean")
+  func lineFollowsTheGrain() {
+    var drinks: [LoggedDrink] = []
+    for i in 0..<200 where i % 3 != 0 {
+      drinks.append(beer(calendar.date(byAdding: .day, value: -i, to: date(2026, 9, 30, 20))!, abv: Double(4 + i % 5)))
+    }
+    for range in TrendRange.allCases {
+      for record in [date(2024, 1, 1), date(2026, 8, 12)] {
+        let f = fold(range, drinks, firstRecord: record)
+        #expect(f.averageLine(grain: .day, calendar: calendar) == f.dailyAverage, "\(range)")
+        #expect(f.averageLine(grain: .week, calendar: calendar) == f.weeklyFigure, "\(range)")
+        #expect(f.averageLine(calendar: calendar) == f.averageLine(grain: range.defaultGrain, calendar: calendar), "\(range)")
+      }
+    }
+    // Monthly at Year is the line as it always was.
+    let year = fold(.year, drinks, firstRecord: date(2024, 1, 1))
+    let months = TrendSummary.bucketAverage(
+      TrendSummary.bucketed(
+        TrendSummary.dailyTotals(range: .year, endingOn: today, drinks: drinks, region: .unitedStates, calendar: calendar),
+        by: .month, calendar: calendar
+      ),
+      unit: .month, calendar: calendar
+    )
+    #expect(year.averageLine(grain: .month, calendar: calendar) == months)
+    // A daily line over a whole year divides by its 365 days.
+    let daily: Double = year.summary.totalStandardDrinks / 365.0
+    #expect(abs((year.averageLine(grain: .day, calendar: calendar) ?? -1) - daily) < 1e-12)
+    #expect(year.window.dayCount == 365)
+  }
+
   // MARK: - One set of days
 
   /// A log with a shape: a weekend drinker since `start`, a 0% drink every

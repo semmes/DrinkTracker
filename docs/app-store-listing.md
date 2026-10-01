@@ -600,7 +600,7 @@ no servers.
 
 ## What's New (1.5)
 
-Drafted 2026-10-01 with the build (ADR-0058), reviewed under 1.4.3
+Drafted 2026-10-01 with the build (ADR-0058; its third paragraph with ADR-0059), reviewed under 1.4.3
 (`docs/copy-review-1.4.3.md`, 2026-10-01). Not yet submitted: 1.5 opened on `main` on
 2026-10-01 at the owner's word, while 1.4 (1) was still in App Review. Wrapped here for reading; join
 each paragraph onto one line before pasting.
@@ -613,6 +613,10 @@ average the comparison shows. Week now shows all three comparisons.
 
 If your log is newer than the range, the figures that count days start
 from your first record, and Trends shows that date.
+
+At Quarter and Year, you can now choose how the chart is divided: by day
+or week at Quarter, and by day, week or month at Year. The dashed line
+shows your daily, weekly or monthly average to match.
 ```
 
 ## Reviewer notes (1.5) — paste into App Review notes
@@ -620,7 +624,7 @@ from your first record, and Trends shows that date.
 1.3's notes told App Review the population window "now follows the length of the
 user's record"; 1.5 changes that to the range the reader picks, and says so. The
 claims of the 1.0 Resolution Center response, kept through 1.4, are restated in the
-first line. 1,478 bytes, all ASCII (the field holds 4,000 bytes; count with
+first line. 1,746 bytes, all ASCII (the field holds 4,000 bytes; count with
 `wc -c` after any change).
 
 ```
@@ -646,6 +650,10 @@ no accounts; no external services.
   weekly figure, the same number the comparison shows. The line and the
   comparison are not set against each other: no difference between them
   is shown, and nothing is ranked or scored.
+- On Quarter (day or week) and Year (day, week or month) a filter
+  button beside the chart's legend chooses how the bars are divided,
+  and the dashed line becomes the daily, weekly or monthly average to
+  match. It opens on the range's usual bars and is not stored.
 
 No new permissions, privacy label categories, third-party code, accounts or
 servers.

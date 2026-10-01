@@ -326,7 +326,8 @@ pinning the behaviour so nothing is silently "corrected".
 - **HealthKit failures are silent by design.** The log lives in SwiftData, so denied or
   unavailable Health degrades the app to local-only rather than blocking a log.
 - **Tone guardrails** are respected: no streaks, no goals, no congratulation or warning.
-  The chart's average line is labelled "Your average", never a target, and the rest-day
+  The chart's average line is labelled "Your daily average" (or weekly, or monthly, by
+  its bars), never a target, and the rest-day
   card counts days without framing them as wins.
 
 ## The widget's one-tap logging — resolved
@@ -570,7 +571,11 @@ its total over its weeks, seven times the per-day average and the number the
 weekly-average comparison prints, so the screen shows one weekly average
 and the line can dip a little in a week that has not reached its weekend yet
 (ADR-0058); at Year the mean of the *completed* months only, so it never sags
-just because a new month started.
+just because a new month started. At Quarter and Year a filter button beside
+the line's legend cuts the bars by day or week, and Year's by month too, and
+the line follows: per day over daily bars, the weekly figure over weekly
+bars ([ADR-0059](docs/decisions/0059-quarter-and-year-can-be-read-by-day-week-or-month.md)).
+Each visit to Trends opens on the range's own bars, and nothing is stored.
 Totals are always expressed in the current region, a year of history included
 (invariant 3). The same figures everywhere; still no deltas, no targets.
 Drag across the bars and the chart card's header reads one bar at a time —

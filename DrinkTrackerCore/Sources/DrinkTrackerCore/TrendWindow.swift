@@ -140,7 +140,7 @@ extension TrendSummary {
 
   /// A fold's total over its weeks: the total divided by (days ÷ 7) — one
   /// function behind the weekly average the comparison places beside the
-  /// survey, the dashed line at Quarter, and a complete year's weekly average
+  /// survey, the dashed line over weekly bars, and a complete year's weekly average
   /// on the year view, so the three can never print two numbers for one week.
   /// A window of exactly seven days is its own total. Zero for an empty fold;
   /// the comparison then says nothing, as it does for a zero average.
@@ -224,32 +224,37 @@ public struct TrendWindowFold: Hashable, Sendable {
   }
 
   /// The window's total over its weeks (`TrendSummary.weeklyFigure`) — the
-  /// weekly average the comparison places, and the line at Quarter.
+  /// weekly average the comparison places, and the line over weekly bars.
   public var weeklyFigure: Double { TrendSummary.weeklyFigure(of: summary) }
 
-  /// The dashed line's value, on the bars' own scale (ADR-0028, ADR-0058): per
-  /// day at Week and Month; the window's weekly figure at Quarter, so the
-  /// legend and the weekly-average comparison print one number, seven times the
-  /// per-day average before either is rounded (the per-day card prints that
-  /// average to one decimal, so seven times the printed card can differ by the
-  /// rounding); and at Year the mean of the complete months inside the
-  /// window, the line's rule unchanged — a month the window holds only part of
-  /// (the one in progress, or, while the window is clipped, the month of the
-  /// first record unless it fell on the 1st) is left out. nil at Year while no
-  /// month is complete, in which case no line is drawn.
+  /// The dashed line's value, on the bars' own scale (ADR-0028, ADR-0058,
+  /// ADR-0059). `grain` is the chart's, the range's own by default, and the
+  /// line follows it:
   ///
-  /// Quarter has no such rule (decisions 3 and 5): a window shorter than a week
-  /// still draws its weekly figure, its total times 7 over its days, so on a
-  /// log's first days the line stands above every weekly bar — one day with 4
-  /// drinks reads "Your weekly average · 28". Recorded in ADR-0058 and put to
-  /// the owner; the one-line alternative is nil while `window.dayCount < 7`.
-  public func averageLine(calendar: Calendar = .current) -> Double? {
-    switch window.range {
-    case .week, .month:
+  /// - daily bars, at any range: the per-day average;
+  /// - weekly bars, at Quarter or Year: the window's weekly figure, so the
+  ///   legend and the weekly-average comparison print one number, seven times
+  ///   the per-day average before either is rounded (the per-day card prints
+  ///   that average to one decimal, so seven times the printed card can differ
+  ///   by the rounding);
+  /// - monthly bars, at Year: the mean of the complete months inside the
+  ///   window, the line's rule unchanged — a month the window holds only part
+  ///   of (the one in progress, or, while the window is clipped, the month of
+  ///   the first record unless it fell on the 1st) is left out. nil while no
+  ///   month is complete, in which case no line is drawn.
+  ///
+  /// The weekly figure has no such rule (decisions 3 and 5): a window shorter
+  /// than a week still draws it, its total times 7 over its days, so on a log's
+  /// first days the line stands above every weekly bar — one day with 4 drinks
+  /// reads "Your weekly average · 28". The owner kept it on 2026-10-01
+  /// (ADR-0058); the alternative was nil while `window.dayCount < 7`.
+  public func averageLine(grain: TrendGrain? = nil, calendar: Calendar = .current) -> Double? {
+    switch grain ?? window.range.defaultGrain {
+    case .day:
       return dailyAverage
-    case .quarter:
+    case .week:
       return weeklyFigure
-    case .year:
+    case .month:
       let totals = days.map { DayTotal(date: $0.date, standardDrinks: $0.standardDrinks) }
       let months = TrendSummary.bucketed(totals, by: .month, calendar: calendar)
       return TrendSummary.bucketAverage(months, unit: .month, calendar: calendar)
