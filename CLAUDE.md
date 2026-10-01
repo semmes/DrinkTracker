@@ -348,6 +348,9 @@ film…", `semmes/Tallyist#7`).**
 **On 2026-09-28 the press page got the 30-second product film, its 4K master a GitHub
 release because GitHub keeps no file over 100 MB in a repository (the bullet "The
 press page's film…", `semmes/Tallyist#8`).**
+**On 2026-10-01 a plan was written for every figure on Trends to follow the range
+picker; it waits on four decisions of the owner's (the bullet "Trends on one window is
+planned…", `docs/tallyist-trends-alignment-plan.md`).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4707,3 +4710,32 @@ Open items for v1.2:
   Android ships. **Tooling,** in `Claude outputs/site-press-film/`: `render.py`
   builds a stand-in of the press page, `preview/` is CI's build of the branch, and
   `serve.py` is the `press-preview` entry in `.claude/launch.json`.
+- **Trends on one window is planned, not built (2026-10-01; records only).** The owner,
+  on two screenshots of Trends at Quarter: *"I want to standardize the data with the
+  timeframe measurements. You'll see comparisons only show 28 days not aligned to the
+  quarter. Then days with a drink is 13 weeks and not aligned to quarterly. All data
+  under trends should align to weekly, monthly, quarterly, yearly and provide insights
+  and data against those."* The plan is `docs/tallyist-trends-alignment-plan.md`, written
+  in a remote session from the code and the records; nothing was compiled or rendered.
+  **What it found:** of everything under the picker, only the Weekly average and
+  Drinking days comparisons ignore it. They read ADR-0030's window (28 days, then 364
+  once the record is a year old) through `ComparisonsSection`'s own queries and clock.
+  Days with a drink already follows the range, and "Last 13 weeks" is the Quarter
+  range's own label (its 28 + 18 and 37 + 51 are the chart's 46 days with drinks over 88
+  days). Aligning the windows alone would still leave two weekly averages at Quarter:
+  the line's mean of completed weeks (13.2 on the screenshot) beside the range's own
+  158.9 ÷ 88 × 7 = 12.6. And the weekend comparison is gated only on the range's length,
+  never on the record, so it counts days before the first record as days without a
+  drink, and at Month shows an empty log's zeros beside the published rates. **The
+  approach:** the comparisons read the fold `TrendsView` already builds for the header
+  (`rangeDays`, `summary(of:)`), so their figures are the header's; one gate for all
+  three (the range holds 28 days or more, so Month up, and the log reaches back to the
+  range's first day), with one sentence in the card otherwise; and at Quarter the line
+  becomes the range's weekly figure, so one weekly average is printed. **Four decisions
+  are the owner's, each with a recommendation in the plan:** Week (a sentence, not a
+  one-week percentile); a log younger than the range (a sentence, not a "since" window);
+  the Quarter line (the range's weekly figure); and the Quarter label (keep "Last 13
+  weeks"). It targets 1.5: 1.4 (1) is in App Review and 1.3 is live (the lookup API,
+  2026-10-01). The contract (`semmes/tallyist-product`) needs a draft PR with the build,
+  which also corrects its stale "instant-based" description of the population windows.
+  No code, schema, CloudKit, catalog, privacy-policy or project-file change.
