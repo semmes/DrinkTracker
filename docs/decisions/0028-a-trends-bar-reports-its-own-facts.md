@@ -5,9 +5,11 @@ summary, not a score), ADR-0001, ADR-0002, ADR-0007 / ADR-0010 (no second
 colour), ADR-0014 / ADR-0023 / ADR-0025 (the row shapes the breakdown
 names), ADR-0015 and ADR-0027 (not a share surface), ADR-0026 (the fold and
 the heading), PRD invariants 3, 8, 9, 10, spec constraints 3–4 · **Amended by:**
-its own three amendments below, and ADR-0058 (the line at Quarter is the range's
+its own three amendments below, ADR-0058 (the line at Quarter is the range's
 weekly figure, and every line divides by the days since the first record while
-the log is younger than the range — see the fourth amendment at the end)
+the log is younger than the range — see the fourth amendment), and ADR-0059 (at
+Quarter and Year the reader chooses the bars, and the line follows them — see the
+fifth amendment at the end)
 
 ## Context
 
@@ -511,3 +513,54 @@ Week and Month, the weekly figure at Quarter, and at Year the mean of the comple
 months inside that window, a month the first record falls in partway left out like the
 one in progress. The bars keep the range and a bar's readout keeps its own days; a week
 before the first record still draws with nothing in it.
+
+---
+
+## Fifth amendment (2026-10-01): the reader chooses the bars at Quarter and Year
+
+**Status:** accepted, by ADR-0059. A bar still reports its own facts and never its
+distance from the line, and the legend still carries the line's own value beside the
+range's.
+
+ADR-0059 lets a reader cut Quarter into days or weeks and Year into days, weeks or
+months. The line has matched its bars' scale since Quarter and Year arrived in 2026-08,
+and this record kept that rule; it is what made the bars follow the choice, since a
+line moved on its own would stand on another scale than its bars. So the line is per
+day over daily bars, the window's weekly figure over weekly bars and the
+complete-months mean over monthly bars, at any range that offers them.
+
+Two things about a bar change with it. **A bar is any bucket that holds a day of the
+range**, not only one that starts inside it: under weekly bars at Year the first bar is
+the week holding the range's 1st, drawn from that week's start, so a touch on its days
+before the range resolves to it, as a touch on the trailing bar's days after today
+always has. And **a week's title names its first day inside the range**
+(`PeriodDetail.firstDay`), so on 1 October 2026 in a Sunday-first calendar that bar
+reads "Nov 1, 2025" with "1 day" rather than naming days it does not count. The bar's
+key is still the week's start, so the view still matches the detail to the bar it drew
+by equality.
+
+Three things about the chart change too. **Year's x axis names its months outright**,
+every other month from the range's first, because under weekly bars the domain starts
+a few days before the 1st and a two-month stride labelled Dec, Feb… where the monthly
+chart says Nov, Jan…; under monthly bars the dates are the ones the stride gave.
+**Bar corners shrink as bars multiply**: 6 as drawn, 2 for Quarter's daily and Year's
+weekly bars, 1 for Year's daily bars. And **the choice itself sits in the card**: a
+circular filter button at the trailing end of the title row, beside the legend it
+changes, over the readout rather than in it, so the readout keeps its floor and its one
+VoiceOver element; it fades with the idle half while a bar is read.
+
+Two things about a scrub change for a fine grain's sake. **The selection's tick fires
+where the range's own bars change**, a week at Quarter and a month at Year, rather than
+at every one of 365 daily bars; and **the rail is clamped to the plot**, since its 12pt
+floor is wider than a daily bar at Year and the first and last bars' rails would
+otherwise run under the axis labels and into the card's padding.
+
+**The legend names the line by its scale at every range**: the label this record
+gave the rule mark at Week and Month, "Your average", reads "Your daily average" since
+ADR-0059, at the owner's word of 2026-10-01, to match Quarter's and Year's; only the
+words changed.
+
+Nothing else here moves: the readout's two states and its floor, the rail and
+hairline, release-to-clear, the stepped block, and the rule that a bar is never
+reported against the line. A grain change clears the selection, as a range change
+always has.

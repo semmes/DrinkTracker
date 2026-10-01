@@ -2672,3 +2672,36 @@ ADR-0058's verification has every figure):
 
 No exclamation marks, no em dashes and no imperatives in any new string. House voice
 intact. Pass.
+
+## 1.5 — Quarter and Year by day, week or month (ADR-0059, 2026-10-01)
+
+**The control.** "Daily", "Weekly", "Monthly": the items of the menu a circular filter
+button opens beside the legend at Quarter and Year, with a check on the current one,
+and "Average" (an existing key) as the button's VoiceOver label with the grain as its
+value. (Built first as the segments of a second picker under the range picker, and
+moved into the card on the owner's review; the words did not change.) Adjectives naming
+a scale, nothing more; no item is called better, normal or recommended, and the default
+is simply where the range opens. The glyph carries no words. Pass.
+
+**The legend.** "Your daily average" for a daily line at every range, beside the
+reviewed "Your weekly average" and "Your monthly average". Named as the reader's own
+average, never a limit or a target, as the 2026-08 review passed the others. Week and
+Month said "Your average" until the owner asked for the same wording as Quarter and
+Year, "for better clarity and matching with more descriptive text"; the line was
+always a daily one there, so the new words say what it already was, and "Your average"
+leaves the catalog. Pass.
+
+**What's New (1.5), its third paragraph** (`docs/app-store-listing.md`): "At Quarter
+and Year, you can now choose how the chart is divided: by day or week at Quarter, and by
+day, week or month at Year. The dashed line shows your daily, weekly or monthly average
+to match." A first draft said Quarter could show months, which it cannot; this names
+each range's choices. Function described, nothing promised, no imperative, no em dash,
+no exclamation mark; it names no control, so it held when the control moved into the
+card. **Reviewer notes (1.5)** gain one bullet saying the same, that the choice is made
+from a filter button beside the chart's legend and that it is not stored. Pass.
+
+**As it renders** (a throwaway iPhone 17 Pro on iOS 27, 1 October 2026): "Your daily
+average · 0.7" over 89 daily bars at Quarter, the per-day card beside it printing the
+same 0.7; "Your weekly average · 5.2" over Year's weekly bars, the number the weekly
+comparison prints for that year; the first weekly bar selected reading "Nov 1, 2025",
+"1 day". Nothing set against anything. Pass.

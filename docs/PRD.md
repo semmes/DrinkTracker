@@ -27,7 +27,7 @@ refinement rather than a gate, and why corrections are as cheap as the original 
 | Refusal | Upheld in |
 |---|---|
 | No account, no sign-in | `RootView` routes onboarding straight to Today; identity is the user's existing iCloud account |
-| No goals, no targets | `TrendsView` — the chart's rule mark is labelled "Your average", never a limit |
+| No goals, no targets | `TrendsView` — the chart's rule mark is labelled as the reader's own average on its bars' scale, "Your daily average", "Your weekly average" or "Your monthly average" ([ADR-0059](decisions/0059-quarter-and-year-can-be-read-by-day-week-or-month.md)), never a limit |
 | No streaks, no congratulation, no warning | `TrendsView.summaryCards` counts days without framing them as wins — the longest run with none is a maximum over the range shown, counted only from days recorded as alcohol-free, never stored and never a current count ([ADR-0033](decisions/0033-a-run-of-no-alcohol-days-is-counted-from-the-record.md)); `SettingsView.aboutSection` says so in as many words |
 | No celebratory framing of volume | [ADR-0001](decisions/0001-repeat-logging-is-not-party-mode.md) |
 | No blocking on a failed dependency | `HealthKitService` fails silently; the log lives in SwiftData regardless |

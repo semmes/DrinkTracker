@@ -355,7 +355,11 @@ built that night on the draft semmes/DrinkTracker#160 with `MARKETING_VERSION` 1
 the bullet "Trends compares the range the reader chose…", ADR-0058. The owner tested it
 on their phone and asked for it on `main` for 1.5 the same day, with 1.4 (1) still in
 review, so `main` is the 1.5 train from that merge: a fix 1.4 still needs is cut from
-98e494b, not from `main`. One question in it is the owner's.)*
+98e494b, not from `main`. Its one open question, Quarter's line on a log under a week
+old, the owner settled the same day by keeping it.)* **The same day Quarter and Year
+became readable by day, week or month, from a filter button beside the chart's legend
+that opens a menu, and Week's and Month's legend became "Your daily average" (the
+bullet "Quarter and Year can be read by day, week or month…", ADR-0059).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4828,7 +4832,8 @@ Open items for v1.2:
   Increase Contrast, a 375pt phone, a range change's crossfade, hardware. **Tier 4, the
   owner, the same day:** a build of the branch on their phone, "working as expected";
   their first read of the one-day Quarter line is that it looks correct, and they asked
-  for the case explained before deciding, so the question stays open. **Merged into
+  for the case explained before deciding, so the question stays open. *(Settled the same
+  day: "That's acceptable and we can keep as is." ADR-0058's amendment.)* **Merged into
   `main` at the owner's word on 2026-10-01** for the 1.5 build, while 1.4 (1) was still
   in App Review (the lookup API still read 1.3): `main` is now the 1.5 train, Xcode Cloud
   archives it as 1.5, and a fix 1.4 still needs is made on a branch from 98e494b (the
@@ -4841,3 +4846,98 @@ Open items for v1.2:
   reaches any scroll position with no tap; the simulator tool's taps were granted this
   time and opened the notes. The scripts were in the session's scratchpad, which a Mac
   restart empties.
+- **Quarter and Year can be read by day, week or month (2026-10-01, ADR-0059; ADR-0058
+  and ADR-0028 amended).** The owner, the same day, after keeping the sub-week Quarter
+  line: *"can we add a feature for filtering on quarter and year so that you can change
+  if you want to see it by daily, weekly, or monthly average drinks?"* Four answers shaped
+  it: **the bars follow the choice** (the line has matched its bars' scale since Quarter
+  and Year arrived in 2026-08, and a line moved alone would break that); Quarter offers
+  **daily and weekly**, Year **daily, weekly and monthly**; **"Reset each visit"**:
+  nothing is stored, and leaving Trends, like a range change, returns the chart to the
+  range's own bars (a visit is what ADR-0051 already made it on this screen); and the
+  control **under the range picker**, a second segmented control. That was built and
+  rendered, and **on that build the owner moved it**: *"Instead of using a segment
+  control below. Can you add a circular filter icon to the right of the monthly averages
+  and then have dropdown they can pick from? This keeps the design cleaner and more
+  minimal."* **What shipped:** `TrendGrain` in the core package, with
+  `TrendRange.grains` and `defaultGrain` (`TrendRange.bucket` is now the default grain's
+  unit); `bucketStart`, `bucketStarts`, `adjacentBucketStart` and `periodDetail` take an
+  optional grain that falls back to the range's, so every existing caller is unchanged;
+  `TrendWindowFold.averageLine(grain:)`: per day over daily bars (the per-day card's
+  figure), the window's weekly figure over weekly ones (the weekly comparison's, when
+  that is shown), the complete-months mean over monthly ones. **A bar is now any bucket
+  that holds a day of the range**: Year starts on the 1st, so its first weekly bar is the
+  week holding that 1st, drawn and selectable, and `PeriodDetail.firstDay` makes its title
+  name only the days it counts ("Nov 1, 2025", "1 day" on 1 October 2026 in a
+  Sunday-first calendar; Nov 1 to 2 in a Monday-first one). **On Trends, the grain menu**:
+  at Quarter and Year a circular filter button (`line.3.horizontal.decrease.circle`, 20pt
+  scaled with the title, accent ink) at the trailing end of the chart card's title row,
+  beside the legend, opening a menu of Daily · Weekly (· Monthly) with a check. It sits
+  in an overlay over the readout, because the readout takes no touches and reads as one
+  VoiceOver element, with its target (44pt, or the glyph's size when the largest text
+  sizes draw it bigger) centred on the glyph and the title row leaving it 26pt; it stays with no line drawn, fades while a bar is read, and is "Average" with
+  the grain as its value to VoiceOver. `@State`, cleared by a range change and by
+  `onDisappear`, a change clearing the selection; "Your daily average" for a daily line
+  at every range, Week and Month included at the owner's word ("for better clarity and
+  matching with more descriptive text"), so "Your average" leaves the catalog; bar
+  corners 6, 2 or 1 as bars
+  multiply; Year's x axis names every other month from the range's first outright,
+  because under weekly bars a two-month stride labelled Dec, Feb… **For a fine grain's
+  scrub** (the code review): the tick fires at the range's own grain, not per bar; the
+  selection-independent parts of a render are cached per change of their inputs
+  (`TrendsChartCache`, after `HealthPairingModel`'s memo); the bar's end comes from its
+  calendar unit, not a walk of the range; and the rail is clamped to the plot. App
+  catalog 401 → **404** (four in, one out), synced from a fresh full generic build and
+  diffed each time; through the 1.4.3 review.
+  Records: ADR-0059; ADR-0058's amendment (the owner's "That's acceptable and we can
+  keep as is." for the sub-week Quarter line, which now reaches Year's weekly view on the
+  same rule) and ADR-0028's fifth; design-system's Range picker and Bar readout rows; the
+  README's Trends paragraph; a third paragraph in What's New (1.5) and a bullet in the
+  reviewer notes (1,746 bytes, all ASCII); `docs/localization-status.md` (556 keys).
+  **Reviewed before the PR** in two rounds. A four-lens workflow on the menu build
+  (menu mechanics, the cache and its math, the records, design and copy, each lens's
+  findings put to a skeptic) confirmed fifteen and refuted two: the menu's target was
+  smaller than its glyph above AX3 (now the larger of the two), and the rest were
+  records, among them the PRD's refusal table still citing "Your average". The first
+  round, two independent lenses on the first build: the records
+  lens found fifteen things, all acted on (a first What's New that said Quarter could
+  show months, a grain that outlived the visit the owner's answer named, a rule
+  attributed to ADR-0028 that predates it, day counts that held only in a Sunday-first
+  calendar); the code lens found nothing blocking in 4.8 million probed touches and
+  eight mutations, and five smaller things, all acted on (the tick, the cache, the rail,
+  a test for a bar that starts on the range's last day, which now fails the one
+  surviving mutation with six checks, and three stale comments). **Gates, locally
+  (Xcode 27.0):** 421 domain tests under both build systems (seven new, two widened),
+  nothing slow at 25ms in the changed files; both schemes in CI's form with only main's
+  `Text +` warnings; 124 integration tests on the iPhone 17 Pro Max simulator, after one
+  run that crashed in the known parallel CoreData setup; the verifier, policy dates,
+  mirror and glyphs clean. **Rendered** on a throwaway iPhone 17 Pro (iOS 27, deleted
+  after) over ADR-0058's seeded logs, through a render copy that opens on a given range,
+  grain and selection: every grain in light and dark, Week and Month without the button,
+  `accessibility-extra-large`, a 40-day and a one-day log, bars selected at launch both
+  as a touch leaves the header and as VoiceOver holds the block below, and the rail at
+  Year's first and last daily bars; every figure recomputed from the store (0.7 and 5.1
+  at Quarter, 0.7 and 5.2 at Year, the 1 November week's 6 drinks); and by the simulator
+  tool's taps, the menu opening on one tap with a checked Monthly and Daily drawing "Your
+  daily average · 0.7"; at AX5 a tap on the glyph's rim, outside the old 44pt square,
+  opening it; a dismissal with no choice keeping Daily; and a round trip to Today
+  returning Year to monthly bars with the range kept (on the menu build, and before
+  that on the first). A throwaway 375pt iPhone SE (deleted) held every legend on one line beside
+  the button. **At their defaults the four ranges draw what `main` drew, but for the
+  title row:** against ADR-0058's frames, Week's and Month's changed pixels are all in
+  the legend's box (its new words), and Quarter's and Year's in the title row. **Costs, in the ADR:** a menu is two taps where a segment was one;
+  a choice lasts only while the reader stays on Trends; weekly bars at Year begin with a
+  partial week that can stand far below its neighbours; daily bars at Year are about a
+  point wide, under a 12pt rail; a log under a week old draws "Your weekly average · 28"
+  over Year's weekly bars too. **Not rendered:** VoiceOver, a UK region, a midnight-DST
+  zone, a Monday-first calendar, hardware (the haptic, a scrub's frame rate). **The
+  contract** draft semmes/tallyist-product#11 carries the grain in commits of its own.
+  **Tooling:** the render copy reads `SCRATCH_GRAIN`, `SCRATCH_SELECT` (a yyyy-MM-dd
+  date at noon) and `SCRATCH_HELD` beside ADR-0058's variables, so a selected bar,
+  touched or held, renders with no tap, and the instrumentation is one script
+  (`instrument.py` in the session's scratchpad) re-applied after each `rsync`; a contact
+  sheet plus a row-offset diff against an earlier frame (Pillow only, no numpy on this
+  Mac) is how "nothing else moved" was shown; the simulator tool's own screenshot lags a
+  tap, so read the screen with `simctl io` after one. A shell heredoc left unquoted ran
+  the backticks in a Markdown edit as commands; quote it (`<<'EOF'`) whenever the text
+  holds backticks.
