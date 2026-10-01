@@ -48,9 +48,10 @@ struct WeeklyAverageComparison: View {
   private var window: TrendWindow { fold.window }
 
   var body: some View {
-    // The window's total over its weeks — the number the Quarter line and
-    // seven times the per-day card print — compared in grams, so the region
-    // lens cannot skew the bracket. At Week it is the week's own total.
+    // The window's total over its weeks — the number the Quarter line's legend
+    // prints, and seven times the per-day average before rounding — compared
+    // in grams, so the region lens cannot skew the bracket. At Week it is the
+    // week's own total.
     let units = fold.weeklyFigure
     let grams = units * region.gramsPureAlcoholPerStandardDrink
     let comparison = reference.comparison(gramsPerWeek: grams, in: column)
@@ -76,7 +77,11 @@ struct WeeklyAverageComparison: View {
         sources: PopulationReferenceCopy.surveySource,
         openNoteInset: isFollowed ? SegmentDivider.gapAbove : 0
       ) {
-        Text(PopulationReferenceCopy.explainer(in: column, drinkersPercent: reference.drinkersPercent(in: column)))
+        Text(PopulationReferenceCopy.explainer(
+          in: column,
+          drinkersPercent: reference.drinkersPercent(in: column),
+          isWeekTotal: PopulationReferenceCopy.isWeekTotal(window)
+        ))
         Text(PopulationReferenceCopy.windowNote(window))
       }
     }
@@ -175,7 +180,8 @@ struct DrinkingDaysComparison: View {
   }
 
   /// Two rows, each whose figure it is, the figure, and its bar. The reader's
-  /// count is the header's own "46 of 88"; the published row reads as the
+  /// count is the header's own days with drinks out of the window's days, "46
+  /// of 88"; the published row reads as the
   /// reviewed sentence split at its verb — "US adults who drink" / "average
   /// about 21 in 88".
   private func bars(drinkingDays: Int, referenceDays: Int) -> some View {

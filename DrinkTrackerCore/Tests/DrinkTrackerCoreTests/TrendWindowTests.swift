@@ -161,6 +161,53 @@ struct TrendWindowTests {
     }
   }
 
+  /// The first day of a log, the commonest young log there is: the first record
+  /// is today's, and every range, Week included, is that one day. Without this
+  /// case the clip's upper bound (a record on or before today) could become
+  /// "before today" and pass every other test (the 2026-10-01 review's mutation).
+  @Test("Day one: a first record dated today clips every range to today")
+  func dayOne() {
+    let now = date(2026, 9, 30, 21)
+    let morning = date(2026, 9, 30, 8)
+    let drinks = [beer(date(2026, 9, 30, 20))]
+    let todayKey = calendar.startOfDay(for: now)
+    for range in TrendRange.allCases {
+      let f = fold(range, drinks, firstRecord: morning, endingOn: now)
+      #expect(f.window.isClipped, "\(range)")
+      #expect(f.window.days == [todayKey], "\(range)")
+      #expect(!f.window.clearsComparisonFloor, "\(range)")
+      #expect(f.daysWithoutDrinks == 0, "\(range)")
+      #expect(f.summary.daysWithDrinks == 1, "\(range)")
+      #expect(f.weekdays.reduce(0) { $0 + $1.dayCount } == 1, "\(range)")
+      #expect(abs(f.dailyAverage - f.summary.totalStandardDrinks) < 1e-9, "\(range)")
+    }
+    let week = fold(.week, drinks, firstRecord: morning, endingOn: now)
+    #expect(week.averageLine(calendar: calendar) == week.dailyAverage)
+    #expect(fold(.year, drinks, firstRecord: morning, endingOn: now).averageLine(calendar: calendar) == nil)
+  }
+
+  /// Decisions 3 and 5 read literally: at Quarter the line is the window's
+  /// weekly figure, and a window shorter than a week projects its days to a
+  /// week, so on a log's first days the line stands above every weekly bar.
+  /// Main drew no line here (its completed-weeks mean was zero). Pinned as
+  /// built and recorded in ADR-0058; the owner may prefer no line under seven
+  /// days, which would change the first two expectations to nil.
+  @Test("Quarter's line on a log under a week old is its days projected to a week")
+  func quarterLineUnderAWeek() {
+    let now = date(2026, 9, 30, 21)
+    let four = (0..<4).map { beer(date(2026, 9, 30, 18 + $0)) }
+    let oneDay = fold(.quarter, four, firstRecord: date(2026, 9, 30, 18), endingOn: now)
+    let projected: Double = oneDay.summary.totalStandardDrinks * 7
+    #expect(abs((oneDay.averageLine(calendar: calendar) ?? 0) - projected) < 1e-9)
+    let fourDays = fold(.quarter, four, firstRecord: date(2026, 9, 27, 9), endingOn: now)
+    let overFour: Double = fourDays.summary.totalStandardDrinks * 7 / 4
+    #expect(abs((fourDays.averageLine(calendar: calendar) ?? 0) - overFour) < 1e-9)
+    // From a whole week on, the line is no larger than the window's total.
+    let aWeek = fold(.quarter, four, firstRecord: date(2026, 9, 24, 9), endingOn: now)
+    #expect(aWeek.window.dayCount == 7)
+    #expect(abs((aWeek.averageLine(calendar: calendar) ?? 0) - aWeek.summary.totalStandardDrinks) < 1e-9)
+  }
+
   @Test("A log old enough covers the range exactly")
   func oldEnoughIsTheRange() {
     for range in TrendRange.allCases {

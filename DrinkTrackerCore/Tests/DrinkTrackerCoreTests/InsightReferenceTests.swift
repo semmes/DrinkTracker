@@ -41,8 +41,9 @@ struct InsightReferenceTests {
     calendar cal: Calendar? = nil
   ) -> TrendWindowFold {
     let cal = cal ?? calendar
-    // An old marker by default, so the window is the range's own: the tests
-    // here are about which days the range holds, not about a young log.
+    // A first record two years back by default, so the window is the range's
+    // own: the tests here are about which days the range holds, not about a
+    // young log.
     let first = firstRecord ?? cal.date(byAdding: .year, value: -2, to: now)!
     return TrendSummary.windowFold(
       range: range, endingOn: now, drinks: drinks, alcoholFreeDays: [],

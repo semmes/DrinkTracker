@@ -60,9 +60,15 @@ enum PopulationReferenceCopy {
   /// or "Your average is about…" over every longer one. The folded sizes show
   /// it and VoiceOver reads it, so the two can never word the figure apart.
   static func weeklyLine(_ units: Double, window: TrendWindow, region: Region) -> LocalizedStringKey {
+    isWeekTotal(window) ? weekTotalLine(units, region: region) : averageLine(units, region: region)
+  }
+
+  /// Whether the weekly figure is a week's own total — the Week range, whole —
+  /// and is worded as one wherever the segment names it (ADR-0058, decision 1:
+  /// "worded as the week's own facts"). A clipped week cannot reach the
+  /// comparisons, whose floor is 28 days of record.
+  static func isWeekTotal(_ window: TrendWindow) -> Bool {
     window.range == .week && !window.isClipped
-      ? weekTotalLine(units, region: region)
-      : averageLine(units, region: region)
   }
 
   /// The same sentence for a year that has ended: "In 2025, your average was
@@ -89,7 +95,11 @@ enum PopulationReferenceCopy {
   /// system §3), the rest at the size of the text around it. The sentence
   /// above — "Your average is about 21 standard drinks a week." — is what
   /// VoiceOver reads and what the accessibility sizes show; this is its
-  /// figure and noun, not a rewording. One key per region and number, the
+  /// figure and noun, not a rewording. At Week the spoken and folded sentence
+  /// is the week's total instead ("You logged 13.2 standard drinks in the last
+  /// 7 days.", `weekTotalLine`), and this line keeps its key, because a week's
+  /// total is its weekly figure and "a week" is true of it (ADR-0058). One key
+  /// per region and number, the
   /// noun's form following the displayed digits, as `averageLine`'s do; the
   /// figure goes in as a `Text` so a translation can place it.
   static func averageFigure(_ units: Double, region: Region) -> Text {
@@ -213,8 +223,26 @@ enum PopulationReferenceCopy {
   /// replaced "nothing about your log leaves this device", which reads alone
   /// as untrue of a log that syncs to iCloud. The derivation sentence is
   /// unchanged; ADR-0018 quotes it.
-  static func explainer(in column: PopulationReference.Column, drinkersPercent: Double) -> LocalizedStringKey {
+  static func explainer(
+    in column: PopulationReference.Column,
+    drinkersPercent: Double,
+    isWeekTotal: Bool = false
+  ) -> LocalizedStringKey {
     let percent = Int(drinkersPercent.rounded())
+    // At Week the figure is the week's own total, so the note's subject is
+    // "this figure", as the sentence and the window note say (ADR-0058,
+    // decision 1). The derivation sentence is the same in both forms, the one
+    // ADR-0018 quotes.
+    if isWeekTotal {
+      switch column {
+      case .allAdults:
+        return "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      case .men:
+        return "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US men, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      case .women:
+        return "This figure is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US women, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
+      }
+    }
     switch column {
     case .allAdults:
       return "Your average is compared on this device with a published population statistic, never with data from other Tallyist users. Percentages come from the survey's distribution of weekly drinks among US adults, recalculated to cover only the \(percent)% who reported drinking, and compared by grams of alcohol."
@@ -225,12 +253,15 @@ enum PopulationReferenceCopy {
     }
   }
 
-  /// Which span the figure covers, stated plainly, and, short of a year, that
-  /// the survey asked about a year: its column is drinks a week averaged over
-  /// the previous twelve months (ADR-0030), so a shorter span is placed on a
-  /// distribution of yearly averages, and the note says so rather than letting
-  /// the sentence imply otherwise (ADR-0058). At Week the subject is "this
-  /// figure", because seven days' total is not an average.
+  /// Which span the figure covers, stated plainly. At Week, Month and Quarter
+  /// it adds that the survey asked about a year: its column is drinks a week
+  /// averaged over the previous twelve months (ADR-0030), so a shorter span is
+  /// placed on a distribution of yearly averages, and the note says so rather
+  /// than letting the sentence imply otherwise (ADR-0058). At Week the subject
+  /// is "this figure", because seven days' total is not an average. While the
+  /// window is clipped the note names the days and nothing more, the plan's
+  /// copy as drafted and reviewed; the clipped window is always shorter than a
+  /// year, and the span label above says from when.
   static func windowNote(_ window: TrendWindow) -> LocalizedStringKey {
     if let since = window.sinceText {
       return "Your average covers the days since \(since)."

@@ -1,18 +1,19 @@
 import Foundation
 
-/// One weekday's share of a range (ADR-0032): what was logged on, say, the
-/// Fridays of the last 30 days. Facts about the user's own log with no
+/// One weekday's share of a Trends window (ADR-0032, ADR-0058): what was logged
+/// on, say, the Fridays of the last 30 days — or of the days since the first
+/// record, while the log is younger than the range. Facts about the user's own log with no
 /// external figure and no rank — the same rule as a Trends bar's detail
 /// (ADR-0028): nothing here is expressed against another weekday.
 public struct WeekdayTotal: Identifiable, Hashable, Sendable {
   /// `Calendar.component(.weekday)`: 1 is Sunday whatever the first weekday.
   public let weekday: Int
-  /// Total standard drinks on this weekday's days in the range, in the
+  /// Total standard drinks on this weekday's days in the window, in the
   /// caller's region.
   public let standardDrinks: Double
   /// How many of this weekday's days had at least one entry.
   public let daysWithDrinks: Int
-  /// How many of this weekday fell in the range at all.
+  /// How many of this weekday fell in the window at all.
   public let dayCount: Int
 
   public var id: Int { weekday }

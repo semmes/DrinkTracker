@@ -37,7 +37,11 @@ public struct TrendWindow: Hashable, Sendable {
   /// The fewest days of record before a published figure is placed beside the
   /// reader's: ADR-0018's four weeks, counted in day keys since ADR-0058, and
   /// one floor for all three comparisons at every range. Below it a weekly
-  /// average is noise, and a share of days rests on too few to be read.
+  /// average is noise (ADR-0018). It is a floor on how long the record is, not
+  /// on the window: at Week, above it, the figures rest on seven days and the
+  /// weekend split on three, which ADR-0058's first decision accepts. The
+  /// reader's own figures — the line and the cards — have no floor; they divide
+  /// by the window's days however few there are.
   public static let comparisonFloor = 28
 
   /// The range the picker chose. The window never reaches past it.
@@ -82,8 +86,16 @@ extension TrendSummary {
   /// later than today): nothing was recorded inside the range, so there is no
   /// first day to cut it at, and the figures read the range as they always did.
   ///
-  /// The floor is counted in day keys, not instants, so a record made at
-  /// 23:59 on the 28th day back counts as 28 days of record the next morning.
+  /// The floor is counted in day keys, not instants, and a record's day counts
+  /// whole: a record made at 23:59 on 3 September clears it from 00:00 on 30
+  /// September, the day 3 September becomes the 28th day back counting today —
+  /// 26 days and a minute after it was made. The interval rule ADR-0030 used
+  /// (28 × 24 hours) cleared the same record at 23:59 on 1 October.
+  ///
+  /// A no-alcohol marker's day is a start-of-day instant from the zone it was
+  /// written in, read here in the current one, as every surface reads it; a
+  /// marker written east of the reader dates the window, and the floor, from the
+  /// day before (ADR-0058's readings, the "markers stored as instants" limit).
   public static func trendWindow(
     range: TrendRange,
     endingOn endDate: Date,
@@ -217,12 +229,20 @@ public struct TrendWindowFold: Hashable, Sendable {
 
   /// The dashed line's value, on the bars' own scale (ADR-0028, ADR-0058): per
   /// day at Week and Month; the window's weekly figure at Quarter, so the
-  /// legend, seven times the per-day card and the weekly-average comparison
-  /// print one number; and at Year the mean of the complete months inside the
+  /// legend and the weekly-average comparison print one number, seven times the
+  /// per-day average before either is rounded (the per-day card prints that
+  /// average to one decimal, so seven times the printed card can differ by the
+  /// rounding); and at Year the mean of the complete months inside the
   /// window, the line's rule unchanged — a month the window holds only part of
   /// (the one in progress, or, while the window is clipped, the month of the
   /// first record unless it fell on the 1st) is left out. nil at Year while no
   /// month is complete, in which case no line is drawn.
+  ///
+  /// Quarter has no such rule (decisions 3 and 5): a window shorter than a week
+  /// still draws its weekly figure, its total times 7 over its days, so on a
+  /// log's first days the line stands above every weekly bar — one day with 4
+  /// drinks reads "Your weekly average · 28". Recorded in ADR-0058 and put to
+  /// the owner; the one-line alternative is nil while `window.dayCount < 7`.
   public func averageLine(calendar: Calendar = .current) -> Double? {
     switch window.range {
     case .week, .month:

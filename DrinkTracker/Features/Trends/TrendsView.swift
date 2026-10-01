@@ -639,10 +639,13 @@ struct TrendsView: View {
   /// Year's no-complete-month case, so nil alone would draw a line at zero.
   ///
   /// At Quarter the value is the window's weekly figure (ADR-0058, decision 3)
-  /// where it was the mean of the completed weeks: the same number as seven
-  /// times the per-day card and as the weekly-average comparison, so the screen
-  /// prints one weekly average. It dips a little in a week that has not reached
-  /// its weekend yet; Year's per-completed-month line still never does.
+  /// where it was the mean of the completed weeks: the same number the
+  /// weekly-average comparison prints, and seven times the per-day average
+  /// before either is rounded, so the screen prints one weekly average. It dips
+  /// a little in a week that has not reached its weekend yet, and on a log
+  /// under a week old it projects that log's days to a week and stands above
+  /// every bar (ADR-0058's consequences); Year's per-completed-month line does
+  /// neither.
   private func averageLineValue(_ snapshot: Snapshot) -> Double? {
     guard let value = snapshot.averageLine, value > 0 else { return nil }
     return value
@@ -685,9 +688,10 @@ struct TrendsView: View {
         }
       }
 
-      // The line matches the bars' scale: per day on daily charts, per
-      // completed week/month on bucketed ones — a daily line under weekly
-      // bars would hug the floor and read as meaningless. Never dimmed, never
+      // The line matches the bars' scale: per day on daily charts, the
+      // window's weekly figure at Quarter, the mean of the completed months at
+      // Year — a daily line under weekly bars would hug the floor and read as
+      // meaningless (ADR-0028, ADR-0058). Never dimmed, never
       // annotated relative to the selection — and no longer annotated at all:
       // its label is the header legend, where it reads at a glance instead of
       // colliding with the bars.

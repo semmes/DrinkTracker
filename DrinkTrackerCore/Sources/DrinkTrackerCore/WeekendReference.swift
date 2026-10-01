@@ -54,8 +54,9 @@ public struct WeekendReference: Sendable {
   }
 }
 
-/// The user's own split on the paper's definition: how many of the range's
-/// weekend days had a drink, and how many of the others.
+/// The user's own split on the paper's definition: how many of the window's
+/// weekend days had a drink, and how many of the others — the Trends window,
+/// folded from its weekday rows (ADR-0058).
 public struct WeekendSplit: Hashable, Sendable {
   public let weekendDaysWithDrinks: Int
   public let weekendDays: Int
