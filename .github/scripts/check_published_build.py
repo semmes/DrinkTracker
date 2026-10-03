@@ -56,7 +56,12 @@ WATCH_BY_STATE[3] = WATCH_BY_STATE[2]
 ANDROID = {
     False: (
         ["Not yet. It is coming soon, with the same rules."],
-        ["Google Play", "On Android", "The Android app has no tip jar."],
+        [
+            "Google Play",
+            "On Android",
+            "The Android app has no tip jar.",
+            "For the Android app, give your phone model",
+        ],
     ),
     True: (
         [
@@ -64,6 +69,7 @@ ANDROID = {
             "Tallyist asks for no sign-in, and has no permission to use the internet.",
             "On Android, your log is stored on the device",
             "The Android app has no tip jar.",
+            "For the Android app, give your phone model and Android version instead.",
         ],
         ["Not yet."],
     ),

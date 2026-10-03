@@ -14,7 +14,8 @@ It needs no account and has no servers.
 
 Bug reports are most useful with what you did, what you expected, what happened
 instead, and your iPhone model and iOS version. For the watch app, add your
-watch model and watchOS version.
+watch model and watchOS version.{% if android %}
+For the Android app, give your phone model and Android version instead.{% endif %}
 
 ## Questions
 

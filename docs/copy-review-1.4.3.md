@@ -2745,3 +2745,10 @@ film's end card is re-rendered. Nothing ships in the app.
   for the word Android, which the film now uses as a platform name. Checked at full
   size in all three aspects: the line stays on one row inside the frame. The press
   page's description of the film for assistive technology quotes the new line. Pass.
+- **Support page, the bug-report paragraph** (`docs/support.md`, the owner's request
+  the same day): with Android live it adds "For the Android app, give your phone model
+  and Android version instead." after the watch sentence. The paragraph asked only for
+  an iPhone or watch model, which an Android reader cannot give. It follows the watch
+  sentence's form ("For the watch app, add your watch model and watchOS version."), a
+  request for the facts a report needs, not advice; "instead" says the iPhone's model
+  and iOS version do not apply. No exclamation mark, no em dash. Pass.

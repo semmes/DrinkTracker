@@ -4985,6 +4985,9 @@ Open items for v1.2:
   the old and new source differ only inside the two lines' box, and the 1080p copies'
   frames through 27.6 s are bit-identical. `semmes/Tallyist#10` swaps the link, the
   1080p copy and the figcaption; it was opened for the owner's go-ahead, since the
-  standing merge authorization is this repository's. The old release stays up,
-  unlinked. **Still open:** `platform_state: 2` when 1.4 is live (unchanged), and the
-  support page's bug-report paragraph, which asks only for an iPhone or watch model.
+  standing merge authorization is this repository's, and merged at their word as
+  0f0aca6. The old release stays up, unlinked. **Then, at the owner's request,** the
+  support page's bug-report paragraph, which asked only for an iPhone or watch model,
+  gained "For the Android app, give your phone model and Android version instead.",
+  on the same switch and checked by `published-docs` the same way. **Still open:**
+  `platform_state: 2` when 1.4 is live (unchanged).
