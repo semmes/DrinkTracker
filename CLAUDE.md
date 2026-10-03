@@ -363,6 +363,9 @@ became readable by day, week or month, from a filter button beside the chart's l
 that opens a menu, and Week's and Month's legend became "Your daily average" (the
 bullet "Quarter and Year can be read by day, week or month…", ADR-0059); the owner
 tested it on their phone and it merged as 525f208 the same day.**
+**On 2026-10-03 Tallyist went live on Google Play, ahead of the watch app: the support
+page's Android answers follow the website's `android_live` switch, and the press film's
+end card names Android (the bullet "Android is live on Google Play…").**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4956,3 +4959,35 @@ Open items for v1.2:
   The contract's still-open draft #7 (the survey's men's and women's columns) overlaps
   #11's files and carries 1.8.0, below 2.0.0, so it needs the contract's `main` merged in
   and a new number before it can merge.
+
+- **Android is live on Google Play (2026-10-03; ADR-0024 amended, semmes/DrinkTracker#164
+  merged as d36f4a1).** The owner reported three things on tallyist.co still saying
+  otherwise. `semmes/Tallyist#9` (merged that morning) had given the site's own pages a
+  second switch, `android_live`, because `platform_state` 3 would also say the watch app
+  is out, and left `platform_state` at 1. **The support page** waited on state 3, so it
+  answered "Is there an Android app?" with "Not yet". `docs/support.md` now reads
+  `android_live` (or state 3) for its three Android answers, and the tip jar answer
+  gains "The Android app has no tip jar." `published-docs` builds five combinations,
+  and `check_published_build.py` takes an optional `android` argument: watch sentences
+  by state, Android sentences by the switch. All five passed under GitHub's Jekyll; the
+  mirror pushed the page (2fa153c in `semmes/Tallyist`), and the live page was read
+  back: Android answers on, watch answers still "coming soon", 22 questions, no Liquid.
+  **The website's tip line**, "On iPhone, there's a tip jar in Settings, where you can
+  buy me a drink.", from #9, was checked and kept: true, and "On iPhone" stands for the
+  Apple app as the storage line beside it already uses it. It and the rest of #9's
+  Android copy are in the copy review. **The press film's end card** now reads
+  "Available now on iPhone and Android", and its trademark line "iPhone is a trademark
+  of Apple Inc., registered in the U.S. and other countries and regions. Android is a
+  trademark of Google LLC.", which closes the 2026-09-28 finding on the ending. Every
+  cut was re-rendered in `Claude outputs/sizzle-reel/` (untracked; its README and
+  SCRIPT.md say so). The 4K master is on a new release, `press-film-2026-10-03` on
+  `semmes/Tallyist` (175.3 MB, GitHub's SHA-256 matching the file). Lossless stills from
+  the old and new source differ only inside the two lines' box, and the 1080p copies'
+  frames through 27.6 s are bit-identical. `semmes/Tallyist#10` swaps the link, the
+  1080p copy and the figcaption; it was opened for the owner's go-ahead, since the
+  standing merge authorization is this repository's, and merged at their word as
+  0f0aca6. The old release stays up, unlinked. **Then, at the owner's request,** the
+  support page's bug-report paragraph, which asked only for an iPhone or watch model,
+  gained "For the Android app, give your phone model and Android version instead.",
+  on the same switch and checked by `published-docs` the same way. **Still open:**
+  `platform_state: 2` when 1.4 is live (unchanged).
