@@ -2705,3 +2705,43 @@ average · 0.7" over 89 daily bars at Quarter, the per-day card beside it printi
 same 0.7; "Your weekly average · 5.2" over Year's weekly bars, the number the weekly
 comparison prints for that year; the first weekly bar selected reading "Nov 1, 2025",
 "1 day". Nothing set against anything. Pass.
+
+## 2026-10-03 — Android is live on the website, the support page and the press film
+
+Tallyist went live on Google Play before the watch app. The website's own pages
+changed in `semmes/Tallyist#9` (5958d91, merged), on a new switch, `android_live`;
+the support page is generated from `docs/support.md` and changes here; the press
+film's end card is re-rendered. Nothing ships in the app.
+
+- **Home page, the tip line** (`semmes/Tallyist#9`): "On iPhone, there's a tip jar
+  in Settings, where you can buy me a drink." It was "There's a tip jar…", and the
+  owner asked for it to be checked, because the Android app has no tip jar. Checked:
+  it is true, it names where the tip jar is, and by naming iPhone it no longer
+  implies Android has one, without saying so in a sentence of its own under the
+  heading "Free. All of it." "Buy me a drink" is the tip jar's own Settings label.
+  "On iPhone" stands for the Apple app, iPad included, as the storage line beside it
+  ("On iPhone, your log lives on your device…") already uses it; "On iPhone and iPad"
+  would be more literal, and would then be wanted in that line too. Kept as written.
+  No exclamation mark, no em dash, no imperative. Pass.
+- **The rest of #9, logged with it:** the Android section's heading "On Android."
+  (was "Android is coming."); the platform row "Android · Available now"; the closing
+  link "Available on Google Play"; the footer's "Tallyist is available for iPhone,
+  iPad, and Android." and "Google Play and the Google Play logo are trademarks of
+  Google LLC."; the press page's "a free app for iPhone and Android"; and the storage
+  line's Android sentence, already reviewed for state 3. Statements of availability,
+  in the forms already written for this day. Pass.
+- **Support page** (`docs/support.md`): its Android answers now follow `android_live`
+  as well as `platform_state` 3, so "Is there an Android app?" answers "Yes, on Google
+  Play. Same app, same rules.", and the account and storage answers carry their
+  Android sentences, all reviewed with the state-3 page. One sentence is new, at the
+  end of "What does the tip jar unlock?": "The Android app has no tip jar." A fact,
+  where the answer otherwise describes a Settings section an Android reader will not
+  find. Pass.
+- **The press film's end card:** "Available now on iPhone and Android", in place of
+  "Available now on iPhone · Android coming soon"; and the trademark line, "iPhone is
+  a trademark of Apple Inc., registered in the U.S. and other countries and regions.
+  Android is a trademark of Google LLC." That closes the finding recorded with the
+  film on 2026-09-28 (Apple's notice ends "and regions") and adds Google's attribution
+  for the word Android, which the film now uses as a platform name. Checked at full
+  size in all three aspects: the line stays on one row inside the frame. The press
+  page's description of the film for assistive technology quotes the new line. Pass.

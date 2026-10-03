@@ -48,11 +48,21 @@ jobs:
   # both published copies with the same Jekyll, in each state, before merge.
   # No submodule, so no contract token: it needs this repository's docs alone.
   published-docs:
-    name: Published documents build (state ${{ matrix.state }})
+    name: Published documents build (state ${{ matrix.state }}${{ matrix.android && ', Android live' || '' }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        state: [1, 2, 3]
+        # Android went live before the watch app, so the website's android_live
+        # switch is checked with platform_state 1 and 2 as well (3 implies it).
+        # Listed whole: an include beside a state list would merge into it.
+        include:
+          - state: 1
+          - state: 1
+            android: true
+          - state: 2
+          - state: 2
+            android: true
+          - state: 3
     steps:
       - uses: actions/checkout@v5
       - name: Lay out a minimal site around the published copies
@@ -60,14 +70,14 @@ jobs:
           mkdir -p site/_layouts
           python3 .github/scripts/mirror_docs.py render privacy-policy.md site/privacy-policy.md
           python3 .github/scripts/mirror_docs.py render support.md site/support.md
-          printf 'baseurl: ""\nplatform_state: %s\n' "${{ matrix.state }}" > site/_config.yml
+          printf 'baseurl: ""\nplatform_state: %s\nandroid_live: %s\n' "${{ matrix.state }}" "${{ matrix.android && 'true' || 'false' }}" > site/_config.yml
           printf '{{ content }}\n' > site/_layouts/default.html
       - uses: actions/jekyll-build-pages@v1
         with:
           source: site
           destination: site/_site
       - name: The pages say what their state should
-        run: python3 .github/scripts/check_published_build.py site/_site "${{ matrix.state }}"
+        run: python3 .github/scripts/check_published_build.py site/_site "${{ matrix.state }}" ${{ matrix.android && 'android' || '' }}
 
   # The drink and tab glyphs are generated output (ADR-0036, ADR-0040): thirteen
   # .symbolset folders written by a dependency-free script from the owner's
