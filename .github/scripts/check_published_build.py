@@ -7,7 +7,9 @@ live, 2 once the watch app is, 3 once Android is), and the privacy policy's
 published form carries its web-only lines (ADR-0024). CI builds both published
 forms with GitHub's own Jekyll, once per state, and this reads the output:
 
-  check_published_build.py <site dir> <state>
+  check_published_build.py <site dir> <state> [android]
+
+`android` means the site's android_live switch is on; state 3 implies it.
 
 It fails if Liquid survived into a page, if a question lost its answer, or if a
 page says what its state should not. The sentences it looks for are the ones
@@ -22,20 +24,19 @@ import sys
 # Every state shows every question; only some answers change.
 QUESTIONS = 22
 
-# (state predicate, text that must appear, text that must not)
-SUPPORT_BY_STATE = {
+# The watch answers follow platform_state; the Android answers follow Android's
+# own switch, android_live, which platform_state 3 also implies (Android went
+# live before the watch app). Each: (text that must appear, text that must not).
+WATCH_BY_STATE = {
     1: (
         [
             "It is coming soon. It will require the iPhone app",
-            "Not yet. It is coming soon, with the same rules.",
             "From version 1.4, the watch app logs a drink",
             "From version 1.4, Trends can show four figures",
         ],
         [
             "It installs with the iPhone app.",
             "deleting the watch app removes",
-            "Google Play",
-            "On Android",
         ],
     ),
     2: (
@@ -43,27 +44,28 @@ SUPPORT_BY_STATE = {
             "It installs with the iPhone app.",
             "deleting the watch app removes",
             "The watch app logs a drink",
-            "Not yet. It is coming soon, with the same rules.",
         ],
         [
             "It is coming soon. It will require the iPhone app",
             "From version 1.4",
-            "Google Play",
-            "On Android",
         ],
     ),
-    3: (
+}
+WATCH_BY_STATE[3] = WATCH_BY_STATE[2]
+
+ANDROID = {
+    False: (
+        ["Not yet. It is coming soon, with the same rules."],
+        ["Google Play", "On Android", "The Android app has no tip jar."],
+    ),
+    True: (
         [
-            "It installs with the iPhone app.",
             "Yes, on Google Play.",
             "Tallyist asks for no sign-in, and has no permission to use the internet.",
             "On Android, your log is stored on the device",
+            "The Android app has no tip jar.",
         ],
-        [
-            "It is coming soon. It will require the iPhone app",
-            "From version 1.4",
-            "Not yet.",
-        ],
+        ["Not yet."],
     ),
 }
 
@@ -92,10 +94,13 @@ def unrendered(name: str, raw: str, failures: list) -> None:
 
 
 def main() -> int:
-    if len(sys.argv) != 3 or int(sys.argv[2]) not in SUPPORT_BY_STATE:
+    if (len(sys.argv) not in (3, 4) or int(sys.argv[2]) not in WATCH_BY_STATE
+            or sys.argv[3:] not in ([], ["android"])):
         print(__doc__, file=sys.stderr)
         return 2
     site, state = pathlib.Path(sys.argv[1]), int(sys.argv[2])
+    android = state >= 3 or sys.argv[3:] == ["android"]
+    label = f"state {state}" + (", Android live" if android else "")
     failures: list = []
 
     raw = read(site, "support/index.html", failures)
@@ -112,9 +117,10 @@ def main() -> int:
                 f"support: {QUESTIONS} answered questions expected, found "
                 f"{opened} opened, {closed} closed, {answered} answered"
             )
-        must, must_not = SUPPORT_BY_STATE[state]
-        failures += [f"support (state {state}): missing {s!r}" for s in must if s not in text]
-        failures += [f"support (state {state}): should not say {s!r}" for s in must_not if s in text]
+        must = WATCH_BY_STATE[state][0] + ANDROID[android][0]
+        must_not = WATCH_BY_STATE[state][1] + ANDROID[android][1]
+        failures += [f"support ({label}): missing {s!r}" for s in must if s not in text]
+        failures += [f"support ({label}): should not say {s!r}" for s in must_not if s in text]
         if not re.search(r'href="/privacy/"', text):
             failures.append("support: the privacy policy link is not /privacy/")
 
@@ -126,11 +132,11 @@ def main() -> int:
         failures += [f"privacy: should not say {s!r}" for s in PRIVACY_MUST_NOT if s in text]
 
     if failures:
-        print(f"The published documents did not build as expected in state {state}:\n")
+        print(f"The published documents did not build as expected in {label}:\n")
         for f in failures:
             print(f"  - {f}")
         return 1
-    print(f"State {state}: both published documents built as expected.")
+    print(f"{label[0].upper() + label[1:]}: both published documents built as expected.")
     return 0
 
 

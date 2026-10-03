@@ -54,8 +54,10 @@ identity derive from it, and renaming orphans the user's store (README
   this policy" or "Contact" means deciding what the website says too, in the
   same change. `docs/support.md` carries Liquid keyed to the website's
   `platform_state` (1 iPhone, 2 and the watch, 3 and Android; an integer in
-  `semmes/Tallyist`'s own `_config.yml`), and the `published-docs` CI job
-  builds both documents with GitHub Pages' Jekyll in each state and checks the
+  `semmes/Tallyist`'s own `_config.yml`) and, since Android went live first,
+  its `android_live` switch beside it (ADR-0024's 2026-10-03 amendment), and
+  the `published-docs` CI job builds both documents with GitHub Pages' Jekyll
+  in each state and with the switch and checks the
   pages with `check_published_build.py`, whose sentences change with the page.
   The sync needs a `TALLYIST_SYNC_TOKEN` secret (fine-grained PAT, scoped to
   `semmes/Tallyist`, Contents: write); without it the sync warns instead of

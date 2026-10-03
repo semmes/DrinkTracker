@@ -323,3 +323,18 @@ build to the domain staying registered, and that trade is the owner's to make.
 - If support mail needs a sentence in the policy (that an email is read by the
   developer and used only to reply, say), that sentence belongs in the canonical
   text, in all three copies.
+
+## Amendment (2026-10-03): Android has its own switch
+
+Tallyist went live on Google Play before the watch app, which `platform_state`
+cannot say: its 3 means Android and, by its order, the watch app too, so setting it
+would take "Coming soon" off the watch answers. `semmes/Tallyist#9` gave the
+website's own pages a second switch in its `_config.yml`, `android_live`, and left
+`platform_state` at 1.
+
+`docs/support.md` now reads it too: `android` is `android_live`, or true at
+`platform_state` 3, and the three Android answers follow it. `published-docs` builds
+five combinations (states 1, 2 and 3, and 1 and 2 with `android_live`), and
+`check_published_build.py` takes `android` as an optional third argument, checking
+the watch sentences by state and the Android sentences by the switch. The switch,
+like the state, is the site's own setting and is changed there, never mirrored.
