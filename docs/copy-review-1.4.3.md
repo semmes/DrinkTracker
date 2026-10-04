@@ -2809,3 +2809,31 @@ the app (`docs/app-store-listing.md`, "The rejection of 1.4 (1), 2026-10-04").
   promises nothing. No exclamation mark, no em dash. Pass.
 - **The description's last two lines,** "Terms of Use: …" and "Privacy Policy: …", are
   unchanged: both already close descriptions (A) and (B), reviewed on 2026-09-24.
+
+## 2026-10-04 — 1.4 ships as 1.5: What's New, the reviewer notes and the support page
+
+1.4 (1) was resubmitted as 1.5 (ADR-0054's amendment), so its What's New and reviewer
+notes were merged with 1.5's drafts of 2026-10-01 (`docs/app-store-listing.md`). Nothing
+ships in the app.
+
+- **What's New (1.5):** 1.4's paragraphs and the 1.5 draft's, the watch first. One
+  sentence changed. 1.4's "Trends' three comparisons now share one card, and the drinking
+  days and weekend figures, yours and the published ones, are drawn as bars." becomes "The
+  comparisons share one card, and …", the last sentence of the paragraph that opens
+  "Trends now compares the range you pick.", where "Trends'", "three" and "now" would
+  repeat that paragraph. 1.4's iOS 27 sentence becomes its own paragraph. Every other
+  sentence is word for word from the two reviewed texts. Pass.
+- **Reviewer notes (1.5), for App Review only:** opens "What's new since 1.3 (1.4 was not
+  released)", a fact about the release. The Trends item restates the 1.5 draft in fewer
+  words: "The comparisons now cover the range the user picks, once the log holds four
+  weeks; a log newer than the range counts from its first record and says "Since" that
+  date. Still bundled, dated statistics named with their sources and computed on the
+  device; none is a guideline or risk figure." and "A filter button by the legend at
+  Quarter and Year divides the bars by day, week or month; the choice is not stored." The
+  Diagnostics bullet becomes "Review builds show Settings > Diagnostics, whose "Last
+  Health read" rows list the metric, days, duration, process and time; never a value."
+  Each states a fact about the app. Nothing praises, urges or judges; no exclamation mark,
+  no em dash. Pass.
+- **Support page:** "From version 1.4, …" becomes "From version 1.5, …" in the two answers
+  that name a version, the watch app and Apple Health on Trends. A fact about which
+  release carries them. Pass.

@@ -5,12 +5,14 @@
 for 1.0 the app's release date), read on 2026-09-23, when the owner reported
 1.3's approval; 1.4 submitted for review on 2026-09-26 (the owner; build
 1.4 (1)), carrying the Apple Watch app and Apple Health on Trends together
-(ADR-0054), with its description, What's New and reviewer notes below, and
-rejected on 2026-10-04 on two metadata items, a promotional image (2.3.2) and
-the Terms of Use link (3.1.2(c)), so the same build can go back ("The
-rejection of 1.4 (1), 2026-10-04", after the 1.4 reviewer notes); 1.5's
-What's New and reviewer notes drafted on 2026-10-01 with Trends on one window
-(ADR-0058), for when 1.4 is approved ·
+(ADR-0054), and rejected on 2026-10-04 on two metadata items, a promotional
+image (2.3.2) and the Terms of Use link (3.1.2(c)). **1.4 was never
+released:** the same day the owner renamed that version 1.5 in App Store
+Connect, attached a 1.5 build from `main` and resubmitted it with the
+subscription group and both recurring tips, so 1.5 carries 1.4's features and
+the Trends work of ADR-0058 and ADR-0059 ("The rejection of 1.4 (1),
+2026-10-04" says what happened). 1.5's What's New and reviewer notes below
+are the combined ones handed over for that submission ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -101,6 +103,11 @@ Notes on the description, so edits keep it compliant:
   framing, and no promises — the description only says what the app does.
 
 ### Description for 1.4
+
+*Also the description for 1.5, since 1.4 was never released. On 2026-10-04
+the owner added the two link lines that close (A) and (B) to the text in App
+Store Connect, after App Review found no Terms of Use link (guideline
+3.1.2(c)); which text was there before is visible only in App Store Connect.*
 
 **Paste one of these before 1.4 is submitted.** The live description (the
 owner's own, read 2026-09-23 and described in the status block above) has no
@@ -469,6 +476,9 @@ Notes on what's new in 1.3:
 
 ## What's New (1.4)
 
+*Never published: 1.4 was resubmitted as 1.5 on 2026-10-04, and this text is
+folded into What's New (1.5) below.*
+
 Reviewed under 1.4.3 (`docs/copy-review-1.4.3.md`, "1.4 release"). The store
 shows the first lines and hides the rest behind "more", so the watch and the
 Health figures come first. No sync timing is promised: the watch's sync has
@@ -504,6 +514,11 @@ went through the same review. If App Review rejects the subscriptions and they
 are removed from the submission, remove this paragraph too.
 
 ## Reviewer notes (1.4) — paste into App Review notes
+
+*Superseded on 2026-10-04 by the reviewer notes (1.5) below, which carry this
+block's claims for the combined release. The block here is the revision
+written after the rejection; 1.4 (1) was submitted while this file held the
+2026-09-26 text, which still had the "Other changes" item (3,958 bytes).*
 
 These restate the claims made in the 1.0 Resolution Center response and kept
 through 1.3, and add what 1.4 introduces: a watchOS app, a HealthKit read
@@ -699,65 +714,171 @@ If more than one item had an image, say "images". If the image is replaced
 rather than removed, the last paragraph becomes "Guideline 2.3.2: We replaced
 the promotional image for <name> with one that has no text."
 
+**What happened (2026-10-04).** The reply above was not sent: the release went
+back as 1.5 instead, in the steps below. They are as the owner reported them.
+
+- **Where the image was.** On *A drink every month*
+  (`com.shawnsemmes.DrinkTracker.support.monthly`), the only item with one:
+  `image.png`, 122,540 bytes. Its promotion was set to "Display this promotion
+  to all App Store users", with Displayed checked, until the owner unchecked
+  it. No record here says who uploaded it, and the owner did not remember
+  doing so. On the promotion page App Store Connect itself warned: "These
+  in-app purchases or subscriptions can't be promoted on the App Store because
+  your latest approved binary doesn't include the required StoreKit APIs."
+- **Why the website would not remove it.** Apple's API keeps a subscription's
+  image on a subscription version, and only a version in
+  `PREPARE_FOR_SUBMISSION` can change ("Working with subscription versions",
+  App Store Connect API 4.4.1). This image's version was `READY_FOR_REVIEW`,
+  attached to the submission. A script the owner ran with their own API key
+  (`Claude outputs/1.4-rejection/delete_promo_image.py`, untracked) read that
+  state, and Apple refused both changes it tried: removing the promotion
+  ("Promoted purchase has an image. Please delete the image first.",
+  `ENTITY_ERROR.ATTRIBUTE.INVALID.UNMODIFIABLE`) and deleting the image
+  ("Version is not in modifiable state.",
+  `STATE_ERROR.SUBSCRIPTION_VERSION_UNMODIFIABLE`).
+- **Why Resolve could not fix it either.** App Review had filed both issues
+  against the app version, so on the Resolve page only the version had Edit;
+  the subscription could only be removed. The owner removed *A drink every
+  month* from the submission (it then read Developer Rejected), deleted the
+  image on the website, and Add for Review failed with "Unable to Add for
+  Review. Something went wrong. Try again.", since Apple does not let a
+  removed item back into the same submission.
+- **What was submitted.** The owner changed the version number on the version
+  page from 1.4 to 1.5 (the API's `versionString`), replaced build 1.4 (1) with
+  a 1.5 build that Xcode Cloud archived from `main`, added the two link lines
+  to the description, re-added the subscriptions for review and submitted. The
+  app code on `main` is the same from 525f208 (ADR-0059's merge) through
+  36ec5e6, the head that day, so any 1.5 build from that range is the same
+  app. **Not reported:** the build number, whether the old submission was
+  cancelled, whether the combined What's New and notes below were pasted as
+  they are, and whether a screen recording was attached.
+- **For next time.** An in-app purchase's Image is optional and promotes
+  nothing in this app, which has no `PurchaseIntent` handling (ADR-0012's
+  amendment of 2026-10-04): leave it empty. If App Review files an in-app
+  purchase's problem against the app version, that item stays locked in the
+  submission. Removing it keeps it out of that submission for good ("you
+  can't add back removed items to the same submission"). Cancelling the
+  whole submission is the other route Apple's help documents (the version
+  becomes Developer Rejected and review starts over); whether that unlocks a
+  subscription's image was not tried here.
+
 ## What's New (1.5)
 
-Drafted 2026-10-01 with the build (ADR-0058; its third paragraph with ADR-0059), reviewed under 1.4.3
-(`docs/copy-review-1.4.3.md`, 2026-10-01). Not yet submitted: 1.5 opened on `main` on
-2026-10-01 at the owner's word, while 1.4 (1) was still in App Review. Wrapped here for reading; join
-each paragraph onto one line before pasting.
+Combined on 2026-10-04, when 1.4 was resubmitted as 1.5: 1.4's paragraphs and
+the 1.5 draft of 2026-10-01, the watch first because the store shows only the
+first lines. One sentence changed in the merge: 1.4's "Trends' three
+comparisons now share one card, …" became "The comparisons share one card, …"
+at the end of the Trends paragraph, and its iOS 27 sentence became a paragraph
+of its own. Every other sentence is word for word from the two reviewed texts
+(`docs/copy-review-1.4.3.md`, 2026-10-04). One paragraph per line, as handed
+over for pasting; 1,467 characters.
 
 ```
-Trends now compares the range you pick. At Week, Month, Quarter and Year,
-the weekly average, the drinking days and the weekend days cover the same
-days as the chart above them, and the Quarter line is the same weekly
-average the comparison shows. Week now shows all three comparisons.
+Tallyist is now on Apple Watch. Tap plus to log a drink, hold it to say what it was, or record today as no alcohol. Today's count can sit on your watch face or in the Smart Stack, and the watch syncs with your iPhone through iCloud.
 
-If your log is newer than the range, the figures that count days start
-from your first record, and Trends shows that date.
+Trends can now show figures from Apple Health beside your log: resting heart rate, sleep, heart rate variability, and wrist temperature, each as your average on nights you logged drinks and on nights you recorded as no alcohol. Each is off until you turn it on, and none of these figures is stored.
 
-At Quarter and Year, you can now choose how the chart is divided: by day
-or week at Quarter, and by day, week or month at Year. The dashed line
-shows your daily, weekly or monthly average to match.
+Trends now compares the range you pick. At Week, Month, Quarter and Year, the weekly average, the drinking days and the weekend days cover the same days as the chart above them, and the Quarter line is the same weekly average the comparison shows. Week now shows all three comparisons. The comparisons share one card, and the drinking days and weekend figures, yours and the published ones, are drawn as bars.
+
+If your log is newer than the range, the figures that count days start from your first record, and Trends shows that date.
+
+At Quarter and Year, you can now choose how the chart is divided: by day or week at Quarter, and by day, week or month at Year. The dashed line shows your daily, weekly or monthly average to match.
+
+On iOS 27, text on cards is easier to read and the range and settings pickers switch on a single tap.
+
+The tip jar in Settings now offers a recurring tip too, monthly or yearly. Tips unlock nothing.
 ```
 
 ## Reviewer notes (1.5) — paste into App Review notes
 
-1.3's notes told App Review the population window "now follows the length of the
-user's record"; 1.5 changes that to the range the reader picks, and says so. The
-claims of the 1.0 Resolution Center response, kept through 1.4, are restated in the
-first line. 1,746 bytes, all ASCII (the field holds 4,000 bytes; count with
-`wc -c` after any change).
+Combined on 2026-10-04 for the 1.5 submission: 1.4's notes as revised after
+the rejection, with a Trends item from the 1.5 draft of 2026-10-01, cut to fit
+the field. 3,953 bytes, all ASCII, 67 lines (the field holds 4,000 bytes, and
+1.4's 3,958-byte notes fitted it; count with `wc -c` after any change). What the
+merge cut is either said elsewhere or not a claim App Review checks:
+- From the watch item, "No notifications, streaks or scores." (the opening
+  line already says no streaks or scores); from the background mode, its
+  history ("Set in the iPhone project since 1.0, it first reaches the built
+  Info.plist in 1.4.").
+- From the Health item, "Below a minimum number of nights on both sides, or
+  with no readings, nothing is shown.", the hint that sleep can be added by
+  hand in Health, and why the attached screenshot shows three rows. The
+  Diagnostics bullet is shorter.
+- From the 1.5 draft, the Quarter line's sentence and the names of the three
+  surveys. Item 5 keeps that the comparisons follow the range picked from
+  four weeks of record, the "Since" date, that they are bundled, dated,
+  sourced and computed on the device, and the filter button.
+
+The 1.5-only notes of 2026-10-01 (1,746 bytes) are superseded by this block.
 
 ```
-What's new in 1.5. The four claims of our 1.0 response hold: no goals,
-streaks, scores or advice; no user-generated content shared between users;
-no accounts; no external services.
+What's new since 1.3 (1.4 was not released). The four claims of our 1.0
+response hold: no goals, streaks, scores or advice; no user-generated
+content shared between users; no accounts; no external services.
 
-- Trends' comparisons now cover the range the user picks (Week, Month,
-  Quarter or Year), the same days as the chart above them. Since 1.3 the
-  weekly average and the drinking days covered the last four weeks, or the
-  last twelve months once the record was a year old, whatever range was
-  picked. While a log is newer than the range, every figure that divides by
-  a number of days counts only the days since its first record, and the
-  screen says "Since" that date.
-- The comparisons are unchanged in kind: bundled, published, dated
-  statistics (Alcohol Research Group, 2020 National Alcohol Survey; NIAAA,
-  NESARC-III, 2012-13; Liang and Chikritzhs, 2015, on NHANES 2005-10),
-  computed on the device with no network request, each named with its
-  source. None is a guideline, a limit, a risk figure or a category. They
-  appear once the log holds four weeks of record, at every range, and each
-  can be turned off in Settings > Comparisons.
-- On Quarter the dashed "Your weekly average" line is now the range's
-  weekly figure, the same number the comparison shows. The line and the
-  comparison are not set against each other: no difference between them
-  is shown, and nothing is ranked or scored.
-- On Quarter (day or week) and Year (day, week or month) a filter
-  button beside the chart's legend chooses how the bars are divided,
-  and the dashed line becomes the daily, weekly or monthly average to
-  match. It opens on the range's usual bars and is not stored.
+1. Apple Watch app (new)
+- A companion app for logging on the wrist. Plus logs a drink (Double Tap
+  too, while the app is on screen), a hold of plus logs a chosen type, minus
+  removes today's newest drink, and a button records today as no alcohol. It
+  requires the iPhone app.
+- No account or network requests of its own. Its log syncs through the
+  user's private iCloud database (the iPhone app's container). The iPhone
+  sends it two settings over WatchConnectivity; no drink travels that way.
+- No HealthKit entitlement. The iPhone app saves a watch drink to Health,
+  with the user's permission, the next time it opens after the drink syncs.
+- Complications show today's count; the rectangular one has a plus. Counts
+  are marked privacy-sensitive, so watchOS redacts them on a locked watch.
 
-No new permissions, privacy label categories, third-party code, accounts or
-servers.
+2. Background mode: remote-notification (iPhone and watch)
+- Lets CloudKit's silent notifications for the user's private database
+  update the store while the app is closed. No visible notification, no
+  push server of ours.
+
+3. Apple Health on Trends (new, optional read permission)
+- If turned on, Trends shows resting heart rate, sleep, heart rate
+  variability and sleeping wrist temperature, each as the user's average on
+  nights with drinks logged and on nights recorded as no alcohol, side by
+  side with night counts.
+- Off by default: one switch per metric in Settings, or a one-time card on
+  Trends. Permission is requested only then, separately from the alcohol
+  permission; never at onboarding, and never again after "Not now".
+- Read on the device for one render: nothing these reads return is saved,
+  synced, written to Health or sent anywhere. App Privacy stays Data Not
+  Collected. The purpose string and the privacy policy
+  (https://tallyist.co/privacy/) name the four types.
+- No difference is computed; neither figure is coloured, bolded, signed or
+  ranked. No diagnosis, advice, threshold, goal, score, notification, or
+  inference about drinking from physiology. Today is never included.
+- To see it: when, among the five days from six days ago through two days
+  ago, the log has drinks on two days and two other days recorded as no
+  alcohol (the calendar can enter both), Trends at Week shows the card with
+  dashes, and accepting it shows the permission sheet. Figures need Health
+  readings for those nights, normally from an Apple Watch. The attached
+  simulator screenshot uses sample Health data.
+- Review builds show Settings > Diagnostics, whose "Last Health read" rows
+  list the metric, days, duration, process and time; never a value.
+
+4. Recurring tips (new in-app purchases)
+- Settings > About > Buy me a drink: a monthly and a yearly auto-renewable
+  tip beside the one-time one. They unlock nothing. Each row shows the
+  tip's title and its price per month or per year. Privacy Policy and Terms
+  of Use (Apple's standard EULA) links are at the bottom of that screen, and
+  the App Store description ends with both links.
+- After subscribing, the app asks for notification permission, for a
+  reminder a week before each renewal.
+
+5. Trends (changed)
+- The comparisons now cover the range the user picks, once the log holds
+  four weeks; a log newer than the range counts from its first record and
+  says "Since" that date. Still bundled, dated statistics named with their
+  sources and computed on the device; none is a guideline or risk figure.
+- A filter button by the legend at Quarter and Year divides the bars by
+  day, week or month; the choice is not stored.
+
+New since 1.3: the watch app, a HealthKit read for four types behind
+switches that start off, the remote-notification background mode, and two
+recurring tips. No new privacy label categories, third-party code,
+accounts or servers.
 ```
 
 ## Reminders for the version page
@@ -791,6 +912,10 @@ servers.
   on in-app purchases below applies it to the two recurring tips.
 
 **For 1.4 specifically** (added 2026-09-24):
+
+*1.4 became 1.5 on 2026-10-04 ("The rejection of 1.4 (1), 2026-10-04"), so
+what follows applies to the 1.5 submission, and "1.4" in it means that
+version.*
 
 - **Description:** paste (A) or (B) from "Description for 1.4". The live one
   lacks the 3.1.2(c) subscription paragraph and says nothing about the Health
@@ -989,9 +1114,10 @@ servers.
     it, including the six test drinks from 2026-09-24. Whether it then
     exports them to Production was not checked. Removing the test drinks
     before the install keeps the readings clean.
-- **When 1.4 is live,** set `platform_state: 2` in `semmes/Tallyist`'s
-  `_config.yml` (the site's own file, not a mirrored one). The support page
-  then answers the watch question with "Yes" and drops "From version 1.4",
+- **When 1.5 is live** (this said 1.4 until 2026-10-04), set
+  `platform_state: 2` in `semmes/Tallyist`'s `_config.yml` (the site's own
+  file, not a mirrored one). The support page then answers the watch question
+  with "Yes" and drops "From version 1.5",
   and the home and Apple Watch pages stop saying "Coming soon", which names no
   release and would otherwise stay up.
 - **Before submitting,** run one TestFlight build across a phone and a watch
