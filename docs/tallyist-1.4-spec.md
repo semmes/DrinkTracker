@@ -5,6 +5,11 @@ the 1.2 and 1.3 specs: the project constraints and the App Review claims are
 hard rules, each feature states what it adds and what it must not become, and
 the claims table is the record of what was said to Apple and why it stays true.
 
+**Shipped as 1.5.** App Review rejected 1.4 (1) on 2026-10-04 on two metadata
+items, and the owner resubmitted it the same day as 1.5, with the Trends work
+of ADR-0058 and ADR-0059 (ADR-0054's amendment). Everything below ships in
+1.5; 1.4 is never released.
+
 ## Project constraints
 
 Unchanged from `docs/tallyist-1.2-spec.md` ("Project constraints" and "Stop

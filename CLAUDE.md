@@ -357,7 +357,7 @@ built that night on the draft semmes/DrinkTracker#160 with `MARKETING_VERSION` 1
 the bullet "Trends compares the range the reader chose…", ADR-0058. The owner tested it
 on their phone and asked for it on `main` for 1.5 the same day, with 1.4 (1) still in
 review, so `main` is the 1.5 train from that merge: a fix 1.4 still needs is cut from
-98e494b, not from `main`. Its one open question, Quarter's line on a log under a week
+98e494b, not from `main` (retired on 2026-10-04, when 1.4 became 1.5). Its one open question, Quarter's line on a log under a week
 old, the owner settled the same day by keeping it.)* **The same day Quarter and Year
 became readable by day, week or month, from a filter button beside the chart's legend
 that opens a menu, and Week's and Month's legend became "Your daily average" (the
@@ -370,7 +370,11 @@ live on Google Play…").**
 **On 2026-10-04 App Review rejected 1.4 (1) on two metadata items, a promotional image
 with small text and no Terms of Use link in the metadata; the app already meets the
 in-app half, so the same build goes back and nothing is cut from `main` (the bullet
-"1.4 (1) was rejected…").**
+"1.4 (1) was rejected…").** *(It went back as 1.5 instead.)* **The same day the owner
+renamed the version 1.5 in App Store Connect, attached a build from `main` and
+resubmitted it with both recurring tips, so 1.4 is never released: 1.5 carries the
+watch, Apple Health on Trends, the recurring tips and the Trends work, and the next train
+is 1.6 (the bullet "1.4's features ship as 1.5…", ADR-0054 and ADR-0012 amended).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5039,4 +5043,48 @@ Open items for v1.2:
   future submissions". They drop "Other changes", which What's New covers, so the tips'
   item is now 4, and the notes are 3,938 bytes. Copy review entry the same day. Nothing
   was rendered or built, since nothing in the app changed. **When 1.4 is approved,** the
-  list in the bullet "1.4 is submitted for review…" still applies.
+  list in the bullet "1.4 is submitted for review…" still applies. *(1.4 became 1.5 the
+  same day; the next bullet has the list.)*
+- **1.4's features ship as 1.5 (2026-10-04; ADR-0054 and ADR-0012 amended).** The
+  rejected 1.4 (1) (the bullet "1.4 (1) was rejected…") did not go back as the same
+  build. **The promotional image** was `image.png` on *A drink every month*, set to be
+  promoted to all users; nobody remembered uploading it. The website would not remove it
+  because, in Apple's API since 4.4.1, a subscription's image belongs to a subscription
+  version, and only a version in `PREPARE_FOR_SUBMISSION` can change. This one was
+  `READY_FOR_REVIEW`, attached to the submission, and the API refused the delete
+  (`STATE_ERROR.SUBSCRIPTION_VERSION_UNMODIFIABLE`) and the promotion's removal ("Please
+  delete the image first."). App Review had filed both issues against the app version,
+  so Resolve offered Edit on the version only; the subscription could only be removed.
+  The owner removed it (it read Developer Rejected), deleted the image on the website,
+  and could not add it back ("Something went wrong": a removed item never returns to the
+  same submission). **Then the owner chose to fold in 1.5:** they renamed the version 1.5
+  on its page, replaced build 1.4 (1) with a 1.5 build Xcode Cloud archived from `main`
+  (the app code is the same from 525f208 through 36ec5e6), added the Terms of Use and
+  Privacy Policy lines to the description, re-added the subscriptions and submitted.
+  **What changed here:**
+  - the support page's two "From version 1.4" lines and `check_published_build.py` say
+    1.5, and the mirror publishes the page on merge;
+  - the README's two release mentions;
+  - `docs/app-store-listing.md`: the status, "What happened", What's New (1.5) and
+    Reviewer notes (1.5) replaced by the combined texts (1,467 characters; 3,953
+    bytes), the 1.4 texts marked as folded in, and the reminders pointed at 1.5;
+  - ADR-0054's amendment (1.4 ships as 1.5, the next train is 1.6, the 98e494b rule is
+    retired) and ADR-0012's (no tip is promoted or carries an App Store image, since
+    the app has no `PurchaseIntent` handling, which App Store Connect itself flagged);
+  - the 1.4 spec's status line and the copy review.
+
+  **Untracked, in `Claude outputs/1.4-rejection/`:** `delete_promo_image.py`, which the
+  owner runs with their own App Store Connect API key. It reads a subscription's
+  versions, images and promotion, deletes an image or a promotion, or cancels a
+  submission with unresolved issues, asking before each change; it was tested against a
+  fake API and a throwaway key. Also there: the pasted texts, and a text-free replacement
+  image that was not used. **Not reported:** the build number, whether the old submission
+  was cancelled, whether the combined texts were pasted as they are, whether a screen
+  recording was attached, whether the promotion entry is gone, and the TestFlight pass.
+  **When 1.5 is approved:** record the release date from the iTunes lookup API (the
+  bullet "1.3 is approved and live…" has the recipe); read the product page for the two
+  recurring tips at $4.99 a month and $99.99 a year, and no promoted purchase; check
+  that its Privacy Policy, Support and Marketing URLs are `tallyist.co`'s; set
+  `platform_state: 2` in `semmes/Tallyist`'s `_config.yml`, which drops "From version
+  1.5" from the support page; revoke the API key if it is still active; and open 1.6 by
+  bumping `MARKETING_VERSION` in its first change.

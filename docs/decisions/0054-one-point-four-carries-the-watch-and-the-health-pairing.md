@@ -1,6 +1,7 @@
 # 0054 — 1.4 carries the watch and the health pairing together
 
-**Status:** accepted · **Date:** 2026-09-23 · **Supersedes:** decision 4 of
+**Status:** accepted · **Date:** 2026-09-23 · amended 2026-10-04 (1.4 ships
+as 1.5) · **Supersedes:** decision 4 of
 `docs/tallyist-health-pairing-plan.md` ("Its own train, after the watch") ·
 **Relates to:** `docs/tallyist-1.4-spec.md`; `docs/tallyist-watch-plan.md`
 (Phase 8); the health pairing plan's "Release"; ADR-0024 (the policy's three
@@ -92,6 +93,44 @@ reviewer can clear or question one without rereading the other.
 - **What's New carries two features and the rest of the train** (the
   comparisons card and the iOS 27 repairs). It is long; the store truncates
   it behind "more", so the watch and the pairing go first.
+
+## Amendment (2026-10-04): 1.4 ships as 1.5
+
+**Context.** App Review rejected 1.4 (1) on 2026-10-04 on two metadata items:
+a promotional image on the monthly recurring tip (guideline 2.3.2) and no Terms
+of Use link in the metadata (3.1.2(c)). Neither was about the watch or the
+pairing. Removing the image meant taking the monthly tip out of that
+submission, and Apple does not let a removed item back in. `main` had been the
+1.5 train since 2026-10-01, carrying the Trends work of ADR-0058 and ADR-0059.
+The owner chose to resubmit with that work rather than send 1.4 again: they
+changed the version number in App Store Connect from 1.4 to 1.5, attached a 1.5
+build from `main`, and resubmitted the same day (`docs/app-store-listing.md`,
+"The rejection of 1.4 (1), 2026-10-04").
+
+**Decision.** The watch and the health pairing still ship together, now in
+1.5 and with the Trends changes. 1.4 is never released. One What's New and one
+set of reviewer notes cover all of it (`docs/app-store-listing.md`, What's New
+(1.5) and Reviewer notes (1.5)), and the notes give the Trends changes their
+own item.
+
+**Consequences.**
+- The price in the Decision now covers three things: a rejection over the
+  watch, the pairing or the Trends changes holds all of them. The Trends
+  changes add no permission and no kind of claim App Review had not already
+  seen.
+- The App Store goes from 1.3 to 1.5. The privacy policy names no version, so
+  its three copies do not change. The support page's two "From version 1.4"
+  lines now say 1.5, and `check_published_build.py` checks for that.
+- Records written for 1.4 (the 1.4 spec, the watch plan's Phase 8, the health
+  pairing plan's "Release", this record) describe what ships in 1.5. They are
+  not renamed; this amendment and the 1.4 spec's status line say so.
+- `main` is past 1.5, so the next train is 1.6, opened by bumping
+  `MARKETING_VERSION` in its first change, as 1.5's was (ff08c72). The rule
+  that a fix 1.4 still needs is cut from 98e494b is retired.
+
+**Not reported.** The submitted build's number, and whether the TestFlight
+pass across phone and watch asked for before 1.4's submission ever ran
+(ADR-0055's device check among them).
 
 ## How to reopen
 
