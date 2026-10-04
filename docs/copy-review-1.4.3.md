@@ -2787,3 +2787,25 @@ Changed in `semmes/Tallyist#12`, at the owner's request. Nothing ships in the ap
   "Google Play and the Google Play logo are trademarks of Google LLC.", the films'
   sentence word for word, on the same `android_live` switch. A trademark notice, not a
   claim. No exclamation mark, no em dash. Pass.
+
+## 2026-10-04 — The 1.4 rejection: the reviewer notes and the reply to App Review
+
+App Review rejected 1.4 (1) under guidelines 2.3.2 (a promotional image with small text)
+and 3.1.2(c) (no Terms of Use link in the metadata), and asked for the subscription
+details to be in the reviewer notes. Both texts are for App Review only; nothing ships in
+the app (`docs/app-store-listing.md`, "The rejection of 1.4 (1), 2026-10-04").
+
+- **Reviewer notes (1.4), item 4 (was 5):** gains "Each row shows the tip's title and its
+  price per month or per year. Privacy Policy and Terms of Use (Apple's standard EULA)
+  links are at the bottom of that screen, and the App Store description ends with both
+  links." The notification sentence becomes its own bullet. Each clause says where
+  something is, and each was checked against `SupportView.swift` at 98e494b, the commit
+  1.4 (1) was archived from. The "Other changes" item is dropped to stay under the
+  field's 4,000 bytes (3,938 now); What's New carries it. Pass.
+- **The reply to App Review:** a greeting and thanks, then one paragraph per guideline
+  saying what changed and where to see it, with both URLs written out. "Apple's standard
+  EULA" follows App Review's own "the standard Apple Terms of Use (EULA)". The 2.3.2
+  paragraph says what was done and
+  promises nothing. No exclamation mark, no em dash. Pass.
+- **The description's last two lines,** "Terms of Use: …" and "Privacy Policy: …", are
+  unchanged: both already close descriptions (A) and (B), reviewed on 2026-09-24.
