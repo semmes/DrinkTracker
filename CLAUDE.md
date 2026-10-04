@@ -367,6 +367,10 @@ tested it on their phone and it merged as 525f208 the same day.**
 page's Android answers follow the website's `android_live` switch, and the end cards of
 both films, the press page's and the home page's, name Android (the bullet "Android is
 live on Google Play…").**
+**On 2026-10-04 App Review rejected 1.4 (1) on two metadata items, a promotional image
+with small text and no Terms of Use link in the metadata; the app already meets the
+in-app half, so the same build goes back and nothing is cut from `main` (the bullet
+"1.4 (1) was rejected…").**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5009,3 +5013,30 @@ Open items for v1.2:
   (`semmes/Tallyist#12`). **Still open:** `platform_state: 2` when 1.4 is live
   (unchanged), and the link-preview image `img/og/home.png`, which still says "Free on
   iPhone." and is composited with Apple's device art, which is never committed.
+
+- **1.4 (1) was rejected on 2026-10-04, on two metadata items (records only).** App
+  Review, on an iPad Air 11-inch (M3), cited **guideline 2.3.2**: a promotional image,
+  the Image section of an in-app purchase (App Store promotion), "includes text that is
+  small or otherwise hard to read". No record here made one, so which item carries it
+  shows only in App Store Connect. It also cited **guideline 3.1.2(c)**: the metadata
+  lacks "a functional link to the Terms of Use (EULA)", which for Apple's standard EULA
+  goes in the description. Descriptions (A) and (B) end with that link; what 1.4's field
+  held at submission was never reported. **The app needs nothing.** In 1.4 (1) the tip
+  jar shows each recurring tip's name over "<price> per month · cancel any time" (or
+  year), and its footer links Privacy Policy and Terms of Use (`SupportView`). That
+  screen and the Settings route to it are the same at 98e494b as on `main` at 7971151,
+  with no version number on either. Apple's help: "If your app was rejected for a
+  metadata issue, you can resubmit the same build after resolving the issue." So **no
+  new build, and nothing is cut from `main`**, which is the 1.5 train. **Recommended,
+  the owner's call:** remove the image rather than redraw it. Tallyist has no
+  `PurchaseIntent` handling, and Apple says that without it a promotion shown to all
+  users "won't be visible on the App Store". `docs/app-store-listing.md`, "The rejection
+  of 1.4 (1), 2026-10-04", has Apple's words, the Resolve steps (an item can be edited
+  once before resubmission, and a removed item cannot be added back), the screen
+  recording App Review asked for (TestFlight's 1.4 (1), or an Xcode Run if the sandbox
+  shows no Recurring rows), and the reply. The reviewer notes (1.4) gain where each
+  subscription's title, period, price and both links are, as App Review asked "for
+  future submissions". They drop "Other changes", which What's New covers, so the tips'
+  item is now 4, and the notes are 3,938 bytes. Copy review entry the same day. Nothing
+  was rendered or built, since nothing in the app changed. **When 1.4 is approved,** the
+  list in the bullet "1.4 is submitted for review…" still applies.

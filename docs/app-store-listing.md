@@ -5,7 +5,10 @@
 for 1.0 the app's release date), read on 2026-09-23, when the owner reported
 1.3's approval; 1.4 submitted for review on 2026-09-26 (the owner; build
 1.4 (1)), carrying the Apple Watch app and Apple Health on Trends together
-(ADR-0054), with its description, What's New and reviewer notes below; 1.5's
+(ADR-0054), with its description, What's New and reviewer notes below, and
+rejected on 2026-10-04 on two metadata items, a promotional image (2.3.2) and
+the Terms of Use link (3.1.2(c)), so the same build can go back ("The
+rejection of 1.4 (1), 2026-10-04", after the 1.4 reviewer notes); 1.5's
 What's New and reviewer notes drafted on 2026-10-01 with Trends on one window
 (ADR-0058), for when 1.4 is approved ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
@@ -520,10 +523,15 @@ for these types and the section is designed to show nothing then.
 
 **Length:** App Store Connect's Notes field holds 4,000 bytes ("The Notes
 field can contain up to 4000 bytes", Platform version information), and a
-character outside ASCII counts as more than one. The block below is 3,958
-bytes, all ASCII, with the recurring tips' item added on 2026-09-26. A first
-draft ran to 5,236 and was cut; any addition has to fit the same limit, so
-count before pasting (`wc -c`).
+character outside ASCII counts as more than one. The block below is 3,938
+bytes, all ASCII. The recurring tips' item was added on 2026-09-26 (3,958
+bytes then). On 2026-10-04, after the rejection, it gained where each
+subscription's title, period and price and the two links are, as App Review
+asked, and the "Other changes" item (Trends' comparisons in one card, the iOS
+27 fixes, the unreadable-log message) was dropped to make room: What's New
+says the same and nothing in it is a claim App Review checks. A first draft
+ran to 5,236 and was cut; any addition has to fit the same limit, so count
+before pasting (`wc -c`).
 
 ```
 What's new in 1.4. The four claims of our 1.0 response hold: no goals,
@@ -580,23 +588,116 @@ no accounts; no external services.
   read" rows hold a metric, a day count, a duration, the process that read
   it and a time; never a value.
 
-4. Other changes
-- Trends' three comparisons share one card, two of them drawn as bars.
-- iOS 27 readability and control fixes, shorter Settings wording, and
-  clearer errors: an unreadable log now says so instead of showing an empty
-  day.
-
-5. Recurring tips (new in-app purchases)
+4. Recurring tips (new in-app purchases)
 - Settings > About > Buy me a drink: a monthly and a yearly auto-renewable
-  tip beside the one-time one. They unlock nothing. After subscribing, the
-  app asks for notification permission, for a reminder a week before each
-  renewal.
+  tip beside the one-time one. They unlock nothing. Each row shows the
+  tip's title and its price per month or per year. Privacy Policy and Terms
+  of Use (Apple's standard EULA) links are at the bottom of that screen, and
+  the App Store description ends with both links.
+- After subscribing, the app asks for notification permission, for a
+  reminder a week before each renewal.
 
 New in 1.4: the watch app, a HealthKit read for four types behind switches
 that start off, the remote-notification background mode, and two recurring
 tips. No new privacy label categories, no new third-party code, no accounts,
 no servers.
 ```
+
+## The rejection of 1.4 (1), 2026-10-04
+
+App Review rejected 1.4 (1) on two items (submission
+9737e7ce-75ea-4311-9e53-54eb8657faa3, reviewed on an iPad Air 11-inch (M3)).
+Both are metadata. Apple's help ("Reply to App Review messages"): "If your app
+was rejected for a metadata issue, you can resubmit the same build after
+resolving the issue." So no build is needed, and nothing is cut from `main`,
+which is the 1.5 train. The tip jar (`SupportView.swift`, `TipJar.swift`) and
+the Settings route to it are the same at 98e494b, the commit 1.4 (1) was
+archived from, as on `main` at 7971151. Only the StoreKit test file's yearly
+price differs ($99.99 on `main`), and the store build does not carry that file.
+
+**Guideline 2.3.2, the promotional image.** Apple's words: "Your promotional
+image includes text that is small or otherwise hard to read." This is an in-app
+purchase's Image section (App Store promotion). It is not the version's
+Promotional Text and not the App Review Screenshot. No record here made or
+asked for one, so which item carries it shows only in App Store Connect (the
+rejected item under Resolve). Three things from Apple's help:
+- "An image is required if you want to promote your In-App Purchase on your
+  App Store product page or set up win-back offers."
+- "Your app must support the PurchaseIntent API in order for the App Store to
+  display your promoted product pages." For a promotion shown to all users:
+  "If you select this option, but haven't implemented the PurchaseIntent API,
+  your In-App Purchase won't be visible on the App Store."
+- Images "should not be screenshots, and should not be confused with your app
+  icon", are "usually seen at small sizes", and are 1024 × 1024, JPG or PNG,
+  "72 dpi, RGB, flattened and no rounded corners".
+
+Tallyist has no `PurchaseIntent` handling (nor StoreKit 1's
+`shouldAddStorePayment`) and no offer-code sheet, and no record here sets up a
+win-back offer, so an image does nothing for 1.4. **Recommended: remove it**
+rather than redraw it. In the item's
+Image section, "move your pointer over it and click the remove icon (—)", and
+leave the item unpromoted. Promoting a tip later needs the `PurchaseIntent`
+handling first, in a build, and then a text-free image for each promoted item.
+
+**Guideline 3.1.2(c), the Terms of Use.** Apple's words: "The following
+information needs to be included in the App Store metadata: a functional link to
+the Terms of Use (EULA) (if you are using the standard Apple Terms of Use
+(EULA), include a link in the App Description, and if you are using a custom
+EULA, add it in App Store Connect)." Descriptions (A) and (B) end with that
+link, but what 1.4's Description field held when it was submitted shows only in
+App Store Connect. Make it end with these two lines, keep App Information's
+License Agreement on Apple's standard EULA, and check that the Privacy Policy
+URL reads `https://tallyist.co/privacy/`:
+
+```
+Terms of Use: https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://tallyist.co/privacy/
+```
+
+The app's half already holds in 1.4 (1). Each recurring row shows the product's
+`displayName` over "<price> per month · cancel any time" (or "per year"), and
+the screen's footer links Privacy Policy (the in-app policy) and Terms of Use
+(Apple's standard EULA). Apple asks for two more things: a screen recording with
+the reply, and "this information in the Notes field of the App Review
+Information section in App Store Connect for future submissions". The reviewer
+notes (1.4) above now carry it, in item 4.
+
+**In App Store Connect** (Apple's help, "Manage a submission with unresolved
+issues"): App Review, Resolve next to the submission, then Edit next to each
+rejected item, make the change, and Add for Review. Once every rejected item is
+edited, Resubmit to App Review. "You can edit items in a submission once before
+resubmission", so make all of an item's changes in one edit. And "you can't add
+back removed items to the same submission", so remove a subscription only for
+the contingency under "For 1.4 specifically". Paste the reviewer notes (1.4)
+above into the version's App Review Information before resubmitting.
+
+**The screen recording.** On a phone with 1.4 (1) from TestFlight, start a
+screen recording and open Settings → About → Buy me a drink. Hold on the
+Recurring rows so both names and prices can be read, scroll to the bottom, tap
+Terms of Use (Apple's page opens in Safari), come back, and tap Privacy Policy.
+If that build shows no Recurring section, the sandbox is not serving the
+subscriptions to it (on 2026-09-26 it served only the one-time tip). Record an
+Xcode Run of the DrinkTracker scheme on an iPhone simulator instead (in the
+Simulator, File → Record Screen), where the scheme's StoreKit configuration
+supplies both rows at App Store Connect's prices. That screen and the route to
+it are the same code as in 1.4 (1), and neither shows a version number.
+
+**The reply** (Reply to App Review, with the recording attached; copy review,
+2026-10-04):
+
+```
+Hello,
+
+Thank you for the review. We have addressed both items and are resubmitting the same build, 1.4 (1).
+
+Guideline 3.1.2(c): The description now ends with a link to the Terms of Use, Apple's standard EULA (https://www.apple.com/legal/internet-services/itunes/dev/stdeula/), followed by our privacy policy (https://tallyist.co/privacy/), which is also the Privacy Policy URL. In the app, Settings > About > Buy me a drink shows each auto-renewable subscription's title and its price per month or per year, with Privacy Policy and Terms of Use links at the bottom of the screen. The attached screen recording shows that screen and both links. The Notes field in App Review Information now says where to find them.
+
+Guideline 2.3.2: We removed the promotional image. These in-app purchases are not promoted on the App Store.
+```
+
+If more than one item had an image, say "images". If the image is replaced
+rather than removed, the last paragraph becomes "Guideline 2.3.2: We replaced
+the promotional image for <name> with one that has no text."
 
 ## What's New (1.5)
 
@@ -751,6 +852,10 @@ servers.
        tips to the developer. If the subscriber allows notifications, the app
        reminds them a week before each renewal, and Manage or cancel is on the
        same screen. Where: Settings > About > Buy me a drink."
+     - Image (App Store promotion): leave it empty (added 2026-10-04). App
+       Review rejected 1.4 (1) over one under guideline 2.3.2, and promoting
+       a tip does nothing for this build, which has no `PurchaseIntent`
+       handling. "The rejection of 1.4 (1), 2026-10-04" has the details.
   3. **Add for Review:** each subscription in Prepare for Submission with no
      missing metadata, platform iOS and version 1.4, with the group added too
      ("If you're submitting a subscription and the subscription group hasn't
@@ -771,7 +876,7 @@ servers.
     one-time tip: end its tip-jar sentence at "a one-time $4.99 tip." and
     delete the whole "Recurring tips renew automatically…" sentence. Paste
     What's New without its last paragraph. In the reviewer notes, delete item
-    5 and change the closing line's list back to "…a HealthKit read for four
+    4 (numbered 5 until 2026-10-04) and change the closing line's list back to "…a HealthKit read for four
     types behind switches that start off, and the remote-notification
     background mode." The 1.4 build handles that case: with no subscription on
     sale the tip jar shows no Recurring section, which was checked on a
