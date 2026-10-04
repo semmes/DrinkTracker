@@ -2752,3 +2752,27 @@ film's end card is re-rendered. Nothing ships in the app.
   sentence's form ("For the watch app, add your watch model and watchOS version."), a
   request for the facts a report needs, not advice; "instead" says the iPhone's model
   and iOS version do not apply. No exclamation mark, no em dash. Pass.
+
+## 2026-10-03 — The home page's film names Android
+
+The film under the website's hero (`semmes/Tallyist#7`, reviewed on 2026-09-27) still
+ended on "Free on iPhone. Available on the App Store." after Android went live. Its end
+card is re-rendered in `semmes/Tallyist#11`. Nothing ships in the app.
+
+- **The availability line:** "Free on iPhone and Android.", the owner's choice of three
+  put to them; the others were "Free on iPhone and Android. Available on the App Store
+  and Google Play." and leaving the film as it was. One line where there were two, in
+  the form of the press film's "Available now on iPhone and Android" and the footer's
+  "Tallyist is available for iPhone, iPad, and Android." "Free" was already the film's
+  claim, and it is true of both apps. "Available on the App Store." goes with the old
+  line, so the film no longer names one store and not the other. No exclamation mark,
+  no em dash. Pass.
+- **The trademark line:** the press film's, word for word: "iPhone is a trademark of
+  Apple Inc., registered in the U.S. and other countries and regions. Android is a
+  trademark of Google LLC." It replaces "Apple, iPhone and App Store are trademarks of
+  Apple Inc., registered in the U.S. and other countries.", which named a store the
+  card no longer mentions, had no attribution for Android, and ended without Apple's
+  "and regions". At full size it stays on one row, clear of the edges the page cut
+  blends into the page. Pass.
+- **The film's description for assistive technology** (`_includes/film.html`) quotes
+  the new line. Pass.

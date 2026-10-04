@@ -364,8 +364,9 @@ that opens a menu, and Week's and Month's legend became "Your daily average" (th
 bullet "Quarter and Year can be read by day, week or month…", ADR-0059); the owner
 tested it on their phone and it merged as 525f208 the same day.**
 **On 2026-10-03 Tallyist went live on Google Play, ahead of the watch app: the support
-page's Android answers follow the website's `android_live` switch, and the press film's
-end card names Android (the bullet "Android is live on Google Play…").**
+page's Android answers follow the website's `android_live` switch, and the end cards of
+both films, the press page's and the home page's, name Android (the bullet "Android is
+live on Google Play…").**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -4989,5 +4990,18 @@ Open items for v1.2:
   0f0aca6. The old release stays up, unlinked. **Then, at the owner's request,** the
   support page's bug-report paragraph, which asked only for an iPhone or watch model,
   gained "For the Android app, give your phone model and Android version instead.",
-  on the same switch and checked by `published-docs` the same way. **Still open:**
-  `platform_state: 2` when 1.4 is live (unchanged).
+  on the same switch and checked by `published-docs` the same way. **That evening the
+  home page's film followed** (`semmes/Tallyist#11`, merged as 00ec76c). The owner
+  said the updated film was not on tallyist.co. The press film was: the served file was
+  byte-identical to the re-render, and its end card played in a browser. But the film
+  under the hero, a different one that was never re-rendered, still ended "Free on
+  iPhone. Available on the App Store." At the owner's choice it now ends "Free on
+  iPhone and Android.", and its trademark line is the press film's. The eight
+  `video/film-*` files were re-rendered in `Claude outputs/motion-reel/` (untracked;
+  its README's "On tallyist.co" says how) with `semmes/Tallyist#7`'s settings. Lossless
+  stills from the old and new source are bit-identical before the end card in both
+  appearances, and at it they differ only inside the box of the two lines. The encoded
+  files differ more widely, because the hardware encoder does not repeat itself:
+  re-encoding six seconds with the old renderer differed from the live file just as
+  much. The posters and stills do not change. The copy review has the entry.
+  **Still open:** `platform_state: 2` when 1.4 is live (unchanged).
