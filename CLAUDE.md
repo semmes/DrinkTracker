@@ -5003,5 +5003,9 @@ Open items for v1.2:
   appearances, and at it they differ only inside the box of the two lines. The encoded
   files differ more widely, because the hardware encoder does not repeat itself:
   re-encoding six seconds with the old renderer differed from the live file just as
-  much. The posters and stills do not change. The copy review has the entry.
-  **Still open:** `platform_state: 2` when 1.4 is live (unchanged).
+  much. The posters and stills do not change. The copy review has the entry. **Then,
+  at the owner's request,** the website's footer added "Android is a trademark of
+  Google LLC." after Google Play's credit, on the same `android_live` switch
+  (`semmes/Tallyist#12`). **Still open:** `platform_state: 2` when 1.4 is live
+  (unchanged), and the link-preview image `img/og/home.png`, which still says "Free on
+  iPhone." and is composited with Apple's device art, which is never committed.
