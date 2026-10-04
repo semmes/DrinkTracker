@@ -2776,3 +2776,14 @@ card is re-rendered in `semmes/Tallyist#11`. Nothing ships in the app.
   blends into the page. Pass.
 - **The film's description for assistive technology** (`_includes/film.html`) quotes
   the new line. Pass.
+
+## 2026-10-03 — The website's footer credits Android
+
+Once Android went live, the footer on every page of the website credited Google Play
+and its logo, but not Android, which the site and both films use as a platform name.
+Changed in `semmes/Tallyist#12`, at the owner's request. Nothing ships in the app.
+
+- **The footer's legal line** adds "Android is a trademark of Google LLC." after
+  "Google Play and the Google Play logo are trademarks of Google LLC.", the films'
+  sentence word for word, on the same `android_live` switch. A trademark notice, not a
+  claim. No exclamation mark, no em dash. Pass.
