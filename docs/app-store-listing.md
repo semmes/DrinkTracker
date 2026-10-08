@@ -195,6 +195,79 @@ An honest tally of what you drink. One tap to log, a calendar of your days,
 no judgement anywhere. Free, private, no account.
 ```
 
+## Creative assets: header and search results (iOS 27)
+
+Drawn on 2026-10-08 (ADR-0060, proposed; the copy review the same day). iOS 27 and
+iPadOS 27 show an optional **product page header**, which Apple calls "the first thing
+they'll notice" on the product page, and an optional **search results** asset in place of
+the screenshots in a search result.
+Devices on earlier versions keep the screenshots. Apple's sources: App Store Connect
+Help, "Creative assets specifications", "Manage your App Store assets" and "Submit
+assets from Asset Library"; the "App Store asset best practices and resources" page;
+WWDC26 session 205.
+
+**The files** come from `scripts/app-store-creative/` (`node render.js`, about 40
+seconds); they are not in git. Each is 8-bit RGB with no alpha, which App Store
+Connect requires.
+
+| Upload | File | Size |
+|---|---|---|
+| Header (recommended) | `tallyist-header-3840x1646.png` | 3840 × 1646, 21:9 |
+| Search Results (recommended) | `tallyist-search-results-3840x2560.png` | 3840 × 2560, 3:2 |
+| Or both, as one asset | `tallyist-universal-5244x2950.png`, in Header, with "Use header asset in search results" | 5244 × 2950, 16:9, PNG only |
+| A product page optimization test | `tallyist-header-light-3840x1646.png`, and the other two `-light` files if the test takes them | as above |
+
+The dedicated pair is recommended because its headline is larger where it counts:
+about 16 points on an iPhone search result, against about 11 for the universal
+asset if the result shows its full-height 3:2 crop, since the universal's safe area
+is the narrowest of the three for its frame. Used as the header, the universal's month
+is also cut through a row by any crop between its safe area and its full frame. The
+light set is the other side of a test, not a second set to publish: Apple suggests
+product page optimization for header visuals, and documents no test of a search
+results asset.
+
+**When.** Not into a version submission already in review. An asset assigned to a
+version is reviewed with it, and a new metadata item is one more thing App Review
+can hold the release on (1.4 (1) was rejected for a promotional image). Upload to
+the Asset Library now, where an asset waits in Prepare for Submission at no cost,
+and submit it once the version in review is approved. The app has approved
+versions, so the assets can go to App Review on their own, with no new version
+("Standalone assets are reviewed against your app's latest version"); once approved,
+setting them live needs no submission at all.
+
+**In App Store Connect** (Apple's help, step by step):
+1. **Upload.** Apps → Tallyist → **Asset Library** → add (+) → **Upload Creative
+   Assets** → choose the files → Upload.
+2. **Preview, before anything is submitted.** Apple's help documents Preview only on
+   a version page; its flow for the live version (step 5) has none. On a version page
+   that is not in an active submission (the next version's, once it exists; not
+   1.4's, which goes back to App Review with only the fixes for its rejection):
+   Product Page Information → **Header and Search Results** tab → Header → **Browse
+   Assets** → the header asset → Save; the same for Search Results, or for the
+   universal asset **Use header asset in search results** → **Preview**, on iPhone and
+   iPad in each orientation. The safe areas the art was laid out for are Apple's
+   template layers; Preview is the only place the real crops show.
+3. **Keep or remove.** An asset assigned to a version is reviewed with that version,
+   and can't be submitted on its own while that version is in an active submission.
+   To send the assets on their own, click **Delete** on each placement before that
+   version is submitted (they stay in the Asset Library); to ship them with the
+   version, leave them.
+4. **Submit on their own,** when the version in review is approved: Asset Library →
+   **Edit** → select the assets → **Add for Review** → a new submission → platform
+   iOS → **Submit for Review**.
+5. **Publish,** once approved, on the live version's page: Product Page Information →
+   **Header and Search Results** tab → Header → **Browse Assets** → the header asset →
+   Next → **Publish**. The same for Search Results.
+
+**Keeping them compliant** when they change: the 4+ rule applies to the art whatever
+the app's own rating, and by ADR-0060's judgment that means no drink, glass, bottle
+or drink glyph and no drink words, which is why the website's "Count what you
+drink." is not used; no prices, URLs, copyright symbols, other platforms (Android
+included) or Apple recognitions; the headline and counter 4% inside each template's
+safe area; the headline at 4.5:1 or better against every pixel behind it, and no
+other words in the art (the counter's 2 is part of the drawn counter, held to 3:1 like
+the ＋). A new headline goes through the copy review.
+
 ## What's New (first version)
 
 ```

@@ -371,6 +371,11 @@ live on Google Play…").**
 with small text and no Terms of Use link in the metadata; the app already meets the
 in-app half, so the same build goes back and nothing is cut from `main` (the bullet
 "1.4 (1) was rejected…").**
+**On 2026-10-08 the App Store's new creative assets were drawn, a product page header,
+a search results asset and the universal one that serves both, dark recommended and a
+light set for a product page optimization test, all rendered and checked by
+`scripts/app-store-creative/`; nothing is uploaded, which is the owner's (the bullet
+"The App Store creative assets…", ADR-0060, proposed).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5040,3 +5045,86 @@ Open items for v1.2:
   item is now 4, and the notes are 3,938 bytes. Copy review entry the same day. Nothing
   was rendered or built, since nothing in the app changed. **When 1.4 is approved,** the
   list in the bullet "1.4 is submitted for review…" still applies.
+- **The App Store creative assets are drawn, not uploaded (2026-10-08; ADR-0060,
+  proposed).** The owner asked for "a compelling and polished banner" for the App
+  Store's new placements. iOS 27 and iPadOS 27 show an optional **product page header**
+  (21:9, 3840 × 1646) and an optional **search results** asset (3:2, up to 3840 × 2560),
+  or one **universal** 16:9 asset (5244 × 2950, PNG only) for both; no alpha. The specs
+  are App Store Connect Help's "Creative assets specifications", read that day; the
+  **Art Safe Area** of each came out of Apple's Sketch and Photoshop templates (the
+  Sketch file is a zip of JSON; the 16-bit PSDs keep their layers in an `Lr16` block):
+  the header's and the search asset's are centred, the universal's is centred across and
+  set high. **What they show:** "See your own pattern.", the website's and the film's
+  own line, with the app's counter (− 2 ＋ in the 3–5 band) and a month of its calendar
+  on the app's own ground, a black card in dark and a white one in light, today its last
+  day and in the same band; behind them the rest of the calendar out of focus and the
+  website's backlight, on the ramp's deepest steps in the dark set and the app's grouped
+  ground in the light one. The month has no day numbers or weekday letters, so the
+  headline is the only words; the counter's 2 is part of the drawn counter. **No drink,
+  and no drink word, by judgment:** Apple requires creative assets to meet **4+**
+  whatever the app's rating, and guideline 2.3.8 asks the same of screenshots; Tallyist
+  is 18+, the screenshots show a drink tracker and the subtitle beside the art says
+  "Alcoholic Drink Tracker", so where the line falls is read, not quoted. The art stays
+  on the side that needs no argument, "Count what you drink." is left out, and the ADR
+  weighs having no search asset at all (the screenshots then show). **No device** (the
+  App Store crops the header's edges, and Apple's device terms, ADR-0056, allow no
+  crop), and **Inter 4.0 (OFL) instead of SF Pro**, whose licence, as Apple's Fonts page
+  shows it, allows the font "solely for creating mock-ups of user interfaces",
+  depictions of the software included, and not for "artwork"; that bears on the films'
+  SF Pro Expanded, already the owner's to settle. **The generator** is
+  `scripts/app-store-creative/`: `banner.html` draws, `render.js` renders all six in
+  about 40 seconds with Playwright's Chromium (a global install, found through
+  `npm root -g`), writes 8-bit RGB with an `sRGB` chunk, and fails unless the headline
+  and counter stand 4% inside each safe area, the headline clears 4.5:1 against every
+  pixel behind it, and the list of characters the fonts cover matches both fonts'
+  character maps; and `proofs.py` (Python and Pillow) draws crop proofs. The count and
+  the ＋ are held to 3:1 as parts of the drawn counter. In the light set the count's
+  pair, the app's own white on 450, is 4.42:1, which the app's 68pt numeral carries as
+  large text but which falls short of 4.5:1 read as text at the 12 to 15 points it shows
+  at on an iPhone; the dark count is 5.77:1. The fonts are two Latin subsets (about 150
+  KB; a render is pixel-identical to the full fonts, and a headline character outside
+  them stops the render). The PNGs, about 54 MB, are not committed; they went to the
+  owner in the session with crop proofs and two boards. **Reviewed before merging,
+  twice.** An adversarial pass re-ran the renderer and measured the PNGs. It found one
+  blocking defect: the dark set drew the no-alcohol cells as white at 16% on the blue
+  ground, lighter than the 1–2 cells, so the ramp read backwards. The month now sits on
+  the app's own ground, where a no-alcohol cell measures L\* 16.6 against a 1–2 cell's
+  33.9. Its seven should-fixes were all acted on: the day numbers and weekday letters,
+  three to six points at App Store sizes and under 3.5:1 while three records said every
+  text cleared 4.5:1, are gone; the 4+ reasoning is a judgment that cites 2.3.8, with
+  the no-search-asset option; the glows, shine and gradient ＋ the app does not draw are
+  gone, so the count and ＋ figures are the drawn ones; key elements stand 4% inside the
+  safe areas they had touched; the upload steps preview first, on a version page, since
+  Apple documents no Preview in the live version's Publish flow; the install no longer
+  depends on a path only this container had; and a headline character the fonts lack
+  stops the render. A last look flattened the month card, whose 10 to 18 degree tilt
+  (the first push) read as a skew. A fact-check of the records against the renders then
+  found the count called large text at sizes where it is not, the light set called blue,
+  proof sheets that cut off their own last crop and came from a script only the session
+  had, "seven should-fixes" with six listed, and a font guard said to read the fonts'
+  character maps when it held a list. All are corrected: `proofs.py` is committed,
+  `render.js` checks the list against the fonts, and the header's card, 3.6 pixels off
+  the cap line it was said to meet, is now placed between the headline's cap line, read
+  from the laid-out headline, and the band tile's foot, as the search asset's counter
+  and card share a centre line, by construction. **Recommended:** the dedicated dark
+  header and search results assets. The search asset's headline renders at about 16
+  points on an iPhone search result against the universal's 11 (if its full-height 3:2
+  crop is shown), since the universal's safe area is the narrowest for its frame, and
+  any crop of the universal between its safe area and its full frame cuts its month
+  through a row. The universal stays as one asset for both, and the light header is the
+  other side of a product page optimization test, which Apple documents for header
+  visuals only. **When:** upload to the Asset Library now; preview on a version page
+  that is not in an active submission (the next version's, not 1.4's) and delete them
+  from its placements before that version is submitted; submit them on their own once
+  the version in review is approved; then Publish from the live version's page with no
+  new version (`docs/app-store-listing.md`, "Creative assets: header and search
+  results", has the steps). **Not verified:** App Store Connect's Preview crops on an
+  iPhone and an iPad, App Review's reading of 4+ for a calendar shaded by amount, and
+  the look on a device in each App Store appearance. Copy review entry the same day. No
+  app code, catalog, schema or CloudKit change. **Tooling worth keeping:** Apple's
+  developer pages read as text with a plain `curl` and a tag strip; the template
+  downloads hide behind `developer.apple.com/go/?id=…` pages whose script holds the CDN
+  URL; the SF licence is embedded in `developer.apple.com/fonts/`, so it can be quoted
+  without unpacking a disk image; and Chromium's canvas text metrics round a glyph's
+  bounds out to 1/64 of an em (an H at 116px measures 85 where its ink is 84.4), while
+  CSS's `cap` unit gives the font's cap height to 1/64 of a pixel.
