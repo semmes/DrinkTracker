@@ -2809,3 +2809,29 @@ the app (`docs/app-store-listing.md`, "The rejection of 1.4 (1), 2026-10-04").
   promises nothing. No exclamation mark, no em dash. Pass.
 - **The description's last two lines,** "Terms of Use: …" and "Privacy Policy: …", are
   unchanged: both already close descriptions (A) and (B), reviewed on 2026-09-24.
+
+## 2026-10-08 — The App Store creative assets: header and search results
+
+New artwork for the product page header and search results placements of iOS 27
+(ADR-0060, `docs/app-store-listing.md`, "Creative assets: header and search results").
+Nothing ships in the app. The text in the images, in all six (three placements, dark and
+light):
+
+- **"See your own pattern."** The website's hero line and the film's words on screen,
+  both passed (the website's own pages, 2026-09-24; the home page's film, 2026-09-27).
+  In a new place it says the same thing, about the calendar drawn under it. "See" is an
+  imperative only in the grammatical sense, as those entries found. No exclamation mark,
+  no em dash. Pass.
+- **Left out on purpose: "Count what you drink."**, the website's first line. Apple
+  requires creative assets to meet a 4+ rating whatever the app's own rating is, and in
+  an alcohol tracker's artwork "drink" is an alcohol reference. With no drink words and
+  no drink glyphs, the art is 4+; the subtitle beside it says what the app is for.
+- **The counter's "2", the day numbers 1 to 30 and the weekday initials S M T W T F S**
+  are the app's interface drawn as it is, not copy. The 2 sits in the 3–5 band, as two
+  drinks of about 2.7 standard drinks do in the app.
+- **Legibility,** after 2.3.2: the headline measures at least 8.66:1 (dark) and 14.36:1
+  (light) against every pixel behind it, the tinted word at least 4.5:1, and the
+  dedicated search asset's headline renders at about 16 points on an iPhone search result.
+  `scripts/app-store-creative/render.js` re-checks all of it on every render.
+
+Nothing praises, urges or judges, and nothing is promised. Pass.

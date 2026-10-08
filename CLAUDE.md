@@ -371,6 +371,11 @@ live on Google Play…").**
 with small text and no Terms of Use link in the metadata; the app already meets the
 in-app half, so the same build goes back and nothing is cut from `main` (the bullet
 "1.4 (1) was rejected…").**
+**On 2026-10-08 the App Store's new creative assets were drawn, a product page header,
+a search results asset and the universal one that serves both, dark recommended and a
+light set for a product page optimization test, all rendered and checked by
+`scripts/app-store-creative/`; nothing is uploaded, which is the owner's (the bullet
+"The App Store creative assets…", ADR-0060, proposed).**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5040,3 +5045,44 @@ Open items for v1.2:
   item is now 4, and the notes are 3,938 bytes. Copy review entry the same day. Nothing
   was rendered or built, since nothing in the app changed. **When 1.4 is approved,** the
   list in the bullet "1.4 is submitted for review…" still applies.
+- **The App Store creative assets are drawn, not uploaded (2026-10-08; ADR-0060,
+  proposed).** The owner asked for "a compelling and polished banner" for the App
+  Store's new placements. iOS 27 and iPadOS 27 show an optional **product page header**
+  (21:9, 3840 × 1646) and an optional **search results** asset (3:2, up to 3840 × 2560),
+  or one **universal** 16:9 asset (5244 × 2950, PNG only) for both; no alpha. The specs
+  are App Store Connect Help's "Creative assets specifications", read that day; the
+  **Art Safe Area** of each, small centred boxes, came out of Apple's Sketch and
+  Photoshop templates (the Sketch file is a zip of JSON; the 16-bit PSDs keep their
+  layers in an `Lr16` block). **What they show:** "See your own pattern.", the
+  website's and the film's own line, over the app's counter (− 2 ＋ in the 3–5 band) and
+  a month of its calendar, today in the same band, on the icon's blue with the rest of
+  the calendar out of focus and the website's backlight. **No drink anywhere, and no
+  drink word:** Apple requires creative assets to meet **4+** whatever the app's rating,
+  and Tallyist is 18+, so "Count what you drink." is left out. **No device** (the bezel
+  licence was accepted for the website only, ADR-0056), and **Inter 4.0 (OFL) instead of
+  SF Pro**, whose licence, as Apple's Fonts page shows it, allows the font "solely for
+  creating mock-ups of user interfaces" and not for "artwork" (that bears on the films'
+  SF Pro Expanded, already the owner's to settle). **The generator** is
+  `scripts/app-store-creative/`: `banner.html` draws, `render.js` renders all six in about
+  40 seconds with Playwright's Chromium, writes 8-bit RGB with an `sRGB` chunk, and fails
+  unless the headline and counter sit inside each safe area and every text pair clears
+  4.5:1 against every pixel behind it (the count, the app's own hero pair, is held to the
+  large-text 3:1: white on 450 is 4.42:1 in the light set, as in the app). The fonts are
+  Latin subsets (about 300 KB; a render is pixel-identical to the full fonts); the PNGs,
+  55 MB, are not committed and went to the owner in the session. **Recommended:** the
+  dedicated dark header and search results assets, because the search asset's headline
+  renders at about 16 points on an iPhone search result against the universal's 12; the
+  universal stays as one asset for both, and the light set is a test's other side.
+  **When:** upload to the Asset Library now, submit once the version in review is
+  approved, then Publish from the live version's page with no new version
+  (`docs/app-store-listing.md`, "Creative assets: header and search results", has the
+  steps). The universal's month starts just below its safe area so a crop to the safe
+  area alone leaves the headline and counter whole. **Not verified:** App Store Connect's
+  Preview crops on an iPhone and an iPad (the only place the real crops show; check it
+  before Publish), App Review's reading of 4+ for a calendar shaded by amount, and the
+  look on a device in each App Store appearance. Copy review entry the same day. No app
+  code, catalog, schema or CloudKit change. **Tooling worth keeping:** Apple's
+  developer pages read as text with a plain `curl` and a tag strip; the template
+  downloads hide behind `developer.apple.com/go/?id=…` pages whose script holds the
+  CDN URL; and the SF licence is embedded in `developer.apple.com/fonts/`, so it can be
+  quoted without unpacking a disk image.
