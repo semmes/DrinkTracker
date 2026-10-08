@@ -3,13 +3,10 @@
 <head>
 <meta charset="utf-8">
 <style>
-  /* Inter 4.0 (SIL OFL 1.1, fonts/OFL.txt) stands in for SF Pro, whose licence
-     covers interface mock-ups, not advertising copy. Named so a system copy
-     can never be picked up instead of these files. */
+  /* Inter 4.0 (SIL OFL 1.1, fonts/OFL.txt) stands in for SF Pro (README.md,
+     "Type"). Named so a system copy can never be picked up instead. */
   @font-face { font-family: "Creative Display"; font-weight: 700; src: url("fonts/InterDisplay-Bold.otf"); font-display: block; }
-  @font-face { font-family: "Creative Text"; font-weight: 400; src: url("fonts/Inter-Regular.otf"); font-display: block; }
   @font-face { font-family: "Creative Text"; font-weight: 500; src: url("fonts/Inter-Medium.otf"); font-display: block; }
-  @font-face { font-family: "Creative Text"; font-weight: 600; src: url("fonts/Inter-SemiBold.otf"); font-display: block; }
   html, body { margin: 0; padding: 0; background: var(--ground); overflow: hidden; }
   canvas, svg, .layer { position: absolute; left: 0; top: 0; }
   .headline {
@@ -27,13 +24,14 @@
 // ---------------------------------------------------------------------------
 // Tallyist's App Store creative assets (iOS 27 and iPadOS 27): the product page
 // header (21:9), the search results asset (3:2), and the universal 16:9 asset
-// that can serve both. Rendered by render.js; see README.md.
+// that can serve both. Rendered by render.js; see README.md and ADR-0060.
 //
-// Everything drawn is the app's own: the counter (CountStepper's .hero), a
-// month (IntensityCell), the Tallyist Blue ramp and the app's inks for each
-// appearance (docs/design-system.md, Shared/IntensityPalette.swift). Nothing
-// shows a drink, a glass or a bottle: a creative asset must meet a 4+ rating
-// whatever the app's own rating is (Apple's asset best practices).
+// What is drawn is the app's own, as the app draws it: the counter
+// (CountStepper's .hero), a month of the calendar (IntensityCell) on the app's
+// own ground, the Tallyist Blue ramp and the app's inks for each appearance
+// (docs/design-system.md, Shared/IntensityPalette.swift). The scene around them
+// (the field, the out-of-focus calendar, the backlight) is the art. Nothing
+// shows a drink, a glass or a bottle (ADR-0060).
 // ---------------------------------------------------------------------------
 const Q = new URLSearchParams(location.search);
 const FMT = Q.get('fmt') || 'universal';
@@ -44,8 +42,13 @@ const SAFE = {
   header: { x: 1097, y: 493, w: 1646, h: 661 },
   search: { x: 836, y: 765, w: 2168, h: 1030 },
 };
+// Key elements stay this far inside the safe area, as a fraction of its width
+// (left and right) and height (top and bottom): the safe area is the worst
+// case, not a frame to draw up to.
+const INSET = 0.04;
 const [W, H] = SIZES[FMT];
 const S = SAFE[FMT];
+const IN = { x: S.x + S.w * INSET, y: S.y + S.h * INSET, r: S.x + S.w * (1 - INSET), b: S.y + S.h * (1 - INSET) };
 
 // The Tallyist Blue ramp — named steps only.
 const R = {
@@ -57,44 +60,43 @@ function rgba(c, a) { const n = parseInt(c.slice(1), 16); return `rgba(${(n >> 1
 function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 
 // Two appearances. Dark is the recommendation; light is the alternate for a
-// product page optimization test. Each takes the app's own inks: the calendar's
-// dark steps 600/400/200/100 or light steps 250/450/700/800, the accent (400
-// dark, 500 light), and AccentFill 500 under the ＋ in both.
+// product page optimization test. Each takes the app's own inks and ground:
+// the calendar's dark steps 600/400/200/100 on black, or light steps
+// 250/450/700/800 on white; the accent (400 dark, 500 light); AccentFill 500
+// under the ＋ in both.
 const THEME = (Q.get('theme') || 'dark') === 'light' ? {
   name: 'light',
   fill: { L: R[250], M: R[450], H: R[700], V: R[800] },
-  ink: { L: '#000000', M: '#ffffff', H: '#ffffff', V: '#ffffff', N: '#000000' },
-  secondary: 'rgba(60,60,67,0.6)',              // secondaryLabel
+  ink: { M: '#ffffff' },
+  card: '#ffffff', cardRim: ['rgba(0,0,0,0.07)', 'rgba(0,0,0,0.07)'],   // the app's light ground, white
   noneFill: 'rgba(0,0,0,0.10)', noneLine: 'rgba(0,0,0,0.35)',
-  wallFill: { L: R[250], M: R[350], H: R[300], V: R[300] },   // dark steps blur to grey at low alpha
+  wallFill: { L: R[250], M: R[350], H: R[300], V: R[300] },   // the dark steps blur to grey at low alpha
   wallNone: 'rgba(183,211,246,0.55)', wallAlpha: 0.26, wallHigh: 0.20,
-  accent: R[500], todayGlow: R[450], todayGlowAlpha: 0.32,
-  sheen: 'rgba(255,255,255,0.22)',
+  accent: R[500],
   ground: '#f2f2f7',                              // systemGroupedBackground
   glow: [['#ffffff', 1], ['#ffffff', 0.85], ['#f2f2f7', 0]],
   back: [[R[100], 0.75], [R[150], 0.30], [R[200], 0]],
   vignette: [R[150], 0.42],
   scrim: ['#ffffff', 0.85],
   head: 'rgba(0,0,0,0.88)', headRGBA: [0, 0, 0, 0.88], tint: R[500],
-  tileGlow: [R[450], 0.32], minusBase: ['#ffffff', 0.78],
+  minusBase: ['#ffffff', 0.78],
   grain: 1.0,
 } : {
   name: 'dark',
   fill: { L: R[600], M: R[400], H: R[200], V: R[100] },
-  ink: { L: '#ffffff', M: '#000000', H: '#000000', V: '#000000', N: '#ffffff' },
-  secondary: 'rgba(235,235,245,0.6)',             // secondaryLabel
+  ink: { M: '#000000' },
+  card: '#000000', cardRim: ['rgba(255,255,255,0.16)', 'rgba(255,255,255,0.06)'],   // the app's dark ground, black
   noneFill: 'rgba(255,255,255,0.16)', noneLine: 'rgba(255,255,255,0.35)',
   wallFill: null,
   wallNone: 'rgba(255,255,255,0.10)', wallAlpha: 0.44, wallHigh: 0.32,
-  accent: R[400], todayGlow: R[400], todayGlowAlpha: 0.55,
-  sheen: 'rgba(255,255,255,0.14)',
+  accent: R[400],
   ground: R[800],
   glow: [[R[650], 1], [R[700], 0.8], [R[800], 0]],
   back: [[R[500], 0.62], [R[550], 0.28], [R[600], 0]],
   vignette: [R[800], 0.75],
   scrim: [R[800], 0.42],
   head: '#fcfcfb', headRGBA: [252, 252, 251, 1], tint: R[250],   // the icon's mark and slash tones
-  tileGlow: [R[400], 0.5], minusBase: [R[800], 0.55],
+  minusBase: [R[800], 0.55],
   grain: 1.25,
 };
 document.documentElement.style.setProperty('--head', THEME.head);
@@ -108,122 +110,88 @@ document.body.style.width = W + 'px'; document.body.style.height = H + 'px';
 const stage = document.getElementById('stage');
 
 // ---------- Layouts ----------
-// head: the headline; counter: centre of the band tile and its side; month:
-// top-centre of the weekday row, its pitch (cell + gap) and tilt; glow: the
-// backlight's centre and reach.
+// head: the headline (size, and its box's left or centre and top); counter:
+// centre of the band tile and its side; month: top-centre of the month's card
+// and the pitch of its cells (cell + gap); glow: the backlight's centre and
+// reach; wall: the out-of-focus calendar's pitch, in month pitches.
 function layout() {
   const cx = S.x + S.w / 2;
   if (FMT === 'universal') return {
-    // Apple's template sample puts its subject's head in the safe area and lets
-    // the body run off the bottom: the headline and the counter are the head,
-    // the month the body, starting just below the safe area so a crop to it
-    // leaves no orphaned weekday row. It is whole in a search crop.
-    head: { size: 144, cx, top: S.y + 34, lines: 1 },
+    // Apple's template sample keeps its subject's head in the safe area and
+    // lets the rest run off the bottom: the headline and the counter are the
+    // head, the month the rest, starting just below the safe area so a crop to
+    // it cuts nothing in two. A 3:2 search crop shows the whole month.
+    head: { size: 134, cx, top: IN.y + 2, lines: 1 },
     counter: { x: cx, y: S.y + 560, tile: 296 },
-    month: { x: cx, y: S.y + S.h + 20, pitch: 226, tilt: 18 },   // starts just below the safe area
-    glow: [cx, S.y + 900, 1.05], wall: 1.75,
+    month: { x: cx, y: S.y + S.h + 26, pitch: 196 },
+    glow: [cx, S.y + 900, 1.05], wall: 2.02,
   };
   if (FMT === 'search') return {
-    head: { size: 168, cx, top: S.y + 14, lines: 1 },
-    counter: { x: S.x + 470, y: S.y + 640, tile: 330 },
-    month: { x: S.x + S.w - 560, y: S.y + 250, pitch: 146, tilt: 12 },
-    glow: [cx, S.y + 760, 1.05], wall: 2.3,
+    // The counter's centre is the card's: both sit on y 1392.
+    head: { size: 168, cx, top: IN.y + 4, lines: 1 },
+    counter: { x: 1385, y: 1392, tile: 300 },
+    month: { x: 2363, y: 1046, pitch: 118 },
+    glow: [cx, S.y + 760, 1.05], wall: 2.85,
   };
-  return {   // header
-    head: { size: 124, left: S.x + 8, top: S.y + 30, lines: 2 },
-    counter: { x: S.x + 300, y: S.y + 480, tile: 236 },
-    month: { x: S.x + S.w - 420, y: S.y + 6, pitch: 116, tilt: 10 },
-    glow: [S.x + S.w * 0.6, S.y + S.h * 0.72, 0.9], wall: 2.6,
+  return {   // header: the headline over the counter on the left, the month on the right
+    // The card's top meets the headline's cap line and its foot the band
+    // tile's, and its right edge stands on the inset.
+    head: { size: 116, left: IN.x, top: 535, lines: 2 },
+    counter: { x: IN.x + 274, y: 989, tile: 220 },
+    month: { x: 2307, y: 547, pitch: 94 },
+    glow: [S.x + S.w * 0.6, S.y + S.h * 0.72, 0.9], wall: 3.2,
   };
 }
 const LY = layout();
 
 // ---------- The month ----------
-// A calm month, logged up to today, the 23rd: most days recorded as no
-// alcohol, a few in the 1–2 and 3–5 bands, one in 6–9, one day not logged.
-// Today is in the 3–5 band, the counter's band: the same day, read twice.
-const MONTH = { start: 2, len: 30, today: 23,
-  days: ['N','N','L','M','L', 'N','N','N','U','N','L','H', 'N','N','L','N','N','M','L', 'N','N','N','M', 'U','U','U','U','U','U','U'] };
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+// A calm month, logged to its last day, which is today: most days recorded as
+// no alcohol, seven in the 1–2 band, three in 3–5 (today among them, the
+// counter's band), one in 6–9, and one day not logged. The month starts on a
+// Tuesday. It is drawn as its pattern: no day numbers or weekday row, which at
+// App Store sizes would be text of three to six points.
+const MONTH = { start: 2, len: 30, today: 30,
+  days: ['N','N','L','M','L', 'N','N','N','U','N','L','H', 'N','N','L','N','N','M','L', 'N','N','N','N','N','L','L', 'N','N','N','M'] };
 
-// The month lies on a plane tilted back about its top edge, seen through a
-// pinhole: u runs right, v down the page.
-function makeProjector(m) {
-  const th = m.tilt * Math.PI / 180, f = Math.max(W, H) * 1.15, D = f;
-  return (u, v) => {
-    const X = u, Y = -v * Math.cos(th), Z = D + v * Math.sin(th);
-    return [m.x + f * X / Z, m.y - f * Y / Z, Z];
-  };
-}
-function roundedPts(u0, v0, s, r, n = 16) {
-  const pts = [];
-  const cs = [[u0 + s - r, v0 + r, -Math.PI / 2, 0], [u0 + s - r, v0 + s - r, 0, Math.PI / 2],
-              [u0 + r, v0 + s - r, Math.PI / 2, Math.PI], [u0 + r, v0 + r, Math.PI, 1.5 * Math.PI]];
-  for (const [cu, cv, a0, a1] of cs)
-    for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; pts.push([cu + r * Math.cos(a), cv + r * Math.sin(a)]); }
-  return pts;
-}
-function trace(c, pr, pts) { pts.forEach(([u, v], i) => { const [x, y] = pr(u, v); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.closePath(); }
-function ring(c, pr, u, v, side, rad, width) {
-  c.beginPath(); trace(c, pr, roundedPts(u, v, side, rad));
-  trace(c, pr, roundedPts(u + width, v + width, side - 2 * width, rad - width));
-}
-function affine(c, pr, u, v) {
-  // Text lies on the plane through the projection's local affine map.
-  const [x0, y0] = pr(u, v), [x1, y1] = pr(u + 1, v), [x2, y2] = pr(u, v + 1);
-  c.setTransform(x1 - x0, y1 - y0, x2 - x0, y2 - y0, x0, y0);
+// A rounded square's outline as a ring of the given width, filled even-odd.
+function ring(c, x, y, w, h, r, width) {
+  c.beginPath(); c.roundRect(x, y, w, h, r);
+  c.roundRect(x + width, y + width, w - 2 * width, h - 2 * width, Math.max(0, r - width));
 }
 
 function drawMonth() {
+  // Flat, as the app draws it: a plane tilted a few degrees reads as a skew,
+  // and it would break the edges the layouts line up.
   const m = LY.month, P = m.pitch;
   const side = P * 42 / 48, rad = side * 0.28;   // IntensityCell: 42pt cells with 6pt gaps, r = side × 0.28
-  const pr = makeProjector(m);
-  const u0 = -(7 * P - (P - side)) / 2;
-  const headH = P * 0.62;                        // the weekday row, caption medium in secondary ink
-  WEEKDAYS.forEach((d, i) => {
-    ctx.save();
-    affine(ctx, pr, u0 + i * P + side / 2, headH * 0.42);
-    ctx.font = `500 ${side * 0.27}px "Creative Text"`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = THEME.secondary;
-    ctx.fillText(d, 0, 0);
-    ctx.restore();
-  });
+  const pad = P * 0.5;
+  const gridW = 6 * P + side, gridH = 4 * P + side;
+  const cardW = gridW + 2 * pad, cardH = gridH + 2 * pad;
+  const x0 = m.x - cardW / 2, y0 = m.y;
+  // The app's own ground under the cells: black in dark mode, white in light.
+  // The radius is GlassTokens' card radius in proportion to the cell (26 : 42).
+  const cardR = side * 26 / 42;
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(x0, y0, cardW, cardH, cardR); ctx.fillStyle = THEME.card; ctx.fill();
+  const rim = ctx.createLinearGradient(0, y0, 0, y0 + cardH);
+  rim.addColorStop(0, THEME.cardRim[0]); rim.addColorStop(1, THEME.cardRim[1]);
+  ring(ctx, x0, y0, cardW, cardH, cardR, Math.max(1.5, side * 0.018)); ctx.fillStyle = rim; ctx.fill('evenodd');
+  ctx.restore();
   for (let d = 1; d <= MONTH.len; d++) {
     const idx = MONTH.start + d - 1, col = idx % 7, row = Math.floor(idx / 7);
-    const u = u0 + col * P, v = headH + row * P, k = MONTH.days[d - 1];
-    const pts = roundedPts(u, v, side, rad);
-    if (d === MONTH.today) {
-      ctx.save();
-      ctx.filter = `blur(${Math.round(side * 0.22)}px)`;
-      ctx.globalAlpha = THEME.todayGlowAlpha;
-      ctx.beginPath(); trace(ctx, pr, roundedPts(u + side * 0.08, v + side * 0.16, side * 0.84, rad));
-      ctx.fillStyle = THEME.todayGlow; ctx.fill();
-      ctx.restore();
-    }
-    ctx.save();
+    const x = x0 + pad + col * P, y = y0 + pad + row * P, k = MONTH.days[d - 1];
     if (k === 'N') {
-      // Recorded as no alcohol: primary at 10% (light) or 16% (dark), and the
+      // Recorded as no alcohol: primary at 16% (dark) or 10% (light), and the
       // 35% outline that is its second channel (side × 0.04).
-      ctx.beginPath(); trace(ctx, pr, pts); ctx.fillStyle = THEME.noneFill; ctx.fill();
-      ring(ctx, pr, u, v, side, rad, side * 0.04); ctx.fillStyle = THEME.noneLine; ctx.fill('evenodd');
+      ctx.beginPath(); ctx.roundRect(x, y, side, side, rad); ctx.fillStyle = THEME.noneFill; ctx.fill();
+      ring(ctx, x, y, side, side, rad, side * 0.04); ctx.fillStyle = THEME.noneLine; ctx.fill('evenodd');
     } else if (k !== 'U') {
-      ctx.beginPath(); trace(ctx, pr, pts); ctx.fillStyle = THEME.fill[k]; ctx.fill();
-      const [, ya] = pr(u, v), [, yb] = pr(u, v + side * 0.6);
-      const g = ctx.createLinearGradient(0, ya, 0, yb);
-      g.addColorStop(0, THEME.sheen); g.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.beginPath(); trace(ctx, pr, pts); ctx.fillStyle = g; ctx.fill();
+      ctx.beginPath(); ctx.roundRect(x, y, side, side, rad); ctx.fillStyle = THEME.fill[k]; ctx.fill();
     }
-    if (d === MONTH.today) { ring(ctx, pr, u, v, side, rad, side * 0.06); ctx.fillStyle = THEME.accent; ctx.fill('evenodd'); }
-    affine(ctx, pr, u + side / 2, v + side / 2);
-    ctx.font = `${k === 'U' ? 400 : 600} ${side * 0.38}px "Creative Text"`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = k === 'U' ? THEME.secondary : THEME.ink[k];
-    ctx.fillText(String(d), 0, side * 0.02);
-    ctx.restore();
+    // Not logged: absence, drawn as absence.
+    if (d === MONTH.today) { ring(ctx, x, y, side, side, rad, side * 0.06); ctx.fillStyle = THEME.accent; ctx.fill('evenodd'); }
   }
-  const a = pr(u0, 0), b = pr(-u0, 0), c = pr(u0, headH + 5 * P), e = pr(-u0, headH + 5 * P);
-  window.__month = { left: Math.min(a[0], c[0]), right: Math.max(b[0], e[0]), top: a[1], bottom: c[1] };
+  window.__month = { left: x0, right: x0 + cardW, top: y0, bottom: y0 + cardH };
 }
 
 // ---------- Ground, wall, light ----------
@@ -235,8 +203,8 @@ function ground() {
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 }
 function wall() {
-  // The rest of the calendar, out of focus: the app's cells at about twice the
-  // month's pitch, softened as a lens would, fading out toward the light.
+  // The rest of the calendar, out of focus: the app's cells, larger, softened
+  // as a lens would, fading out toward the light.
   const p = LY.month.pitch * LY.wall, s = p * 42 / 48, r = s * 0.28;
   const layer = document.createElement('canvas'); layer.width = W; layer.height = H;
   const c2 = layer.getContext('2d');
@@ -289,17 +257,14 @@ function grain() {
 function svgEl(tag, attrs) { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
 function counter() {
   // CountStepper .hero: 68pt discs, a 126pt band tile with a 36pt corner, 26pt
-  // gaps, the count at 68pt semibold rounded; − on glass, ＋ on AccentFill.
+  // gaps, the count at 68pt semibold rounded; − on glass, ＋ on flat
+  // AccentFill. No glow and no shadow, as in the app.
   const { x: cx, y: cy, tile: t } = LY.counter;
   const k = t / 126, disc = 68 * k, gap = 26 * k, rTile = 36 * k;
   const band = 'M';   // 2 drinks of about 2.7 standard drinks: the 3–5 band
   const svg = svgEl('svg', { width: W, height: H, viewBox: `0 0 ${W} ${H}` });
   svg.innerHTML = `
     <defs>
-      <linearGradient id="tileSheen" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#fff" stop-opacity="0.20"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.02"/>
-        <stop offset="1" stop-color="#000" stop-opacity="0.05"/>
-      </linearGradient>
       <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset="0.45" stop-color="#fff" stop-opacity="0.07"/>
         <stop offset="1" stop-color="#fff" stop-opacity="0.2"/>
@@ -308,16 +273,9 @@ function counter() {
         <stop offset="0" stop-color="#fff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#fff" stop-opacity="0.04"/>
         <stop offset="1" stop-color="#fff" stop-opacity="0.08"/>
       </radialGradient>
-      <linearGradient id="fillDisc" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="${R[450]}"/><stop offset="1" stop-color="${R[500]}"/>
-      </linearGradient>
-      <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${t * 0.18}"/></filter>
     </defs>`;
   const add = (tag, attrs) => svg.appendChild(svgEl(tag, attrs));
-  add('rect', { x: cx - t * 0.42, y: cy - t * 0.3, width: t * 0.84, height: t * 0.84, rx: rTile, fill: THEME.tileGlow[0], opacity: THEME.tileGlow[1], filter: 'url(#soft)' });
   add('rect', { x: cx - t / 2, y: cy - t / 2, width: t, height: t, rx: rTile, fill: THEME.fill[band] });
-  add('rect', { x: cx - t / 2, y: cy - t / 2, width: t, height: t, rx: rTile, fill: 'url(#tileSheen)' });
-  add('rect', { x: cx - t / 2 + 1.5 * k, y: cy - t / 2 + 1.5 * k, width: t - 3 * k, height: t - 3 * k, rx: rTile - 1.5 * k, fill: 'none', stroke: 'url(#rim)', 'stroke-width': 2.2 * k });
   // SF Rounded semibold in the app; Inter Medium with a round-join stroke here.
   const fs = 68 * k;
   const num = svgEl('text', { x: cx, y: cy + fs * 0.355, 'text-anchor': 'middle', 'font-family': 'Creative Text', 'font-weight': 500,
@@ -325,13 +283,13 @@ function counter() {
   num.textContent = '2';
   svg.appendChild(num);
   const mx = cx - t / 2 - gap - disc / 2, px = cx + t / 2 + gap + disc / 2;
+  // Liquid Glass under the −: the one material in the counter.
   add('circle', { cx: mx, cy, r: disc / 2, fill: rgba(...THEME.minusBase) });
   add('circle', { cx: mx, cy, r: disc / 2, fill: 'url(#glass)' });
   add('circle', { cx: mx, cy, r: disc / 2 - 1.1 * k, fill: 'none', stroke: 'url(#rim)', 'stroke-width': 1.8 * k });
   const gl = 28 * k * 0.66, gw = 28 * k * 0.118;
   add('line', { x1: mx - gl / 2, y1: cy, x2: mx + gl / 2, y2: cy, stroke: THEME.accent, 'stroke-width': gw, 'stroke-linecap': 'round' });
-  add('circle', { cx: px, cy, r: disc / 2, fill: 'url(#fillDisc)' });
-  add('circle', { cx: px, cy, r: disc / 2 - 1.1 * k, fill: 'none', stroke: 'url(#rim)', 'stroke-width': 1.5 * k, opacity: 0.7 });
+  add('circle', { cx: px, cy, r: disc / 2, fill: R[500] });
   const pl = 30 * k * 0.66, pw = 30 * k * 0.118;
   add('line', { x1: px - pl / 2, y1: cy, x2: px + pl / 2, y2: cy, stroke: '#fff', 'stroke-width': pw, 'stroke-linecap': 'round' });
   add('line', { x1: px, y1: cy - pl / 2, x2: px, y2: cy + pl / 2, stroke: '#fff', 'stroke-width': pw, 'stroke-linecap': 'round' });
@@ -339,20 +297,22 @@ function counter() {
   window.__counter = { left: mx - disc / 2, right: px + disc / 2, top: cy - t / 2, bottom: cy + t / 2 };
 }
 
+// The code points the bundled subsets cover, read from their character maps
+// (both files agree). A character outside them would be drawn in some
+// other font without a word said, so it stops the render instead.
+const COVERED = [[0x20, 0x7E], [0xA0, 0xAC], [0xAE, 0x148], [0x14A, 0x17F], [0x2000, 0x200B],
+                 [0x2010, 0x2027], [0x202F, 0x2055], [0x2057, 0x2057], [0x205F, 0x205F], [0x2212, 0x2212]];
 function headline() {
-  // "See your own pattern." — the website's and the film's own line, which the
-  // 1.4.3 copy review passed (docs/copy-review-1.4.3.md).
+  // "See your own pattern." — the website's hero line and the film's words on
+  // screen, passed by the copy review (docs/copy-review-1.4.3.md).
   const h = document.createElement('div');
   h.className = 'headline';
   h.style.fontSize = LY.head.size + 'px';
   h.innerHTML = LY.head.lines === 2 ? 'See your own<br><span class="tint">pattern.</span>' : 'See your own <span class="tint">pattern.</span>';
   stage.appendChild(h);
-  // The bundled fonts are subsets; a character outside them would be drawn in
-  // some other font without a word said. Stop instead.
-  const covered = [[0x20, 0x7e], [0xa0, 0x17f], [0x2000, 0x206f], [0x2212, 0x2212]];
   for (const ch of h.textContent) {
     const c = ch.codePointAt(0);
-    if (!covered.some(([a, b]) => c >= a && c <= b)) throw new Error(`the headline uses U+${c.toString(16).toUpperCase()}, which fonts/ does not cover`);
+    if (!COVERED.some(([a, b]) => c >= a && c <= b)) throw new Error(`the headline uses U+${c.toString(16).toUpperCase()}, which fonts/ does not cover`);
   }
   const box = h.getBoundingClientRect();
   h.style.left = (LY.head.left !== undefined ? LY.head.left : LY.head.cx - box.width / 2) + 'px';
@@ -365,6 +325,7 @@ function guides() {
   if (!Q.get('guides')) return;
   const svg = svgEl('svg', { width: W, height: H });
   svg.appendChild(svgEl('rect', { x: S.x, y: S.y, width: S.w, height: S.h, fill: 'none', stroke: '#00ff00', 'stroke-width': 6, 'stroke-dasharray': '30 20' }));
+  svg.appendChild(svgEl('rect', { x: IN.x, y: IN.y, width: IN.r - IN.x, height: IN.b - IN.y, fill: 'none', stroke: '#00ff00', 'stroke-width': 3, 'stroke-dasharray': '8 12', opacity: 0.7 }));
   stage.appendChild(svg);
 }
 
@@ -374,8 +335,8 @@ function lum(r, g, b) { return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(
 function contrast(a, b) { const hi = Math.max(a, b), lo = Math.min(a, b); return (hi + 0.05) / (lo + 0.05); }
 function hexLum(h) { const n = parseInt(h.slice(1), 16); return lum((n >> 16) & 255, (n >> 8) & 255, n & 255); }
 function worstContrast(box, [fr, fg, fb, fa]) {
-  // The ground is the canvas: no text is drawn on it. Composite the text over
-  // every ground pixel behind its box and keep the least favourable result.
+  // The ground is the canvas: the headline is not drawn on it. Composite the
+  // text over every ground pixel behind its box and keep the worst result.
   const x = Math.floor(box.left), y = Math.floor(box.top), w = Math.ceil(box.right) - x, h = Math.ceil(box.bottom) - y;
   const d = ctx.getImageData(x, y, w, h).data;
   let worst = Infinity;
@@ -387,24 +348,26 @@ function worstContrast(box, [fr, fg, fb, fa]) {
   return worst;
 }
 function report() {
-  const inside = b => b.left >= S.x - 0.5 && b.top >= S.y - 0.5 && b.right <= S.x + S.w + 0.5 && b.bottom <= S.y + S.h + 0.5;
+  const inside = b => b.left >= IN.x - 0.5 && b.top >= IN.y - 0.5 && b.right <= IN.r + 0.5 && b.bottom <= IN.b + 0.5;
   const n = parseInt(THEME.tint.slice(1), 16);
-  const fills = THEME.fill;
   return {
     theme: THEME.name, fmt: FMT, size: [W, H],
-    headlineInSafeArea: inside(window.__head), counterInSafeArea: inside(window.__counter), monthInSafeArea: inside(window.__month),
+    headlineInset: inside(window.__head), counterInset: inside(window.__counter), monthInset: inside(window.__month),
     headlineContrast: +worstContrast(window.__head, THEME.headRGBA).toFixed(2),
     tintedWordContrast: +worstContrast(window.__tint, [(n >> 16) & 255, (n >> 8) & 255, n & 255, 1]).toFixed(2),
-    countContrast: +contrast(hexLum(fills.M), hexLum(THEME.ink.M)).toFixed(2),
+    // The counter's fills are flat, so the drawn pairs are these.
+    countContrast: +contrast(hexLum(THEME.fill.M), hexLum(THEME.ink.M)).toFixed(2),
     plusContrast: +contrast(hexLum(R[500]), 1).toFixed(2),
+    boxes: { head: window.__head, counter: window.__counter, month: window.__month },
   };
 }
 
-const faces = ['700 100px "Creative Display"', '400 100px "Creative Text"', '500 100px "Creative Text"', '600 100px "Creative Text"'];
+const faces = ['700 100px "Creative Display"', '500 100px "Creative Text"'];
 Promise.all(faces.map(f => document.fonts.load(f))).then(() => document.fonts.ready).then(() => {
   const missing = faces.filter(f => !document.fonts.check(f));
   if (missing.length) throw new Error('fonts did not load: ' + missing.join(', '));
   headline();   // laid out first, so the ground can settle behind it
+  if (Q.get('notext')) stage.querySelector('.headline').style.visibility = 'hidden';
   ground(); wall(); backlight(); vignette(); scrim(); drawMonth(); grain();
   counter(); guides();
   window.__report = report();

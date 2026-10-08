@@ -6,10 +6,11 @@
 //   node render.js --out DIR            somewhere else
 //   node render.js --theme dark         one appearance (dark | light)
 //   node render.js --fmt search         one placement (universal | header | search)
-//   node render.js --guides             draw the template's safe area (proofs only)
+//   node render.js --guides             draw the safe area and the 4% inset (proofs only)
 //
-// Needs Node 18+ and Playwright with a Chromium (`npm i -g playwright` and
-// `npx playwright install chromium`, or set PLAYWRIGHT_MODULE to its path).
+// Needs Node 18+ and Playwright with a Chromium: `npm i -g playwright` and
+// `npx playwright install chromium`. A global install is found through
+// `npm root -g`; PLAYWRIGHT_MODULE, a path to the module, overrides it.
 // Exits 1 if any check fails.
 
 const fs = require('fs');
@@ -25,11 +26,15 @@ const GUIDES = args.includes('--guides');
 const SIZES = { universal: [5244, 2950], header: [3840, 1646], search: [3840, 2560] };
 const NAMES = { universal: 'universal', header: 'header', search: 'search-results' };
 
+function globalModule(name) {
+  try { return path.join(require('child_process').execSync('npm root -g', { encoding: 'utf8' }).trim(), name); }
+  catch (e) { return null; }
+}
 let playwright;
-for (const candidate of [process.env.PLAYWRIGHT_MODULE, 'playwright', '/opt/node22/lib/node_modules/playwright'].filter(Boolean)) {
+for (const candidate of [process.env.PLAYWRIGHT_MODULE, 'playwright', globalModule('playwright')].filter(Boolean)) {
   try { playwright = require(candidate); break; } catch (e) { /* next */ }
 }
-if (!playwright) { console.error('Playwright not found. Install it, or set PLAYWRIGHT_MODULE.'); process.exit(1); }
+if (!playwright) { console.error('Playwright not found: `npm i -g playwright`, or set PLAYWRIGHT_MODULE.'); process.exit(1); }
 
 // --- PNG: assert 8-bit RGB with no alpha, and add an sRGB chunk after IHDR ---
 const CRC = new Int32Array(256).map((_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; return c; });
@@ -71,14 +76,15 @@ function finishPNG(buf, [w, h]) {
     await page.close();
     const file = path.join(OUT, `tallyist-${NAMES[fmt]}${theme === 'light' ? '-light' : ''}-${w}x${h}${GUIDES ? '-guides' : ''}.png`);
     fs.writeFileSync(file, out);
-    // The universal's month is meant to run past the safe area's bottom edge.
-    if (!r.headlineInSafeArea) problems.push('headline outside the safe area');
-    if (!r.counterInSafeArea) problems.push('counter outside the safe area');
-    if (!r.monthInSafeArea && fmt !== 'universal') problems.push('month outside the safe area');
-    // Text holds 4.5:1, the bar the design system sets for accent text. The
-    // count is held to the large-text bar, 3:1: it is the app's own hero pair,
-    // and in light mode that pair, white on 450, is 4.42:1 in the app too
-    // (docs/design-system.md, ADR-0034). The ＋ is a graphic, also 3:1.
+    // Key elements sit 4% inside the safe area. The universal's month starts
+    // below it on purpose.
+    if (!r.headlineInset) problems.push('headline not 4% inside the safe area');
+    if (!r.counterInset) problems.push('counter not 4% inside the safe area');
+    if (!r.monthInset && fmt !== 'universal') problems.push('month not 4% inside the safe area');
+    // The headline is the only text, and holds 4.5:1, the bar the design system
+    // sets for accent text. The count is held to the large-text bar, 3:1: it is
+    // the app's own hero pair, and in light mode that pair, white on 450, is
+    // 4.42:1 in the app too (ADR-0034). The ＋ is a graphic, also 3:1.
     const bars = { headlineContrast: 4.5, tintedWordContrast: 4.5, countContrast: 3, plusContrast: 3 };
     for (const [k, bar] of Object.entries(bars))
       if (r[k] < bar) problems.push(`${k} ${r[k]}:1 is under ${bar}:1`);
@@ -88,7 +94,7 @@ function finishPNG(buf, [w, h]) {
   await browser.close();
   for (const r of rows) {
     console.log(`${r.problems.length ? 'FAIL' : 'ok  '} ${r.file}`);
-    console.log(`     safe area: headline ${r.headlineInSafeArea}, counter ${r.counterInSafeArea}, month ${r.monthInSafeArea}` +
+    console.log(`     4% inside the safe area: headline ${r.headlineInset}, counter ${r.counterInset}, month ${r.monthInset}` +
       ` · contrast: headline ${r.headlineContrast}:1, tinted word ${r.tintedWordContrast}:1, count ${r.countContrast}:1, plus ${r.plusContrast}:1`);
     for (const p of r.problems) console.log('     - ' + p);
   }

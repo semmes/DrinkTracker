@@ -5051,38 +5051,63 @@ Open items for v1.2:
   (21:9, 3840 × 1646) and an optional **search results** asset (3:2, up to 3840 × 2560),
   or one **universal** 16:9 asset (5244 × 2950, PNG only) for both; no alpha. The specs
   are App Store Connect Help's "Creative assets specifications", read that day; the
-  **Art Safe Area** of each, small centred boxes, came out of Apple's Sketch and
-  Photoshop templates (the Sketch file is a zip of JSON; the 16-bit PSDs keep their
-  layers in an `Lr16` block). **What they show:** "See your own pattern.", the
-  website's and the film's own line, over the app's counter (− 2 ＋ in the 3–5 band) and
-  a month of its calendar, today in the same band, on the icon's blue with the rest of
-  the calendar out of focus and the website's backlight. **No drink anywhere, and no
-  drink word:** Apple requires creative assets to meet **4+** whatever the app's rating,
-  and Tallyist is 18+, so "Count what you drink." is left out. **No device** (the bezel
-  licence was accepted for the website only, ADR-0056), and **Inter 4.0 (OFL) instead of
-  SF Pro**, whose licence, as Apple's Fonts page shows it, allows the font "solely for
-  creating mock-ups of user interfaces" and not for "artwork" (that bears on the films'
-  SF Pro Expanded, already the owner's to settle). **The generator** is
-  `scripts/app-store-creative/`: `banner.html` draws, `render.js` renders all six in about
-  40 seconds with Playwright's Chromium, writes 8-bit RGB with an `sRGB` chunk, and fails
-  unless the headline and counter sit inside each safe area and every text pair clears
-  4.5:1 against every pixel behind it (the count, the app's own hero pair, is held to the
+  **Art Safe Area** of each came out of Apple's Sketch and Photoshop templates (the
+  Sketch file is a zip of JSON; the 16-bit PSDs keep their layers in an `Lr16` block):
+  the header's and the search asset's are centred, the universal's is centred across and
+  in its upper half. **What they show:** "See your own pattern.", the website's and the
+  film's own line, over the app's counter (− 2 ＋ in the 3–5 band) and a month of its
+  calendar on the app's own ground, a black card in dark and a white one in light, today
+  its last day and in the same band, all on the icon's blue with the rest of the calendar
+  out of focus and the website's backlight. The month has no day numbers or weekday
+  letters, so the headline is the only text. **No drink, and no drink word, by
+  judgment:** Apple requires creative assets to meet **4+** whatever the app's rating, and
+  guideline 2.3.8 asks the same of screenshots; Tallyist is 18+, the screenshots show a
+  drink tracker and the subtitle beside the art says "Alcoholic Drink Tracker", so where
+  the line falls is read, not quoted. The art stays on the side that needs no argument,
+  "Count what you drink." is left out, and the ADR weighs having no search asset at all
+  (the screenshots then show). **No device** (the App Store crops the header's edges, and
+  Apple's device terms, ADR-0056, allow no crop), and **Inter 4.0 (OFL) instead of SF
+  Pro**, whose licence, as Apple's Fonts page shows it, allows the font "solely for
+  creating mock-ups of user interfaces", depictions of the software included, and not for
+  "artwork"; that bears on the films' SF Pro Expanded, already the owner's to settle.
+  **The generator** is `scripts/app-store-creative/`: `banner.html` draws, `render.js`
+  renders all six in about 40 seconds with Playwright's Chromium (a global install, found
+  through `npm root -g`), writes 8-bit RGB with an `sRGB` chunk, and fails unless the
+  headline and counter stand 4% inside each safe area and the headline clears 4.5:1
+  against every pixel behind it (the count, the app's own hero pair, is held to the
   large-text 3:1: white on 450 is 4.42:1 in the light set, as in the app). The fonts are
-  Latin subsets (about 300 KB; a render is pixel-identical to the full fonts); the PNGs,
-  55 MB, are not committed and went to the owner in the session. **Recommended:** the
-  dedicated dark header and search results assets, because the search asset's headline
-  renders at about 16 points on an iPhone search result against the universal's 12; the
-  universal stays as one asset for both, and the light set is a test's other side.
-  **When:** upload to the Asset Library now, submit once the version in review is
-  approved, then Publish from the live version's page with no new version
-  (`docs/app-store-listing.md`, "Creative assets: header and search results", has the
-  steps). The universal's month starts just below its safe area so a crop to the safe
-  area alone leaves the headline and counter whole. **Not verified:** App Store Connect's
-  Preview crops on an iPhone and an iPad (the only place the real crops show; check it
-  before Publish), App Review's reading of 4+ for a calendar shaded by amount, and the
-  look on a device in each App Store appearance. Copy review entry the same day. No app
-  code, catalog, schema or CloudKit change. **Tooling worth keeping:** Apple's
-  developer pages read as text with a plain `curl` and a tag strip; the template
-  downloads hide behind `developer.apple.com/go/?id=…` pages whose script holds the
-  CDN URL; and the SF licence is embedded in `developer.apple.com/fonts/`, so it can be
-  quoted without unpacking a disk image.
+  two Latin subsets (about 150 KB; a render is pixel-identical to the full fonts, and a
+  headline character outside them stops the render). The PNGs, about 54 MB, are not
+  committed; they went to the owner in the session with crop proofs and two boards.
+  **Reviewed before merging** by an adversarial pass that re-ran the renderer and measured
+  the PNGs. It found one blocking defect: the dark set drew the no-alcohol cells as white
+  at 16% on the blue ground, lighter than the 1–2 cells, so the ramp read backwards. The
+  month now sits on the app's own ground, where a no-alcohol cell measures L\* 16.6
+  against a 1–2 cell's 33.9. Its seven should-fixes were all acted on: the day numbers
+  and weekday letters, three to six points at App Store sizes and under 3.5:1 while three
+  records said every text cleared 4.5:1, are gone; the 4+ reasoning is a judgment that
+  cites 2.3.8, with the no-search-asset option; the glows, shine and gradient ＋ the app
+  does not draw are gone, so the count and ＋ figures are the drawn ones; key elements
+  stand 4% inside the safe areas they had touched; the upload steps preview first, on a
+  version page, since Apple documents no Preview in the live version's Publish flow; and
+  the install no longer depends on a path only this container had. A last look then
+  flattened the month card, whose 8 to 18 degree tilt read as a skew: flat, the header's
+  card meets the headline's cap line and the band tile's foot, and the search asset's
+  counter and card share a centre line. **Recommended:** the dedicated dark header and
+  search results assets. The search asset's headline renders at about 16 points on an
+  iPhone search result against the universal's 11 (if its full-height 3:2 crop is
+  shown), and any crop of the universal between its safe area and its full frame cuts its
+  month through a row. The universal stays as one asset for both, and the light set is a
+  test's other side. **When:** upload to the Asset Library now; preview on a version page
+  that is not in an active submission (the next version's, not 1.4's) and delete them
+  from its placements before that version is submitted; submit them on their own once the
+  version in review is approved; then Publish from the live version's page with no new
+  version (`docs/app-store-listing.md`, "Creative assets: header and search results", has
+  the steps). **Not verified:** App Store Connect's Preview crops on an iPhone and an iPad,
+  App Review's reading of 4+ for a calendar shaded by amount, and the look on a device in
+  each App Store appearance. Copy review entry the same day. No app code, catalog, schema
+  or CloudKit change. **Tooling worth keeping:** Apple's developer pages read as text with
+  a plain `curl` and a tag strip; the template downloads hide behind
+  `developer.apple.com/go/?id=…` pages whose script holds the CDN URL; and the SF licence
+  is embedded in `developer.apple.com/fonts/`, so it can be quoted without unpacking a
+  disk image.
