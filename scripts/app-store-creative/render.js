@@ -55,13 +55,45 @@ function finishPNG(buf, [w, h]) {
   return { out, problems };
 }
 
+// --- The code points a font maps, from its Windows Unicode cmap (format 4) ---
+// banner.html lists the code points its fonts cover (COVERED) and stops on a
+// headline character outside them; this checks that list against the fonts
+// themselves, so a new subset cannot leave it stale.
+const FONTS = ['InterDisplay-Bold.otf', 'Inter-Medium.otf'];
+function cmapRanges(file) {
+  const b = fs.readFileSync(file);
+  let cmap, sub;
+  for (let i = 0, n = b.readUInt16BE(4); i < n; i++)
+    if (b.toString('ascii', 12 + 16 * i, 16 + 16 * i) === 'cmap') cmap = b.readUInt32BE(20 + 16 * i);
+  for (let i = 0, n = cmap === undefined ? 0 : b.readUInt16BE(cmap + 2); i < n; i++) {
+    const rec = cmap + 4 + 8 * i;
+    if (b.readUInt16BE(rec) === 3 && b.readUInt16BE(rec + 2) === 1) sub = cmap + b.readUInt32BE(rec + 4);
+  }
+  if (sub === undefined || b.readUInt16BE(sub) !== 4) throw new Error(`${path.basename(file)} has no format 4 Unicode cmap`);
+  const segs = b.readUInt16BE(sub + 6) / 2;
+  const ends = sub + 14, starts = ends + 2 * segs + 2, deltas = starts + 2 * segs, offsets = deltas + 2 * segs;
+  const ranges = [];
+  for (let s = 0; s < segs; s++) {
+    const start = b.readUInt16BE(starts + 2 * s), end = b.readUInt16BE(ends + 2 * s);
+    const delta = b.readUInt16BE(deltas + 2 * s), ro = b.readUInt16BE(offsets + 2 * s);
+    for (let c = start; c <= end && c !== 0xFFFF; c++) {
+      const indexed = ro === 0 ? c : b.readUInt16BE(offsets + 2 * s + ro + 2 * (c - start));
+      const glyph = ro !== 0 && indexed === 0 ? 0 : (indexed + delta) & 0xFFFF;
+      if (glyph === 0) continue;   // .notdef: not covered
+      const last = ranges[ranges.length - 1];
+      if (last && c === last[1] + 1) last[1] = c; else ranges.push([c, c]);
+    }
+  }
+  return ranges;
+}
+
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await playwright.chromium.launch({
     args: ['--force-color-profile=srgb', '--disable-lcd-text', '--font-render-hinting=none'],
   });
   const rows = [];
-  let failed = false;
+  let failed = false, coverageChecked = false;
   for (const theme of THEMES) for (const fmt of FORMATS) {
     const [w, h] = SIZES[fmt];
     const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
@@ -69,6 +101,17 @@ function finishPNG(buf, [w, h]) {
     const url = 'file://' + path.join(__dirname, 'banner.html') + `?fmt=${fmt}&theme=${theme}${GUIDES ? '&guides=1' : ''}`;
     await page.goto(url);
     await page.waitForFunction('window.__done === true', null, { timeout: 180000 });
+    if (!coverageChecked) {
+      coverageChecked = true;
+      const listed = JSON.stringify(await page.evaluate('COVERED'));
+      const hex = n => '0x' + n.toString(16).toUpperCase();
+      for (const font of FONTS) {
+        const ranges = cmapRanges(path.join(__dirname, 'fonts', font));
+        if (JSON.stringify(ranges) === listed) continue;
+        console.error(`COVERED in banner.html is not fonts/${font}'s character map, which is ${ranges.map(([a, b]) => `[${hex(a)}, ${hex(b)}]`).join(', ')}`);
+        failed = true;
+      }
+    }
     const error = await page.evaluate('window.__error');
     if (error) { console.error(`${theme}/${fmt}: ${error}`); failed = true; await page.close(); continue; }
     const r = await page.evaluate('window.__report');
@@ -81,10 +124,13 @@ function finishPNG(buf, [w, h]) {
     if (!r.headlineInset) problems.push('headline not 4% inside the safe area');
     if (!r.counterInset) problems.push('counter not 4% inside the safe area');
     if (!r.monthInset && fmt !== 'universal') problems.push('month not 4% inside the safe area');
-    // The headline is the only text, and holds 4.5:1, the bar the design system
-    // sets for accent text. The count is held to the large-text bar, 3:1: it is
-    // the app's own hero pair, and in light mode that pair, white on 450, is
-    // 4.42:1 in the app too (ADR-0034). The ＋ is a graphic, also 3:1.
+    // The headline holds 4.5:1, the bar the design system sets for accent text,
+    // against every pixel behind it. The count and the ＋ are parts of the drawn
+    // counter, a picture of the app's interface, and are held to 3:1, the bar
+    // for graphics. The count's pair is the app's own: in the light set, white
+    // on 450 is 4.42:1, which the app's 68pt numeral carries as large text but
+    // which falls short of 4.5:1 for text at the 12 to 15 points the art's
+    // numeral shows at on an iPhone (README.md, "What render.js checks").
     const bars = { headlineContrast: 4.5, tintedWordContrast: 4.5, countContrast: 3, plusContrast: 3 };
     for (const [k, bar] of Object.entries(bars))
       if (r[k] < bar) problems.push(`${k} ${r[k]}:1 is under ${bar}:1`);

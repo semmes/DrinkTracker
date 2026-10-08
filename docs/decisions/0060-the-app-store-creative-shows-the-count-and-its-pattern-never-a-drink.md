@@ -10,30 +10,31 @@ ramp), ADR-0010 (where brand colour goes), ADR-0034 (the hero band), ADR-0056
 
 iOS 27 and iPadOS 27 added two places for artwork of a developer's own on the
 App Store, which App Store Connect calls creative assets: a **product page
-header** above the icon and name (21:9 at 3840 × 1646, or a universal 16:9 asset
-at 5244 × 2950), and a **search results** asset that replaces the screenshots in
-a search result (3:2, up to 3840 × 2560, or the universal one). Both are
-optional, and both take an image or a video. Apple's templates mark an Art Safe
-Area in each: 1646 × 661 of the header and 2168 × 1030 of the search results
-asset, both centred, and 1402 × 962 of the universal one, centred across and in
-its upper half. The specifications and the safe areas are in
-`scripts/app-store-creative/README.md` with their sources.
+header**, which Apple calls "the first thing they'll notice" on the product page
+(21:9 at 3840 × 1646, or a universal 16:9 asset at 5244 × 2950), and a **search
+results** asset that replaces the screenshots in a search result (3:2, up to
+3840 × 2560, or the universal one). Both are optional, and both take an image or
+a video. Apple's templates mark an Art Safe Area in each: 1646 × 661 of the
+header and 2168 × 1030 of the search results asset, both centred, and 1402 × 962
+of the universal one, centred across and set high (y 660 to 1622 of 2950). The
+specifications and the safe areas are in `scripts/app-store-creative/README.md`
+with their sources.
 
 The obvious banner for a drink tracker shows drinks, and three things narrow it:
 
 - **4+.** Apple's asset best practices: "Assets displayed on the App Store must
-  meet a 4+ age rating, even if your app's rating is higher and it's intended for
-  an older audience." Guideline 2.3.8 asks the same of the app's other metadata:
-  "make sure your app and in-app purchase icons, screenshots, and previews adhere
-  to a 4+ age rating even if your app is rated higher". Tallyist is rated 18+,
-  with "Frequent" alcohol references (the product page, 2026-09-26). Where the
-  line falls is a judgment. The screenshots have been held to 2.3.8 since 1.0
-  while showing a drink tracker in use, and the subtitle beside every placement,
-  "Alcoholic Drink Tracker", passed review too. But Apple's
-  help describes creative assets as "distinct from the in-use functionality
-  requirement in app previews and screenshots": brand art, not the app in use.
-  In brand art a glass, a bottle or the word "drink" is a picture of alcohol for
-  its own sake.
+  meet a 4+ age rating, even if your app's rating is higher and it's intended
+  for an older audience." Guideline 2.3.8 asks the same of the app's other
+  metadata: "make sure your app and in-app purchase icons, screenshots, and
+  previews adhere to a 4+ age rating even if your app is rated higher". Tallyist
+  is rated 18+, with "Frequent" alcohol references (the product page,
+  2026-09-26). Where the line falls is a judgment. The screenshots have been
+  held to 2.3.8 since 1.0 while showing a drink tracker in use, and the subtitle
+  beside every placement, "Alcoholic Drink Tracker", passed review too. But
+  Apple's help describes creative assets as "distinct from the in-use
+  functionality requirement in app previews and screenshots": brand art, not the
+  app in use. In brand art a glass, a bottle or the word "drink" is a picture of
+  alcohol for its own sake.
 - **The rest of Apple's rules.** No prices, URLs, copyright symbols, other
   platforms or Apple recognitions; one clear idea; legible text, with the focal
   point in the centre; and for search results, "be sure your app or game's purpose
@@ -59,11 +60,12 @@ The options, argued honestly:
   gives up the one placement made for a first impression. It stays open (How to
   reopen).
 - **The mark, large, as a brand header.** It is the strongest brand statement,
-  but the icon, which is the mark, sits directly below the header, and a headline
-  beside it would be the lockup §1 forbids.
-- **Screenshots in a device.** Accurate, but the screenshots already follow the
-  header on the page, and the App Store crops the header's edges, where Apple's
-  terms allow no crop of a device.
+  but the icon, which is the mark, is on the same page (the header, the app icon
+  and the screenshots "work together", in Apple's WWDC26 session 205), and a
+  headline beside it would be the lockup §1 forbids.
+- **Screenshots in a device.** Accurate, but the screenshots are already on the
+  page, and the App Store crops the header's edges, where Apple's terms allow no
+  crop of a device.
 - **The app's own interface, without a device.** The counter and the calendar
   are what the app is, neither shows a drink, and both are drawn from the
   shipping views' geometry.
@@ -71,30 +73,36 @@ The options, argued honestly:
 ## Decision
 
 Every asset shows **a count and the pattern it makes**: the headline "See your
-own pattern.", the website's and the film's own line, over the app's counter (−,
+own pattern.", the website's and the film's own line, with the app's counter (−,
 a 2 on its band tile, ＋) and a month of the app's calendar on the app's own
 ground, black in dark and white in light, with today, the month's last day, in
-the counter's band. They sit on the icon's blue field, with the rest of the
-calendar out of focus and the website's backlight behind. No drink is drawn and
-the word is not used. `scripts/app-store-creative/` renders all of them and
-checks each.
+the counter's band. In the search results and universal assets the headline
+stands over the two; in the header it stands over the counter, with the month
+beside them. Behind them is the rest of the calendar, out of focus, and the
+website's backlight: in the dark set on the ramp's deepest steps (800 at the
+edges, lit to 650), in the light set on the app's grouped ground (#f2f2f7) with
+washes of the ramp's palest steps. No drink is drawn and the word is not used.
+`scripts/app-store-creative/` renders all of them and checks each.
 
 - **The month is drawn as its pattern:** no day numbers and no weekday letters,
   which at App Store sizes would be text of three to six points. The headline is
-  the only text.
+  the only words; the counter's 2 is part of the drawn counter.
 - **The interface is drawn flat, as the app draws it:** no glow, shine, shadow
-  or tilt.
+  or tilt; the − keeps its glass, a soft highlight and a rim, and the card a
+  hairline rim.
 - **Key elements stand 4% inside each safe area,** which is the worst case, not
   a frame to draw up to.
 - **Dark is the recommendation;** the light set is the other side of a product
-  page optimization test, which Apple suggests for header visuals.
-- **The dedicated header and search results assets are the recommendation**
-  over the universal one. On an iPhone search result about 361 points wide (an
+  page optimization test, which Apple suggests for header visuals (it documents
+  no test of a search results asset).
+- **The dedicated header and search results assets are the recommendation** over
+  the universal one. On an iPhone search result about 361 points wide (an
   estimate), the dedicated asset's headline renders at about 16 points, and the
   universal's at about 11 if the result shows its full-height 3:2 crop, because
-  the universal's safe area is the smallest of the three. Used as the header, the
-  universal's month is also cut through a row by any crop between its safe area
-  and its full frame. It stays available as one asset for both placements.
+  the universal's safe area is the narrowest of the three for its frame. Used as
+  the header, the universal's month is also cut through a row by any crop
+  between its safe area and its full frame. It stays available as one asset for
+  both placements.
 - **Inter 4.0 (OFL) stands in for SF Pro,** in the headline and the counter's
   numeral, subset and committed beside the generator, so the fonts are the same
   on any machine.
@@ -111,26 +119,32 @@ checks each.
   the counter's numeral is Inter Medium with a round-joined stroke where the app
   draws SF Rounded semibold. The numeral in SF Rounded is arguably a depiction of
   the interface, which the licence allows; a headline in SF Pro would be artwork,
-  which it names. A screenshot below the header shows the real thing.
+  which it names. The screenshots on the same page show the real thing.
 - **Accurate where it counts.** The counter's geometry, the calendar's cells,
   outline and inks, and the band rule (two drinks of about 2.7 standard drinks
   are in 3–5) are the app's, and on the app's own ground the inks keep their
   order: a no-alcohol cell's L\* is 16.6 against a 1–2 cell's 33.9 in dark, and
-  91.0 against 72.7 in light. In dark mode the today ring is the 3–5 fill's
+  90.9 against 72.7 in light. In dark mode the today ring is the 3–5 fill's
   colour, so it does not show around today's cell, as in the app. Not the app's:
   the type, the card's padding and corner (proportions of the cell), and the
   missing day numbers.
-- **Two assets mean two uploads and two approvals;** the universal is one.
+- **Two assets mean two files** to make, upload and keep current, though they go
+  to App Review together, in one submission; the universal is one file.
 - **The light set's count is 4.42:1,** white on 450, the app's own light hero
-  pair, held to the large-text bar as the app holds it.
+  pair. The count is part of the drawn counter and is held to 3:1, the bar for
+  graphics. In the app the numeral is 68pt, large text, where 3:1 is the text
+  bar too; in the art it shows at 12 to 15 points on an iPhone, where text would
+  want 4.5:1, so read as text the light count falls short. The dark count is
+  5.77:1, which clears both, and dark is the recommendation.
 - **The pixels are not guaranteed across machines.** The fonts are committed,
   but Chromium rasterises text a little differently on macOS and Linux; the
   checks run wherever it renders.
 - **Nothing here is uploaded.** The PNGs (about 54 MB for all six) stay out of
-  git and are rendered on demand; the generator needs Node and Playwright.
+  git and are rendered on demand; the generator needs Node and Playwright, and
+  the proof sheets Python and Pillow.
 - **Not verified:** how App Store Connect's Preview crops each placement on an
   iPhone and an iPad in each orientation (the safe areas are Apple's template
-  layers; the crops on the proof sheet are illustrative); App Review's reading of
+  layers; the crops `proofs.py` draws are illustrative); App Review's reading of
   4+ for a calendar shaded by amount; how either set reads at the top of the App
   Store in its light and dark appearances on a device.
 - **It bears on an open item elsewhere.** The product film's type is SF Pro
@@ -145,9 +159,9 @@ checks each.
 - **App Review objects** to a calendar shaded by amount, or to the count, under
   the 4+ rule: the counter alone, or the calendar without colour, are the next
   steps down, and the headline stays.
-- **The search asset does not earn its place,** in a product page optimization
-  test or on the owner's reading of "obvious at a glance": remove it, and the
-  screenshots return to search results.
+- **The search asset does not earn its place,** on the owner's reading of
+  "obvious at a glance", or in a test if Apple offers one for it: remove it, and
+  the screenshots return to search results.
 - **The owner reads 4+ more widely,** as the reviews of the screenshots and the
   subtitle suggest App Review does: "Count what you drink." can come back through
   the copy review, first as one side of a test.
@@ -155,7 +169,9 @@ checks each.
   anticipate, or Preview shows a crop cutting the headline or the counter:
   re-lay out in `layout()`.
 - **SF Pro becomes usable here** (a licence for advertising, or new terms): swap
-  the `@font-face` block in `banner.html` for it and re-render.
+  the `@font-face` block in `banner.html` for it, with `COVERED` there and the
+  font files `render.js` checks it against, and re-render. The header's
+  alignment follows the new font's cap height on its own.
 - **A localization ships:** Apple asks for the text to be localized; the headline
   is one string, and it goes through the copy review.
 - **A product page optimization test** shows the light set doing better: swap the

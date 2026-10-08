@@ -2820,7 +2820,7 @@ light):
 - **"See your own pattern."** The website's hero line and the film's words on screen,
   both passed: kept as the design wrote it in the review of the website's own pages
   (2026-09-24), and among the film's words on screen (the home page's film, 2026-09-27).
-  In a new place it says the same thing, about the calendar drawn under it. Its "See" is
+  In a new place it says the same thing, about the counter and the calendar drawn with it. Its "See" is
   a grammatical imperative, the kind those reviews let pass in "See how it works"
   (2026-09-26) and "Tap once." (2026-09-27). Whether the house rule against imperatives
   covers a headline is still the owner's question, open since 2026-09-23 (CLAUDE.md, the
@@ -2833,16 +2833,19 @@ light):
   side: with no drink words and no drink glyphs the art needs no argument at review, and
   the subtitle beside it, "Alcoholic Drink Tracker", says what the app is for.
 - **The counter's "2"** is the app's interface drawn as it is, not copy. The 2 sits in the
-  3–5 band, as two drinks of about 2.7 standard drinks do in the app.
-- **No other text.** The month is drawn as its pattern, with no day numbers and no
+  3–5 band, as two drinks of about 2.7 standard drinks do in the app. It is held to 3:1,
+  the bar for graphics: 5.77:1 in dark, and 4.42:1 in light, the app's own white on 450,
+  which the app's 68pt numeral carries as large text but which falls short of the 4.5:1
+  text wants at the 12 to 15 points the art's numeral shows at on an iPhone.
+- **No other words.** The month is drawn as its pattern, with no day numbers and no
   weekday letters: at App Store sizes they would be text of three to six points, and
   1.4 (1) was rejected under guideline 2.3.2 for text that is "small or otherwise hard to
   read".
 - **Legibility,** after 2.3.2: the headline measures at least 8.55:1 (dark) and 14.37:1
   (light) against every pixel behind it, and the tinted word at least 5.00:1 (dark) and
   4.64:1 (light). The dedicated search asset's headline renders at about 16 points on an
-  iPhone search result, the universal's at about 11.
-  `scripts/app-store-creative/render.js` re-checks the contrast and the safe areas on
-  every render.
+  iPhone search result, the universal's at about 11 if the result shows its full-height
+  3:2 crop. `scripts/app-store-creative/render.js` re-checks the contrast, the safe areas
+  and the fonts' coverage of the headline on every render.
 
 Nothing praises, urges or judges, and nothing is promised. Pass.

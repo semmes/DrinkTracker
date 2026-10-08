@@ -111,9 +111,10 @@ const stage = document.getElementById('stage');
 
 // ---------- Layouts ----------
 // head: the headline (size, and its box's left or centre and top); counter:
-// centre of the band tile and its side; month: top-centre of the month's card
-// and the pitch of its cells (cell + gap); glow: the backlight's centre and
-// reach; wall: the out-of-focus calendar's pitch, in month pitches.
+// centre of the band tile and its side; month: where the month's card goes and
+// the pitch of its cells (cell + gap), resolved by monthFrame(); glow: the
+// backlight's centre and reach; wall: the pitch of the out-of-focus calendar's
+// cells, in pixels.
 function layout() {
   const cx = S.x + S.w / 2;
   if (FMT === 'universal') return {
@@ -123,23 +124,28 @@ function layout() {
     // it cuts nothing in two. A 3:2 search crop shows the whole month.
     head: { size: 134, cx, top: IN.y + 2, lines: 1 },
     counter: { x: cx, y: S.y + 560, tile: 296 },
-    month: { x: cx, y: S.y + S.h + 26, pitch: 196 },
-    glow: [cx, S.y + 900, 1.05], wall: 2.02,
+    month: { x: cx, top: S.y + S.h + 26, pitch: 196 },
+    glow: [cx, S.y + 900, 1.05], wall: 395.92,
   };
-  if (FMT === 'search') return {
-    // The counter's centre is the card's: both sit on y 1392.
-    head: { size: 168, cx, top: IN.y + 4, lines: 1 },
-    counter: { x: 1385, y: 1392, tile: 300 },
-    month: { x: 2363, y: 1046, pitch: 118 },
-    glow: [cx, S.y + 760, 1.05], wall: 2.85,
-  };
-  return {   // header: the headline over the counter on the left, the month on the right
-    // The card's top meets the headline's cap line and its foot the band
-    // tile's, and its right edge stands on the inset.
+  if (FMT === 'search') {
+    // The headline over the counter and the month, which share a centre line.
+    const cy = 1392;
+    return {
+      head: { size: 168, cx, top: IN.y + 4, lines: 1 },
+      counter: { x: 1385, y: cy, tile: 300 },
+      month: { x: 2363, cy, pitch: 118 },
+      glow: [cx, S.y + 760, 1.05], wall: 336.3,
+    };
+  }
+  // The header: the headline over the counter on the left, the month beside
+  // them on the right. The card stands on the inset's right edge, between the
+  // headline's cap line and the band tile's foot; its pitch follows from the two.
+  const counter = { x: IN.x + 274, y: 989, tile: 220 };
+  return {
     head: { size: 116, left: IN.x, top: 535, lines: 2 },
-    counter: { x: IN.x + 274, y: 989, tile: 220 },
-    month: { x: 2307, y: 547, pitch: 94 },
-    glow: [S.x + S.w * 0.6, S.y + S.h * 0.72, 0.9], wall: 3.2,
+    counter,
+    month: { right: IN.r, onCapLine: true, bottom: counter.y + counter.tile / 2 },
+    glow: [S.x + S.w * 0.6, S.y + S.h * 0.72, 0.9], wall: 300.8,
   };
 }
 const LY = layout();
@@ -159,15 +165,28 @@ function ring(c, x, y, w, h, r, width) {
   c.roundRect(x + width, y + width, w - 2 * width, h - 2 * width, Math.max(0, r - width));
 }
 
+// The month's card is 7.875 pitches wide and 5.875 tall: seven columns and five
+// rows of cells, with half a pitch of padding round them. A layout gives the
+// card's horizontal centre and either its top or its vertical centre, or (the
+// header) its right edge, its foot and a top on the headline's cap line, from
+// which the pitch follows. Resolved after the headline is laid out, since the
+// cap line is measured there.
+function monthFrame() {
+  const m = LY.month, WIDE = 7.875, TALL = 5.875;
+  if (m.onCapLine) {
+    const top = window.__capLine, pitch = (m.bottom - top) / TALL;
+    return { left: m.right - WIDE * pitch, top, pitch };
+  }
+  return { left: m.x - WIDE * m.pitch / 2, top: m.cy !== undefined ? m.cy - TALL * m.pitch / 2 : m.top, pitch: m.pitch };
+}
+
 function drawMonth() {
   // Flat, as the app draws it: a plane tilted a few degrees reads as a skew,
   // and it would break the edges the layouts line up.
-  const m = LY.month, P = m.pitch;
+  const { left: x0, top: y0, pitch: P } = monthFrame();
   const side = P * 42 / 48, rad = side * 0.28;   // IntensityCell: 42pt cells with 6pt gaps, r = side × 0.28
   const pad = P * 0.5;
-  const gridW = 6 * P + side, gridH = 4 * P + side;
-  const cardW = gridW + 2 * pad, cardH = gridH + 2 * pad;
-  const x0 = m.x - cardW / 2, y0 = m.y;
+  const cardW = 6 * P + side + 2 * pad, cardH = 4 * P + side + 2 * pad;
   // The app's own ground under the cells: black in dark mode, white in light.
   // The radius is GlassTokens' card radius in proportion to the cell (26 : 42).
   const cardR = side * 26 / 42;
@@ -205,7 +224,7 @@ function ground() {
 function wall() {
   // The rest of the calendar, out of focus: the app's cells, larger, softened
   // as a lens would, fading out toward the light.
-  const p = LY.month.pitch * LY.wall, s = p * 42 / 48, r = s * 0.28;
+  const p = LY.wall, s = p * 42 / 48, r = s * 0.28;
   const layer = document.createElement('canvas'); layer.width = W; layer.height = H;
   const c2 = layer.getContext('2d');
   const rr = rng(41), [gx, gy] = LY.glow, fill = THEME.wallFill || THEME.fill;
@@ -297,9 +316,10 @@ function counter() {
   window.__counter = { left: mx - disc / 2, right: px + disc / 2, top: cy - t / 2, bottom: cy + t / 2 };
 }
 
-// The code points the bundled subsets cover, read from their character maps
-// (both files agree). A character outside them would be drawn in some
-// other font without a word said, so it stops the render instead.
+// The code points the bundled subsets cover, as their character maps list them
+// (both files agree; render.js checks this list against them on every render).
+// A character outside them would be drawn in some other font without a word
+// said, so it stops the render instead.
 const COVERED = [[0x20, 0x7E], [0xA0, 0xAC], [0xAE, 0x148], [0x14A, 0x17F], [0x2000, 0x200B],
                  [0x2010, 0x2027], [0x202F, 0x2055], [0x2057, 0x2057], [0x205F, 0x205F], [0x2212, 0x2212]];
 function headline() {
@@ -314,11 +334,18 @@ function headline() {
     const c = ch.codePointAt(0);
     if (!COVERED.some(([a, b]) => c >= a && c <= b)) throw new Error(`the headline uses U+${c.toString(16).toUpperCase()}, which fonts/ does not cover`);
   }
+  // The first line's cap line, read from a box one cap height tall (CSS's cap
+  // unit, the font's own cap height) standing on its baseline: it follows a
+  // change of font or size. Canvas text metrics round it to 1/64 of an em.
+  const probe = document.createElement('span');
+  probe.style.cssText = 'display: inline-block; width: 0; height: 1cap; vertical-align: baseline';
+  h.prepend(probe);
   const box = h.getBoundingClientRect();
   h.style.left = (LY.head.left !== undefined ? LY.head.left : LY.head.cx - box.width / 2) + 'px';
   h.style.top = LY.head.top + 'px';
   window.__head = h.getBoundingClientRect().toJSON();
   window.__tint = h.querySelector('.tint').getBoundingClientRect().toJSON();
+  window.__capLine = probe.getBoundingClientRect().top;
 }
 
 function guides() {
@@ -359,6 +386,7 @@ function report() {
     countContrast: +contrast(hexLum(THEME.fill.M), hexLum(THEME.ink.M)).toFixed(2),
     plusContrast: +contrast(hexLum(R[500]), 1).toFixed(2),
     boxes: { head: window.__head, counter: window.__counter, month: window.__month },
+    capLine: window.__capLine,
   };
 }
 
