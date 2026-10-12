@@ -10,7 +10,9 @@ rejected on 2026-10-04 on two metadata items, a promotional image (2.3.2) and
 the Terms of Use link (3.1.2(c)), so the same build can go back ("The
 rejection of 1.4 (1), 2026-10-04", after the 1.4 reviewer notes); 1.5's
 What's New and reviewer notes drafted on 2026-10-01 with Trends on one window
-(ADR-0058), for when 1.4 is approved ·
+(ADR-0058), for when 1.4 is approved; 1.4 was never released, and 1.5 (1) was
+rejected on 2026-10-11 on the promotional images alone (2.3.2, twice), so the
+same build can go back ("The rejection of 1.5 (1), 2026-10-11") ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -771,6 +773,93 @@ Guideline 2.3.2: We removed the promotional image. These in-app purchases are no
 If more than one item had an image, say "images". If the image is replaced
 rather than removed, the last paragraph becomes "Guideline 2.3.2: We replaced
 the promotional image for <name> with one that has no text."
+
+## The rejection of 1.5 (1), 2026-10-11
+
+App Review rejected 1.5 (1) on two items, both under guideline 2.3.2 and both
+about promotional images (submission c7d10c01-21c6-48f3-bd7c-de00fea40a30,
+reviewed on an iPad Air 11-inch (M3) and an iPhone 17 Pro Max). The Terms of
+Use item from 1.4's rejection is not raised again. Both items are metadata, so
+the same build goes back ("If your app was rejected for a metadata issue, you
+can resubmit the same build after resolving the issue."), and nothing in the
+app changes.
+
+The record does not say how 1.5 came to be the version in review. What is
+known: the App Store still shows 1.3 (the lookup API, 2026-10-11), so 1.4
+never went live, and 1.5 will be the first released version with the watch
+app, Apple Health on Trends and the recurring tips.
+
+**The two items, in Apple's words:**
+- "We still noticed that your promotional image to be displayed on the App
+  Store does not sufficiently represent the associated promoted In-App
+  Purchase and/or win back offer. … Your promotional image includes text that
+  is small or otherwise hard to read." "Still": the image 1.4's rejection
+  named is in place, or the one that replaced it has the same fault.
+- "the Image for your promoted In-App Purchase product and/or win back offer,
+  Buy the creator a drink, includes references to the price of your In-App
+  Purchase, which is not an appropriate part of this metadata item." Apple's
+  reason: "Pricing for promoted In-App Purchases and win back offers is
+  already shown on your product page, and references within the display name
+  or description may not be accurate in all countries or territories." Its
+  next step: "remove any references to price from your In-App Purchase
+  product's metadata", or "If you have no future plans on promoting this
+  In-App Purchase product, you can delete the associated promotional image in
+  App Store Connect."
+
+**Recommended, as for 1.4: remove the images.** Nothing has changed since
+1.4's rejection: the app has no `PurchaseIntent` handling, so a promotion
+shown to all users "won't be visible on the App Store", and an image does
+nothing for this build. Removing every image answers both items at once. In
+one edit per item:
+1. **Buy the creator a drink** (the one-time tip): in its Image section
+   (App Store promotion), remove the image.
+2. **Both subscriptions** (Monetization → Subscriptions → the group → each
+   subscription): remove any image there too. The first item does not name
+   the product it saw, so check all three.
+3. **Win-back offers:** each subscription has none. An offer needs an image,
+   and both items name "win back offer" beside the promoted purchase.
+4. **Display names and descriptions** (30 and 45 characters), in every
+   localization of all three: no price, no currency sign, no "4.99" or
+   "99.99". Apple asks for "any references to price" to go from the product's
+   metadata, not only from the image. The record has only the live display
+   name, "Buy the creator a drink"; the descriptions are visible only in App
+   Store Connect. `DrinkTracker.storekit` holds the simulator's names and
+   descriptions, not App Store Connect's.
+
+To keep a promotion instead, a build with `PurchaseIntent` handling comes
+first, and then a 1024 × 1024 image for each promoted item with no price and
+no small text. The simplest image that passes both items has no text at all.
+
+**In App Store Connect:** the steps under 1.4's rejection hold (App Review,
+Resolve next to the submission, Edit next to each rejected item, Add for
+Review, then Resubmit to App Review). An item can be edited once before
+resubmission, so make all of an item's changes in that one edit. App Review
+asked for no screen recording this time.
+
+**The reply** (Reply to App Review; copy review, 2026-10-11). Send it once
+steps 1 to 4 are done, since its last sentence is true only after step 4:
+
+```
+Hello,
+
+Thank you for the review. We are resubmitting the same build, 1.5 (1).
+
+Guideline 2.3.2: We removed the promotional images from Buy the creator a drink and from our other in-app purchases. None of them is promoted on the App Store, and their display names and descriptions do not mention a price.
+```
+
+If only Buy the creator a drink had an image, the second paragraph begins "We
+removed the promotional image from Buy the creator a drink." and its next
+sentence speaks of all three in-app purchases.
+
+**What 1.5's metadata has to carry, because 1.4 was never released.** The
+What's New (1.5) and reviewer notes (1.5) below were drafted for a 1.5 that
+followed a live 1.4. Someone updating from 1.3 reads only 1.5's What's New:
+if the field holds only the three Trends paragraphs, it never mentions the
+watch app, Apple Health on Trends or the recurring tips, and if it still holds
+1.4's text, it leaves out Trends. The reviewer notes cannot simply be joined
+either: 1.4's are 3,938 bytes and 1.5's 1,746, and the field holds 4,000.
+App Review raised neither, and what the two fields held at submission is
+visible only in App Store Connect, so no combined text is drafted here yet.
 
 ## What's New (1.5)
 

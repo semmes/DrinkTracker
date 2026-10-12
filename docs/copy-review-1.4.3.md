@@ -2849,3 +2849,17 @@ light):
   and the fonts' coverage of the headline on every render.
 
 Nothing praises, urges or judges, and nothing is promised. Pass.
+
+## 2026-10-11 — The 1.5 rejection: the reply to App Review
+
+App Review rejected 1.5 (1) twice under guideline 2.3.2, for a promotional image with
+small text and for a price in Buy the creator a drink's image. The reply is for App Review
+only; nothing ships in the app (`docs/app-store-listing.md`, "The rejection of 1.5 (1),
+2026-10-11").
+
+- **The reply to App Review:** a greeting and thanks, the build it resubmits, then one
+  paragraph for the guideline saying what was done. "Buy the creator a drink" is the
+  product's name as App Store Connect and the rejection give it. Its last sentence, that
+  no display name or description mentions a price, is a claim about App Store Connect,
+  so the listing says to send the reply only after that is checked. It promises nothing
+  about later promotions. No exclamation mark, no em dash. Pass.

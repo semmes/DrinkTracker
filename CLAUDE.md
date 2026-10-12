@@ -376,6 +376,11 @@ a search results asset and the universal one that serves both, dark recommended 
 light set for a product page optimization test, all rendered and checked by
 `scripts/app-store-creative/`; nothing is uploaded, which is the owner's (the bullet
 "The App Store creative assets…", ADR-0060, proposed).**
+**On 2026-10-11 App Review rejected 1.5 (1), and 1.4 was never released: both items
+are the in-app purchases' promotional images (small text, still, and a price in Buy the
+creator a drink's image), so the same build goes back once the images are removed, and
+1.5's What's New and notes still have to cover the watch app and Health (the bullet
+"1.5 (1) was rejected…").**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5128,3 +5133,25 @@ Open items for v1.2:
   without unpacking a disk image; and Chromium's canvas text metrics round a glyph's
   bounds out to 1/64 of an em (an H at 116px measures 85 where its ink is 84.4), while
   CSS's `cap` unit gives the font's cap height to 1/64 of a pixel.
+- **1.5 (1) was rejected on 2026-10-11, on the promotional images alone (records
+  only).** The owner pasted App Review's message. Two items, both **guideline 2.3.2**:
+  "We still noticed" a promotional image whose text "is small or otherwise hard to
+  read", the item 1.4 (1) was rejected on, and Buy the creator a drink's image
+  "includes references to the price". 3.1.2(c) is not raised again. Reviewed on an iPad
+  Air 11-inch (M3) and an iPhone 17 Pro Max. **The record has no 1.5 submission.** The
+  App Store still shows 1.3 (the lookup API, 2026-10-11), so 1.4 was never released,
+  and 1.5 will be the first released version with the watch app, Apple Health on
+  Trends and the recurring tips. **Nothing in the app changes and no build is needed:**
+  the same build goes back once the images are gone. **Recommended, as for 1.4:**
+  remove the image from all three in-app purchases. The app has no `PurchaseIntent`
+  handling, so a promotion would not show anyway. Also check that no subscription has a
+  win-back offer, and that no display name or description mentions a price; Apple asks
+  for "any references to price" to go from the product's metadata. The steps and the
+  reply are in `docs/app-store-listing.md`, "The rejection of 1.5 (1), 2026-10-11",
+  with a copy review entry the same day. **Open, the owner's:** 1.5's What's New and
+  reviewer notes were drafted for a 1.5 that followed a live 1.4. Someone updating from
+  1.3 reads only 1.5's What's New, and the two sets of notes come to more than the
+  field's 4,000 bytes, so what the fields held at submission needs checking in App
+  Store Connect. No combined text is drafted yet. Nothing was built or rendered. When
+  1.5 is approved, the list in the bullet "1.4 is submitted for review…" applies to it,
+  `platform_state: 2` included.
