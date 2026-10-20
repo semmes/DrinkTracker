@@ -31,8 +31,8 @@ WATCH_BY_STATE = {
     1: (
         [
             "It is coming soon. It will require the iPhone app",
-            "From version 1.4, the watch app logs a drink",
-            "From version 1.4, Trends can show four figures",
+            "From version 1.5, the watch app logs a drink",
+            "From version 1.5, Trends can show four figures",
         ],
         [
             "It installs with the iPhone app.",
@@ -47,7 +47,7 @@ WATCH_BY_STATE = {
         ],
         [
             "It is coming soon. It will require the iPhone app",
-            "From version 1.4",
+            "From version 1.5",
         ],
     ),
 }

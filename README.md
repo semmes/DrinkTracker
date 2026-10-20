@@ -231,7 +231,7 @@ remote-change notification the running app observes, as what schedules an export
 the owner's devices, on an Xcode build of ADR-0055 (CloudKit Development), the watch
 app exported the complication's writes only once it was opened, one after 21 minutes
 46 seconds; no bound is documented, and ADR-0055's device check, on a TestFlight
-build, comes before 1.4 ships. `scripts/verify-watch-setup.py` fails CI if either
+build, is due before 1.5 is released (1.4 never was). `scripts/verify-watch-setup.py` fails CI if either
 extension regains the iCloud container. Until ADR-0055 the complication held the
 container and mirrored beside the watch app (ADR-0041's 2026-09-15 amendment). An
 older note here said such writes "silently fail"; that was never observed and is
@@ -745,7 +745,7 @@ database and their own HealthKit store: there is no account system, no server, a
 networking code in the app at all. Each declares `NSPrivacyAccessedAPICategoryUserDefaults`
 with reason `1C8F.1`, Apple's App Group reason, for `AppGroup.defaults`; the app adds
 `CA92.1`, the app-only reason, for the one setting kept in its standard suite (the
-appearance `@AppStorage`). Until 1.4 all four named `CA92.1` alone and called it the App
+appearance `@AppStorage`). Before 1.5 all four named `CA92.1` alone and called it the App
 Group case, which Apple's reason list does not support.
 
 The Apple Health figures on Trends (ADR-0048 to ADR-0053) add nothing to either list:

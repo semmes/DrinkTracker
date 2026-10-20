@@ -133,12 +133,12 @@ For the Android app, give your phone model and Android version instead.{% endif 
 
 <details>
 <summary>How does the watch app work?</summary>
-<p>{% if state < 2 %}From version 1.4, the {% else %}The {% endif %}watch app logs a drink when you tap the plus. Hold the plus to say what it was, tap the minus to remove today's newest drink, or record a day as no alcohol. Today's count can go on your watch face or in the Smart Stack, and the Smart Stack card has its own plus. The watch keeps its own copy of your log and syncs with your iPhone through your private iCloud. The watch app doesn't use Apple Health itself: drinks you log on the watch are saved to Health by your iPhone once they have synced, if you allow it, and a drink Health already holds can only be removed on the iPhone.</p>
+<p>{% if state < 2 %}From version 1.5, the {% else %}The {% endif %}watch app logs a drink when you tap the plus. Hold the plus to say what it was, tap the minus to remove today's newest drink, or record a day as no alcohol. Today's count can go on your watch face or in the Smart Stack, and the Smart Stack card has its own plus. The watch keeps its own copy of your log and syncs with your iPhone through your private iCloud. The watch app doesn't use Apple Health itself: drinks you log on the watch are saved to Health by your iPhone once they have synced, if you allow it, and a drink Health already holds can only be removed on the iPhone.</p>
 </details>
 
 <details>
 <summary>What is Apple Health on Trends?</summary>
-<p>{% if state < 2 %}From version 1.4, {% endif %}Trends can show four figures from Apple Health beside your log: resting heart rate, sleep, heart rate variability, and wrist temperature, each as your own average on nights you logged drinks and on nights you recorded as no alcohol. They are off until you turn them on in Settings → Apple Health on Trends, or from a card on Trends that asks once. An Apple Watch records them, so without one Health may have none and Trends shows nothing. Tallyist reads them on your device when Trends shows them and never stores them. Turn a switch off any time, or remove access in the Health app under Sharing → Apps → Tallyist.</p>
+<p>{% if state < 2 %}From version 1.5, {% endif %}Trends can show four figures from Apple Health beside your log: resting heart rate, sleep, heart rate variability, and wrist temperature, each as your own average on nights you logged drinks and on nights you recorded as no alcohol. They are off until you turn them on in Settings → Apple Health on Trends, or from a card on Trends that asks once. An Apple Watch records them, so without one Health may have none and Trends shows nothing. Tallyist reads them on your device when Trends shows them and never stores them. Turn a switch off any time, or remove access in the Health app under Sharing → Apps → Tallyist.</p>
 </details>
 
 ## Documents

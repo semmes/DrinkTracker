@@ -2,7 +2,8 @@
 
 **Status:** accepted · **Date:** 2026-08 · amended 2026-09-26 (the recurring
 tips go on sale, and the reminder keeps its promise) and again the same day
-(the yearly tip is $99.99) · **Relates to:** ADR-0001, PRD §1 (non-goals),
+(the yearly tip is $99.99), and on 2026-10-04 (the tips are not promoted on
+the App Store) · **Relates to:** ADR-0001, PRD §1 (non-goals),
 guideline 3.1.1 and 1.4.3
 
 ## Context
@@ -318,6 +319,42 @@ owner ran the DrinkTracker scheme on a simulator after the change and reported
 
 **Not verified.** The price as the sandbox serves it on TestFlight, which
 served neither subscription on 2026-09-26, and App Review's reading of it.
+
+## Amendment (2026-10-04): the tips are not promoted on the App Store
+
+**Context.** App Review rejected 1.4 (1) under guideline 2.3.2: "Your
+promotional image includes text that is small or otherwise hard to read." The
+image was `image.png` in the App Store image slot of the monthly tip (*A drink
+every month*), which was set to be promoted to all App Store users. No record
+says who uploaded it, and the owner did not remember doing so. App Store
+Connect's promotion page itself warned: "These in-app purchases or
+subscriptions can't be promoted on the App Store because your latest approved
+binary doesn't include the required StoreKit APIs." Apple's help says an image
+is needed only "if you want to promote your In-App Purchase on your App Store
+product page or set up win-back offers", and "Your app must support the
+PurchaseIntent API in order for the App Store to display your promoted product
+pages." This app has no `PurchaseIntent` handling.
+
+**Decision.** No tip is promoted on the App Store, and no tip carries an App
+Store image. The owner deleted the image and turned the promotion off, in
+their words: "I think not having it there since it's optional is best." The
+checklist in `docs/app-store-listing.md` says to leave the Image empty. How the
+image came off is in that file's "The rejection of 1.4 (1), 2026-10-04".
+
+**Costs.** None a reader sees, since the promotion could not have shown
+without `PurchaseIntent`. Tips are bought only in the app, where the jar says
+first that they unlock nothing.
+
+**Not verified.** Whether the promotion entry itself is gone. App Store Connect
+refused to remove it while the image existed, and it may still be listed with
+no image.
+
+**How to reopen this amendment.** Promoting a tip needs `PurchaseIntent`
+handling in a build first. Then each promoted item needs its own 1024 × 1024
+image with no text, not a screenshot and not the app icon, legible at small
+sizes, with nothing important in the lower-left corner, where the App Store
+adds the app icon (Apple: "We also recommend that you don't overlay text on
+the image").
 
 ## How to reopen
 
