@@ -12,7 +12,9 @@ Connect, attached a 1.5 build from `main` and resubmitted it with the
 subscription group and both recurring tips, so 1.5 carries 1.4's features and
 the Trends work of ADR-0058 and ADR-0059 ("The rejection of 1.4 (1),
 2026-10-04" says what happened). 1.5's What's New and reviewer notes below
-are the combined ones handed over for that submission ·
+are the combined ones handed over for that submission. 1.5 (1) was rejected
+on 2026-10-11 on the promotional images alone (2.3.2, twice), so the same
+build can go back ("The rejection of 1.5 (1), 2026-10-11") ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -201,6 +203,79 @@ drink,tracker,alcohol,tally,counter,log,standard drinks,units,sober,health,habit
 An honest tally of what you drink. One tap to log, a calendar of your days,
 no judgement anywhere. Free, private, no account.
 ```
+
+## Creative assets: header and search results (iOS 27)
+
+Drawn on 2026-10-08 (ADR-0060, proposed; the copy review the same day). iOS 27 and
+iPadOS 27 show an optional **product page header**, which Apple calls "the first thing
+they'll notice" on the product page, and an optional **search results** asset in place of
+the screenshots in a search result.
+Devices on earlier versions keep the screenshots. Apple's sources: App Store Connect
+Help, "Creative assets specifications", "Manage your App Store assets" and "Submit
+assets from Asset Library"; the "App Store asset best practices and resources" page;
+WWDC26 session 205.
+
+**The files** come from `scripts/app-store-creative/` (`node render.js`, about 40
+seconds); they are not in git. Each is 8-bit RGB with no alpha, which App Store
+Connect requires.
+
+| Upload | File | Size |
+|---|---|---|
+| Header (recommended) | `tallyist-header-3840x1646.png` | 3840 × 1646, 21:9 |
+| Search Results (recommended) | `tallyist-search-results-3840x2560.png` | 3840 × 2560, 3:2 |
+| Or both, as one asset | `tallyist-universal-5244x2950.png`, in Header, with "Use header asset in search results" | 5244 × 2950, 16:9, PNG only |
+| A product page optimization test | `tallyist-header-light-3840x1646.png`, and the other two `-light` files if the test takes them | as above |
+
+The dedicated pair is recommended because its headline is larger where it counts:
+about 16 points on an iPhone search result, against about 11 for the universal
+asset if the result shows its full-height 3:2 crop, since the universal's safe area
+is the narrowest of the three for its frame. Used as the header, the universal's month
+is also cut through a row by any crop between its safe area and its full frame. The
+light set is the other side of a test, not a second set to publish: Apple suggests
+product page optimization for header visuals, and documents no test of a search
+results asset.
+
+**When.** Not into a version submission already in review. An asset assigned to a
+version is reviewed with it, and a new metadata item is one more thing App Review
+can hold the release on (1.4 (1) was rejected for a promotional image). Upload to
+the Asset Library now, where an asset waits in Prepare for Submission at no cost,
+and submit it once the version in review is approved. The app has approved
+versions, so the assets can go to App Review on their own, with no new version
+("Standalone assets are reviewed against your app's latest version"); once approved,
+setting them live needs no submission at all.
+
+**In App Store Connect** (Apple's help, step by step):
+1. **Upload.** Apps → Tallyist → **Asset Library** → add (+) → **Upload Creative
+   Assets** → choose the files → Upload.
+2. **Preview, before anything is submitted.** Apple's help documents Preview only on
+   a version page; its flow for the live version (step 5) has none. On a version page
+   that is not in an active submission (the next version's, once it exists; not
+   1.4's, which goes back to App Review with only the fixes for its rejection):
+   Product Page Information → **Header and Search Results** tab → Header → **Browse
+   Assets** → the header asset → Save; the same for Search Results, or for the
+   universal asset **Use header asset in search results** → **Preview**, on iPhone and
+   iPad in each orientation. The safe areas the art was laid out for are Apple's
+   template layers; Preview is the only place the real crops show.
+3. **Keep or remove.** An asset assigned to a version is reviewed with that version,
+   and can't be submitted on its own while that version is in an active submission.
+   To send the assets on their own, click **Delete** on each placement before that
+   version is submitted (they stay in the Asset Library); to ship them with the
+   version, leave them.
+4. **Submit on their own,** when the version in review is approved: Asset Library →
+   **Edit** → select the assets → **Add for Review** → a new submission → platform
+   iOS → **Submit for Review**.
+5. **Publish,** once approved, on the live version's page: Product Page Information →
+   **Header and Search Results** tab → Header → **Browse Assets** → the header asset →
+   Next → **Publish**. The same for Search Results.
+
+**Keeping them compliant** when they change: the 4+ rule applies to the art whatever
+the app's own rating, and by ADR-0060's judgment that means no drink, glass, bottle
+or drink glyph and no drink words, which is why the website's "Count what you
+drink." is not used; no prices, URLs, copyright symbols, other platforms (Android
+included) or Apple recognitions; the headline and counter 4% inside each template's
+safe area; the headline at 4.5:1 or better against every pixel behind it, and no
+other words in the art (the counter's 2 is part of the drawn counter, held to 3:1 like
+the ＋). A new headline goes through the copy review.
 
 ## What's New (first version)
 
@@ -761,6 +836,93 @@ back as 1.5 instead, in the steps below. They are as the owner reported them.
   whole submission is the other route Apple's help documents (the version
   becomes Developer Rejected and review starts over); whether that unlocks a
   subscription's image was not tried here.
+
+## The rejection of 1.5 (1), 2026-10-11
+
+App Review rejected 1.5 (1) on two items, both under guideline 2.3.2 and both
+about promotional images (submission c7d10c01-21c6-48f3-bd7c-de00fea40a30,
+reviewed on an iPad Air 11-inch (M3) and an iPhone 17 Pro Max). The Terms of
+Use item from 1.4's rejection is not raised again. Both items are metadata, so
+the same build goes back ("If your app was rejected for a metadata issue, you
+can resubmit the same build after resolving the issue."), and nothing in the
+app changes.
+
+The record does not say how 1.5 came to be the version in review. What is
+known: the App Store still shows 1.3 (the lookup API, 2026-10-11), so 1.4
+never went live, and 1.5 will be the first released version with the watch
+app, Apple Health on Trends and the recurring tips.
+
+**The two items, in Apple's words:**
+- "We still noticed that your promotional image to be displayed on the App
+  Store does not sufficiently represent the associated promoted In-App
+  Purchase and/or win back offer. … Your promotional image includes text that
+  is small or otherwise hard to read." "Still": the image 1.4's rejection
+  named is in place, or the one that replaced it has the same fault.
+- "the Image for your promoted In-App Purchase product and/or win back offer,
+  Buy the creator a drink, includes references to the price of your In-App
+  Purchase, which is not an appropriate part of this metadata item." Apple's
+  reason: "Pricing for promoted In-App Purchases and win back offers is
+  already shown on your product page, and references within the display name
+  or description may not be accurate in all countries or territories." Its
+  next step: "remove any references to price from your In-App Purchase
+  product's metadata", or "If you have no future plans on promoting this
+  In-App Purchase product, you can delete the associated promotional image in
+  App Store Connect."
+
+**Recommended, as for 1.4: remove the images.** Nothing has changed since
+1.4's rejection: the app has no `PurchaseIntent` handling, so a promotion
+shown to all users "won't be visible on the App Store", and an image does
+nothing for this build. Removing every image answers both items at once. In
+one edit per item:
+1. **Buy the creator a drink** (the one-time tip): in its Image section
+   (App Store promotion), remove the image.
+2. **Both subscriptions** (Monetization → Subscriptions → the group → each
+   subscription): remove any image there too. The first item does not name
+   the product it saw, so check all three.
+3. **Win-back offers:** each subscription has none. An offer needs an image,
+   and both items name "win back offer" beside the promoted purchase.
+4. **Display names and descriptions** (30 and 45 characters), in every
+   localization of all three: no price, no currency sign, no "4.99" or
+   "99.99". Apple asks for "any references to price" to go from the product's
+   metadata, not only from the image. The record has only the live display
+   name, "Buy the creator a drink"; the descriptions are visible only in App
+   Store Connect. `DrinkTracker.storekit` holds the simulator's names and
+   descriptions, not App Store Connect's.
+
+To keep a promotion instead, a build with `PurchaseIntent` handling comes
+first, and then a 1024 × 1024 image for each promoted item with no price and
+no small text. The simplest image that passes both items has no text at all.
+
+**In App Store Connect:** the steps under 1.4's rejection hold (App Review,
+Resolve next to the submission, Edit next to each rejected item, Add for
+Review, then Resubmit to App Review). An item can be edited once before
+resubmission, so make all of an item's changes in that one edit. App Review
+asked for no screen recording this time.
+
+**The reply** (Reply to App Review; copy review, 2026-10-11). Send it once
+steps 1 to 4 are done, since its last sentence is true only after step 4:
+
+```
+Hello,
+
+Thank you for the review. We are resubmitting the same build, 1.5 (1).
+
+Guideline 2.3.2: We removed the promotional images from Buy the creator a drink and from our other in-app purchases. None of them is promoted on the App Store, and their display names and descriptions do not mention a price.
+```
+
+If only Buy the creator a drink had an image, the second paragraph begins "We
+removed the promotional image from Buy the creator a drink." and its next
+sentence speaks of all three in-app purchases.
+
+**What 1.5's metadata has to carry, because 1.4 was never released.** The
+What's New (1.5) and reviewer notes (1.5) below were drafted for a 1.5 that
+followed a live 1.4. Someone updating from 1.3 reads only 1.5's What's New:
+if the field holds only the three Trends paragraphs, it never mentions the
+watch app, Apple Health on Trends or the recurring tips, and if it still holds
+1.4's text, it leaves out Trends. The reviewer notes cannot simply be joined
+either: 1.4's are 3,938 bytes and 1.5's 1,746, and the field holds 4,000.
+App Review raised neither, and what the two fields held at submission is
+visible only in App Store Connect, so no combined text is drafted here yet.
 
 ## What's New (1.5)
 

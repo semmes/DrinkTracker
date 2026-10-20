@@ -2837,3 +2837,57 @@ ships in the app.
 - **Support page:** "From version 1.4, …" becomes "From version 1.5, …" in the two answers
   that name a version, the watch app and Apple Health on Trends. A fact about which
   release carries them. Pass.
+
+## 2026-10-08 — The App Store creative assets: header and search results
+
+New artwork for the product page header and search results placements of iOS 27
+(ADR-0060, `docs/app-store-listing.md`, "Creative assets: header and search results").
+Nothing ships in the app. The text in the images, in all six (three placements, dark and
+light):
+
+- **"See your own pattern."** The website's hero line and the film's words on screen,
+  both passed: kept as the design wrote it in the review of the website's own pages
+  (2026-09-24), and among the film's words on screen (the home page's film, 2026-09-27).
+  In a new place it says the same thing, about the counter and the calendar drawn with it. Its "See" is
+  a grammatical imperative, the kind those reviews let pass in "See how it works"
+  (2026-09-26) and "Tap once." (2026-09-27). Whether the house rule against imperatives
+  covers a headline is still the owner's question, open since 2026-09-23 (CLAUDE.md, the
+  bullet "The marketing site lives in `semmes/Tallyist`…"); this line has been the
+  website's headline since 2026-09-24. No exclamation mark, no em dash. Pass.
+- **Left out on purpose: "Count what you drink."**, the website's first line. Apple
+  requires creative assets to meet a 4+ rating whatever the app's own rating is, and
+  guideline 2.3.8 asks the same of screenshots. Whether "drink" in an alcohol tracker's
+  artwork is an alcohol reference is a judgment, and ADR-0060 makes it on the cautious
+  side: with no drink words and no drink glyphs the art needs no argument at review, and
+  the subtitle beside it, "Alcoholic Drink Tracker", says what the app is for.
+- **The counter's "2"** is the app's interface drawn as it is, not copy. The 2 sits in the
+  3–5 band, as two drinks of about 2.7 standard drinks do in the app. It is held to 3:1,
+  the bar for graphics: 5.77:1 in dark, and 4.42:1 in light, the app's own white on 450,
+  which the app's 68pt numeral carries as large text but which falls short of the 4.5:1
+  text wants at the 12 to 15 points the art's numeral shows at on an iPhone.
+- **No other words.** The month is drawn as its pattern, with no day numbers and no
+  weekday letters: at App Store sizes they would be text of three to six points, and
+  1.4 (1) was rejected under guideline 2.3.2 for text that is "small or otherwise hard to
+  read".
+- **Legibility,** after 2.3.2: the headline measures at least 8.55:1 (dark) and 14.37:1
+  (light) against every pixel behind it, and the tinted word at least 5.00:1 (dark) and
+  4.64:1 (light). The dedicated search asset's headline renders at about 16 points on an
+  iPhone search result, the universal's at about 11 if the result shows its full-height
+  3:2 crop. `scripts/app-store-creative/render.js` re-checks the contrast, the safe areas
+  and the fonts' coverage of the headline on every render.
+
+Nothing praises, urges or judges, and nothing is promised. Pass.
+
+## 2026-10-11 — The 1.5 rejection: the reply to App Review
+
+App Review rejected 1.5 (1) twice under guideline 2.3.2, for a promotional image with
+small text and for a price in Buy the creator a drink's image. The reply is for App Review
+only; nothing ships in the app (`docs/app-store-listing.md`, "The rejection of 1.5 (1),
+2026-10-11").
+
+- **The reply to App Review:** a greeting and thanks, the build it resubmits, then one
+  paragraph for the guideline saying what was done. "Buy the creator a drink" is the
+  product's name as App Store Connect and the rejection give it. Its last sentence, that
+  no display name or description mentions a price, is a claim about App Store Connect,
+  so the listing says to send the reply only after that is checked. It promises nothing
+  about later promotions. No exclamation mark, no em dash. Pass.
