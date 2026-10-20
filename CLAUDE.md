@@ -387,6 +387,11 @@ creator a drink's image), so the same build goes back once the images are remove
 "1.5 (1) was rejected…").** *(Both had been written on 2026-10-04, in the bullet "1.4's
 features ship as 1.5…", whose PR was still a draft on 2026-10-11 and merged on
 2026-10-20.)*
+**On 2026-10-19 1.5 went live on the App Store, the first release with the watch app,
+Apple Health on Trends and the recurring tips, and the next day tallyist.co moved to
+`platform_state` 2, so every page says the watch app is out (the bullet "1.5 is
+approved and live…", semmes/Tallyist#13). 1.6 opens by bumping `MARKETING_VERSION` in
+its first change.**
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5208,3 +5213,74 @@ Open items for v1.2:
   Store Connect. No combined text is drafted yet. Nothing was built or rendered. When
   1.5 is approved, the list in the bullet "1.4 is submitted for review…" applies to it,
   `platform_state: 2` included.
+- **1.5 is approved and live, and tallyist.co says the watch app is out (2026-10-20;
+  the website and records).** The owner: *"Tallyist 1.5 was approved"*. The store's
+  own record, read the next day: the lookup API's current version is 1.5, released at
+  01:10:07 UTC on 2026-10-20, **the evening of 2026-10-19 at the owner's UTC−4**. The
+  product page's version history goes from 1.3 to 1.5 with no 1.4, lists the devices
+  as "Apple Watch, iPhone, iPad", and says "Requires iOS 26.0 and watchOS 26.0 or
+  later." So 1.5 is the first release with the watch app, Apple Health on Trends and
+  the recurring tips. Which build went out was not reported. **What the product page
+  shows** (2026-10-20):
+  - **In-App Purchases:** "Buy a drink every year" $99.99, "A drink every month"
+    $4.99, "Buy the creator a drink" $4.99. The yearly tip's name is not the one any
+    record here gives ("A drink every year" in `DrinkTracker.storekit`, ADR-0012 and
+    the descriptions in `docs/app-store-listing.md`), so it was renamed in App Store
+    Connect. The StoreKit file is the simulator's and need not follow, but a
+    description pasted from the listing would name the old title. The web page draws
+    no promoted purchase, though it may not draw one at all.
+  - **Links:** Privacy Policy `https://tallyist.co/privacy/`, Support
+    `https://tallyist.co/support/`, Developer Website `https://tallyist.co/`.
+  - **Text:** subtitle "Alcoholic Drink Tracker", age rating 18+, promotional text
+    "Apple Watch and iOS 27 support is here!", and the owner's description of
+    2026-09-23 with the Terms of Use and Privacy Policy lines added at its end (#169).
+    It still has no subscription paragraph, and App Review approved it as it is.
+  - **What's New:** the owner's own text, recorded word for word in the listing
+    beside the combined draft it shortens. It has not been through the 1.4.3 review.
+
+  **The website** (semmes/Tallyist#13, merged as 3244069 and live at 21:25 UTC):
+  `platform_state` went from 1 to 2, the switch every page already read.
+  - **Home:** no "Coming soon" over the watch section, and the closing list reads
+    "Apple Watch · Installs with the iPhone app".
+  - **Apple Watch page:** no "Coming soon" banner; the install line reads "Requires
+    the iPhone app. watchOS 26 and later."
+  - **Press:** "a free app for iPhone, Apple Watch, and Android".
+  - **Footer, every page:** "available for iPhone, iPad, Apple Watch, and Android".
+  - **Support:** the watch question answers yes, the two "From version" lines are
+    gone, and the answer on deleting data names the watch app.
+
+  One CSS rule came with it. State 2 gives the closing list its longest line, which
+  fits from 360px up (319px of the list's 320) and wraps at 320px, where its centred
+  text drifted away from its dot. The list's items now align their text left. Measured at 360, 390 and 1280px,
+  every item sits where it did. The two comments beside the switch also stop saying
+  that `support.md` waits on state 3 for its Android answers; it has read
+  `android_live` since #164. **Verified:** the CI build's pages against the live ones
+  changed only the lines above. No page has "Coming soon" or "From version", and none
+  scrolls sideways at 320, 360, 375 or 390px. The pages were viewed at 1280 and 390px.
+  After the merge, the five live pages and the stylesheet were byte-identical to that
+  build. No new copy: every state 2 line was written with the site.
+  **#169 is merged too.** Its record of 2026-10-04 (1.4 resubmitted as 1.5) was meant
+  to merge once green and never did, and #171 was written without it. Main was merged
+  into it, both sides kept in date order, with four notes where #171 says the record
+  has no 1.5 submission and no combined texts. **Still open, the owner's:**
+  - ADR-0055's device check was to gate 1.4's submission, and no result is recorded.
+    It now runs on the App Store build: the same steps, on Production CloudKit and
+    production push (ADR-0055 notes this).
+  - The App Store Connect API key from `Claude outputs/1.4-rejection/`, to revoke if
+    it is still active.
+  - The creative assets (ADR-0060) can go to review on their own, since no version
+    is in review.
+  - The repository-visibility decision.
+  - Optional: the two films' end cards and the link preview (`img/og/home.png`)
+    name iPhone and Android, or iPhone alone. They are not wrong, and each is a
+    re-render to name the watch.
+
+  **1.6 opens** by bumping `MARKETING_VERSION` in its first change. **Tooling:** the
+  lookup API's `description` leaves out the promotional text, which the product page
+  shows above it; the page's HTML has both, and the version history as before (the
+  bullet "1.3 is approved and live…"). The CI build of the site is the `github-pages`
+  artifact of its run (`gh run download <id> -R semmes/Tallyist -n github-pages`),
+  served for the browser pane by `Claude outputs/site-watch-live/serve.py`, the
+  `watch-live-preview` entry in `.claude/launch.json`. The pane caches the stylesheet
+  across navigations: after a CSS change, fetch it with `cache: 'reload'` before
+  measuring, or the old rules are measured.

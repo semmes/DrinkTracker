@@ -14,7 +14,11 @@ the Trends work of ADR-0058 and ADR-0059 ("The rejection of 1.4 (1),
 2026-10-04" says what happened). 1.5's What's New and reviewer notes below
 are the combined ones handed over for that submission. 1.5 (1) was rejected
 on 2026-10-11 on the promotional images alone (2.3.2, twice), so the same
-build can go back ("The rejection of 1.5 (1), 2026-10-11") ·
+build can go back ("The rejection of 1.5 (1), 2026-10-11"). **1.5 is live**
+since 2026-10-19 (01:10 UTC on the 20th, the store's version history, read on
+2026-10-20 when the owner reported the approval), the first release with the
+watch app, Apple Health on Trends and the recurring tips. Its What's New is
+the owner's own, recorded under "What's New (1.5)" ·
 **Owner:** Shawn · App Store Connect → App Information / the version page.
 Everything here has been through the same 1.4.3 tone review as the app's own
 copy: factual, no celebration, no verdicts — except 1.3's as-shipped What's
@@ -30,6 +34,15 @@ are still the `semmes.github.io/Tallyist/` ones, which redirect to `tallyist.co`
 since 2026-09-24; the table below gives the addresses to set with 1.4
 (ADR-0024, amended 2026-09-24).
 
+**Read again on 2026-10-20, with 1.5 live:** the Privacy Policy, Support and
+Developer Website links are `tallyist.co`'s, as in the table below. The subtitle
+is still "Alcoholic Drink Tracker". The promotional text is the owner's, "Apple
+Watch and iOS 27 support is here!", which the product page shows above the
+description and the lookup API leaves out. The in-app purchases are "Buy a
+drink every year" at $99.99, "A drink every month" at $4.99 and "Buy the
+creator a drink" at $4.99. The yearly tip's name is not "A drink every year",
+which the descriptions below give, so match it before pasting either.
+
 **The description differs too** (read 2026-09-23 through the iTunes lookup API,
 which the read above did not check). The live one is 581 characters, the owner's
 own, and not the text under "Description" below. Three things in it disagree with
@@ -39,6 +52,9 @@ says the log lives in the app's own database and Health is optional; and it has 
 subscription paragraph, which the note under "Description" says must stay while
 recurring tips exist (guideline 3.1.2(c) and Apple's subscriptions page: each
 recurring tip's title, period and price, and the Terms of Use and privacy links).
+On 2026-10-20, with 1.5 live, it is 707 characters: the same text, with the
+Terms of Use and Privacy Policy lines now at its end and still no subscription
+paragraph. App Review approved 1.5 with it, with both recurring tips on sale.
 
 ## App Information
 
@@ -932,9 +948,31 @@ still visible only in App Store Connect.)*
 
 ## What's New (1.5)
 
-Combined on 2026-10-04, when 1.4 was resubmitted as 1.5: 1.4's paragraphs and
-the 1.5 draft of 2026-10-01, the watch first because the store shows only the
-first lines. One sentence changed in the merge: 1.4's "Trends' three
+**As shipped**, the store's What's New since 2026-10-19: the owner's own text,
+written in App Store Connect, word for word from the lookup API (2026-10-20),
+one paragraph per line; 1,176 characters. Its first paragraph is the
+owner's. The rest shortens the combined text below: Health's last sentence
+reads "Defaulted off until you grant access, and none of these figures are
+stored."; the Trends paragraph keeps its first three sentences, and the
+paragraph on dividing the chart takes the place of its sentence on the shared
+card; the paragraph on a log newer than the range and the iOS 27 paragraph are
+left out, the first paragraph naming iOS 27; and the tip jar's last sentence
+reads "Tips unlock nothing but help me keep the app running." It has not been
+through the 1.4.3 review.
+
+```
+Support for iOS 27 and additional support for Apple Watch. Optionally for Apple Watch users, you can grant read only access to Apple Health to see trends against other data points captured while wearing your watch from days you drank vs. alcohol free days.
+
+Trends can now show figures from Apple Health beside your log: resting heart rate, sleep, heart rate variability, and wrist temperature, each as your average on nights you logged drinks and on nights you recorded as no alcohol. Defaulted off until you grant access, and none of these figures are stored.
+
+Trends now compares the range you pick. At Week, Month, Quarter and Year, the weekly average, the drinking days and the weekend days cover the same days as the chart above them, and the Quarter line is the same weekly average the comparison shows. Week now shows all three comparisons. At Quarter and Year, you can now choose how the chart is divided: by day or week at Quarter, and by day, week or month at Year. The dashed line shows your daily, weekly or monthly average to match.
+
+The tip jar in Settings now offers a recurring tip too, monthly or yearly. Tips unlock nothing but help me keep the app running.
+```
+
+**The combined draft** it shortens, combined on 2026-10-04, when 1.4 was
+resubmitted as 1.5: 1.4's paragraphs and the 1.5 draft of 2026-10-01, the
+watch first because the store shows only the first lines. One sentence changed in the merge: 1.4's "Trends' three
 comparisons now share one card, …" became "The comparisons share one card, …"
 at the end of the Trends paragraph, and its iOS 27 sentence became a paragraph
 of its own. Every other sentence is word for word from the two reviewed texts
@@ -1083,7 +1121,8 @@ accounts or servers.
 
 *1.4 became 1.5 on 2026-10-04 ("The rejection of 1.4 (1), 2026-10-04"), so
 what follows applies to the 1.5 submission, and "1.4" in it means that
-version.*
+version. 1.5 went live on 2026-10-19, so this is now the record of that
+submission.*
 
 - **Description:** paste (A) or (B) from "Description for 1.4". The live one
   lacks the 3.1.2(c) subscription paragraph and says nothing about the Health
@@ -1287,7 +1326,8 @@ version.*
   file, not a mirrored one). The support page then answers the watch question
   with "Yes" and drops "From version 1.5",
   and the home and Apple Watch pages stop saying "Coming soon", which names no
-  release and would otherwise stay up.
+  release and would otherwise stay up. *(Done on 2026-10-20, the day after 1.5
+  went live: semmes/Tallyist#13.)*
 - **Before submitting,** run one TestFlight build across a phone and a watch
   on one iCloud account: log on each, with each app closed in turn, and on
   the watch from the Smart Stack card's plus. The watch's sync has never run
@@ -1298,4 +1338,7 @@ version.*
   minutes, then follow the rest of ADR-0055's "Verification" and note when the
   drink reaches the phone. *(1.4 was submitted on 2026-09-26, and whether this
   pass ran first was not reported. The build in review, 1.4 (1), is the one
-  TestFlight has, so the pass can still run on it.)*
+  TestFlight has, so the pass can still run on it.)* *(1.5 went live on
+  2026-10-19 with no result of this pass recorded. It now runs on the App
+  Store build, which syncs to Production too, and it is still ADR-0055's
+  device check.)*
