@@ -384,7 +384,9 @@ light set for a product page optimization test, all rendered and checked by
 are the in-app purchases' promotional images (small text, still, and a price in Buy the
 creator a drink's image), so the same build goes back once the images are removed, and
 1.5's What's New and notes still have to cover the watch app and Health (the bullet
-"1.5 (1) was rejected…").**
+"1.5 (1) was rejected…").** *(Both had been written on 2026-10-04, in the bullet "1.4's
+features ship as 1.5…", whose PR was still a draft on 2026-10-11 and merged on
+2026-10-20.)*
 These
 pointers name their bullets rather than count from the end, because every new bullet
 made "the last bullet" wrong. The paragraph that follows is the 2026-09-10 state, kept for
@@ -5186,7 +5188,10 @@ Open items for v1.2:
   "We still noticed" a promotional image whose text "is small or otherwise hard to
   read", the item 1.4 (1) was rejected on, and Buy the creator a drink's image
   "includes references to the price". 3.1.2(c) is not raised again. Reviewed on an iPad
-  Air 11-inch (M3) and an iPhone 17 Pro Max. **The record has no 1.5 submission.** The
+  Air 11-inch (M3) and an iPhone 17 Pro Max. **The record has no 1.5 submission.**
+  *(It had one: the bullet "1.4's features ship as 1.5…", in semmes/DrinkTracker#169,
+  which was still a draft then and merged on 2026-10-20. It also holds the combined
+  What's New and reviewer notes this bullet says are not drafted.)* The
   App Store still shows 1.3 (the lookup API, 2026-10-11), so 1.4 was never released,
   and 1.5 will be the first released version with the watch app, Apple Health on
   Trends and the recurring tips. **Nothing in the app changes and no build is needed:**

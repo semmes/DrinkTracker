@@ -850,7 +850,10 @@ app changes.
 The record does not say how 1.5 came to be the version in review. What is
 known: the App Store still shows 1.3 (the lookup API, 2026-10-11), so 1.4
 never went live, and 1.5 will be the first released version with the watch
-app, Apple Health on Trends and the recurring tips.
+app, Apple Health on Trends and the recurring tips. *(It did say, in
+semmes/DrinkTracker#169, which was still a draft when this was written and
+merged on 2026-10-20: "What happened (2026-10-04)", under 1.4's rejection
+above.)*
 
 **The two items, in Apple's words:**
 - "We still noticed that your promotional image to be displayed on the App
@@ -923,6 +926,9 @@ watch app, Apple Health on Trends or the recurring tips, and if it still holds
 either: 1.4's are 3,938 bytes and 1.5's 1,746, and the field holds 4,000.
 App Review raised neither, and what the two fields held at submission is
 visible only in App Store Connect, so no combined text is drafted here yet.
+*(The combined texts below were drafted on 2026-10-04 and handed over for
+that submission, in the same draft PR. What the fields held at submission is
+still visible only in App Store Connect.)*
 
 ## What's New (1.5)
 
