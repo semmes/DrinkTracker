@@ -268,7 +268,9 @@ above left open.
   state.
 - **When 1.4 is live,** `platform_state` goes to 2. That shows the watch sentence in
   the support page's deletion answer and drops the "From version 1.4" that the watch
-  and Apple Health on Trends answers carry until then.
+  and Apple Health on Trends answers carry until then. *(1.4 became 1.5, which went
+  live on 2026-10-19, and `platform_state` went to 2 the next day:
+  semmes/Tallyist#13.)*
 
 **Costs.**
 

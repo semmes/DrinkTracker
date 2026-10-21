@@ -2,9 +2,10 @@
 
 **Status:** accepted by the owner on 2026-09-24, after a test on their iPhone
 and watch that did not tell this build from the one before it (Measured on the
-owner's devices); the TestFlight device check under Verification still gates
-1.4's submission · **Date:** 2026-09-24 · **Relates to:** ADR-0041 (its
-2026-09-15 amendment, latency 3), ADR-0046 (the complication), ADR-0047 (the
+owner's devices); the TestFlight device check under Verification was to gate
+1.4's submission, and 1.5, which carries this change, went live on 2026-10-19
+with no result recorded (the note at the end of Verification) · **Date:**
+2026-09-24 · **Relates to:** ADR-0041 (its 2026-09-15 amendment, latency 3), ADR-0046 (the complication), ADR-0047 (the
 phone widget, which already works this way), ADR-0004 (invariant 5's failure
 mode); TN3164, TN3163
 
@@ -211,6 +212,12 @@ the watch's sync has never run on), phone and watch on one account:
 
 If none of the three exports the card's drink promptly, How to reopen applies
 before 1.4 is submitted, not after.
+
+*Note, 2026-10-20:* 1.4 was resubmitted as 1.5 (ADR-0054's amendment), and 1.5
+went live on 2026-10-19 with no result of this check recorded. The check now runs
+on the App Store build, which has the same Production CloudKit and production push
+a TestFlight build has. Its steps are unchanged, and if it fails, How to reopen
+applies to the next release.
 
 ## Measured on the owner's devices, 2026-09-24
 

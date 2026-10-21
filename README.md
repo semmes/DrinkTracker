@@ -230,9 +230,11 @@ CloudKit only through their app's own mirroring. TN3163 names a context save, or
 remote-change notification the running app observes, as what schedules an export. On
 the owner's devices, on an Xcode build of ADR-0055 (CloudKit Development), the watch
 app exported the complication's writes only once it was opened, one after 21 minutes
-46 seconds; no bound is documented, and ADR-0055's device check, on a TestFlight
-build, is due before 1.5 is released (1.4 never was). `scripts/verify-watch-setup.py` fails CI if either
-extension regains the iCloud container. Until ADR-0055 the complication held the
+46 seconds; no bound is documented, and ADR-0055's device check was due on a
+TestFlight build before 1.5's release (1.4 never was). 1.5 went live on 2026-10-19
+with no result recorded, so the check now runs on the App Store build.
+`scripts/verify-watch-setup.py` fails CI if either extension regains the iCloud
+container. Until ADR-0055 the complication held the
 container and mirrored beside the watch app (ADR-0041's 2026-09-15 amendment). An
 older note here said such writes "silently fail"; that was never observed and is
 retracted (ADR-0004, 2026-09-16 amendment).
